@@ -3,7 +3,7 @@
 //  PasteShelf
 //
 //  State management for the floating clipboard history panel.
-//  Handles item loading, selection, keyboard navigation, and paste actions.
+//  Handles item loading, selection, keyboard navigation, search, and paste actions.
 //
 
 import AppKit
@@ -16,7 +16,7 @@ import os.log
 final class FloatingPanelViewModel: ObservableObject {
     // MARK: - Published Properties
 
-    /// Clipboard items to display
+    /// Clipboard items to display (filtered if search/filters active)
     @Published private(set) var items: [ClipboardItemDisplayModel] = []
 
     /// Currently selected item index (-1 for no selection)
@@ -31,10 +31,60 @@ final class FloatingPanelViewModel: ObservableObject {
     /// Error message if something went wrong
     @Published var errorMessage: String?
 
+    // MARK: - Search & Filter Properties
+
+    /// Current search query
+    @Published var searchQuery: String = "" {
+        didSet {
+            searchQuerySubject.send(searchQuery)
+        }
+    }
+
+    /// Active filters
+    @Published var activeFilters: ActiveFilters = .none
+
+    /// Current search state
+    @Published private(set) var searchState: SearchState = .idle
+
+    /// Search results with match information (keyed by item ID)
+    @Published private(set) var searchResults: [UUID: SearchResult] = [:]
+
+    /// Whether search is currently active
+    var isSearchActive: Bool {
+        !searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// Whether any filters are active (search or filter chips)
+    var hasActiveFilters: Bool {
+        isSearchActive || activeFilters.hasActiveFilters
+    }
+
+    // MARK: - Date Grouping
+
+    /// Whether to show items grouped by date
+    @Published var showDateGrouping: Bool = true
+
+    /// Items grouped by date for display
+    var groupedItems: [DateGroupedSection<ClipboardItemDisplayModel>] {
+        // Don't group when searching (search results are sorted by relevance)
+        guard showDateGrouping, !isSearchActive else {
+            return []
+        }
+        return items.groupedByDate()
+    }
+
+    /// Whether grouped view should be used
+    var shouldShowGroupedView: Bool {
+        showDateGrouping && !isSearchActive && !items.isEmpty
+    }
+
     // MARK: - Dependencies
 
     /// Storage manager for fetching items
     private let storageManager: StorageManager
+
+    /// Search engine for full-text search
+    private let searchEngine: FullTextSearchEngine
 
     /// Clipboard monitor for pause/resume during paste
     weak var clipboardMonitor: ClipboardMonitor?
@@ -47,6 +97,9 @@ final class FloatingPanelViewModel: ObservableObject {
     /// Maximum number of items to display
     private let maxItems = 50
 
+    /// Debounce delay for search (milliseconds)
+    private let searchDebounceMs: Int = 150
+
     // MARK: - Private Properties
 
     /// Logger for viewmodel operations
@@ -58,10 +111,33 @@ final class FloatingPanelViewModel: ObservableObject {
     /// Cancellables for Combine subscriptions
     private var cancellables = Set<AnyCancellable>()
 
+    /// Subject for debouncing search queries
+    private let searchQuerySubject = PassthroughSubject<String, Never>()
+
+    /// All items (unfiltered) for use when clearing search
+    private var allItems: [ClipboardItemDisplayModel] = []
+
     // MARK: - Initialization
 
     init(storageManager: StorageManager = .shared) {
         self.storageManager = storageManager
+        self.searchEngine = FullTextSearchEngine(storageManager: storageManager)
+        setupSearchDebounce()
+    }
+
+    // MARK: - Search Setup
+
+    /// Sets up debounced search subscription
+    private func setupSearchDebounce() {
+        searchQuerySubject
+            .debounce(for: .milliseconds(searchDebounceMs), scheduler: DispatchQueue.main)
+            .sink { [weak self] query in
+                guard let self else { return }
+                Task {
+                    await self.performSearch(query: query)
+                }
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Data Loading
@@ -71,8 +147,22 @@ final class FloatingPanelViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        let clipboardItems = await storageManager.fetchRecentItems(limit: maxItems)
-        items = ClipboardItemDisplayModel.from(clipboardItems)
+        // Build predicate from active filters
+        let predicate = buildFilterPredicate()
+
+        let clipboardItems = await storageManager.fetchRecentItems(
+            limit: maxItems,
+            predicate: predicate
+        )
+        allItems = ClipboardItemDisplayModel.from(clipboardItems)
+
+        // If search is active, perform search; otherwise show all items
+        if isSearchActive {
+            await performSearch(query: searchQuery)
+        } else {
+            items = allItems
+            searchResults = [:]
+        }
 
         // Reset selection if needed
         if selectedIndex >= items.count {
@@ -88,6 +178,142 @@ final class FloatingPanelViewModel: ObservableObject {
     /// Refreshes the items list
     func refresh() async {
         await loadItems()
+    }
+
+    // MARK: - Search
+
+    /// Performs a search with the given query
+    func performSearch(query: String) async {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Empty query - show all items
+        if trimmedQuery.isEmpty {
+            searchState = .idle
+            items = allItems
+            searchResults = [:]
+            resetSelectionIfNeeded()
+            return
+        }
+
+        searchState = .searching(query: trimmedQuery)
+        logger.debug("Searching for: \(trimmedQuery)")
+
+        // Build search options from active filters
+        let options = activeFilters.toSearchOptions(limit: maxItems)
+
+        // Execute search
+        let results = await searchEngine.search(query: trimmedQuery, options: options)
+
+        // Store search results for highlighting
+        searchResults = Dictionary(uniqueKeysWithValues: results.map { ($0.itemId, $0) })
+
+        // Filter items to only those with search results
+        let matchingIds = Set(results.map { $0.itemId })
+        items = allItems.filter { matchingIds.contains($0.id) }
+
+        // Sort by relevance score
+        items.sort { item1, item2 in
+            let score1 = searchResults[item1.id]?.relevanceScore ?? 0
+            let score2 = searchResults[item2.id]?.relevanceScore ?? 0
+            return score1 > score2
+        }
+
+        searchState = .completed(resultCount: items.count)
+        resetSelectionIfNeeded()
+        logger.debug("Search completed: \(items.count) results")
+    }
+
+    /// Clears the search query
+    func clearSearch() {
+        searchQuery = ""
+        searchState = .idle
+        searchResults = [:]
+        items = allItems
+        resetSelectionIfNeeded()
+    }
+
+    /// Gets match ranges for an item (for highlighting)
+    func matchRanges(for itemId: UUID) -> [MatchRange] {
+        searchResults[itemId]?.matchRanges ?? []
+    }
+
+    /// Gets the search result for an item
+    func searchResult(for itemId: UUID) -> SearchResult? {
+        searchResults[itemId]
+    }
+
+    // MARK: - Filtering
+
+    /// Applies the current filters and reloads items
+    func applyFilters() async {
+        await loadItems()
+    }
+
+    /// Toggles the content type filter
+    func toggleContentTypeFilter(_ filter: ContentTypeFilter) async {
+        activeFilters.toggleContentTypeFilter(filter)
+        await loadItems()
+    }
+
+    /// Toggles the favorites filter
+    func toggleFavoritesFilter() async {
+        activeFilters.toggleFavoritesFilter()
+        await loadItems()
+    }
+
+    /// Clears all filters
+    func clearAllFilters() async {
+        activeFilters.clearAll()
+        searchQuery = ""
+        await loadItems()
+    }
+
+    /// Builds an NSPredicate from active filters (excluding search)
+    private func buildFilterPredicate() -> NSPredicate? {
+        var predicates: [NSPredicate] = []
+
+        // Content type filter
+        if let contentTypeFilter = activeFilters.contentTypeFilter {
+            let typeStrings = contentTypeFilter.contentTypes.map { $0.rawValue }
+            predicates.append(NSPredicate(format: "contentType IN %@", typeStrings))
+        }
+
+        // Favorites filter
+        if activeFilters.favoritesOnly {
+            predicates.append(NSPredicate(format: "isFavorite == YES"))
+        }
+
+        // Tag filter
+        if !activeFilters.selectedTagIds.isEmpty {
+            predicates.append(NSPredicate(
+                format: "ANY tags.id IN %@",
+                Array(activeFilters.selectedTagIds)
+            ))
+        }
+
+        // Date range filter
+        if let dateRange = activeFilters.dateRange {
+            if let start = dateRange.start {
+                predicates.append(NSPredicate(format: "timestamp >= %@", start as NSDate))
+            }
+            if let end = dateRange.end {
+                predicates.append(NSPredicate(format: "timestamp <= %@", end as NSDate))
+            }
+        }
+
+        if predicates.isEmpty {
+            return nil
+        }
+        return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+    }
+
+    /// Resets selection if needed after filtering
+    private func resetSelectionIfNeeded() {
+        if selectedIndex >= items.count {
+            selectedIndex = items.isEmpty ? -1 : 0
+        } else if selectedIndex < 0, !items.isEmpty {
+            selectedIndex = 0
+        }
     }
 
     // MARK: - Selection
@@ -247,6 +473,10 @@ final class FloatingPanelViewModel: ObservableObject {
     /// Shows the panel and loads items
     func show() async {
         isVisible = true
+        // Reset search state when showing panel
+        searchQuery = ""
+        searchState = .idle
+        searchResults = [:]
         await loadItems()
         if !items.isEmpty, selectedIndex < 0 {
             selectedIndex = 0
@@ -257,6 +487,10 @@ final class FloatingPanelViewModel: ObservableObject {
     func hide() {
         isVisible = false
         clearSelection()
+        // Clear search when hiding
+        searchQuery = ""
+        searchState = .idle
+        searchResults = [:]
     }
 
     /// Toggles panel visibility

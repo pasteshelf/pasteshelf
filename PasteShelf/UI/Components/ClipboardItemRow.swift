@@ -14,6 +14,8 @@ struct ClipboardItemRow: View {
     let item: ClipboardItemDisplayModel
     let index: Int
     let isSelected: Bool
+    var searchHighlights: [MatchRange] = []
+    var searchQuery: String?
     let onSelect: () -> Void
     let onPaste: () -> Void
 
@@ -24,7 +26,11 @@ struct ClipboardItemRow: View {
     // MARK: - Body
 
     var body: some View {
-        ClipboardItemView(item: item)
+        ClipboardItemView(
+            item: item,
+            searchHighlights: searchHighlights,
+            searchQuery: searchQuery
+        )
             .background(backgroundView)
             .contentShape(Rectangle())
             .onTapGesture(count: 2) {

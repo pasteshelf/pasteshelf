@@ -17,12 +17,21 @@ struct FloatingPanelView: View {
     /// Focus state for keyboard handling
     @FocusState private var isFocused: Bool
 
+    /// Focus state for search field
+    @FocusState private var isSearchFocused: Bool
+
     // MARK: - Body
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // Header with title
             headerView
+
+            // Search field
+            searchFieldView
+
+            // Filter chips
+            filterChipsView
 
             Divider()
 
@@ -35,7 +44,7 @@ struct FloatingPanelView: View {
                 itemListView
             }
         }
-        .frame(width: 400, height: 500)
+        .frame(width: 400, height: 520)
         .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
@@ -62,6 +71,10 @@ struct FloatingPanelView: View {
             return .handled
         }
         .onKeyPress(keys: [.escape]) { _ in
+            if viewModel.isSearchActive {
+                viewModel.clearSearch()
+                return .handled
+            }
             viewModel.hide()
             return .handled
         }
@@ -69,6 +82,18 @@ struct FloatingPanelView: View {
             Task {
                 await viewModel.deleteSelected()
             }
+            return .handled
+        }
+        // Cmd+S to toggle favorite on selected item
+        .onKeyPress(keys: [KeyEquivalent("s")], modifiers: .command) { _ in
+            Task {
+                await viewModel.toggleFavorite()
+            }
+            return .handled
+        }
+        // Cmd+F to focus search field
+        .onKeyPress(keys: [KeyEquivalent("f")], modifiers: .command) { _ in
+            isSearchFocused = true
             return .handled
         }
     }
@@ -83,12 +108,83 @@ struct FloatingPanelView: View {
 
             Spacer()
 
-            Text("\(viewModel.items.count) items")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            // Show search state or item count
+            if case let .searching(query) = viewModel.searchState {
+                HStack(spacing: 4) {
+                    ProgressView()
+                        .scaleEffect(0.6)
+                    Text("Searching \"\(query)\"...")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            } else if viewModel.isSearchActive {
+                Text("\(viewModel.items.count) results")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } else {
+                Text("\(viewModel.items.count) items")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
+    }
+
+    // MARK: - Search Field
+
+    private var searchFieldView: some View {
+        SearchFieldView(
+            text: $viewModel.searchQuery,
+            placeholder: "Search clipboard...",
+            onSubmit: {
+                // Optional: do something on enter
+            },
+            onClear: {
+                viewModel.clearSearch()
+            },
+            autoFocus: false
+        )
+        .focused($isSearchFocused)
+        .padding(.horizontal, 12)
+        .padding(.bottom, 6)
+    }
+
+    // MARK: - Filter Chips
+
+    private var filterChipsView: some View {
+        FilterChipsView(
+            selectedContentType: Binding(
+                get: { viewModel.activeFilters.contentTypeFilter },
+                set: { newValue in
+                    Task {
+                        if let filter = newValue {
+                            await viewModel.toggleContentTypeFilter(filter)
+                        } else if viewModel.activeFilters.contentTypeFilter != nil {
+                            await viewModel.toggleContentTypeFilter(viewModel.activeFilters.contentTypeFilter!)
+                        }
+                    }
+                }
+            ),
+            favoritesOnly: Binding(
+                get: { viewModel.activeFilters.favoritesOnly },
+                set: { _ in
+                    Task {
+                        await viewModel.toggleFavoritesFilter()
+                    }
+                }
+            ),
+            onContentTypeToggle: { filter in
+                Task {
+                    await viewModel.toggleContentTypeFilter(filter)
+                }
+            },
+            onFavoritesToggle: {
+                Task {
+                    await viewModel.toggleFavoritesFilter()
+                }
+            }
+        )
     }
 
     // MARK: - Loading View
@@ -111,15 +207,40 @@ struct FloatingPanelView: View {
     private var emptyStateView: some View {
         VStack(spacing: 12) {
             Spacer()
-            Image(systemName: "clipboard")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary.opacity(0.5))
-            Text("No clipboard items")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            Text("Copy something to see it here")
-                .font(.subheadline)
-                .foregroundColor(.secondary.opacity(0.8))
+
+            if viewModel.isSearchActive || viewModel.activeFilters.hasActiveFilters {
+                // No results for search/filter
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 48))
+                    .foregroundColor(.secondary.opacity(0.5))
+                Text("No matching items")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                Text("Try a different search or filter")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary.opacity(0.8))
+
+                Button("Clear Filters") {
+                    Task {
+                        await viewModel.clearAllFilters()
+                    }
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .padding(.top, 8)
+            } else {
+                // No items at all
+                Image(systemName: "clipboard")
+                    .font(.system(size: 48))
+                    .foregroundColor(.secondary.opacity(0.5))
+                Text("No clipboard items")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                Text("Copy something to see it here")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary.opacity(0.8))
+            }
+
             Spacer()
         }
         .padding()
@@ -130,25 +251,13 @@ struct FloatingPanelView: View {
     private var itemListView: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 2) {
-                    ForEach(Array(viewModel.items.enumerated()), id: \.element.id) { index, item in
-                        ClipboardItemRow(
-                            item: item,
-                            index: index,
-                            isSelected: viewModel.selectedIndex == index,
-                            onSelect: {
-                                viewModel.select(at: index)
-                            },
-                            onPaste: {
-                                Task {
-                                    await viewModel.paste(item: item)
-                                }
-                            }
-                        )
-                        .id(item.id)
-                    }
+                if viewModel.shouldShowGroupedView {
+                    // Grouped by date
+                    groupedItemsContent
+                } else {
+                    // Flat list (search results or no grouping)
+                    flatItemsContent
                 }
-                .padding(.vertical, 4)
             }
             .onChange(of: viewModel.selectedIndex) { _, newIndex in
                 guard newIndex >= 0, newIndex < viewModel.items.count else { return }
@@ -158,6 +267,61 @@ struct FloatingPanelView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Grouped Items Content
+
+    private var groupedItemsContent: some View {
+        LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+            ForEach(viewModel.groupedItems) { section in
+                Section {
+                    ForEach(section.items) { item in
+                        itemRow(for: item)
+                    }
+                } header: {
+                    DateGroupHeaderView(
+                        group: section.group,
+                        itemCount: section.count
+                    )
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    // MARK: - Flat Items Content
+
+    private var flatItemsContent: some View {
+        LazyVStack(spacing: 2) {
+            ForEach(Array(viewModel.items.enumerated()), id: \.element.id) { index, item in
+                itemRow(for: item, index: index)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    // MARK: - Item Row
+
+    private func itemRow(for item: ClipboardItemDisplayModel, index: Int? = nil) -> some View {
+        let actualIndex = index ?? viewModel.items.firstIndex(where: { $0.id == item.id }) ?? 0
+        let matchRanges = viewModel.matchRanges(for: item.id)
+
+        return ClipboardItemRow(
+            item: item,
+            index: actualIndex,
+            isSelected: viewModel.selectedIndex == actualIndex,
+            searchHighlights: matchRanges,
+            searchQuery: viewModel.isSearchActive ? viewModel.searchQuery : nil,
+            onSelect: {
+                viewModel.select(at: actualIndex)
+            },
+            onPaste: {
+                Task {
+                    await viewModel.paste(item: item)
+                }
+            }
+        )
+        .id(item.id)
     }
 }
 

@@ -1,0 +1,148 @@
+//
+//  SearchFieldView.swift
+//  PasteShelf
+//
+//  A search text field with clear button for the floating panel.
+//  Provides real-time search with focus management.
+//
+
+import SwiftUI
+
+/// Search text field with clear button and keyboard handling
+struct SearchFieldView: View {
+    // MARK: - Properties
+
+    /// The search query text
+    @Binding var text: String
+
+    /// Placeholder text
+    var placeholder: String = "Search clipboard..."
+
+    /// Called when search is submitted (Enter pressed)
+    var onSubmit: (() -> Void)?
+
+    /// Called when the clear button is pressed
+    var onClear: (() -> Void)?
+
+    /// Whether the field should be focused on appear
+    var autoFocus: Bool = true
+
+    // MARK: - State
+
+    @FocusState private var isFocused: Bool
+
+    // MARK: - Body
+
+    var body: some View {
+        HStack(spacing: 6) {
+            // Search icon
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+                .font(.system(size: 12, weight: .medium))
+
+            // Text field
+            TextField(placeholder, text: $text)
+                .textFieldStyle(.plain)
+                .font(.system(size: 13))
+                .focused($isFocused)
+                .onSubmit {
+                    onSubmit?()
+                }
+
+            // Clear button (visible when text is not empty)
+            if !text.isEmpty {
+                Button(action: clearSearch) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                        .font(.system(size: 12))
+                }
+                .buttonStyle(.plain)
+                .transition(.opacity.combined(with: .scale))
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color(nsColor: .controlBackgroundColor))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(
+                    isFocused ? Color.accentColor.opacity(0.5) : Color.clear,
+                    lineWidth: 1
+                )
+        )
+        .onAppear {
+            if autoFocus {
+                // Delay focus to allow view to fully appear
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isFocused = true
+                }
+            }
+        }
+        .animation(.easeInOut(duration: 0.15), value: text.isEmpty)
+    }
+
+    // MARK: - Actions
+
+    private func clearSearch() {
+        text = ""
+        onClear?()
+        isFocused = true
+    }
+}
+
+// MARK: - Search Field Style Modifier
+
+extension View {
+    /// Applies standard search field styling
+    func searchFieldStyle() -> some View {
+        modifier(SearchFieldStyleModifier())
+    }
+}
+
+struct SearchFieldStyleModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 4)
+    }
+}
+
+// MARK: - Preview
+
+#if DEBUG
+    struct SearchFieldView_Previews: PreviewProvider {
+        struct PreviewWrapper: View {
+            @State private var searchText = ""
+            @State private var searchTextWithContent = "hello world"
+
+            var body: some View {
+                VStack(spacing: 16) {
+                    Text("Empty State")
+                        .font(.caption)
+                    SearchFieldView(text: $searchText)
+
+                    Text("With Content")
+                        .font(.caption)
+                    SearchFieldView(text: $searchTextWithContent)
+
+                    Text("Custom Placeholder")
+                        .font(.caption)
+                    SearchFieldView(
+                        text: $searchText,
+                        placeholder: "Find items..."
+                    )
+                }
+                .padding()
+                .frame(width: 300)
+            }
+        }
+
+        static var previews: some View {
+            PreviewWrapper()
+        }
+    }
+#endif

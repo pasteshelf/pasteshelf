@@ -14,8 +14,19 @@ struct ClipboardItemView: View {
 
     let item: ClipboardItemDisplayModel
 
+    /// Optional search highlight ranges
+    var searchHighlights: [MatchRange] = []
+
+    /// Optional search query for highlighting
+    var searchQuery: String?
+
     /// Whether sensitive content should be revealed
     @State private var isRevealed = false
+
+    /// Whether there are search highlights to show
+    private var hasSearchHighlights: Bool {
+        !searchHighlights.isEmpty || searchQuery != nil
+    }
 
     // MARK: - Body
 
@@ -132,11 +143,30 @@ struct ClipboardItemView: View {
     }
 
     private var textPreviewView: some View {
-        Text(item.shortDisplayText(maxLength: 100))
-            .font(.subheadline)
-            .foregroundColor(.primary)
-            .lineLimit(2)
-            .multilineTextAlignment(.leading)
+        Group {
+            if let query = searchQuery, !query.isEmpty {
+                // Use highlighted text
+                HighlightedTextView(
+                    text: item.shortDisplayText(maxLength: 100),
+                    query: query,
+                    lineLimit: 2
+                )
+            } else if !searchHighlights.isEmpty {
+                // Use provided highlight ranges
+                HighlightedTextView(
+                    text: item.shortDisplayText(maxLength: 100),
+                    matchRanges: searchHighlights,
+                    lineLimit: 2
+                )
+            } else {
+                // Regular text
+                Text(item.shortDisplayText(maxLength: 100))
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+        }
     }
 
     // MARK: - Metadata Row
