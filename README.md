@@ -10,8 +10,8 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Your clipboard history, your data, your control.          │
-│                                                              │
+│  Your clipboard history, your data, your control.           │
+│                                                             │
 │  • Local-first: Data stays on your device                   │
 │  • Open source: Audit the code yourself                     │
 │  • Extensible: Plugins, automation, integrations            │
