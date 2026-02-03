@@ -1,3 +1,8 @@
+# AI/Development files (do not commit)
+TASKS.md
+CLAUDE.md
+.claude/
+
 # Xcode
 build/
 DerivedData/
@@ -66,6 +71,7 @@ secrets/
 *.swo
 *~
 .vscode/
+.mcp.json
 
 # Archives
 *.ipa
@@ -78,6 +84,7 @@ playground.xcworkspace
 
 # Testing
 *.xcresult
+.playwright-mcp/
 
 # Temporary files
 *.tmp
