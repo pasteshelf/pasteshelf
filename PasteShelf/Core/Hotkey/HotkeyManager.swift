@@ -118,6 +118,14 @@ final class HotkeyManager {
         register(configuration: configuration)
     }
 
+    /// Updates the hotkey (alias for updateConfiguration)
+    /// - Parameter configuration: The new configuration
+    /// - Returns: True if the update was successful
+    @discardableResult
+    func updateHotkey(_ configuration: HotkeyConfiguration) -> Bool {
+        updateConfiguration(configuration)
+    }
+
     /// Resets to the default hotkey
     @discardableResult
     func resetToDefault() -> Bool {

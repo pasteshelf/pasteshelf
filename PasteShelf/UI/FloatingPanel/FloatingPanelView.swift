@@ -35,14 +35,18 @@ struct FloatingPanelView: View {
 
             Divider()
 
-            // Content
-            if viewModel.isLoading {
-                loadingView
-            } else if viewModel.items.isEmpty {
-                emptyStateView
-            } else {
-                itemListView
+            // Content with animations
+            Group {
+                if viewModel.isLoading {
+                    loadingView
+                } else if viewModel.items.isEmpty {
+                    emptyStateView
+                } else {
+                    itemListView
+                }
             }
+            .animation(.easeInOut(duration: 0.2), value: viewModel.isLoading)
+            .animation(.easeInOut(duration: 0.2), value: viewModel.items.count)
         }
         .frame(width: 400, height: 520)
         .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
@@ -190,60 +194,29 @@ struct FloatingPanelView: View {
     // MARK: - Loading View
 
     private var loadingView: some View {
-        VStack {
-            Spacer()
-            ProgressView()
-                .scaleEffect(1.5)
-            Text("Loading...")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .padding(.top, 8)
-            Spacer()
-        }
+        SkeletonLoadingView(rowCount: 6)
+            .transition(.opacity.animation(.easeInOut(duration: 0.2)))
     }
 
     // MARK: - Empty State
 
     private var emptyStateView: some View {
-        VStack(spacing: 12) {
-            Spacer()
-
-            if viewModel.isSearchActive || viewModel.activeFilters.hasActiveFilters {
-                // No results for search/filter
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 48))
-                    .foregroundColor(.secondary.opacity(0.5))
-                Text("No matching items")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                Text("Try a different search or filter")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary.opacity(0.8))
-
-                Button("Clear Filters") {
+        Group {
+            if viewModel.isSearchActive {
+                EmptyStateView.noSearchResults {
+                    viewModel.clearSearch()
+                }
+            } else if viewModel.activeFilters.hasActiveFilters {
+                EmptyStateView.noFilteredResults {
                     Task {
                         await viewModel.clearAllFilters()
                     }
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .padding(.top, 8)
             } else {
-                // No items at all
-                Image(systemName: "clipboard")
-                    .font(.system(size: 48))
-                    .foregroundColor(.secondary.opacity(0.5))
-                Text("No clipboard items")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                Text("Copy something to see it here")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary.opacity(0.8))
+                EmptyStateView.noClipboardItems()
             }
-
-            Spacer()
         }
-        .padding()
+        .transition(.opacity.combined(with: .scale(scale: 0.95)).animation(.easeInOut(duration: 0.2)))
     }
 
     // MARK: - Item List
@@ -261,10 +234,18 @@ struct FloatingPanelView: View {
             }
             .onChange(of: viewModel.selectedIndex) { _, newIndex in
                 guard newIndex >= 0, newIndex < viewModel.items.count else { return }
-                let itemId = viewModel.items[newIndex].id
+                let item = viewModel.items[newIndex]
+                let itemId = item.id
                 withAnimation {
                     proxy.scrollTo(itemId, anchor: .center)
                 }
+
+                // Announce to VoiceOver
+                AccessibilityAnnouncement.announceSelection(
+                    at: newIndex,
+                    of: viewModel.items.count,
+                    item: item.displayText
+                )
             }
         }
     }

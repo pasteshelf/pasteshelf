@@ -48,6 +48,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("PasteShelf launching")
 
+        // Apply saved settings on launch
+        applySettingsOnLaunch()
+
         // Set up core services
         setupClipboardMonitor()
 
@@ -61,8 +64,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up notification observers
         setupNotificationObservers()
 
+        // Set up settings observers
+        setupSettingsObservers()
+
         // Start clipboard monitoring
         clipboardMonitor?.startMonitoring()
+
+        // Start auto-cleanup manager
+        AutoCleanupManager.shared.start()
 
         logger.info("PasteShelf launched successfully")
     }
@@ -159,14 +168,68 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showPreferences() {
-        // TODO: Implement preferences window in Phase 1.6
-        logger.debug("Preferences requested (not yet implemented)")
+        PreferencesWindowController.shared.show()
+        logger.debug("Preferences window shown")
     }
 
     private func pasteItem(id: UUID) {
         Task {
             await floatingPanelController?.viewModel.paste(itemId: id)
         }
+    }
+
+    // MARK: - Settings
+
+    private func applySettingsOnLaunch() {
+        let settings = SettingsManager.shared.settings
+
+        // Apply dock visibility setting
+        DockVisibilityManager.shared.setVisible(settings.general.showInDock)
+
+        // Apply theme setting
+        applyTheme(settings.appearance.theme)
+
+        // Refresh launch at login status (to ensure UI matches actual state)
+        LaunchAtLoginManager.shared.refreshStatus()
+
+        logger.debug("Settings applied on launch")
+    }
+
+    private func applyTheme(_ theme: AppTheme) {
+        switch theme {
+        case .system:
+            NSApp.appearance = nil
+        case .light:
+            NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark:
+            NSApp.appearance = NSAppearance(named: .darkAqua)
+        }
+    }
+
+    private func setupSettingsObservers() {
+        // Observe settings changes
+        NotificationCenter.default.publisher(for: .settingsDidChange)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                guard let settings = notification.object as? AppSettings else { return }
+                self?.handleSettingsChange(settings)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func handleSettingsChange(_ settings: AppSettings) {
+        // Apply hotkey changes
+        let hotkeyConfig = settings.shortcuts.globalHotkey.toHotkeyConfiguration
+        hotkeyManager?.updateHotkey(hotkeyConfig)
+
+        // Apply history limit by triggering cleanup if needed
+        if let limit = settings.general.historyLimit.limit {
+            Task {
+                await storageManager.deleteItemsExceedingLimit(limit, keepFavorites: true)
+            }
+        }
+
+        logger.debug("Settings change handled")
     }
 }
 

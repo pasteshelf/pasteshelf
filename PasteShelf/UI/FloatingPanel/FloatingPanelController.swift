@@ -50,8 +50,10 @@ final class FloatingPanelController: NSObject {
 
     // MARK: - Configuration
 
-    /// Panel width
-    private let panelWidth: CGFloat = 400
+    /// Panel width (from settings)
+    private var panelWidth: CGFloat {
+        SettingsManager.shared.appearance.panelWidth.width
+    }
 
     /// Panel height
     private let panelHeight: CGFloat = 500
@@ -65,6 +67,7 @@ final class FloatingPanelController: NSObject {
 
         setupPanel()
         setupBindings()
+        setupSettingsObserver()
     }
 
     // MARK: - Setup
@@ -124,6 +127,31 @@ final class FloatingPanelController: NSObject {
                 }
             }
             .store(in: &cancellables)
+    }
+
+    private func setupSettingsObserver() {
+        // Observe settings changes to update panel width
+        NotificationCenter.default.publisher(for: .settingsDidChange)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updatePanelSize()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func updatePanelSize() {
+        guard let panel = panel else { return }
+
+        let newWidth = panelWidth
+        var frame = panel.frame
+        let widthDiff = newWidth - frame.width
+
+        // Adjust x position to keep panel centered
+        frame.origin.x -= widthDiff / 2
+        frame.size.width = newWidth
+
+        panel.setFrame(frame, display: true, animate: true)
+        logger.debug("Panel size updated to width: \(newWidth)")
     }
 
     // MARK: - Visibility
