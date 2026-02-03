@@ -7,6 +7,7 @@
 //  efficient, privacy-aware logging.
 //
 
+import Foundation
 import os.log
 
 extension Logger {

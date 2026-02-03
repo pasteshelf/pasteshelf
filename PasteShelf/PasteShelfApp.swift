@@ -10,31 +10,22 @@ import SwiftUI
 
 @main
 struct PasteShelfApp: App {
+    // MARK: - App Delegate
+
+    /// AppDelegate manages menu bar, floating panel, and clipboard monitoring
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     // MARK: - Core Services
 
     let persistenceController = PersistenceController.shared
-    let storageManager = StorageManager.shared
 
-    /// Clipboard monitor with storage integration
-    @State private var clipboardMonitor: ClipboardMonitor?
+    // MARK: - Body
 
     var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .environmentObject(storageManager)
-                .onAppear {
-                    setupClipboardMonitor()
-                }
+        // Empty Settings scene for menu bar only app
+        // The app runs entirely from the menu bar via AppDelegate
+        Settings {
+            EmptyView()
         }
-    }
-
-    // MARK: - Setup
-
-    private func setupClipboardMonitor() {
-        // Create clipboard monitor with storage integration
-        clipboardMonitor = ClipboardMonitor(storage: storageManager)
-        // Note: Start monitoring when UI is ready (Phase 1.4)
-        // clipboardMonitor?.startMonitoring()
     }
 }

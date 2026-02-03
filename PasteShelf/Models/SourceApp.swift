@@ -76,15 +76,4 @@ struct SourceApp: Sendable, Equatable {
     }
 }
 
-// MARK: - NSImage Extension for PNG Data
-
-extension NSImage {
-    /// Converts the image to PNG data
-    var pngData: Data? {
-        guard let tiffData = tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData) else {
-            return nil
-        }
-        return bitmap.representation(using: .png, properties: [:])
-    }
-}
+// Note: pngData extension is defined in ImageProcessor.swift

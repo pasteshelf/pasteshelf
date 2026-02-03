@@ -16,7 +16,13 @@ extension StorageManager {
     /// - Returns: The new favorite status, or nil if update failed
     func toggleFavorite(item: ClipboardItem) async -> Bool? {
         guard let itemId = item.id else { return nil }
+        return await toggleFavorite(itemId: itemId)
+    }
 
+    /// Toggles the favorite status of a clipboard item by ID
+    /// - Parameter itemId: The UUID of the item to toggle
+    /// - Returns: The new favorite status, or nil if update failed
+    func toggleFavorite(itemId: UUID) async -> Bool? {
         return await performBackgroundTaskSafe { context -> Bool? in
             let request = ClipboardItem.fetchRequest()
             request.predicate = NSPredicate(format: "id == %@", itemId as CVarArg)

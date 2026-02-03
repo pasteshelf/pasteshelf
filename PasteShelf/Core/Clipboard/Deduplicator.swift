@@ -136,12 +136,14 @@ final class Deduplicator: Deduplicating, Sendable {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: true)
 
         // Lowercase scheme and host
-        components?.scheme = components?.scheme?.lowercased()
-        components?.host = components?.host?.lowercased()
+        let lowercasedScheme = components?.scheme?.lowercased()
+        let lowercasedHost = components?.host?.lowercased()
+        components?.scheme = lowercasedScheme
+        components?.host = lowercasedHost
 
         // Remove default ports
         if let port = components?.port {
-            let scheme = components?.scheme ?? ""
+            let scheme = lowercasedScheme ?? ""
             if (scheme == "http" && port == 80) || (scheme == "https" && port == 443) {
                 components?.port = nil
             }

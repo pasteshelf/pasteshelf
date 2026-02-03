@@ -7,6 +7,7 @@
 
 import CoreData
 import Foundation
+import os.log
 
 extension StorageManager {
     // MARK: - Clipboard Item Fetch

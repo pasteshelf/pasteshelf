@@ -111,9 +111,7 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
 
         let highestSeverity = uniqueDetections.map(\.severity).max() ?? .none
 
-        Logger.security.debug(
-            "Sensitive data scan: \(uniqueDetections.count) detections, severity: \(highestSeverity)"
-        )
+        Logger.security.debug("Sensitive data scan: \(uniqueDetections.count) detections, severity: \(String(describing: highestSeverity))")
 
         return SensitiveDataResult(
             isSensitive: !uniqueDetections.isEmpty,

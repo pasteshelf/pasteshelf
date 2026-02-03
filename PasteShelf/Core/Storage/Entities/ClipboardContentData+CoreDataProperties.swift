@@ -109,3 +109,22 @@ extension ClipboardContentData {
 }
 
 extension ClipboardContentData: Identifiable {}
+
+// MARK: - Text Content Helper
+
+extension ClipboardContentData {
+    /// Returns text content from HTML or parent item's plainTextPreview
+    var textContent: String? {
+        // Try HTML first
+        if let html = htmlContent, !html.isEmpty {
+            return html
+        }
+        // Fall back to parent's plain text preview
+        return clipboardItem?.plainTextPreview
+    }
+
+    /// Returns HTML data as Data
+    var htmlData: Data? {
+        htmlContent?.data(using: .utf8)
+    }
+}

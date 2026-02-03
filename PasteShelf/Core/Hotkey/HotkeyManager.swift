@@ -1,0 +1,207 @@
+//
+//  HotkeyManager.swift
+//  PasteShelf
+//
+//  Manages global hotkey registration using Carbon Event API.
+//  Handles registration, unregistration, and hotkey event handling.
+//
+
+import Carbon.HIToolbox
+import Foundation
+import os.log
+
+/// Manages global hotkey registration and handling
+final class HotkeyManager {
+    // MARK: - Properties
+
+    /// Current hotkey configuration
+    private(set) var configuration: HotkeyConfiguration
+
+    /// Callback invoked when hotkey is pressed
+    var onHotkeyPressed: (() -> Void)?
+
+    /// Reference to the registered hotkey
+    private var hotkeyRef: EventHotKeyRef?
+
+    /// Unique identifier for the hotkey
+    private let hotkeyID = EventHotKeyID(signature: OSType("PSHF".utf8.reduce(0) { $0 << 8 + OSType($1) }), id: 1)
+
+    /// Whether a hotkey is currently registered
+    var isRegistered: Bool {
+        hotkeyRef != nil
+    }
+
+    /// Logger for hotkey operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "hotkey"
+    )
+
+    /// Shared instance for event handler callback
+    private static var shared: HotkeyManager?
+
+    // MARK: - Initialization
+
+    init(configuration: HotkeyConfiguration = .load()) {
+        self.configuration = configuration
+        Self.shared = self
+    }
+
+    deinit {
+        unregisterHotkey()
+        if Self.shared === self {
+            Self.shared = nil
+        }
+    }
+
+    // MARK: - Registration
+
+    /// Registers the default hotkey (Cmd+Shift+V)
+    @discardableResult
+    func registerDefaultHotkey() -> Bool {
+        register(configuration: .default)
+    }
+
+    /// Registers a hotkey with the given configuration
+    /// - Parameter configuration: The hotkey configuration to register
+    /// - Returns: True if registration was successful
+    @discardableResult
+    func register(configuration: HotkeyConfiguration) -> Bool {
+        // Unregister existing hotkey first
+        unregisterHotkey()
+
+        self.configuration = configuration
+
+        // Install event handler if not already installed
+        installEventHandler()
+
+        // Register the hotkey
+        var hotkeyRef: EventHotKeyRef?
+        let status = RegisterEventHotKey(
+            configuration.keyCode,
+            configuration.modifiers,
+            hotkeyID,
+            GetApplicationEventTarget(),
+            0,
+            &hotkeyRef
+        )
+
+        if status == noErr {
+            self.hotkeyRef = hotkeyRef
+            configuration.save()
+            logger.info("Hotkey registered: \(configuration.displayString)")
+            return true
+        } else {
+            logger.error("Failed to register hotkey: \(status)")
+            return false
+        }
+    }
+
+    /// Unregisters the current hotkey
+    func unregisterHotkey() {
+        guard let hotkeyRef = hotkeyRef else { return }
+
+        let status = UnregisterEventHotKey(hotkeyRef)
+        if status == noErr {
+            self.hotkeyRef = nil
+            logger.info("Hotkey unregistered")
+        } else {
+            logger.error("Failed to unregister hotkey: \(status)")
+        }
+    }
+
+    /// Updates the hotkey configuration
+    /// - Parameter configuration: The new configuration
+    /// - Returns: True if the update was successful
+    @discardableResult
+    func updateConfiguration(_ configuration: HotkeyConfiguration) -> Bool {
+        register(configuration: configuration)
+    }
+
+    /// Resets to the default hotkey
+    @discardableResult
+    func resetToDefault() -> Bool {
+        HotkeyConfiguration.reset()
+        return register(configuration: .default)
+    }
+
+    // MARK: - Event Handler
+
+    private var eventHandlerInstalled = false
+
+    private func installEventHandler() {
+        guard !eventHandlerInstalled else { return }
+
+        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+
+        let status = InstallEventHandler(
+            GetApplicationEventTarget(),
+            { _, event, _ -> OSStatus in
+                HotkeyManager.handleHotkeyEvent(event)
+            },
+            1,
+            &eventType,
+            nil,
+            nil
+        )
+
+        if status == noErr {
+            eventHandlerInstalled = true
+            logger.debug("Event handler installed")
+        } else {
+            logger.error("Failed to install event handler: \(status)")
+        }
+    }
+
+    /// Handles hotkey events (called from C callback)
+    private static func handleHotkeyEvent(_ event: EventRef?) -> OSStatus {
+        guard let event = event else { return OSStatus(eventNotHandledErr) }
+
+        var hotkeyID = EventHotKeyID()
+        let status = GetEventParameter(
+            event,
+            EventParamName(kEventParamDirectObject),
+            EventParamType(typeEventHotKeyID),
+            nil,
+            MemoryLayout<EventHotKeyID>.size,
+            nil,
+            &hotkeyID
+        )
+
+        guard status == noErr else { return status }
+
+        // Check if this is our hotkey
+        if hotkeyID.signature == shared?.hotkeyID.signature, hotkeyID.id == shared?.hotkeyID.id {
+            DispatchQueue.main.async {
+                shared?.onHotkeyPressed?()
+            }
+            return noErr
+        }
+
+        return OSStatus(eventNotHandledErr)
+    }
+
+    // MARK: - Conflict Detection
+
+    /// Checks if a hotkey configuration conflicts with system shortcuts
+    /// - Parameter configuration: The configuration to check
+    /// - Returns: True if there might be a conflict
+    func mightConflict(with configuration: HotkeyConfiguration) -> Bool {
+        // Common system shortcuts that might conflict
+        let systemShortcuts: [(keyCode: UInt32, modifiers: UInt32)] = [
+            (UInt32(kVK_ANSI_C), UInt32(cmdKey)), // Cmd+C (Copy)
+            (UInt32(kVK_ANSI_V), UInt32(cmdKey)), // Cmd+V (Paste)
+            (UInt32(kVK_ANSI_X), UInt32(cmdKey)), // Cmd+X (Cut)
+            (UInt32(kVK_ANSI_Z), UInt32(cmdKey)), // Cmd+Z (Undo)
+            (UInt32(kVK_ANSI_A), UInt32(cmdKey)), // Cmd+A (Select All)
+            (UInt32(kVK_ANSI_Q), UInt32(cmdKey)), // Cmd+Q (Quit)
+            (UInt32(kVK_ANSI_W), UInt32(cmdKey)), // Cmd+W (Close Window)
+            (UInt32(kVK_Tab), UInt32(cmdKey)), // Cmd+Tab (App Switcher)
+            (UInt32(kVK_Space), UInt32(cmdKey)), // Cmd+Space (Spotlight)
+        ]
+
+        return systemShortcuts.contains { shortcut in
+            shortcut.keyCode == configuration.keyCode && shortcut.modifiers == configuration.modifiers
+        }
+    }
+}

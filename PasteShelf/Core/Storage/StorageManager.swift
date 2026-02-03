@@ -6,6 +6,7 @@
 //  Provides thread-safe access to CoreData with background write support.
 //
 
+import Combine
 import CoreData
 import Foundation
 import os.log

@@ -225,10 +225,8 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         saveToStorage(content, sourceApp: sourceApp)
 
         delegate?.clipboardMonitor(self, didCapture: content, from: sourceApp)
-        Logger.clipboard.info(
-            "Captured: \(content.primaryType.displayName), " +
-            "sensitive=\(content.isSensitive), time=\(String(format: "%.2fms", captureTime * 1_000))"
-        )
+        let timeMs = String(format: "%.2fms", captureTime * 1_000)
+        Logger.clipboard.info("Captured: \(content.primaryType.displayName), sensitive=\(content.isSensitive), time=\(timeMs)")
     }
 
     private func updateRecentHashes(with hash: String?) {
@@ -332,11 +330,12 @@ struct ClipboardMonitorMetrics {
 
 // MARK: - Convenience Factory Methods
 
+@MainActor
 extension ClipboardMonitor {
     /// Creates a monitor with mock storage for testing
     static func forTesting(
-        storage: ClipboardItemStoring = MockClipboardItemStore()
+        storage: ClipboardItemStoring? = nil
     ) -> ClipboardMonitor {
-        ClipboardMonitor(storage: storage, pollInterval: 0.1)
+        ClipboardMonitor(storage: storage ?? MockClipboardItemStore(), pollInterval: 0.1)
     }
 }
