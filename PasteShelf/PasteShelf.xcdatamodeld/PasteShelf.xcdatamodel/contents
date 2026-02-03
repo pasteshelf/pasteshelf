@@ -1,9 +1,72 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="true" userDefinedModelVersionIdentifier="">
-    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23231" systemVersion="24C101" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
+    <entity name="Application" representedClassName="Application" syncable="YES" codeGenerationType="category">
+        <attribute name="bundleId" attributeType="String"/>
+        <attribute name="isExcluded" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="name" attributeType="String"/>
     </entity>
-    <elements>
-        <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
-    </elements>
+    <entity name="ClipboardContentData" representedClassName="ClipboardContentData" syncable="YES" codeGenerationType="category">
+        <attribute name="availableTypesJSON" optional="YES" attributeType="String"/>
+        <attribute name="fileURLsJSON" optional="YES" attributeType="String"/>
+        <attribute name="htmlContent" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="imageData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="imageHeight" optional="YES" attributeType="Integer32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="imageWidth" optional="YES" attributeType="Integer32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="isImageCompressed" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="pdfData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="rtfData" optional="YES" attributeType="Binary"/>
+        <attribute name="urlString" optional="YES" attributeType="String"/>
+        <relationship name="clipboardItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ClipboardItem" inverseName="content" inverseEntity="ClipboardItem"/>
+    </entity>
+    <entity name="ClipboardItem" representedClassName="ClipboardItem" syncable="YES" codeGenerationType="category">
+        <attribute name="accessCount" attributeType="Integer32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="contentHash" attributeType="String"/>
+        <attribute name="contentType" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isFavorite" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isSensitive" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="plainTextPreview" optional="YES" attributeType="String"/>
+        <attribute name="sourceAppBundleId" optional="YES" attributeType="String"/>
+        <attribute name="sourceAppName" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="content" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ClipboardContentData" inverseName="clipboardItem" inverseEntity="ClipboardContentData"/>
+        <relationship name="folder" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Folder" inverseName="items" inverseEntity="Folder"/>
+        <relationship name="preview" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ContentPreview" inverseName="clipboardItem" inverseEntity="ContentPreview"/>
+        <relationship name="tags" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Tag" inverseName="items" inverseEntity="Tag"/>
+        <fetchIndex name="byContentHash">
+            <fetchIndexElement property="contentHash" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byId">
+            <fetchIndexElement property="id" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsFavorite">
+            <fetchIndexElement property="isFavorite" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byTimestamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="ContentPreview" representedClassName="ContentPreview" syncable="YES" codeGenerationType="category">
+        <attribute name="height" attributeType="Integer32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="thumbnailData" optional="YES" attributeType="Binary"/>
+        <attribute name="width" attributeType="Integer32" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="clipboardItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ClipboardItem" inverseName="preview" inverseEntity="ClipboardItem"/>
+    </entity>
+    <entity name="Folder" representedClassName="Folder" syncable="YES" codeGenerationType="category">
+        <attribute name="icon" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="sortOrder" attributeType="Integer32" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ClipboardItem" inverseName="folder" inverseEntity="ClipboardItem"/>
+        <relationship name="parentFolder" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Folder" inverseName="subfolders" inverseEntity="Folder"/>
+        <relationship name="subfolders" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Folder" inverseName="parentFolder" inverseEntity="Folder"/>
+    </entity>
+    <entity name="Tag" representedClassName="Tag" syncable="YES" codeGenerationType="category">
+        <attribute name="color" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" attributeType="String"/>
+        <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ClipboardItem" inverseName="tags" inverseEntity="Tag"/>
+    </entity>
 </model>
