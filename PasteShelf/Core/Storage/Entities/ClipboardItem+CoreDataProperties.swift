@@ -72,6 +72,9 @@ extension ClipboardItem {
 
     /// Folder containing this item (optional, many-to-one)
     @NSManaged public var folder: Folder?
+
+    /// Collections containing this item (many-to-many)
+    @NSManaged public var collections: NSSet?
 }
 
 // MARK: - Generated accessors for tags
@@ -88,6 +91,22 @@ extension ClipboardItem {
 
     @objc(removeTags:)
     @NSManaged public func removeFromTags(_ values: NSSet)
+}
+
+// MARK: - Generated accessors for collections
+
+extension ClipboardItem {
+    @objc(addCollectionsObject:)
+    @NSManaged public func addToCollections(_ value: SmartCollection)
+
+    @objc(removeCollectionsObject:)
+    @NSManaged public func removeFromCollections(_ value: SmartCollection)
+
+    @objc(addCollections:)
+    @NSManaged public func addToCollections(_ values: NSSet)
+
+    @objc(removeCollections:)
+    @NSManaged public func removeFromCollections(_ values: NSSet)
 }
 
 extension ClipboardItem: Identifiable {}

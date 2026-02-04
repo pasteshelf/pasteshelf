@@ -38,6 +38,7 @@
         <relationship name="folder" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Folder" inverseName="items" inverseEntity="Folder"/>
         <relationship name="preview" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ContentPreview" inverseName="clipboardItem" inverseEntity="ContentPreview"/>
         <relationship name="tags" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Tag" inverseName="items" inverseEntity="Tag"/>
+        <relationship name="collections" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SmartCollection" inverseName="items" inverseEntity="SmartCollection"/>
         <fetchIndex name="byContentHash">
             <fetchIndexElement property="contentHash" type="Binary" order="ascending"/>
         </fetchIndex>
@@ -112,6 +113,24 @@
         </fetchIndex>
         <fetchIndex name="byImageHash">
             <fetchIndexElement property="imageHash" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="SmartCollection" representedClassName="SmartCollection" syncable="YES">
+        <attribute name="colorHex" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="icon" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isAutomatic" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="modifiedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="rulesJSON" optional="YES" attributeType="String"/>
+        <attribute name="sortOrder" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ClipboardItem" inverseName="collections" inverseEntity="ClipboardItem"/>
+        <fetchIndex name="byId">
+            <fetchIndexElement property="id" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="bySortOrder">
+            <fetchIndexElement property="sortOrder" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
 </model>

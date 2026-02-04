@@ -59,6 +59,33 @@ final class FloatingPanelViewModel: ObservableObject {
         isSearchActive || activeFilters.hasActiveFilters
     }
 
+    // MARK: - Collections Properties
+
+    /// Available smart collections
+    @Published private(set) var collections: [CollectionDisplayModel] = []
+
+    /// Currently selected collection ID (nil = All Items)
+    @Published var selectedCollectionId: UUID? {
+        didSet {
+            Task { await applyCollectionFilter() }
+        }
+    }
+
+    /// Currently selected collection
+    var selectedCollection: CollectionDisplayModel? {
+        guard let id = selectedCollectionId else { return nil }
+        return collections.first { $0.id == id }
+    }
+
+    /// Whether the collections sidebar is visible
+    @Published var showCollectionsSidebar: Bool = false
+
+    /// Whether the collection editor sheet is visible
+    @Published var showCollectionEditor: Bool = false
+
+    /// Collection being edited (nil for new collection)
+    @Published var editingCollection: CollectionDisplayModel?
+
     // MARK: - Date Grouping
 
     /// Whether to show items grouped by date
@@ -312,6 +339,20 @@ final class FloatingPanelViewModel: ObservableObject {
     /// Builds an NSPredicate from active filters (excluding search)
     private func buildFilterPredicate() -> NSPredicate? {
         var predicates: [NSPredicate] = []
+
+        // Collection filter (if automatic collection selected)
+        if let collection = selectedCollection, collection.isAutomatic,
+           let rules = collection.rules, !rules.isEmpty
+        {
+            let collectionPredicate = RuleEvaluator.shared.buildPredicate(from: rules)
+            predicates.append(collectionPredicate)
+        } else if let collectionId = selectedCollectionId {
+            // Manual collection - filter by relationship
+            predicates.append(NSPredicate(
+                format: "ANY collections.id == %@",
+                collectionId as CVarArg
+            ))
+        }
 
         // Content type filter
         if let contentTypeFilter = activeFilters.contentTypeFilter {
@@ -616,5 +657,138 @@ final class FloatingPanelViewModel: ObservableObject {
         pasteboard.setString(ocrText, forType: .string)
 
         logger.info("Copied OCR text for item: \(item.id)")
+    }
+
+    // MARK: - Collections
+
+    /// Loads all smart collections
+    func loadCollections() async {
+        let smartCollections = await storageManager.fetchCollections()
+
+        // Load item counts for each collection
+        var displayModels: [CollectionDisplayModel] = []
+        for collection in smartCollections {
+            let count = await storageManager.itemCountForCollection(collection)
+            if let model = CollectionDisplayModel.from(collection, itemCount: count) {
+                displayModels.append(model)
+            }
+        }
+
+        collections = displayModels
+        logger.debug("Loaded \(collections.count) collections")
+    }
+
+    /// Applies the current collection filter and reloads items
+    func applyCollectionFilter() async {
+        // Clear search when changing collection
+        if isSearchActive {
+            clearSearch()
+        }
+
+        await loadItems()
+    }
+
+    /// Creates a new collection
+    func createCollection(_ model: CollectionDisplayModel) async {
+        _ = await storageManager.saveCollection(from: model)
+        await loadCollections()
+        showCollectionEditor = false
+        editingCollection = nil
+        logger.debug("Created collection: \(model.name)")
+    }
+
+    /// Updates an existing collection
+    func updateCollection(_ model: CollectionDisplayModel) async {
+        let success = await storageManager.updateCollection(
+            model.id,
+            name: model.name,
+            icon: model.icon,
+            colorHex: model.colorHex,
+            rules: model.rules
+        )
+
+        if success {
+            await loadCollections()
+            // Reload items if this is the selected collection
+            if selectedCollectionId == model.id {
+                await loadItems()
+            }
+        }
+
+        showCollectionEditor = false
+        editingCollection = nil
+        logger.debug("Updated collection: \(model.name)")
+    }
+
+    /// Deletes a collection
+    func deleteCollection(_ collection: CollectionDisplayModel) async {
+        let success = await storageManager.deleteCollection(collection.id)
+        if success {
+            // Clear selection if we deleted the selected collection
+            if selectedCollectionId == collection.id {
+                selectedCollectionId = nil
+            }
+            await loadCollections()
+            logger.debug("Deleted collection: \(collection.name)")
+        }
+    }
+
+    /// Shows the editor for creating a new collection
+    func showNewCollectionEditor() {
+        editingCollection = nil
+        showCollectionEditor = true
+    }
+
+    /// Shows the editor for editing an existing collection
+    func showEditCollectionEditor(_ collection: CollectionDisplayModel) {
+        editingCollection = collection
+        showCollectionEditor = true
+    }
+
+    /// Toggles the collections sidebar visibility
+    func toggleCollectionsSidebar() {
+        showCollectionsSidebar.toggle()
+        if showCollectionsSidebar {
+            Task { await loadCollections() }
+        }
+    }
+
+    /// Adds an item to a manual collection
+    func addItemToCollection(_ item: ClipboardItemDisplayModel, collection: CollectionDisplayModel) async {
+        guard !collection.isAutomatic else { return }
+
+        // Fetch the actual ClipboardItem
+        guard let clipboardItem = await storageManager.fetchItem(byId: item.id),
+              let smartCollection = await storageManager.fetchCollection(byId: collection.id)
+        else {
+            return
+        }
+
+        let success = await storageManager.addItemToCollection(clipboardItem, collection: smartCollection)
+        if success {
+            await loadCollections() // Update item counts
+            logger.debug("Added item \(item.id) to collection \(collection.name)")
+        }
+    }
+
+    /// Removes an item from a manual collection
+    func removeItemFromCollection(_ item: ClipboardItemDisplayModel, collection: CollectionDisplayModel) async {
+        guard !collection.isAutomatic else { return }
+
+        guard let clipboardItem = await storageManager.fetchItem(byId: item.id),
+              let smartCollection = await storageManager.fetchCollection(byId: collection.id)
+        else {
+            return
+        }
+
+        let success = await storageManager.removeItemFromCollection(clipboardItem, collection: smartCollection)
+        if success {
+            await loadCollections()
+            // Reload items if viewing this collection
+            if selectedCollectionId == collection.id {
+                await loadItems()
+            }
+            logger.debug("Removed item \(item.id) from collection \(collection.name)")
+        }
     }
 }
