@@ -91,6 +91,12 @@ final class SettingsManager: ObservableObject {
         settings = newSettings
     }
 
+    /// Saves new settings (replacing current)
+    func save(_ newSettings: AppSettings) {
+        settings = newSettings
+        logger.debug("Settings saved")
+    }
+
     /// Resets all settings to defaults
     func resetToDefaults() {
         AppSettings.reset()

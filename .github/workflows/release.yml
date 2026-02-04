@@ -4,9 +4,19 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      skip_notarization:
+        description: 'Skip notarization step'
+        required: false
+        default: 'true'
+        type: boolean
 
 permissions:
   contents: write
+
+env:
+  XCODE_VERSION: '16.0'
 
 jobs:
   build-release:
@@ -17,13 +27,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.0.app
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
 
       - name: Get Version
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "push" ]; then
+            # Extract version from tag (e.g., v1.0.0 -> 1.0.0)
+            VERSION="${GITHUB_REF_NAME#v}"
+            echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          else
+            echo "VERSION=dev-$(date +%Y%m%d%H%M%S)" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Build Release
+      - name: Build Release Archive
         run: |
           xcodebuild archive \
             -scheme PasteShelf \
@@ -31,25 +51,97 @@ jobs:
             -archivePath build/PasteShelf.xcarchive \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Export App
+      - name: Export App (Unsigned)
         run: |
           xcodebuild -exportArchive \
             -archivePath build/PasteShelf.xcarchive \
             -exportPath build/export \
-            -exportOptionsPlist ExportOptions.plist || true
+            -exportOptionsPlist ExportOptions.plist || {
+              # Fallback: Copy app from archive if export fails
+              mkdir -p build/export
+              cp -R build/PasteShelf.xcarchive/Products/Applications/PasteShelf.app build/export/
+            }
+
+      # Code Signing step - Enable when Apple Developer credentials are configured
+      # Required secrets: APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD, APPLE_KEYCHAIN_PASSWORD
+      # - name: Import Code Signing Certificate
+      #   env:
+      #     CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+      #     CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      #     KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+      #   run: |
+      #     # Create temporary keychain
+      #     security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+      #     security set-keychain-settings -lut 21600 build.keychain
+      #     security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+      #
+      #     # Import certificate
+      #     echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+      #     security import certificate.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+      #     security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+      #
+      #     # Add to search list
+      #     security list-keychains -d user -s build.keychain login.keychain
+      #
+      # - name: Sign App
+      #   run: |
+      #     codesign --force --deep --sign "Developer ID Application: Your Name (TEAM_ID)" \
+      #       --options runtime \
+      #       build/export/PasteShelf.app
+
+      # Notarization step - Enable when Apple credentials are configured
+      # Required secrets: APPLE_ID, APPLE_APP_PASSWORD, APPLE_TEAM_ID
+      # - name: Notarize App
+      #   if: ${{ inputs.skip_notarization != 'true' }}
+      #   env:
+      #     APPLE_ID: ${{ secrets.APPLE_ID }}
+      #     APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      #   run: |
+      #     # Create zip for notarization
+      #     ditto -c -k --keepParent build/export/PasteShelf.app build/PasteShelf-notarize.zip
+      #
+      #     # Submit for notarization
+      #     xcrun notarytool submit build/PasteShelf-notarize.zip \
+      #       --apple-id "$APPLE_ID" \
+      #       --password "$APPLE_APP_PASSWORD" \
+      #       --team-id "$APPLE_TEAM_ID" \
+      #       --wait
+      #
+      #     # Staple the notarization ticket
+      #     xcrun stapler staple build/export/PasteShelf.app
 
       - name: Create DMG
         env:
           APP_VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
           if [ -d "build/export/PasteShelf.app" ]; then
-            hdiutil create -volname "PasteShelf" \
-              -srcfolder build/export/PasteShelf.app \
+            # Create a nice DMG with Applications symlink
+            mkdir -p build/dmg-contents
+            cp -R build/export/PasteShelf.app build/dmg-contents/
+            ln -s /Applications build/dmg-contents/Applications
+
+            hdiutil create -volname "PasteShelf $APP_VERSION" \
+              -srcfolder build/dmg-contents \
               -ov -format UDZO \
-              "build/PasteShelf-${APP_VERSION}.dmg"
+              "build/PasteShelf-$APP_VERSION.dmg"
+
+            echo "DMG created: PasteShelf-$APP_VERSION.dmg"
+          else
+            echo "Warning: App not found, skipping DMG creation"
           fi
 
-      - name: Create Release
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: |
+            build/*.dmg
+            build/PasteShelf.xcarchive
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
           draft: true
@@ -58,3 +150,34 @@ jobs:
             build/*.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # App Store submission job - Enable when ready
+  # submit-app-store:
+  #   name: Submit to App Store
+  #   runs-on: macos-14
+  #   needs: build-release
+  #   if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, 'release')
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Download Archive
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: release-artifacts
+  #
+  #     - name: Submit to App Store Connect
+  #       env:
+  #         APPLE_ID: ${{ secrets.APPLE_ID }}
+  #         APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+  #       run: |
+  #         xcodebuild -exportArchive \
+  #           -archivePath PasteShelf.xcarchive \
+  #           -exportPath app-store-export \
+  #           -exportOptionsPlist ExportOptions-AppStore.plist
+  #
+  #         xcrun altool --upload-app \
+  #           --type macos \
+  #           --file "app-store-export/PasteShelf.pkg" \
+  #           --username "$APPLE_ID" \
+  #           --password "$APPLE_APP_PASSWORD"

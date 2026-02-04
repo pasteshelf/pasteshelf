@@ -73,6 +73,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Start auto-cleanup manager
         AutoCleanupManager.shared.start()
 
+        // Show onboarding if needed
+        showOnboardingIfNeeded()
+
         logger.info("PasteShelf launched successfully")
     }
 
@@ -175,6 +178,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func pasteItem(id: UUID) {
         Task {
             await floatingPanelController?.viewModel.paste(itemId: id)
+        }
+    }
+
+    // MARK: - Onboarding
+
+    private func showOnboardingIfNeeded() {
+        guard OnboardingWindowController.shared.shouldShowOnboarding() else {
+            logger.debug("Onboarding already completed")
+            return
+        }
+
+        logger.info("Showing onboarding")
+        OnboardingWindowController.shared.show { [weak self] in
+            self?.logger.info("Onboarding completed")
+            // Reload hotkey after onboarding in case user changed it
+            self?.hotkeyManager?.registerDefaultHotkey()
         }
     }
 
