@@ -73,6 +73,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Start auto-cleanup manager
         AutoCleanupManager.shared.start()
 
+        // Initialize automation engine (Pro feature)
+        initializeAutomation()
+
         // Start background embedding generation for semantic search (Pro feature)
         startBackgroundEmbeddingGeneration()
 
@@ -101,6 +104,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Show floating panel when dock icon is clicked (if visible)
         floatingPanelController?.show()
         return false
+    }
+
+    /// Handle pasteshelf:// URL scheme
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            if url.scheme == "pasteshelf" {
+                logger.info("Handling URL scheme: \(url.absoluteString)")
+                URLSchemeHandler.shared.handleURL(url)
+            }
+        }
     }
 
     // MARK: - Setup Methods
@@ -288,6 +301,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             await EmbeddingGenerator.shared.generateEmbedding(for: id)
         }
     }
+
+    // MARK: - Automation
+
+    /// Initializes the automation engine and seeds default rules
+    private func initializeAutomation() {
+        // Seed default rules if this is first launch with Pro license
+        Task {
+            await AutomationRuleStorage.shared.seedDefaultRulesIfNeeded()
+        }
+
+        logger.debug("Automation engine initialized")
+    }
 }
 
 // MARK: - ClipboardMonitorDelegate
@@ -301,6 +326,11 @@ extension AppDelegate: ClipboardMonitorDelegate {
         // Flash menu bar icon
         menuBarController?.flashActive()
 
+        // Run automation rules (Pro feature)
+        Task {
+            await processAutomation(for: content, sourceApp: sourceApp)
+        }
+
         // Reload floating panel if visible
         if floatingPanelController?.isVisible == true {
             Task {
@@ -312,6 +342,39 @@ extension AppDelegate: ClipboardMonitorDelegate {
         generateEmbeddingForNewItem(id: content.id)
 
         logger.debug("Captured: \(content.primaryType.displayName)")
+    }
+
+    /// Processes automation rules for captured content
+    private func processAutomation(
+        for content: ClipboardContent,
+        sourceApp: SourceApp?
+    ) async {
+        // Skip if automation feature not available
+        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
+            return
+        }
+
+        let result = await AutomationEngine.shared.evaluateRules(
+            for: content,
+            trigger: .onCapture,
+            sourceApp: sourceApp
+        )
+
+        // Log automation results
+        if !result.matchedRules.isEmpty {
+            let ruleNames = result.matchedRules.map(\.name).joined(separator: ", ")
+            logger.info("Automation: \(result.matchedRules.count) rules matched [\(ruleNames)]")
+        }
+
+        if !result.errors.isEmpty {
+            for error in result.errors {
+                logger.warning("Automation error: \(String(describing: error))")
+            }
+        }
+
+        // If shouldDelete is true, the item should not be stored
+        // This is handled by the ClipboardMonitor already saving before automation runs
+        // Future improvement: integrate automation before storage
     }
 
     func clipboardMonitor(

@@ -65,6 +65,15 @@ struct PreferencesView: View {
                 }
                 .tag(PreferencesTab.sync)
 
+            AutomationTabView()
+                .tabItem {
+                    Label(
+                        PreferencesTab.automation.displayName,
+                        systemImage: PreferencesTab.automation.iconName
+                    )
+                }
+                .tag(PreferencesTab.automation)
+
             LicenseTabView(viewModel: LicenseViewModel())
                 .tabItem {
                     Label(

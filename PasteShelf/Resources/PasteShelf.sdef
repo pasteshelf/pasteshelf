@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+
+<!--
+  PasteShelf.sdef
+  PasteShelf
+
+  AppleScript dictionary for PasteShelf clipboard manager.
+  Defines scriptable classes and commands for automation.
+-->
+
+<dictionary title="PasteShelf Terminology">
+
+    <!-- Standard Suite -->
+    <suite name="Standard Suite" code="????" description="Common classes and commands for all applications.">
+
+        <command name="open" code="aevtodoc" description="Open a document.">
+            <direct-parameter description="The file(s) to be opened.">
+                <type type="file"/>
+                <type type="file" list="yes"/>
+            </direct-parameter>
+        </command>
+
+        <command name="quit" code="aevtquit" description="Quit the application.">
+            <cocoa class="NSQuitCommand"/>
+        </command>
+
+        <class name="application" code="capp" description="The application's top-level scripting object.">
+            <cocoa class="NSApplication"/>
+            <property name="name" code="pnam" type="text" access="r" description="The name of the application."/>
+            <property name="frontmost" code="pisf" type="boolean" access="r" description="Is this the active application?">
+                <cocoa key="isActive"/>
+            </property>
+            <property name="version" code="vers" type="text" access="r" description="The version number of the application."/>
+            <element type="clipboard item" access="r" description="The clipboard items in the history.">
+                <cocoa key="clipboardItems"/>
+            </element>
+        </class>
+
+    </suite>
+
+    <!-- PasteShelf Suite -->
+    <suite name="PasteShelf Suite" code="PSHF" description="PasteShelf-specific classes and commands.">
+
+        <!-- Clipboard Item Class -->
+        <class name="clipboard item" code="ClpI" plural="clipboard items" description="A clipboard history item.">
+            <cocoa class="ClipboardItemScriptable"/>
+
+            <property name="id" code="ID  " type="text" access="r" description="The unique identifier of the item.">
+                <cocoa key="uniqueID"/>
+            </property>
+
+            <property name="content" code="cntN" type="text" access="r" description="The text content of the item.">
+                <cocoa key="textContent"/>
+            </property>
+
+            <property name="content type" code="cTyp" type="text" access="r" description="The type of content (text, image, URL, etc.).">
+                <cocoa key="contentType"/>
+            </property>
+
+            <property name="source application" code="sApp" type="text" access="r" description="The application that created this item.">
+                <cocoa key="sourceApplication"/>
+            </property>
+
+            <property name="timestamp" code="tStp" type="date" access="r" description="When the item was captured.">
+                <cocoa key="captureDate"/>
+            </property>
+
+            <property name="favorite" code="fvrt" type="boolean" access="rw" description="Whether the item is marked as favorite.">
+                <cocoa key="isFavorite"/>
+            </property>
+
+            <property name="sensitive" code="snst" type="boolean" access="r" description="Whether the item contains sensitive data.">
+                <cocoa key="isSensitive"/>
+            </property>
+
+            <property name="preview" code="prvw" type="text" access="r" description="A preview of the item's content.">
+                <cocoa key="previewText"/>
+            </property>
+        </class>
+
+        <!-- Get Clipboard History Command -->
+        <command name="get clipboard history" code="PSHFgHst" description="Get recent items from clipboard history.">
+            <cocoa class="GetClipboardHistoryCommand"/>
+
+            <parameter name="limit" code="lmit" type="integer" optional="yes" description="Maximum number of items to return (default: 10, max: 100).">
+                <cocoa key="limit"/>
+            </parameter>
+
+            <parameter name="favorites only" code="fvOn" type="boolean" optional="yes" description="Only return favorite items.">
+                <cocoa key="favoritesOnly"/>
+            </parameter>
+
+            <result description="The clipboard items.">
+                <type type="clipboard item" list="yes"/>
+            </result>
+        </command>
+
+        <!-- Search Command -->
+        <command name="search clipboard" code="PSHFsrch" description="Search clipboard history for items matching a query.">
+            <cocoa class="SearchClipboardCommand"/>
+
+            <direct-parameter type="text" description="The search query."/>
+
+            <parameter name="limit" code="lmit" type="integer" optional="yes" description="Maximum number of results (default: 20, max: 50).">
+                <cocoa key="limit"/>
+            </parameter>
+
+            <result description="The matching clipboard items.">
+                <type type="clipboard item" list="yes"/>
+            </result>
+        </command>
+
+        <!-- Copy to Clipboard Command -->
+        <command name="copy item" code="PSHFcopy" description="Copy a clipboard item to the system clipboard.">
+            <cocoa class="CopyItemCommand"/>
+
+            <direct-parameter type="clipboard item" description="The clipboard item to copy."/>
+
+            <result type="boolean" description="Whether the copy was successful."/>
+        </command>
+
+        <!-- Copy Text Command -->
+        <command name="copy text" code="PSHFctxt" description="Copy text directly to the system clipboard.">
+            <cocoa class="CopyTextCommand"/>
+
+            <direct-parameter type="text" description="The text to copy."/>
+
+            <result type="boolean" description="Whether the copy was successful."/>
+        </command>
+
+        <!-- Transform Text Command -->
+        <command name="transform text" code="PSHFtfrm" description="Transform text using a preset transformation.">
+            <cocoa class="TransformTextCommand"/>
+
+            <direct-parameter type="text" description="The text to transform."/>
+
+            <parameter name="using" code="usin" type="transformation type" description="The transformation to apply.">
+                <cocoa key="transformation"/>
+            </parameter>
+
+            <result type="text" description="The transformed text."/>
+        </command>
+
+        <!-- Delete Item Command -->
+        <command name="delete item" code="PSHFdelt" description="Delete a clipboard item from history.">
+            <cocoa class="DeleteItemCommand"/>
+
+            <direct-parameter type="clipboard item" description="The clipboard item to delete."/>
+
+            <result type="boolean" description="Whether the deletion was successful."/>
+        </command>
+
+        <!-- Clear History Command -->
+        <command name="clear history" code="PSHFclrh" description="Clear all clipboard history.">
+            <cocoa class="ClearHistoryCommand"/>
+
+            <parameter name="keep favorites" code="kpfv" type="boolean" optional="yes" description="Keep favorite items (default: true).">
+                <cocoa key="keepFavorites"/>
+            </parameter>
+
+            <result type="boolean" description="Whether the clear was successful."/>
+        </command>
+
+        <!-- Show Window Command -->
+        <command name="show window" code="PSHFshow" description="Show the PasteShelf window.">
+            <cocoa class="ShowWindowCommand"/>
+        </command>
+
+        <!-- Hide Window Command -->
+        <command name="hide window" code="PSHFhide" description="Hide the PasteShelf window.">
+            <cocoa class="HideWindowCommand"/>
+        </command>
+
+        <!-- Transformation Type Enumeration -->
+        <enumeration name="transformation type" code="TfTp" description="Text transformation types.">
+            <!-- Case transformations -->
+            <enumerator name="uppercase" code="uppr" description="Convert to UPPERCASE."/>
+            <enumerator name="lowercase" code="lowr" description="Convert to lowercase."/>
+            <enumerator name="title case" code="titl" description="Convert to Title Case."/>
+            <enumerator name="sentence case" code="sent" description="Convert to Sentence case."/>
+
+            <!-- Whitespace transformations -->
+            <enumerator name="trim whitespace" code="trim" description="Remove leading/trailing whitespace."/>
+            <enumerator name="remove newlines" code="rmnl" description="Replace newlines with spaces."/>
+            <enumerator name="collapse spaces" code="clsp" description="Collapse multiple spaces to single space."/>
+
+            <!-- Line transformations -->
+            <enumerator name="sort lines" code="srtl" description="Sort lines alphabetically."/>
+            <enumerator name="unique lines" code="unql" description="Remove duplicate lines."/>
+            <enumerator name="reverse lines" code="rvsl" description="Reverse line order."/>
+
+            <!-- Encoding transformations -->
+            <enumerator name="base64 encode" code="b64e" description="Encode to Base64."/>
+            <enumerator name="base64 decode" code="b64d" description="Decode from Base64."/>
+            <enumerator name="url encode" code="urle" description="URL percent encoding."/>
+            <enumerator name="url decode" code="urld" description="Decode URL percent encoding."/>
+
+            <!-- JSON transformations -->
+            <enumerator name="format json" code="fmtj" description="Pretty print JSON."/>
+            <enumerator name="minify json" code="minj" description="Compact JSON."/>
+
+            <!-- HTML transformations -->
+            <enumerator name="escape html" code="esch" description="Convert to HTML entities."/>
+            <enumerator name="unescape html" code="unsh" description="Convert from HTML entities."/>
+            <enumerator name="strip html" code="stph" description="Remove HTML tags."/>
+
+            <!-- Hash transformations -->
+            <enumerator name="md5 hash" code="md5h" description="Generate MD5 hash."/>
+            <enumerator name="sha256 hash" code="s256" description="Generate SHA-256 hash."/>
+        </enumeration>
+
+    </suite>
+
+</dictionary>

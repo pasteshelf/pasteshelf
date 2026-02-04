@@ -53,6 +53,9 @@ enum LicensedFeature: String, Codable, Sendable, CaseIterable {
     /// Team/organization sharing
     case teamSharing = "team_sharing"
 
+    /// Webhook notifications for external integrations
+    case webhooks = "webhooks"
+
     // MARK: - Properties
 
     /// Minimum tier required for this feature
@@ -65,7 +68,7 @@ enum LicensedFeature: String, Codable, Sendable, CaseIterable {
 
         // Enterprise features
         case .ssoIntegration, .mdmSupport, .dlpPolicies,
-             .auditLogs, .selfHostedSync, .adminConsole, .teamSharing:
+             .auditLogs, .selfHostedSync, .adminConsole, .teamSharing, .webhooks:
             return .enterprise
         }
     }
@@ -99,6 +102,8 @@ enum LicensedFeature: String, Codable, Sendable, CaseIterable {
             return String(localized: "Admin Console")
         case .teamSharing:
             return String(localized: "Team Sharing")
+        case .webhooks:
+            return String(localized: "Webhooks")
         }
     }
 
@@ -131,6 +136,8 @@ enum LicensedFeature: String, Codable, Sendable, CaseIterable {
             return String(localized: "Centralized management for your organization")
         case .teamSharing:
             return String(localized: "Share clipboard items with team members")
+        case .webhooks:
+            return String(localized: "Send webhook notifications for clipboard events")
         }
     }
 
@@ -163,6 +170,8 @@ enum LicensedFeature: String, Codable, Sendable, CaseIterable {
             return "gearshape.fill"
         case .teamSharing:
             return "person.3.fill"
+        case .webhooks:
+            return "arrow.up.right.square"
         }
     }
 

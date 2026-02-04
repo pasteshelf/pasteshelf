@@ -133,4 +133,52 @@
             <fetchIndexElement property="sortOrder" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
+    <entity name="AutomationRuleEntity" representedClassName="AutomationRuleEntity" syncable="YES">
+        <attribute name="actionsJSON" optional="YES" attributeType="String"/>
+        <attribute name="conditionsJSON" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="executionCount" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isEnabled" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="lastExecutedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="modifiedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="priority" optional="YES" attributeType="Integer 32" defaultValueString="100" usesScalarValueType="YES"/>
+        <attribute name="triggerType" optional="YES" attributeType="String"/>
+        <attribute name="triggerValue" optional="YES" attributeType="String"/>
+        <fetchIndex name="byId">
+            <fetchIndexElement property="id" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsEnabled">
+            <fetchIndexElement property="isEnabled" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byPriority">
+            <fetchIndexElement property="priority" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byTriggerType">
+            <fetchIndexElement property="triggerType" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="WebhookEndpoint" representedClassName="WebhookEndpoint" syncable="YES">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="eventsJSON" optional="YES" attributeType="String"/>
+        <attribute name="failureCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="filtersJSON" optional="YES" attributeType="String"/>
+        <attribute name="headersJSON" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isEnabled" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="lastFailureAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastFailureMessage" optional="YES" attributeType="String"/>
+        <attribute name="lastSuccessAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="modifiedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="secretKey" optional="YES" attributeType="String"/>
+        <attribute name="url" optional="YES" attributeType="String"/>
+        <fetchIndex name="byId">
+            <fetchIndexElement property="id" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsEnabled">
+            <fetchIndexElement property="isEnabled" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
 </model>
