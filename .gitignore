@@ -86,6 +86,10 @@ playground.xcworkspace
 *.xcresult
 .playwright-mcp/
 
+# Screenshots (generated)
+screenshots/**/*.png
+!screenshots/README.md
+
 # Temporary files
 *.tmp
 *.temp
