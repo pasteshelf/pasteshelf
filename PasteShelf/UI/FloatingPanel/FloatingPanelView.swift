@@ -316,6 +316,21 @@ struct FloatingPanelView: View {
                 Task {
                     await viewModel.paste(item: item)
                 }
+            },
+            onCopyOCRText: item.hasOCRText ? {
+                Task {
+                    await viewModel.copyOCRText(for: item)
+                }
+            } : nil,
+            onDelete: {
+                Task {
+                    await viewModel.delete(item: item)
+                }
+            },
+            onToggleFavorite: {
+                Task {
+                    await viewModel.toggleFavorite(for: item)
+                }
             }
         )
         .id(item.id)

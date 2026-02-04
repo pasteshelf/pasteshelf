@@ -23,6 +23,9 @@ struct ClipboardItemView: View {
     /// Whether sensitive content should be revealed
     @State private var isRevealed = false
 
+    /// Whether OCR text is expanded
+    @State private var isOCRExpanded = false
+
     /// Whether there are search highlights to show
     private var hasSearchHighlights: Bool {
         !searchHighlights.isEmpty || searchQuery != nil
@@ -127,7 +130,7 @@ struct ClipboardItemView: View {
     }
 
     private var imagePreviewView: some View {
-        Group {
+        VStack(alignment: .leading, spacing: 4) {
             if let thumbnail = item.thumbnailImage {
                 Image(nsImage: thumbnail)
                     .resizable()
@@ -138,6 +141,55 @@ struct ClipboardItemView: View {
                 Text("[Image]")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+            }
+
+            // OCR text preview
+            if item.hasOCRText {
+                ocrTextPreview
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var ocrTextPreview: some View {
+        if let ocrText = item.ocrText, !ocrText.isEmpty {
+            VStack(alignment: .leading, spacing: 2) {
+                // OCR header with toggle
+                Button(action: { isOCRExpanded.toggle() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "text.viewfinder")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+
+                        Text("Extracted Text")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+
+                        Image(systemName: isOCRExpanded ? "chevron.up" : "chevron.down")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+
+                        Spacer()
+                    }
+                }
+                .buttonStyle(.plain)
+
+                // OCR text content
+                if isOCRExpanded {
+                    Text(ocrText)
+                        .font(.caption)
+                        .foregroundColor(.primary.opacity(0.8))
+                        .lineLimit(5)
+                        .multilineTextAlignment(.leading)
+                        .padding(6)
+                        .background(Color.secondary.opacity(0.08))
+                        .cornerRadius(4)
+                } else if let preview = item.ocrTextPreview {
+                    Text(preview)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
             }
         }
     }
@@ -225,6 +277,13 @@ struct ClipboardItemView: View {
                 Image(systemName: "lock.fill")
                     .font(.caption)
                     .foregroundColor(.orange)
+            }
+
+            if item.hasOCRText {
+                Image(systemName: "text.viewfinder")
+                    .font(.caption)
+                    .foregroundColor(.teal)
+                    .help("Contains extracted text from image")
             }
         }
     }

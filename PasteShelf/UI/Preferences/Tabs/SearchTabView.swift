@@ -13,13 +13,18 @@ struct SearchTabView: View {
     // MARK: - Properties
 
     @StateObject private var embeddingGenerator = EmbeddingGenerator.shared
+    @StateObject private var ocrGenerator = OCRGenerator.shared
     @ObservedObject private var licenseManager = LicenseManager.shared
 
     @State private var showingUpgradePrompt = false
     @State private var showingClearConfirmation = false
+    @State private var showingOCRClearConfirmation = false
     @State private var indexedCount: Int = 0
+    @State private var ocrProcessedCount: Int = 0
     @State private var semanticSearchEnabled: Bool = UserDefaults.standard.bool(forKey: "semanticSearchEnabled")
     @State private var semanticThreshold: Double = UserDefaults.standard.double(forKey: "semanticThreshold") == 0 ? 0.5 : UserDefaults.standard.double(forKey: "semanticThreshold")
+    @State private var ocrSearchEnabled: Bool = UserDefaults.standard.bool(forKey: "ocrSearchEnabled")
+    @State private var ocrConfidenceThreshold: Double = UserDefaults.standard.double(forKey: "ocrConfidenceThreshold") == 0 ? 0.5 : UserDefaults.standard.double(forKey: "ocrConfidenceThreshold")
 
     // MARK: - Body
 
@@ -51,8 +56,27 @@ struct SearchTabView: View {
                 }
             }
 
+            // OCR Search Section (Pro)
+            Section {
+                ocrSearchSection
+            } header: {
+                HStack {
+                    Text("OCR Search")
+                    ProBadge()
+                }
+            }
+
+            // OCR Processing Status Section
+            if licenseManager.isFeatureAvailable(.ocrSearch) {
+                Section {
+                    ocrProcessingStatusSection
+                } header: {
+                    Text("Image Text Extraction")
+                }
+            }
+
             // Pro Feature Notice (if not licensed)
-            if !licenseManager.isFeatureAvailable(.semanticSearch) {
+            if !licenseManager.isFeatureAvailable(.semanticSearch) && !licenseManager.isFeatureAvailable(.ocrSearch) {
                 Section {
                     proFeatureNotice
                 }
@@ -61,6 +85,7 @@ struct SearchTabView: View {
         .formStyle(.grouped)
         .task {
             await loadIndexedCount()
+            await loadOCRProcessedCount()
         }
         .alert("Clear Search Index", isPresented: $showingClearConfirmation) {
             Button("Cancel", role: .cancel) {}
@@ -69,6 +94,14 @@ struct SearchTabView: View {
             }
         } message: {
             Text("This will delete all cached embeddings. The index will be rebuilt automatically in the background.")
+        }
+        .alert("Clear OCR Cache", isPresented: $showingOCRClearConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Clear", role: .destructive) {
+                clearOCRCache()
+            }
+        } message: {
+            Text("This will delete all extracted text from images. The cache will be rebuilt when you process images again.")
         }
         .sheet(isPresented: $showingUpgradePrompt) {
             UpgradePromptView(feature: .semanticSearch)
@@ -143,6 +176,129 @@ struct SearchTabView: View {
                     .foregroundStyle(.secondary)
             }
             .disabled(!semanticSearchEnabled)
+        }
+    }
+
+    // MARK: - OCR Search Section
+
+    @ViewBuilder
+    private var ocrSearchSection: some View {
+        // Enable/Disable Toggle
+        Toggle("Enable OCR Search", isOn: Binding(
+            get: { ocrSearchEnabled },
+            set: { newValue in
+                if newValue, !licenseManager.isFeatureAvailable(.ocrSearch) {
+                    showingUpgradePrompt = true
+                } else {
+                    ocrSearchEnabled = newValue
+                    UserDefaults.standard.set(newValue, forKey: "ocrSearchEnabled")
+                    if newValue {
+                        Task {
+                            await startOCRProcessing()
+                        }
+                    }
+                }
+            }
+        ))
+        .disabled(!licenseManager.isFeatureAvailable(.ocrSearch))
+
+        // Description
+        VStack(alignment: .leading, spacing: 4) {
+            Text("OCR search extracts text from images so you can search for content within screenshots and photos.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Text("Find images containing specific text like \"error message\" or \"phone number\".")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 4)
+
+        // Confidence Threshold
+        if licenseManager.isFeatureAvailable(.ocrSearch) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Confidence Threshold")
+                    Spacer()
+                    Text(String(format: "%.0f%%", ocrConfidenceThreshold * 100))
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+
+                Slider(value: $ocrConfidenceThreshold, in: 0.3...0.9, step: 0.05) { _ in
+                    UserDefaults.standard.set(ocrConfidenceThreshold, forKey: "ocrConfidenceThreshold")
+                }
+
+                Text("Higher values require more accurate text recognition. Lower values may include misread text.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .disabled(!ocrSearchEnabled)
+        }
+    }
+
+    // MARK: - OCR Processing Status Section
+
+    @ViewBuilder
+    private var ocrProcessingStatusSection: some View {
+        // Processing Status
+        HStack {
+            Image(systemName: ocrGenerator.isProcessing ? "text.viewfinder" : "checkmark.circle.fill")
+                .font(.title2)
+                .foregroundStyle(ocrGenerator.isProcessing ? .blue : .green)
+                .symbolEffect(.pulse, isActive: ocrGenerator.isProcessing)
+                .frame(width: 32)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(ocrGenerator.isProcessing ? "Processing Images..." : "Ready")
+                    .font(.headline)
+
+                Text("\(ocrProcessedCount) images processed")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if ocrGenerator.isProcessing {
+                ProgressView(value: ocrGenerator.progress)
+                    .progressViewStyle(.circular)
+                    .scaleEffect(0.8)
+            }
+        }
+        .padding(.vertical, 4)
+
+        // Progress Details (when processing)
+        if ocrGenerator.isProcessing {
+            HStack {
+                Text("Progress")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("\(ocrGenerator.processedCount) / \(ocrGenerator.totalToProcess)")
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+        }
+
+        // Actions
+        HStack {
+            Button(action: {
+                Task {
+                    await startOCRProcessing()
+                }
+            }) {
+                Label("Process Images", systemImage: "text.viewfinder")
+            }
+            .disabled(ocrGenerator.isProcessing || !ocrSearchEnabled)
+
+            Spacer()
+
+            Button(role: .destructive, action: {
+                showingOCRClearConfirmation = true
+            }) {
+                Label("Clear Cache", systemImage: "trash")
+            }
+            .disabled(ocrGenerator.isProcessing)
         }
     }
 
@@ -249,16 +405,33 @@ struct SearchTabView: View {
         indexedCount = await embeddingGenerator.indexedItemCount()
     }
 
+    private func loadOCRProcessedCount() async {
+        ocrProcessedCount = await ocrGenerator.processedItemCount()
+    }
+
     private func startIndexing() async {
         await embeddingGenerator.clearOutdatedEmbeddings()
         _ = await embeddingGenerator.indexAllMissingEmbeddings()
         await loadIndexedCount()
     }
 
+    private func startOCRProcessing() async {
+        await ocrGenerator.clearOutdatedOCR()
+        _ = await ocrGenerator.processAllMissingOCR()
+        await loadOCRProcessedCount()
+    }
+
     private func clearIndex() {
         Task {
             await embeddingGenerator.clearAllEmbeddings()
             indexedCount = 0
+        }
+    }
+
+    private func clearOCRCache() {
+        Task {
+            await ocrGenerator.clearAllOCR()
+            ocrProcessedCount = 0
         }
     }
 }

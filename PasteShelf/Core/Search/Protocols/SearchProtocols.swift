@@ -71,6 +71,11 @@ struct SearchOptions: Sendable, Equatable {
     /// Source app name hints for filtering (from natural language query)
     var sourceAppHints: [String]?
 
+    // MARK: - OCR Search Options
+
+    /// Enable OCR text extraction search from images (Pro feature)
+    var enableOCRSearch: Bool
+
     // MARK: - Initialization
 
     init(
@@ -85,7 +90,8 @@ struct SearchOptions: Sendable, Equatable {
         includeSensitive: Bool = true,
         enableSemanticSearch: Bool = false,
         semanticThreshold: Double = 0.5,
-        sourceAppHints: [String]? = nil
+        sourceAppHints: [String]? = nil,
+        enableOCRSearch: Bool = false
     ) {
         self.limit = limit
         self.offset = offset
@@ -99,6 +105,7 @@ struct SearchOptions: Sendable, Equatable {
         self.enableSemanticSearch = enableSemanticSearch
         self.semanticThreshold = semanticThreshold
         self.sourceAppHints = sourceAppHints
+        self.enableOCRSearch = enableOCRSearch
     }
 
     /// Default search options
@@ -254,6 +261,9 @@ enum MatchType: String, Sendable, Equatable {
     /// Hybrid match (combined full-text and semantic)
     case hybrid
 
+    /// Match found in OCR-extracted text from image (Pro feature)
+    case ocr
+
     /// Score multiplier for ranking
     var scoreMultiplier: Double {
         switch self {
@@ -261,6 +271,7 @@ enum MatchType: String, Sendable, Equatable {
         case .prefix: return 0.9
         case .hybrid: return 0.85
         case .contains: return 0.7
+        case .ocr: return 0.68
         case .semantic: return 0.65
         case .metadata: return 0.6
         case .fuzzy: return 0.5

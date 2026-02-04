@@ -164,6 +164,9 @@ final class FloatingPanelViewModel: ObservableObject {
         )
         allItems = ClipboardItemDisplayModel.from(clipboardItems)
 
+        // Load OCR text for image items (Pro feature)
+        await loadOCRTextForItems()
+
         // If search is active, perform search; otherwise show all items
         if isSearchActive {
             await performSearch(query: searchQuery)
@@ -181,6 +184,27 @@ final class FloatingPanelViewModel: ObservableObject {
 
         isLoading = false
         logger.debug("Loaded \(self.items.count) items")
+    }
+
+    /// Loads OCR text for image items and updates display models
+    private func loadOCRTextForItems() async {
+        // Get IDs of image items
+        let imageItemIds = allItems
+            .filter { $0.contentType.isImageType }
+            .map(\.id)
+
+        guard !imageItemIds.isEmpty else { return }
+
+        // Fetch OCR text for all image items
+        let ocrTexts = await storageManager.fetchOCRTexts(for: imageItemIds)
+
+        // Update display models with OCR text
+        allItems = allItems.map { item in
+            if let ocrText = ocrTexts[item.id] {
+                return item.withOCRText(ocrText)
+            }
+            return item
+        }
     }
 
     /// Refreshes the items list
@@ -541,17 +565,56 @@ final class FloatingPanelViewModel: ObservableObject {
     /// Deletes the selected item
     func deleteSelected() async {
         guard let item = selectedItem else { return }
+        await delete(item: item)
+    }
 
+    /// Deletes a specific item
+    func delete(item: ClipboardItemDisplayModel) async {
         let success = await storageManager.deleteItem(byId: item.id)
         if success {
             // Remove from local list
             if let index = items.firstIndex(where: { $0.id == item.id }) {
                 items.remove(at: index)
+                allItems.removeAll { $0.id == item.id }
                 // Adjust selection
                 if selectedIndex >= items.count {
                     selectedIndex = max(0, items.count - 1)
                 }
             }
+            logger.debug("Deleted item: \(item.id)")
         }
+    }
+
+    // MARK: - Favorites (Item-Specific)
+
+    /// Toggles favorite status for a specific item
+    func toggleFavorite(for item: ClipboardItemDisplayModel) async {
+        let result = await storageManager.toggleFavorite(itemId: item.id)
+        if result != nil {
+            // Reload items to get updated state
+            await loadItems()
+            // Try to maintain the same selection position
+            if let index = items.firstIndex(where: { $0.id == item.id }) {
+                selectedIndex = index
+            }
+            logger.debug("Toggled favorite for item: \(item.id)")
+        }
+    }
+
+    // MARK: - OCR Text
+
+    /// Copies the OCR-extracted text for an image item to the clipboard
+    func copyOCRText(for item: ClipboardItemDisplayModel) async {
+        guard let ocrText = item.ocrText, !ocrText.isEmpty else {
+            logger.warning("No OCR text available for item: \(item.id)")
+            return
+        }
+
+        // Copy OCR text to clipboard
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(ocrText, forType: .string)
+
+        logger.info("Copied OCR text for item: \(item.id)")
     }
 }

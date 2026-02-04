@@ -2,14 +2,14 @@
 //  HybridSearchEngine.swift
 //  PasteShelf
 //
-//  Combines full-text and semantic search for optimal results.
+//  Combines full-text, semantic, and OCR search for optimal results.
 //  Uses a weighted merge strategy to rank results.
 //
 
 import Foundation
 import os.log
 
-/// Search engine that combines full-text and semantic search
+/// Search engine that combines full-text, semantic, and OCR search
 final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     // MARK: - Configuration
 
@@ -17,7 +17,10 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     private let fullTextWeight: Double = 0.4
 
     /// Weight for semantic search results (0.0 to 1.0)
-    private let semanticWeight: Double = 0.6
+    private let semanticWeight: Double = 0.5
+
+    /// Weight for OCR search results (0.0 to 1.0)
+    private let ocrWeight: Double = 0.5
 
     // MARK: - Properties
 
@@ -26,6 +29,9 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
     /// Semantic search engine
     private let semanticEngine: SemanticSearchEngine
+
+    /// OCR search engine for text in images
+    private let ocrEngine: OCRSearchEngine
 
     /// License manager for Pro feature checking
     private let licenseManager: LicenseManager
@@ -53,6 +59,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     ) {
         self.fullTextEngine = FullTextSearchEngine(storageManager: storageManager)
         self.semanticEngine = SemanticSearchEngine(storageManager: storageManager)
+        self.ocrEngine = OCRSearchEngine(storageManager: storageManager, licenseManager: licenseManager)
         self.licenseManager = licenseManager
         self.queryParser = NaturalLanguageQueryParser.self
     }
@@ -78,37 +85,54 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
             let parsedQuery = queryParser.parse(trimmedQuery)
 
             // Build options from parsed query
-            var enhancedOptions = applyParsedQueryFilters(parsedQuery, to: options)
+            let enhancedOptions = applyParsedQueryFilters(parsedQuery, to: options)
 
-            // Determine if semantic search should be used
+            // Determine which engines to use
             let useSemanticSearch = shouldUseSemanticSearch(options: enhancedOptions)
+            let useOCRSearch = shouldUseOCRSearch(options: enhancedOptions)
 
-            logger.debug("Hybrid search: query='\(trimmedQuery)', semantic=\(useSemanticSearch)")
+            logger.debug("Hybrid search: query='\(trimmedQuery)', semantic=\(useSemanticSearch), ocr=\(useOCRSearch)")
 
+            // Always run full-text search
+            async let fullTextResults = fullTextEngine.search(query: trimmedQuery, options: enhancedOptions)
+
+            // Conditionally run semantic search
+            let semanticText = parsedQuery.semanticText.isEmpty ? trimmedQuery : parsedQuery.semanticText
+            let semanticResults: [SearchResult]
             if useSemanticSearch {
-                // Run both searches in parallel
-                let semanticText = parsedQuery.semanticText.isEmpty ? trimmedQuery : parsedQuery.semanticText
-
-                async let fullTextResults = fullTextEngine.search(query: trimmedQuery, options: enhancedOptions)
-                async let semanticResults = semanticEngine.search(query: semanticText, options: enhancedOptions)
-
-                let (fullText, semantic) = await (fullTextResults, semanticResults)
-
-                // Check for cancellation
-                if Task.isCancelled {
-                    return []
-                }
-
-                // Merge results
-                let merged = mergeResults(fullText: fullText, semantic: semantic, limit: options.limit)
-                logger.debug("Hybrid search completed: \(merged.count) results (FT: \(fullText.count), Semantic: \(semantic.count))")
-                return merged
+                semanticResults = await semanticEngine.search(query: semanticText, options: enhancedOptions)
             } else {
-                // Fall back to full-text only
-                let results = await fullTextEngine.search(query: trimmedQuery, options: enhancedOptions)
-                logger.debug("Full-text search completed: \(results.count) results")
-                return results
+                semanticResults = []
             }
+
+            // Conditionally run OCR search
+            let ocrResults: [SearchResult]
+            if useOCRSearch {
+                ocrResults = await ocrEngine.search(query: trimmedQuery, options: enhancedOptions)
+            } else {
+                ocrResults = []
+            }
+
+            let fullText = await fullTextResults
+
+            // Check for cancellation
+            if Task.isCancelled {
+                return []
+            }
+
+            // Merge results from all engines
+            let merged = mergeResults(
+                fullText: fullText,
+                semantic: semanticResults,
+                ocr: ocrResults,
+                limit: options.limit
+            )
+
+            logger.debug(
+                "Hybrid search completed: \(merged.count) results " +
+                "(FT: \(fullText.count), Semantic: \(semanticResults.count), OCR: \(ocrResults.count))"
+            )
+            return merged
         }
 
         lock.lock()
@@ -126,6 +150,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
         await fullTextEngine.cancelSearch()
         await semanticEngine.cancelSearch()
+        await ocrEngine.cancelSearch()
     }
 
     // MARK: - Query Processing
@@ -152,7 +177,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
         return enhanced
     }
 
-    // MARK: - Semantic Search Decision
+    // MARK: - Search Engine Decisions
 
     /// Determines whether semantic search should be used
     private func shouldUseSemanticSearch(options: SearchOptions) -> Bool {
@@ -176,12 +201,35 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
         return true
     }
 
+    /// Determines whether OCR search should be used
+    private func shouldUseOCRSearch(options: SearchOptions) -> Bool {
+        // Check if explicitly disabled
+        guard options.enableOCRSearch else {
+            return false
+        }
+
+        // Check Pro license
+        guard licenseManager.isFeatureAvailable(.ocrSearch) else {
+            logger.debug("OCR search requires Pro license")
+            return false
+        }
+
+        // Check if OCR engine is available
+        guard ocrEngine.isAvailable else {
+            logger.debug("OCR search engine not available")
+            return false
+        }
+
+        return true
+    }
+
     // MARK: - Result Merging
 
-    /// Merges full-text and semantic results using weighted scoring
+    /// Merges full-text, semantic, and OCR results using weighted scoring
     private func mergeResults(
         fullText: [SearchResult],
         semantic: [SearchResult],
+        ocr: [SearchResult],
         limit: Int
     ) -> [SearchResult] {
         // Create lookup dictionaries
@@ -195,8 +243,15 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
             semanticScores[result.itemId] = result
         }
 
+        var ocrScores: [UUID: SearchResult] = [:]
+        for result in ocr {
+            ocrScores[result.itemId] = result
+        }
+
         // Get all unique item IDs
-        let allIds = Set(fullTextScores.keys).union(semanticScores.keys)
+        let allIds = Set(fullTextScores.keys)
+            .union(semanticScores.keys)
+            .union(ocrScores.keys)
 
         // Calculate merged scores
         var mergedResults: [SearchResult] = []
@@ -204,27 +259,50 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
         for itemId in allIds {
             let ftResult = fullTextScores[itemId]
             let semResult = semanticScores[itemId]
+            let ocrResult = ocrScores[itemId]
 
-            let combinedScore: Double
-            let matchType: MatchType
-            let matchRanges: [MatchRange]
+            var combinedScore: Double = 0
+            var matchType: MatchType = .contains
+            var matchRanges: [MatchRange] = []
+            var matchCount = 0
 
-            if let ft = ftResult, let sem = semResult {
-                // Item found by both engines - hybrid match
-                combinedScore = (ft.relevanceScore * fullTextWeight) + (sem.relevanceScore * semanticWeight)
-                matchType = .hybrid
-                matchRanges = ft.matchRanges // Use full-text ranges for highlighting
-            } else if let ft = ftResult {
-                // Full-text only match
-                combinedScore = ft.relevanceScore * fullTextWeight
-                matchType = ft.matchType
+            // Add full-text contribution
+            if let ft = ftResult {
+                combinedScore += ft.relevanceScore * fullTextWeight
                 matchRanges = ft.matchRanges
-            } else if let sem = semResult {
-                // Semantic only match
-                combinedScore = sem.relevanceScore * semanticWeight
-                matchType = .semantic
-                matchRanges = []
-            } else {
+                matchType = ft.matchType
+                matchCount += 1
+            }
+
+            // Add semantic contribution
+            if let sem = semResult {
+                combinedScore += sem.relevanceScore * semanticWeight
+                if matchType != .hybrid {
+                    matchType = .semantic
+                }
+                matchCount += 1
+            }
+
+            // Add OCR contribution
+            if let ocr = ocrResult {
+                combinedScore += ocr.relevanceScore * ocrWeight
+                // Prefer OCR match ranges if no full-text ranges
+                if matchRanges.isEmpty {
+                    matchRanges = ocr.matchRanges
+                }
+                if matchType != .hybrid && ftResult == nil {
+                    matchType = .ocr
+                }
+                matchCount += 1
+            }
+
+            // Upgrade to hybrid if multiple engines matched
+            if matchCount > 1 {
+                matchType = .hybrid
+            }
+
+            // Skip if no matches
+            guard matchCount > 0 else {
                 continue
             }
 
@@ -238,10 +316,11 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
         }
 
         // Sort by combined score and limit
-        return mergedResults
-            .sorted { $0.relevanceScore > $1.relevanceScore }
-            .prefix(limit)
-            .map { $0 }
+        return Array(
+            mergedResults
+                .sorted { $0.relevanceScore > $1.relevanceScore }
+                .prefix(limit)
+        )
     }
 
     // MARK: - Availability
@@ -249,5 +328,10 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     /// Whether semantic search is available (Pro license and system support)
     var isSemanticSearchAvailable: Bool {
         licenseManager.isFeatureAvailable(.semanticSearch) && semanticEngine.isAvailable
+    }
+
+    /// Whether OCR search is available (Pro license and system support)
+    var isOCRSearchAvailable: Bool {
+        licenseManager.isFeatureAvailable(.ocrSearch) && ocrEngine.isAvailable
     }
 }

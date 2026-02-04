@@ -18,6 +18,9 @@ struct ClipboardItemRow: View {
     var searchQuery: String?
     let onSelect: () -> Void
     let onPaste: () -> Void
+    var onCopyOCRText: (() -> Void)?
+    var onDelete: (() -> Void)?
+    var onToggleFavorite: (() -> Void)?
 
     // MARK: - State
 
@@ -45,10 +48,60 @@ struct ClipboardItemRow: View {
             .overlay(alignment: .trailing) {
                 quickActionOverlay
             }
+            .contextMenu {
+                contextMenuContent
+            }
             .accessibilityElement(children: .combine)
             .accessibilityLabel(accessibilityLabel)
             .accessibilityHint("Double-click to paste")
             .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    // MARK: - Context Menu
+
+    @ViewBuilder
+    private var contextMenuContent: some View {
+        // Paste
+        Button {
+            onPaste()
+        } label: {
+            Label("Paste", systemImage: "doc.on.clipboard")
+        }
+
+        // Copy OCR text (only for images with OCR)
+        if item.hasOCRText, let onCopyOCR = onCopyOCRText {
+            Button {
+                onCopyOCR()
+            } label: {
+                Label("Copy Extracted Text", systemImage: "text.viewfinder")
+            }
+        }
+
+        Divider()
+
+        // Toggle favorite
+        if let onFavorite = onToggleFavorite {
+            Button {
+                onFavorite()
+            } label: {
+                if item.isFavorite {
+                    Label("Remove from Favorites", systemImage: "star.slash")
+                } else {
+                    Label("Add to Favorites", systemImage: "star")
+                }
+            }
+        }
+
+        // Delete
+        if let onDeleteAction = onDelete {
+            Divider()
+
+            Button(role: .destructive) {
+                onDeleteAction()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
 
     // MARK: - Background

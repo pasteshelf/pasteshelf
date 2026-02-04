@@ -46,7 +46,27 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
     /// Thumbnail dimensions
     let thumbnailSize: CGSize?
 
+    /// OCR-extracted text from image (Pro feature)
+    var ocrText: String?
+
     // MARK: - Computed Properties
+
+    /// Whether this item has OCR text available
+    var hasOCRText: Bool {
+        ocrText != nil && !(ocrText?.isEmpty ?? true)
+    }
+
+    /// Short OCR text preview (truncated)
+    var ocrTextPreview: String? {
+        guard let text = ocrText, !text.isEmpty else { return nil }
+        let cleaned = text
+            .replacingOccurrences(of: "\n", with: " ")
+            .trimmingCharacters(in: .whitespaces)
+        if cleaned.count <= 80 {
+            return cleaned
+        }
+        return String(cleaned.prefix(77)) + "..."
+    }
 
     /// SF Symbol icon for the content type
     var icon: String {
@@ -160,8 +180,16 @@ extension ClipboardItemDisplayModel {
             isFavorite: item.isFavorite,
             contentHash: item.contentHash,
             thumbnailData: item.preview?.thumbnailData,
-            thumbnailSize: thumbnailSize
+            thumbnailSize: thumbnailSize,
+            ocrText: nil
         )
+    }
+
+    /// Returns a copy of this model with OCR text set
+    func withOCRText(_ text: String?) -> ClipboardItemDisplayModel {
+        var copy = self
+        copy.ocrText = text
+        return copy
     }
 
     /// Creates display models from an array of CoreData items
@@ -188,7 +216,8 @@ extension ClipboardItemDisplayModel {
             isFavorite: false,
             contentHash: "abc123",
             thumbnailData: nil,
-            thumbnailSize: nil
+            thumbnailSize: nil,
+            ocrText: nil
         )
 
         /// Sample sensitive item for previews
@@ -203,7 +232,8 @@ extension ClipboardItemDisplayModel {
             isFavorite: false,
             contentHash: "def456",
             thumbnailData: nil,
-            thumbnailSize: nil
+            thumbnailSize: nil,
+            ocrText: nil
         )
 
         /// Sample URL item for previews
@@ -218,7 +248,8 @@ extension ClipboardItemDisplayModel {
             isFavorite: true,
             contentHash: "ghi789",
             thumbnailData: nil,
-            thumbnailSize: nil
+            thumbnailSize: nil,
+            ocrText: nil
         )
 
         /// Sample items array for previews
