@@ -45,6 +45,20 @@ extension ClipboardItem {
     /// Number of times this item has been accessed/pasted
     @NSManaged public var accessCount: Int32
 
+    // MARK: - Sync Attributes
+
+    /// Sync state: 0 = pending, 1 = synced, 2 = conflicted, 3 = deleted
+    @NSManaged public var syncState: Int16
+
+    /// CloudKit record identifier for this item
+    @NSManaged public var cloudKitRecordID: String?
+
+    /// Timestamp when item was last synced to CloudKit
+    @NSManaged public var lastSyncedAt: Date?
+
+    /// Timestamp when item was last modified locally (for conflict resolution)
+    @NSManaged public var modifiedAt: Date?
+
     // MARK: - Relationships
 
     /// Binary content data (one-to-one)

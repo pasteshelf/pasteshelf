@@ -21,14 +21,18 @@
     </entity>
     <entity name="ClipboardItem" representedClassName="ClipboardItem" syncable="YES">
         <attribute name="accessCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="cloudKitRecordID" optional="YES" attributeType="String"/>
         <attribute name="contentHash" optional="YES" attributeType="String"/>
         <attribute name="contentType" optional="YES" attributeType="String"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isFavorite" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="isSensitive" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="lastSyncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="modifiedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="plainTextPreview" optional="YES" attributeType="String"/>
         <attribute name="sourceAppBundleId" optional="YES" attributeType="String"/>
         <attribute name="sourceAppName" optional="YES" attributeType="String"/>
+        <attribute name="syncState" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="content" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ClipboardContentData" inverseName="clipboardItem" inverseEntity="ClipboardContentData"/>
         <relationship name="folder" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Folder" inverseName="items" inverseEntity="Folder"/>
@@ -42,6 +46,9 @@
         </fetchIndex>
         <fetchIndex name="byIsFavorite">
             <fetchIndexElement property="isFavorite" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="bySyncState">
+            <fetchIndexElement property="syncState" type="Binary" order="ascending"/>
         </fetchIndex>
         <fetchIndex name="byTimestamp">
             <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
@@ -62,6 +69,13 @@
         <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ClipboardItem" inverseName="folder" inverseEntity="ClipboardItem"/>
         <relationship name="parentFolder" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Folder" inverseName="subfolders" inverseEntity="Folder"/>
         <relationship name="subfolders" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Folder" inverseName="parentFolder" inverseEntity="Folder"/>
+    </entity>
+    <entity name="SyncMetadata" representedClassName="SyncMetadata" syncable="YES">
+        <attribute name="changeToken" optional="YES" attributeType="Binary"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="lastFullSyncAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastSyncAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="zoneID" optional="YES" attributeType="String"/>
     </entity>
     <entity name="Tag" representedClassName="Tag" syncable="YES">
         <attribute name="color" optional="YES" attributeType="String"/>

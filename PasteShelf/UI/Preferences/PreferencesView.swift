@@ -47,6 +47,15 @@ struct PreferencesView: View {
                 }
                 .tag(PreferencesTab.shortcuts)
 
+            SyncTabView()
+                .tabItem {
+                    Label(
+                        PreferencesTab.sync.displayName,
+                        systemImage: PreferencesTab.sync.iconName
+                    )
+                }
+                .tag(PreferencesTab.sync)
+
             LicenseTabView(viewModel: LicenseViewModel())
                 .tabItem {
                     Label(
