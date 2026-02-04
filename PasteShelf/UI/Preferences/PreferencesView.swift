@@ -47,6 +47,15 @@ struct PreferencesView: View {
                 }
                 .tag(PreferencesTab.shortcuts)
 
+            LicenseTabView(viewModel: LicenseViewModel())
+                .tabItem {
+                    Label(
+                        PreferencesTab.license.displayName,
+                        systemImage: PreferencesTab.license.iconName
+                    )
+                }
+                .tag(PreferencesTab.license)
+
             AboutTabView()
                 .tabItem {
                     Label(PreferencesTab.about.displayName, systemImage: PreferencesTab.about.iconName)
