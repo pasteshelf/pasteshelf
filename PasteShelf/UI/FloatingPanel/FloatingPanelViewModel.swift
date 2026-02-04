@@ -83,8 +83,11 @@ final class FloatingPanelViewModel: ObservableObject {
     /// Storage manager for fetching items
     private let storageManager: StorageManager
 
-    /// Search engine for full-text search
-    private let searchEngine: FullTextSearchEngine
+    /// Search engine for full-text and semantic search
+    private let searchEngine: HybridSearchEngine
+
+    /// Whether semantic search is active for the current results
+    @Published private(set) var isSemanticSearchActive: Bool = false
 
     /// Clipboard monitor for pause/resume during paste
     weak var clipboardMonitor: ClipboardMonitor?
@@ -121,8 +124,13 @@ final class FloatingPanelViewModel: ObservableObject {
 
     init(storageManager: StorageManager = .shared) {
         self.storageManager = storageManager
-        self.searchEngine = FullTextSearchEngine(storageManager: storageManager)
+        self.searchEngine = HybridSearchEngine(storageManager: storageManager)
         setupSearchDebounce()
+    }
+
+    /// Whether semantic search is available (Pro license and system support)
+    var isSemanticSearchAvailable: Bool {
+        searchEngine.isSemanticSearchAvailable
     }
 
     // MARK: - Search Setup
@@ -191,6 +199,7 @@ final class FloatingPanelViewModel: ObservableObject {
             searchState = .idle
             items = allItems
             searchResults = [:]
+            isSemanticSearchActive = false
             resetSelectionIfNeeded()
             return
         }
@@ -199,10 +208,18 @@ final class FloatingPanelViewModel: ObservableObject {
         logger.debug("Searching for: \(trimmedQuery)")
 
         // Build search options from active filters
-        let options = activeFilters.toSearchOptions(limit: maxItems)
+        var options = activeFilters.toSearchOptions(limit: maxItems)
+
+        // Enable semantic search if available and user has enabled it
+        let semanticEnabled = UserDefaults.standard.bool(forKey: "semanticSearchEnabled")
+        options.enableSemanticSearch = semanticEnabled && isSemanticSearchAvailable
+        options.semanticThreshold = UserDefaults.standard.double(forKey: "semanticThreshold") == 0 ? 0.5 : UserDefaults.standard.double(forKey: "semanticThreshold")
 
         // Execute search
         let results = await searchEngine.search(query: trimmedQuery, options: options)
+
+        // Check if any results used semantic matching
+        isSemanticSearchActive = results.contains { $0.matchType == .semantic || $0.matchType == .hybrid }
 
         // Store search results for highlighting
         searchResults = Dictionary(uniqueKeysWithValues: results.map { ($0.itemId, $0) })

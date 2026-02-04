@@ -60,6 +60,17 @@ struct SearchOptions: Sendable, Equatable {
     /// Search in sensitive items
     var includeSensitive: Bool
 
+    // MARK: - Semantic Search Options
+
+    /// Enable semantic/AI-powered search (Pro feature)
+    var enableSemanticSearch: Bool
+
+    /// Minimum similarity threshold for semantic matches (0.0 to 1.0)
+    var semanticThreshold: Double
+
+    /// Source app name hints for filtering (from natural language query)
+    var sourceAppHints: [String]?
+
     // MARK: - Initialization
 
     init(
@@ -71,7 +82,10 @@ struct SearchOptions: Sendable, Equatable {
         dateRange: DateRange? = nil,
         fuzzyMatching: Bool = true,
         fuzzyThreshold: Double = 0.6,
-        includeSensitive: Bool = true
+        includeSensitive: Bool = true,
+        enableSemanticSearch: Bool = false,
+        semanticThreshold: Double = 0.5,
+        sourceAppHints: [String]? = nil
     ) {
         self.limit = limit
         self.offset = offset
@@ -82,6 +96,9 @@ struct SearchOptions: Sendable, Equatable {
         self.fuzzyMatching = fuzzyMatching
         self.fuzzyThreshold = fuzzyThreshold
         self.includeSensitive = includeSensitive
+        self.enableSemanticSearch = enableSemanticSearch
+        self.semanticThreshold = semanticThreshold
+        self.sourceAppHints = sourceAppHints
     }
 
     /// Default search options
@@ -231,12 +248,20 @@ enum MatchType: String, Sendable, Equatable {
     /// Match in metadata (app name, type, etc.)
     case metadata
 
+    /// Semantic/AI-powered similarity match (Pro feature)
+    case semantic
+
+    /// Hybrid match (combined full-text and semantic)
+    case hybrid
+
     /// Score multiplier for ranking
     var scoreMultiplier: Double {
         switch self {
         case .exact: return 1.0
         case .prefix: return 0.9
+        case .hybrid: return 0.85
         case .contains: return 0.7
+        case .semantic: return 0.65
         case .metadata: return 0.6
         case .fuzzy: return 0.5
         }

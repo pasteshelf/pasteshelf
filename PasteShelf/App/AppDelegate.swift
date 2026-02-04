@@ -73,6 +73,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Start auto-cleanup manager
         AutoCleanupManager.shared.start()
 
+        // Start background embedding generation for semantic search (Pro feature)
+        startBackgroundEmbeddingGeneration()
+
         // Show onboarding if needed
         showOnboardingIfNeeded()
 
@@ -250,6 +253,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         logger.debug("Settings change handled")
     }
+
+    // MARK: - Semantic Search
+
+    /// Starts background embedding generation for semantic search (if Pro licensed)
+    private func startBackgroundEmbeddingGeneration() {
+        // Check if semantic search is enabled in settings
+        let semanticEnabled = UserDefaults.standard.bool(forKey: "semanticSearchEnabled")
+        guard semanticEnabled else {
+            logger.debug("Semantic search disabled, skipping embedding generation")
+            return
+        }
+
+        // Run embedding generation in background
+        Task.detached(priority: .background) { [logger] in
+            // Clean up outdated embeddings first
+            await EmbeddingGenerator.shared.clearOutdatedEmbeddings()
+
+            // Index any items missing embeddings
+            let indexed = await EmbeddingGenerator.shared.indexAllMissingEmbeddings()
+            if indexed > 0 {
+                logger.info("Background embedding generation completed: \(indexed) items indexed")
+            }
+        }
+    }
+
+    /// Generates embedding for a newly captured clipboard item
+    private func generateEmbeddingForNewItem(id: UUID) {
+        // Check if semantic search is enabled
+        let semanticEnabled = UserDefaults.standard.bool(forKey: "semanticSearchEnabled")
+        guard semanticEnabled else { return }
+
+        Task.detached(priority: .background) {
+            await EmbeddingGenerator.shared.generateEmbedding(for: id)
+        }
+    }
 }
 
 // MARK: - ClipboardMonitorDelegate
@@ -269,6 +307,9 @@ extension AppDelegate: ClipboardMonitorDelegate {
                 await floatingPanelController?.viewModel.loadItems()
             }
         }
+
+        // Generate embedding for semantic search (Pro feature)
+        generateEmbeddingForNewItem(id: content.id)
 
         logger.debug("Captured: \(content.primaryType.displayName)")
     }

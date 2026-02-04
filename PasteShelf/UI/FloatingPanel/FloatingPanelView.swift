@@ -110,6 +110,22 @@ struct FloatingPanelView: View {
                 .font(.headline)
                 .foregroundColor(.primary)
 
+            // Semantic search indicator
+            if viewModel.isSemanticSearchActive {
+                HStack(spacing: 3) {
+                    Image(systemName: "brain")
+                        .font(.caption2)
+                    Text("AI")
+                        .font(.caption2.bold())
+                }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.purple.opacity(0.15))
+                .foregroundStyle(.purple)
+                .clipShape(Capsule())
+                .help("Results powered by semantic search")
+            }
+
             Spacer()
 
             // Show search state or item count

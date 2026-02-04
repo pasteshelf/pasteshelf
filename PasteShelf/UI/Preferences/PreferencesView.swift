@@ -47,6 +47,15 @@ struct PreferencesView: View {
                 }
                 .tag(PreferencesTab.shortcuts)
 
+            SearchTabView()
+                .tabItem {
+                    Label(
+                        PreferencesTab.search.displayName,
+                        systemImage: PreferencesTab.search.iconName
+                    )
+                }
+                .tag(PreferencesTab.search)
+
             SyncTabView()
                 .tabItem {
                     Label(

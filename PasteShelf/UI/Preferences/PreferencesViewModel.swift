@@ -314,6 +314,7 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
     case privacy
     case appearance
     case shortcuts
+    case search
     case sync
     case license
     case about
@@ -327,6 +328,7 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
         case .privacy: return "Privacy"
         case .appearance: return "Appearance"
         case .shortcuts: return "Shortcuts"
+        case .search: return "Search"
         case .sync: return "Sync"
         case .license: return "License"
         case .about: return "About"
@@ -340,6 +342,7 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
         case .privacy: return "hand.raised"
         case .appearance: return "paintbrush"
         case .shortcuts: return "keyboard"
+        case .search: return "magnifyingglass"
         case .sync: return "icloud"
         case .license: return "key.fill"
         case .about: return "info.circle"

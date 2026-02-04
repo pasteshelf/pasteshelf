@@ -83,4 +83,19 @@
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ClipboardItem" inverseName="tags" inverseEntity="ClipboardItem"/>
     </entity>
+    <entity name="EmbeddingCache" representedClassName="EmbeddingCache" syncable="NO">
+        <attribute name="clipboardItemId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="embedding" optional="YES" attributeType="Binary"/>
+        <attribute name="embeddingVersion" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="language" optional="YES" attributeType="String"/>
+        <attribute name="textHash" optional="YES" attributeType="String"/>
+        <fetchIndex name="byClipboardItemId">
+            <fetchIndexElement property="clipboardItemId" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byTextHash">
+            <fetchIndexElement property="textHash" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
 </model>
