@@ -134,7 +134,7 @@ final class NetworkMonitor: ObservableObject {
         if !queuedChanges.contains(where: { $0.entityID == change.entityID }) {
             queuedChanges.append(change)
             saveQueuedChanges()
-            Self.logger.debug("Queued change for \(change.entityID), queue size: \(queuedChanges.count)")
+            Self.logger.debug("Queued change for \(change.entityID), queue size: \(self.queuedChanges.count)")
         }
     }
 
@@ -163,7 +163,7 @@ final class NetworkMonitor: ObservableObject {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             queuedChanges = try decoder.decode([SyncChange].self, from: data)
-            Self.logger.debug("Loaded \(queuedChanges.count) queued changes")
+            Self.logger.debug("Loaded \(self.queuedChanges.count) queued changes")
         } catch {
             Self.logger.error("Failed to load queued changes: \(error.localizedDescription)")
         }

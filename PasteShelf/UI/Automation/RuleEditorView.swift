@@ -232,10 +232,10 @@ struct RuleEditorView: View {
         let rule = AutomationRule(
             id: viewModel.selectedRule?.id ?? UUID(),
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-            trigger: finalTrigger,
-            conditions: viewModel.selectedRule?.conditions,
-            actions: actions,
             isEnabled: isEnabled,
+            trigger: finalTrigger,
+            conditions: viewModel.selectedRule?.conditions ?? CollectionRules(),
+            actions: actions,
             priority: viewModel.selectedRule?.priority ?? 100,
             createdAt: viewModel.selectedRule?.createdAt ?? Date(),
             modifiedAt: Date(),
@@ -311,23 +311,6 @@ struct TriggerPickerView: View {
     }
 }
 
-// MARK: - AutomationTrigger Extension
-
-extension AutomationTrigger {
-    var description: String {
-        switch self {
-        case .onCapture:
-            return "Runs when a new item is copied to the clipboard"
-        case .onPaste:
-            return "Runs when an item from history is pasted"
-        case .manual:
-            return "Runs only when manually triggered"
-        case .schedule:
-            return "Runs automatically on a schedule"
-        }
-    }
-}
-
 // MARK: - Action Row View
 
 struct ActionRowView: View {
@@ -337,12 +320,12 @@ struct ActionRowView: View {
 
     var body: some View {
         HStack {
-            Image(systemName: action.type.iconName)
+            Image(systemName: action.actionType.iconName)
                 .foregroundColor(.accentColor)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(action.type.displayName)
+                Text(action.actionType.displayName)
                     .font(.body)
 
                 Text(actionDescription)
@@ -366,17 +349,17 @@ struct ActionRowView: View {
     }
 
     private var actionDescription: String {
-        switch action.type {
-        case let .transform(preset):
+        switch action {
+        case .transform(_, let preset):
             return "Transform: \(preset.displayName)"
-        case let .addTag(tag):
-            return "Add tag: \(tag)"
-        case let .notify(title, _):
+        case .addTag(_, let tagName):
+            return "Add tag: \(tagName)"
+        case .notify(_, let title, _):
             return "Notify: \(title)"
-        case let .webhook(url):
-            return "POST to: \(url)"
+        case .webhook(_, let endpointId):
+            return "Webhook: \(endpointId.uuidString.prefix(8))..."
         default:
-            return action.type.description
+            return action.description
         }
     }
 }
@@ -424,29 +407,29 @@ struct ActionPickerView: View {
     private func createDefaultAction(for type: ActionType) -> AutomationAction {
         switch type {
         case .transform:
-            return AutomationAction(type: .transform(preset: .uppercase))
+            return .transform(preset: .uppercase)
         case .addTag:
-            return AutomationAction(type: .addTag(tag: "processed"))
+            return .addTag(tagName: "processed")
         case .removeTag:
-            return AutomationAction(type: .removeTag(tag: ""))
+            return .removeTag(tagName: "")
         case .setFavorite:
-            return AutomationAction(type: .setFavorite(isFavorite: true))
+            return .setFavorite(isFavorite: true)
         case .moveToFolder:
-            return AutomationAction(type: .moveToFolder(folderId: nil))
+            return .moveToFolder(folderName: "")
         case .copyToClipboard:
-            return AutomationAction(type: .copyToClipboard)
+            return .copyToClipboard()
         case .notify:
-            return AutomationAction(type: .notify(title: "PasteShelf", body: "Rule executed"))
+            return .notify(title: "PasteShelf", message: "Rule executed")
         case .openURL:
-            return AutomationAction(type: .openURL(url: ""))
+            return .openURL(urlTemplate: "")
         case .runScript:
-            return AutomationAction(type: .runScript(path: "", arguments: []))
+            return .runScript(scriptPath: "")
         case .webhook:
-            return AutomationAction(type: .webhook(url: ""))
+            return .webhook(endpointId: UUID())
         case .markSensitive:
-            return AutomationAction(type: .markSensitive(isSensitive: true))
+            return .markSensitive(isSensitive: true)
         case .delete:
-            return AutomationAction(type: .delete)
+            return .delete()
         }
     }
 }
@@ -499,27 +482,6 @@ struct ActionTypeButton: View {
             .cornerRadius(8)
         }
         .buttonStyle(.plain)
-    }
-}
-
-// MARK: - ActionType Extension for Picker
-
-extension ActionType: CaseIterable {
-    static var allCases: [ActionType] {
-        [
-            .transform(preset: .uppercase),
-            .addTag(tag: ""),
-            .removeTag(tag: ""),
-            .setFavorite(isFavorite: true),
-            .moveToFolder(folderId: nil),
-            .copyToClipboard,
-            .notify(title: "", body: ""),
-            .openURL(url: ""),
-            .runScript(path: "", arguments: []),
-            .webhook(url: ""),
-            .markSensitive(isSensitive: true),
-            .delete,
-        ]
     }
 }
 

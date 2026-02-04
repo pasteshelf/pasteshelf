@@ -230,8 +230,7 @@ extension ClipboardItemQuery: EntityStringQuery {
 extension ClipboardItemEntity {
     /// Fetches recent clipboard items
     static func fetchRecent(limit: Int = 10) async -> [ClipboardItemEntity] {
-        let storageManager = StorageManager.shared
-        let context = storageManager.viewContext
+        let context = await MainActor.run { StorageManager.shared.viewContext }
 
         return await context.perform {
             let fetchRequest = ClipboardItem.fetchRequest()
@@ -251,8 +250,7 @@ extension ClipboardItemEntity {
 
     /// Fetches favorite clipboard items
     static func fetchFavorites(limit: Int = 20) async -> [ClipboardItemEntity] {
-        let storageManager = StorageManager.shared
-        let context = storageManager.viewContext
+        let context = await MainActor.run { StorageManager.shared.viewContext }
 
         return await context.perform {
             let fetchRequest = ClipboardItem.fetchRequest()
@@ -273,8 +271,7 @@ extension ClipboardItemEntity {
 
     /// Searches clipboard items by query
     static func search(query: String, limit: Int = 20) async -> [ClipboardItemEntity] {
-        let storageManager = StorageManager.shared
-        let context = storageManager.viewContext
+        let context = await MainActor.run { StorageManager.shared.viewContext }
 
         return await context.perform {
             let fetchRequest = ClipboardItem.fetchRequest()
@@ -298,8 +295,7 @@ extension ClipboardItemEntity {
 
     /// Fetches a single item by ID
     static func fetch(id: UUID) async -> ClipboardItemEntity? {
-        let storageManager = StorageManager.shared
-        let context = storageManager.viewContext
+        let context = await MainActor.run { StorageManager.shared.viewContext }
 
         return await context.perform {
             let fetchRequest = ClipboardItem.fetchRequest()

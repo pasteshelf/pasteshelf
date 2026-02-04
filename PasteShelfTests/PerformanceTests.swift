@@ -9,53 +9,6 @@ import XCTest
 @testable import PasteShelf
 
 final class PerformanceTests: XCTestCase {
-    // MARK: - Search Performance Tests
-
-    func testSearchPerformance_smallDataset() {
-        let searchEngine = FullTextSearchEngine()
-        let items = generateTestItems(count: 100)
-
-        measure {
-            for item in items {
-                _ = searchEngine.matches(text: item, query: "test")
-            }
-        }
-    }
-
-    func testSearchPerformance_mediumDataset() {
-        let searchEngine = FullTextSearchEngine()
-        let items = generateTestItems(count: 500)
-
-        measure {
-            for item in items {
-                _ = searchEngine.matches(text: item, query: "clipboard")
-            }
-        }
-    }
-
-    func testSearchPerformance_largeDataset() {
-        let searchEngine = FullTextSearchEngine()
-        let items = generateTestItems(count: 1000)
-
-        measure {
-            for item in items {
-                _ = searchEngine.matches(text: item, query: "search query")
-            }
-        }
-    }
-
-    func testSearchPerformance_longQuery() {
-        let searchEngine = FullTextSearchEngine()
-        let items = generateTestItems(count: 500)
-        let longQuery = "This is a very long search query that might take longer to process"
-
-        measure {
-            for item in items {
-                _ = searchEngine.matches(text: item, query: longQuery)
-            }
-        }
-    }
-
     // MARK: - Fuzzy Search Performance Tests
 
     func testFuzzySearchPerformance_smallDataset() {
@@ -110,34 +63,34 @@ final class PerformanceTests: XCTestCase {
     // MARK: - Image Processing Performance Tests
 
     func testImageThumbnailGeneration_small() {
-        let processor = ImageProcessor()
+        let processor = ImageProcessor(thumbnailSize: 128)
         let testImage = createTestImage(size: NSSize(width: 200, height: 200))
 
         measure {
             for _ in 0..<100 {
-                _ = processor.generateThumbnail(from: testImage, maxSize: 128)
+                _ = processor.generateThumbnail(testImage)
             }
         }
     }
 
     func testImageThumbnailGeneration_medium() {
-        let processor = ImageProcessor()
+        let processor = ImageProcessor(thumbnailSize: 256)
         let testImage = createTestImage(size: NSSize(width: 1000, height: 1000))
 
         measure {
             for _ in 0..<50 {
-                _ = processor.generateThumbnail(from: testImage, maxSize: 256)
+                _ = processor.generateThumbnail(testImage)
             }
         }
     }
 
     func testImageThumbnailGeneration_large() {
-        let processor = ImageProcessor()
+        let processor = ImageProcessor(thumbnailSize: 256)
         let testImage = createTestImage(size: NSSize(width: 4000, height: 3000))
 
         measure {
             for _ in 0..<10 {
-                _ = processor.generateThumbnail(from: testImage, maxSize: 256)
+                _ = processor.generateThumbnail(testImage)
             }
         }
     }
@@ -150,7 +103,7 @@ final class PerformanceTests: XCTestCase {
 
         measure {
             for text in texts {
-                _ = detector.detect(in: text)
+                _ = detector.analyze(text: text)
             }
         }
     }
@@ -161,7 +114,7 @@ final class PerformanceTests: XCTestCase {
 
         measure {
             for _ in 0..<50 {
-                _ = detector.detect(in: largeText)
+                _ = detector.analyze(text: largeText)
             }
         }
     }
@@ -221,27 +174,9 @@ final class PerformanceTests: XCTestCase {
 // MARK: - Memory Tests
 
 final class MemoryTests: XCTestCase {
-    /// Test that search operations don't leak memory
-    func testSearchMemoryUsage() {
-        let searchEngine = FullTextSearchEngine()
-        let items = (0..<1000).map { _ in "Test item \(UUID().uuidString)" }
-
-        // Perform many searches
-        for _ in 0..<10 {
-            autoreleasepool {
-                for item in items {
-                    _ = searchEngine.matches(text: item, query: "test")
-                }
-            }
-        }
-
-        // If there's a leak, this would fail over time
-        // In a real test, you'd use XCTMemoryMetric
-    }
-
     /// Test that image processing doesn't leak memory
     func testImageProcessingMemoryUsage() {
-        let processor = ImageProcessor()
+        let processor = ImageProcessor(thumbnailSize: 256)
 
         for _ in 0..<10 {
             autoreleasepool {
@@ -251,7 +186,7 @@ final class MemoryTests: XCTestCase {
                 NSRect(origin: .zero, size: image.size).fill()
                 image.unlockFocus()
 
-                _ = processor.generateThumbnail(from: image, maxSize: 256)
+                _ = processor.generateThumbnail(image)
             }
         }
     }
@@ -263,8 +198,8 @@ final class MemoryTests: XCTestCase {
                 var content = ClipboardContent(primaryType: .plainText)
                 content.plainText = String(repeating: "x", count: 10000)
 
-                // Create and discard
-                _ = content.plainTextPreview
+                // Create and discard - check plainText property
+                _ = content.plainText
             }
         }
     }

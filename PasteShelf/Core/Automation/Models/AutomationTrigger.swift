@@ -11,7 +11,7 @@ import Foundation
 // MARK: - Automation Trigger
 
 /// Trigger types that initiate automation rule evaluation
-enum AutomationTrigger: Codable, Equatable, Sendable {
+enum AutomationTrigger: Codable, Equatable, Hashable, Sendable {
     /// Triggered when a new clipboard item is captured
     case onCapture
 
@@ -121,7 +121,7 @@ enum AutomationTrigger: Codable, Equatable, Sendable {
 // MARK: - Cron Expression
 
 /// A simplified cron expression for scheduling automation rules
-struct CronExpression: Codable, Equatable, Sendable {
+struct CronExpression: Codable, Equatable, Hashable, Sendable {
     /// Minute (0-59)
     var minute: Int
 
@@ -161,19 +161,33 @@ struct CronExpression: Codable, Equatable, Sendable {
     }
 
     /// Run daily at the specified time
-    static func daily(at hour: Int, minute: Int = 0) -> CronExpression {
+    static func daily(at hour: Int = 9, minute: Int = 0) -> CronExpression {
         CronExpression(minute: minute, hour: hour)
     }
 
     /// Run weekly on the specified day and time
-    static func weekly(on dayOfWeek: Int, at hour: Int, minute: Int = 0) -> CronExpression {
+    static func weekly(on dayOfWeek: Int = 1, at hour: Int = 9, minute: Int = 0) -> CronExpression {
         CronExpression(minute: minute, hour: hour, dayOfWeek: dayOfWeek)
     }
 
     /// Run monthly on the specified day and time
-    static func monthly(on dayOfMonth: Int, at hour: Int, minute: Int = 0) -> CronExpression {
+    static func monthly(on dayOfMonth: Int = 1, at hour: Int = 9, minute: Int = 0) -> CronExpression {
         CronExpression(minute: minute, hour: hour, dayOfMonth: dayOfMonth)
     }
+
+    // MARK: - Default Presets (for UI picker compatibility)
+
+    /// Default hourly schedule (on the hour)
+    static var hourly: CronExpression { hourly() }
+
+    /// Default daily schedule (9 AM)
+    static var daily: CronExpression { daily() }
+
+    /// Default weekly schedule (Monday 9 AM)
+    static var weekly: CronExpression { weekly() }
+
+    /// Default monthly schedule (1st of month at 9 AM)
+    static var monthly: CronExpression { monthly() }
 
     // MARK: - Display
 
@@ -221,6 +235,32 @@ struct CronExpression: Codable, Equatable, Sendable {
         let dayOfWeekStr = dayOfWeek.map { String($0) } ?? "*"
 
         return "\(minuteStr) \(hourStr) \(dayOfMonthStr) \(monthStr) \(dayOfWeekStr)"
+    }
+
+    /// Alias for cronString for UI compatibility
+    var expression: String {
+        cronString
+    }
+
+    /// Initialize from a cron expression string
+    /// - Parameter expression: Cron expression string (e.g., "0 9 * * *")
+    init(expression: String) {
+        let parts = expression.split(separator: " ").map { String($0) }
+
+        // Parse with defaults for missing parts
+        let parsedMinute = parts.count > 0 ? Int(parts[0]) ?? 0 : 0
+        let parsedHour = parts.count > 1 ? Int(parts[1]) ?? 0 : 0
+        let parsedDayOfMonth = parts.count > 2 && parts[2] != "*" ? Int(parts[2]) : nil
+        let parsedMonth = parts.count > 3 && parts[3] != "*" ? Int(parts[3]) : nil
+        let parsedDayOfWeek = parts.count > 4 && parts[4] != "*" ? Int(parts[4]) : nil
+
+        self.init(
+            minute: parsedMinute,
+            hour: parsedHour,
+            dayOfMonth: parsedDayOfMonth,
+            month: parsedMonth,
+            dayOfWeek: parsedDayOfWeek
+        )
     }
 
     // MARK: - Next Execution

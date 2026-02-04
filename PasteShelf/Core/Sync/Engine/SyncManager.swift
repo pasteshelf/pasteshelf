@@ -76,7 +76,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
 
     // MARK: - Initialization
 
-    public init(
+    init(
         cloudKitProvider: CloudKitProvider = CloudKitProvider(),
         changeTracker: ChangeTracker = ChangeTracker(),
         conflictResolver: ConflictResolver = ConflictResolver(),

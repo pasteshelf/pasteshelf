@@ -172,7 +172,7 @@ struct CollectionsSidebarView: View {
                     Text("New Collection")
                         .font(.system(size: 12, weight: .medium))
                 }
-                .foregroundStyle(.accentColor)
+                .foregroundColor(.accentColor)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 14)

@@ -302,20 +302,6 @@ struct RuleRowView: View {
     }
 }
 
-// MARK: - AutomationTrigger Extension
-
-extension AutomationTrigger {
-    /// SF Symbol name for the trigger type
-    var iconName: String {
-        switch self {
-        case .onCapture: return "arrow.down.doc"
-        case .onPaste: return "doc.on.clipboard"
-        case .manual: return "hand.tap"
-        case .schedule: return "clock"
-        }
-    }
-}
-
 // MARK: - Preview
 
 #if DEBUG

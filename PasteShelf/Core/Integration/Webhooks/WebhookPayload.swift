@@ -56,7 +56,7 @@ struct WebhookPayload: Codable {
 /// Event-specific data included in webhook payload
 struct WebhookData: Codable {
     /// Clipboard item data (for clipboard events)
-    var clipboardItem: ClipboardItemPayload?
+    var clipboardItem: WebhookClipboardItemPayload?
 
     /// Rule execution data (for rule events)
     var ruleExecution: RuleExecutionPayload?
@@ -65,7 +65,7 @@ struct WebhookData: Codable {
     var extra: [String: String]?
 
     init(
-        clipboardItem: ClipboardItemPayload? = nil,
+        clipboardItem: WebhookClipboardItemPayload? = nil,
         ruleExecution: RuleExecutionPayload? = nil,
         extra: [String: String]? = nil
     ) {
@@ -78,7 +78,7 @@ struct WebhookData: Codable {
 // MARK: - Clipboard Item Payload
 
 /// Clipboard item data for webhook payload
-struct ClipboardItemPayload: Codable {
+struct WebhookClipboardItemPayload: Codable {
     /// Item UUID
     let id: String
 
@@ -215,7 +215,7 @@ struct RuleExecutionPayload: Codable {
         self.ruleId = rule.id.uuidString
         self.ruleName = rule.name
         self.trigger = rule.trigger.displayName
-        self.actionsExecuted = actionsExecuted.map { $0.type.displayName }
+        self.actionsExecuted = actionsExecuted.map { $0.actionType.displayName }
         self.success = success
         self.errorMessage = errorMessage
         self.durationMs = durationMs
@@ -249,7 +249,7 @@ extension WebhookPayload {
     static func clipboardCreated(item: ClipboardItem) -> WebhookPayload {
         WebhookPayload(
             event: .clipboardCreated,
-            data: WebhookData(clipboardItem: ClipboardItemPayload(item: item))
+            data: WebhookData(clipboardItem: WebhookClipboardItemPayload(item: item))
         )
     }
 
@@ -257,7 +257,7 @@ extension WebhookPayload {
     static func clipboardCreated(content: ClipboardContent) -> WebhookPayload {
         WebhookPayload(
             event: .clipboardCreated,
-            data: WebhookData(clipboardItem: ClipboardItemPayload(content: content))
+            data: WebhookData(clipboardItem: WebhookClipboardItemPayload(content: content))
         )
     }
 
@@ -276,7 +276,7 @@ extension WebhookPayload {
     static func clipboardFavorited(item: ClipboardItem) -> WebhookPayload {
         WebhookPayload(
             event: .clipboardFavorited,
-            data: WebhookData(clipboardItem: ClipboardItemPayload(item: item))
+            data: WebhookData(clipboardItem: WebhookClipboardItemPayload(item: item))
         )
     }
 
@@ -284,7 +284,7 @@ extension WebhookPayload {
     static func clipboardUnfavorited(item: ClipboardItem) -> WebhookPayload {
         WebhookPayload(
             event: .clipboardUnfavorited,
-            data: WebhookData(clipboardItem: ClipboardItemPayload(item: item))
+            data: WebhookData(clipboardItem: WebhookClipboardItemPayload(item: item))
         )
     }
 
@@ -292,7 +292,7 @@ extension WebhookPayload {
     static func clipboardPasted(item: ClipboardItem) -> WebhookPayload {
         WebhookPayload(
             event: .clipboardPasted,
-            data: WebhookData(clipboardItem: ClipboardItemPayload(item: item))
+            data: WebhookData(clipboardItem: WebhookClipboardItemPayload(item: item))
         )
     }
 

@@ -5,6 +5,7 @@
 //  Unit tests for AutoCleanupManager.
 //
 
+import Foundation
 import Testing
 @testable import PasteShelf
 
@@ -120,7 +121,7 @@ struct AutoCleanupManagerTests {
 
 extension AutoCleanupManager {
     /// Check if an item should be deleted based on date and settings
-    static func shouldDelete(itemDate: Date, settings: PrivacySettings) -> Bool {
+    nonisolated static func shouldDelete(itemDate: Date, settings: PrivacySettings) -> Bool {
         guard settings.autoDeleteEnabled else { return false }
 
         let cutoffDate = Calendar.current.date(
@@ -133,18 +134,18 @@ extension AutoCleanupManager {
     }
 
     /// Check if a favorite should be kept
-    static func shouldKeepFavorite(_ isFavorite: Bool) -> Bool {
+    nonisolated static func shouldKeepFavorite(_ isFavorite: Bool) -> Bool {
         isFavorite
     }
 
     /// Calculate how many items need to be removed based on limit
-    static func itemsToRemove(currentCount: Int, limit: Int?) -> Int {
+    nonisolated static func itemsToRemove(currentCount: Int, limit: Int?) -> Int {
         guard let limit = limit else { return 0 }
         return max(0, currentCount - limit)
     }
 
     /// Default cleanup interval in seconds
-    static var defaultCleanupInterval: TimeInterval {
+    nonisolated static var defaultCleanupInterval: TimeInterval {
         86400  // 24 hours
     }
 }

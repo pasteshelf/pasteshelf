@@ -5,6 +5,7 @@
 //  Unit tests for SettingsManager and related settings models.
 //
 
+import Foundation
 import Testing
 @testable import PasteShelf
 
@@ -46,7 +47,7 @@ struct SettingsManagerTests {
         #expect(settings.excludePrivateBrowsing == true)
         #expect(settings.autoDeleteEnabled == false)
         #expect(settings.autoDeleteDays == 30)
-        #expect(settings.pauseMonitoring == false)
+        #expect(settings.isMonitoringPaused == false)
     }
 
     @Test("AutoDeleteDays validation")

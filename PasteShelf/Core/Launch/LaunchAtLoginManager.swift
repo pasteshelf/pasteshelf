@@ -5,6 +5,8 @@
 //  Manages launch at login functionality using ServiceManagement framework.
 //
 
+import AppKit
+import Combine
 import Foundation
 import os.log
 import ServiceManagement

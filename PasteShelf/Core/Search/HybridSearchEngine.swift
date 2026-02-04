@@ -128,10 +128,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
                 limit: options.limit
             )
 
-            logger.debug(
-                "Hybrid search completed: \(merged.count) results " +
-                "(FT: \(fullText.count), Semantic: \(semanticResults.count), OCR: \(ocrResults.count))"
-            )
+            logger.debug("Hybrid search completed: \(merged.count) results (FT: \(fullText.count), Semantic: \(semanticResults.count), OCR: \(ocrResults.count))")
             return merged
         }
 

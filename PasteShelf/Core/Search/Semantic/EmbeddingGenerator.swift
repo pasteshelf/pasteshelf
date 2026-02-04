@@ -63,7 +63,7 @@ final class EmbeddingGenerator: ObservableObject {
     )
 
     /// Current indexing task
-    private var indexingTask: Task<Void, Never>?
+    private var indexingTask: Task<Int, Never>?
 
     /// Cancellables for Combine subscriptions
     private var cancellables = Set<AnyCancellable>()

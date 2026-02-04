@@ -9,6 +9,7 @@
 import Combine
 import Foundation
 import os.log
+import SwiftUI
 
 /// ViewModel for managing automation rules
 @MainActor
@@ -176,10 +177,10 @@ final class AutomationViewModel: ObservableObject {
         let duplicatedRule = AutomationRule(
             id: UUID(),
             name: "\(rule.name) (Copy)",
+            isEnabled: false,
             trigger: rule.trigger,
             conditions: rule.conditions,
             actions: rule.actions,
-            isEnabled: false,
             priority: Int32(rules.count * 10)
         )
 
@@ -234,10 +235,10 @@ extension AutomationRule {
         AutomationRule(
             id: UUID(),
             name: "New Rule",
-            trigger: .onCapture,
-            conditions: nil,
-            actions: [],
             isEnabled: true,
+            trigger: .onCapture,
+            conditions: CollectionRules(),
+            actions: [],
             priority: 100
         )
     }

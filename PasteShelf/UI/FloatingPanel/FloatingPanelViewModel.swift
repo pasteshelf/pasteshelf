@@ -288,7 +288,7 @@ final class FloatingPanelViewModel: ObservableObject {
 
         searchState = .completed(resultCount: items.count)
         resetSelectionIfNeeded()
-        logger.debug("Search completed: \(items.count) results")
+        logger.debug("Search completed: \(self.items.count) results")
     }
 
     /// Clears the search query
@@ -675,7 +675,7 @@ final class FloatingPanelViewModel: ObservableObject {
         }
 
         collections = displayModels
-        logger.debug("Loaded \(collections.count) collections")
+        logger.debug("Loaded \(self.collections.count) collections")
     }
 
     /// Applies the current collection filter and reloads items

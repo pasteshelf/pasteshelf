@@ -156,17 +156,30 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
     /// Fetches IDs of image clipboard items that match the filter criteria
     private func fetchCandidateImageItemIds(options: SearchOptions) async -> [UUID] {
         // Build filter predicate (only image types)
-        let predicate = buildFilterPredicate(options: options)
+        var predicates: [NSPredicate] = []
+
+        // Content type filter
+        let contentTypePredicate = NSPredicate(
+            format: "contentType IN %@",
+            imageContentTypes.map { $0.rawValue }
+        )
+        predicates.append(contentTypePredicate)
+
+        // Add other filters
+        if let filterPredicate = buildFilterPredicate(options: options) {
+            predicates.append(filterPredicate)
+        }
+
+        let combinedPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
 
         // Fetch matching image item IDs
         let items = await storageManager.fetchRecentItems(
             limit: options.limit * 5, // Fetch more candidates to find OCR matches
             offset: options.offset,
-            contentTypes: imageContentTypes,
-            predicate: predicate
+            predicate: combinedPredicate
         )
 
-        return items.compactMap(\.id)
+        return items.compactMap { $0.id }
     }
 
     /// Builds an NSPredicate from search options (excluding content type, handled separately)

@@ -5,6 +5,7 @@
 //  Created by Harun Güngörer on 3.02.2026.
 //
 
+import Foundation
 import Testing
 @testable import PasteShelf
 

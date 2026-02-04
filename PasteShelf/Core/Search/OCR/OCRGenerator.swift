@@ -63,7 +63,7 @@ final class OCRGenerator: ObservableObject {
     )
 
     /// Current processing task
-    private var processingTask: Task<Void, Never>?
+    private var processingTask: Task<Int, Never>?
 
     /// Image content types to process
     private let imageContentTypes: Set<ContentType> = [.png, .jpeg, .tiff]
@@ -215,10 +215,14 @@ final class OCRGenerator: ObservableObject {
 
             while !Task.isCancelled {
                 // Fetch a batch of recent image items
+                let contentTypePredicate = NSPredicate(
+                    format: "contentType IN %@",
+                    imageContentTypes.map(\.rawValue)
+                )
                 let items = await storageManager.fetchRecentItems(
                     limit: batchSize,
                     offset: offset,
-                    contentTypes: imageContentTypes
+                    predicate: contentTypePredicate
                 )
 
                 if items.isEmpty {

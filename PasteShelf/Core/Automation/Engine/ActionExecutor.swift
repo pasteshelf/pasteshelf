@@ -300,7 +300,7 @@ final class ActionExecutor {
         }
 
         // Build payload
-        let payload = WebhookPayload(
+        let payload = AutomationWebhookPayload(
             event: "clipboard.automation",
             ruleId: rule.id,
             ruleName: rule.name,
@@ -322,7 +322,7 @@ final class ActionExecutor {
 
     private func sendWebhook(
         endpoint: WebhookEndpointConfig,
-        payload: WebhookPayload
+        payload: AutomationWebhookPayload
     ) async throws {
         guard let url = URL(string: endpoint.url) else {
             throw AutomationError.webhookFailed(url: endpoint.url, statusCode: nil)
@@ -438,8 +438,8 @@ struct WebhookEndpointConfig {
     let isEnabled: Bool
 }
 
-/// Payload sent to webhook endpoints
-struct WebhookPayload: Codable {
+/// Payload sent to webhook endpoints for automation events
+struct AutomationWebhookPayload: Codable {
     let event: String
     let timestamp: Date
     let ruleId: UUID

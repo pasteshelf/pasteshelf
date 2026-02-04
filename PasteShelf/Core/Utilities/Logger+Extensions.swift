@@ -42,6 +42,9 @@ extension Logger {
 
     /// Logger for plugin system operations (Pro feature)
     static let plugins = Logger(subsystem: subsystem, category: "Plugins")
+
+    /// Logger for Enterprise SSO and authentication operations
+    static let enterprise = Logger(subsystem: subsystem, category: "Enterprise")
 }
 
 // MARK: - Debug/Release Configuration

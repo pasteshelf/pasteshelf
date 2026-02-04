@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Bundle Configuration -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>BNDL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+
+    <!-- Principal Class - MUST match @objc(ClassName) exactly -->
+    <key>NSPrincipalClass</key>
+    <string>ExamplePlugin</string>
+
+    <!-- PasteShelf Plugin Metadata -->
+
+    <!-- Required: Unique plugin identifier (reverse-DNS format) -->
+    <key>PSPluginIdentifier</key>
+    <string>com.pasteshelf.plugins.example</string>
+
+    <!-- Required: Display name shown in UI -->
+    <key>PSPluginName</key>
+    <string>Example Plugin</string>
+
+    <!-- Required: Semantic version (major.minor.patch) -->
+    <key>PSPluginVersion</key>
+    <string>1.0.0</string>
+
+    <!-- Required: Minimum PasteShelf version required -->
+    <key>PSMinimumVersion</key>
+    <string>1.3.0</string>
+
+    <!-- Required: Permissions needed by this plugin -->
+    <key>PSPluginPermissions</key>
+    <array>
+        <!-- storage is always granted -->
+        <string>storage</string>
+        <!-- Add more permissions as needed:
+        <string>clipboard.read</string>
+        <string>clipboard.write</string>
+        <string>network</string>
+        <string>notifications</string>
+        <string>automation</string>
+        -->
+    </array>
+
+    <!-- Optional: Author information -->
+    <key>PSPluginAuthor</key>
+    <string>PasteShelf Team</string>
+
+    <key>PSPluginWebsite</key>
+    <string>https://pasteshelf.com</string>
+
+    <!-- Optional: Plugin description -->
+    <key>PSPluginDescription</key>
+    <string>An example plugin demonstrating the PasteShelfPluginKit SDK. Reverses text content with configurable prefix.</string>
+
+    <!-- Optional: Supported content types (UTIs) -->
+    <key>PSPluginSupportedTypes</key>
+    <array>
+        <string>public.utf8-plain-text</string>
+        <!-- Add more types as needed:
+        <string>public.rtf</string>
+        <string>public.html</string>
+        <string>public.url</string>
+        <string>public.png</string>
+        <string>public.jpeg</string>
+        -->
+    </array>
+</dict>
+</plist>

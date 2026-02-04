@@ -88,18 +88,7 @@ struct FloatingPanelView: View {
             }
             return .handled
         }
-        // Cmd+S to toggle favorite on selected item
-        .onKeyPress(keys: [KeyEquivalent("s")], modifiers: .command) { _ in
-            Task {
-                await viewModel.toggleFavorite()
-            }
-            return .handled
-        }
-        // Cmd+F to focus search field
-        .onKeyPress(keys: [KeyEquivalent("f")], modifiers: .command) { _ in
-            isSearchFocused = true
-            return .handled
-        }
+        // Note: Cmd+S and Cmd+F shortcuts are handled via keyboardShortcut on buttons in the menu bar
     }
 
     // MARK: - Header

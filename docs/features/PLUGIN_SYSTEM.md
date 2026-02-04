@@ -706,6 +706,16 @@ public final class JSONFormatter: NSObject, PasteShelfPlugin {
 
 ---
 
+## SDK Documentation
+
+For detailed SDK documentation and development resources:
+
+| Document | Description |
+|----------|-------------|
+| [Plugin Development Guide](../plugins/PLUGIN_DEVELOPMENT_GUIDE.md) | Complete guide to creating plugins |
+| [API Reference](../plugins/API_REFERENCE.md) | Full SDK API documentation |
+| [Example Plugin](../../PasteShelfPluginKit/Examples/) | Template plugin with annotated code |
+
 ## Related Documentation
 
 | Document | Description |
@@ -716,4 +726,4 @@ public final class JSONFormatter: NSObject, PasteShelfPlugin {
 
 ---
 
-*Last updated: 2026-02-03*
+*Last updated: 2026-02-04*

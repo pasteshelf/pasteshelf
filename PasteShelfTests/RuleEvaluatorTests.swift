@@ -15,7 +15,7 @@ final class RuleEvaluatorTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        storageManager = StorageManager.forTesting()
+        storageManager = await MainActor.run { StorageManager.forTesting() }
         evaluator = RuleEvaluator.shared
     }
 

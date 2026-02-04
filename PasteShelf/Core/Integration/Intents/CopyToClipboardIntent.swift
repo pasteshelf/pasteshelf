@@ -61,8 +61,7 @@ struct CopyToClipboardIntent: AppIntent {
     }
 
     private func copyItemToClipboard(id: UUID) async -> Bool {
-        let storageManager = StorageManager.shared
-        let context = storageManager.viewContext
+        let context = await MainActor.run { StorageManager.shared.viewContext }
 
         return await context.perform {
             let fetchRequest = ClipboardItem.fetchRequest()

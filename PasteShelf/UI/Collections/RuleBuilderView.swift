@@ -106,7 +106,7 @@ struct RuleBuilderView: View {
                 Text("Add Condition")
                     .font(.system(size: 12, weight: .medium))
             }
-            .foregroundStyle(.accentColor)
+            .foregroundColor(.accentColor)
         }
         .buttonStyle(.plain)
     }

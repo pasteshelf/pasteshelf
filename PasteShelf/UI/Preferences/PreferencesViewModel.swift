@@ -6,6 +6,7 @@
 //  Manages settings state and coordinates with SettingsManager.
 //
 
+import AppKit
 import Combine
 import Foundation
 import os.log
@@ -245,13 +246,13 @@ final class PreferencesViewModel: ObservableObject {
 
         // Notify about hotkey change so AppDelegate can update registration
         let previousHotkey = settingsManager.shortcuts.globalHotkey
-        if globalHotkey != previousHotkey {
-            logger.info("Global hotkey changed to: \(globalHotkey.displayString)")
+        if self.globalHotkey != previousHotkey {
+            logger.info("Global hotkey changed to: \(self.globalHotkey.displayString)")
         }
 
         settingsManager.shortcuts = ShortcutsSettings(
-            globalHotkey: globalHotkey,
-            quickPasteEnabled: quickPasteEnabled
+            globalHotkey: self.globalHotkey,
+            quickPasteEnabled: self.quickPasteEnabled
         )
     }
 

@@ -255,7 +255,7 @@ final class LicenseManager: ObservableObject, LicenseManaging {
     /// Add an observer for license changes
     func addObserver(_ observer: LicenseObserver) {
         observers.removeAll { $0.observer == nil } // Clean up
-        observers.append(WeakObserver(observer))
+        observers.append(WeakObserver(observer: observer))
     }
 
     /// Remove an observer

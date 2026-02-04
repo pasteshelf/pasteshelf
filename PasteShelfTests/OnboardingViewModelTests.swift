@@ -5,6 +5,8 @@
 //  Unit tests for OnboardingViewModel.
 //
 
+import ApplicationServices
+import Foundation
 import Testing
 @testable import PasteShelf
 
@@ -63,6 +65,7 @@ struct OnboardingViewModelTests {
     // MARK: - Onboarding Completion Tests
 
     @Test("shouldShowOnboarding returns true when not completed")
+    @MainActor
     func shouldShowOnboardingWhenNotCompleted() {
         // Reset onboarding state
         OnboardingViewModel.resetOnboarding()

@@ -14,7 +14,7 @@ final class StorageManagerTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        storageManager = StorageManager.forTesting()
+        storageManager = await MainActor.run { StorageManager.forTesting() }
     }
 
     override func tearDown() async throws {
@@ -24,11 +24,13 @@ final class StorageManagerTests: XCTestCase {
 
     // MARK: - Initialization Tests
 
+    @MainActor
     func testStorageManagerCreation() {
         XCTAssertNotNil(storageManager)
         XCTAssertNotNil(storageManager.viewContext)
     }
 
+    @MainActor
     func testBackgroundContextCreation() {
         let context = storageManager.newBackgroundContext()
         XCTAssertNotNil(context)

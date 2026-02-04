@@ -5,6 +5,7 @@
 //  Tests for ContentType enum functionality.
 //
 
+import Foundation
 import Testing
 import UniformTypeIdentifiers
 @testable import PasteShelf

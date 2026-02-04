@@ -5,6 +5,7 @@
 //  Tests for clipboard monitoring functionality.
 //
 
+import Foundation
 import Testing
 @testable import PasteShelf
 

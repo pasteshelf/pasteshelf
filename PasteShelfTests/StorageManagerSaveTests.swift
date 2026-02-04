@@ -14,7 +14,7 @@ final class StorageManagerSaveTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        storageManager = StorageManager.forTesting()
+        storageManager = await MainActor.run { StorageManager.forTesting() }
     }
 
     override func tearDown() async throws {

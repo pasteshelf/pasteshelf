@@ -5,6 +5,7 @@
 //  Tests for content deduplication functionality.
 //
 
+import Foundation
 import Testing
 @testable import PasteShelf
 

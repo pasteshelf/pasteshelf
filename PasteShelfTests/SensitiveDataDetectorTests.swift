@@ -5,6 +5,7 @@
 //  Tests for sensitive data detection functionality.
 //
 
+import Foundation
 import Testing
 @testable import PasteShelf
 

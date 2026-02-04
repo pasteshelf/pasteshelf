@@ -154,10 +154,11 @@ struct TagListView: View {
                     TagBadgeView(
                         tag: .sampleImportant,
                         showRemoveButton: true,
+                        onRemove: {
+                            print("Remove tapped")
+                        },
                         size: .medium
-                    ) {
-                        print("Remove tapped")
-                    }
+                    )
                 }
 
                 Divider()

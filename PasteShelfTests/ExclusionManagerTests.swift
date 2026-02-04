@@ -5,6 +5,7 @@
 //  Tests for app exclusion management functionality.
 //
 
+import Foundation
 import Testing
 @testable import PasteShelf
 

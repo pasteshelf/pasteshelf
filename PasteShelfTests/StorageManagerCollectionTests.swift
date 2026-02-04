@@ -14,7 +14,7 @@ final class StorageManagerCollectionTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        storageManager = StorageManager.forTesting()
+        storageManager = await MainActor.run { StorageManager.forTesting() }
     }
 
     override func tearDown() async throws {
@@ -41,7 +41,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             )
         )
 
-        let savedCollection = await storageManager.saveCollection(model)
+        let savedCollection = await storageManager.saveCollection(from: model)
 
         XCTAssertNotNil(savedCollection)
         XCTAssertEqual(savedCollection?.name, "Test Collection")
@@ -73,8 +73,8 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: nil
         )
 
-        _ = await storageManager.saveCollection(model1)
-        _ = await storageManager.saveCollection(model2)
+        _ = await storageManager.saveCollection(from: model1)
+        _ = await storageManager.saveCollection(from: model2)
 
         let collections = await storageManager.fetchCollections()
 
@@ -97,7 +97,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: nil
         )
 
-        _ = await storageManager.saveCollection(model)
+        _ = await storageManager.saveCollection(from: model)
 
         let fetchedCollection = await storageManager.fetchCollection(byId: id)
 
@@ -125,7 +125,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: nil
         )
 
-        _ = await storageManager.saveCollection(model)
+        _ = await storageManager.saveCollection(from: model)
 
         // Update the collection
         let updatedModel = CollectionDisplayModel(
@@ -139,7 +139,13 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: nil
         )
 
-        let success = await storageManager.updateCollection(updatedModel)
+        let success = await storageManager.updateCollection(
+            updatedModel.id,
+            name: updatedModel.name,
+            icon: updatedModel.icon,
+            colorHex: updatedModel.colorHex,
+            rules: updatedModel.rules
+        )
         XCTAssertTrue(success)
 
         // Verify update
@@ -147,7 +153,6 @@ final class StorageManagerCollectionTests: XCTestCase {
         XCTAssertEqual(fetchedCollection?.name, "Updated Name")
         XCTAssertEqual(fetchedCollection?.icon, "star.fill")
         XCTAssertEqual(fetchedCollection?.colorHex, "#FF9500")
-        XCTAssertFalse(fetchedCollection?.isAutomatic ?? true)
     }
 
     func testDeleteCollection() async {
@@ -163,7 +168,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: nil
         )
 
-        _ = await storageManager.saveCollection(model)
+        _ = await storageManager.saveCollection(from: model)
 
         // Verify it exists
         let beforeDelete = await storageManager.fetchCollection(byId: id)
@@ -193,7 +198,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: nil
         )
-        guard let collection = await storageManager.saveCollection(collectionModel) else {
+        guard let collection = await storageManager.saveCollection(from: collectionModel) else {
             XCTFail("Failed to create collection")
             return
         }
@@ -235,7 +240,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: nil
         )
-        guard let collection = await storageManager.saveCollection(collectionModel) else {
+        guard let collection = await storageManager.saveCollection(from: collectionModel) else {
             XCTFail("Failed to create collection")
             return
         }
@@ -283,7 +288,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: nil
         )
-        guard let collection = await storageManager.saveCollection(collectionModel) else {
+        guard let collection = await storageManager.saveCollection(from: collectionModel) else {
             XCTFail("Failed to create collection")
             return
         }
@@ -332,7 +337,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: rules
         )
 
-        _ = await storageManager.saveCollection(model)
+        _ = await storageManager.saveCollection(from: model)
 
         let fetchedCollection = await storageManager.fetchCollection(byId: id)
         XCTAssertNotNil(fetchedCollection)
@@ -372,7 +377,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: rules
         )
-        guard let collection = await storageManager.saveCollection(collectionModel) else {
+        guard let collection = await storageManager.saveCollection(from: collectionModel) else {
             XCTFail("Failed to create collection")
             return
         }

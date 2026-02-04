@@ -5,6 +5,7 @@
 //  State management for the onboarding flow.
 //
 
+import AppKit
 import ApplicationServices
 import Combine
 import Foundation

@@ -326,6 +326,13 @@ extension AppDelegate: ClipboardMonitorDelegate {
         // Flash menu bar icon
         menuBarController?.flashActive()
 
+        // Post notification for plugin system
+        NotificationCenter.default.post(
+            name: .clipboardContentCaptured,
+            object: nil,
+            userInfo: ["content": content]
+        )
+
         // Run automation rules (Pro feature)
         Task {
             await processAutomation(for: content, sourceApp: sourceApp)

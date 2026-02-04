@@ -10,7 +10,7 @@ import Foundation
 import UniformTypeIdentifiers
 
 /// Represents supported clipboard content types with UTI mappings
-enum ContentType: String, CaseIterable, Codable, Sendable {
+public enum ContentType: String, CaseIterable, Codable, Sendable {
     case plainText = "public.utf8-plain-text"
     case richText = "public.rtf"
     case html = "public.html"

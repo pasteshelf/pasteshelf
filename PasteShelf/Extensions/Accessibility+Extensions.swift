@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import Combine
 import SwiftUI
 
 // MARK: - Accessibility Environment
@@ -155,13 +156,14 @@ enum AccessibilityAnnouncement {
     static func announce(_ message: String, priority: NSAccessibilityPriorityLevel = .medium) {
         guard NSWorkspace.voiceOverEnabled else { return }
 
+        let userInfo: [NSAccessibility.NotificationUserInfoKey: Any] = [
+            .announcement: message,
+            .priority: priority.rawValue,
+        ]
         NSAccessibility.post(
-            element: NSApp,
-            notification: .announcement,
-            userInfo: [
-                .announcement: message,
-                .priority: priority.rawValue,
-            ]
+            element: NSApp as Any,
+            notification: NSAccessibility.Notification.announcementRequested,
+            userInfo: userInfo
         )
     }
 

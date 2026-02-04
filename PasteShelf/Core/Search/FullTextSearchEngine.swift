@@ -244,6 +244,31 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
             matchType: matchType
         )
     }
+
+    // MARK: - Simple Text Matching (for testing)
+
+    /// Checks if text matches the given query using case-insensitive, diacritic-insensitive comparison
+    /// - Parameters:
+    ///   - text: The text to search in
+    ///   - query: The search query
+    ///   - options: Search options (optional, uses default if not provided)
+    /// - Returns: True if the text contains or matches the query
+    func matches(text: String, query: String, options: SearchOptions = .default) -> Bool {
+        let normalizedText = text.searchNormalized
+        let normalizedQuery = query.searchNormalized
+
+        // Empty query never matches
+        guard !normalizedQuery.isEmpty else { return false }
+
+        // Check for exact, prefix, or contains match based on options
+        if normalizedText == normalizedQuery {
+            return true
+        }
+        if normalizedText.hasPrefix(normalizedQuery) {
+            return true
+        }
+        return normalizedText.contains(normalizedQuery)
+    }
 }
 
 // MARK: - StorageManager Extension

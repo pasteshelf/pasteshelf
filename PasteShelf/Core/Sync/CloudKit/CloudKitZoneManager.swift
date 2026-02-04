@@ -26,7 +26,7 @@ final class CloudKitZoneManager: Sendable {
 
     /// Zone ID for convenience
     var zoneID: CKRecordZone.ID {
-        zone.recordZoneID
+        zone.zoneID
     }
 
     /// Private database reference

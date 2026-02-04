@@ -133,12 +133,12 @@ struct TagPickerView: View {
         } label: {
             HStack {
                 Image(systemName: "plus.circle")
-                    .foregroundStyle(.accentColor)
+                    .foregroundColor(.accentColor)
                     .font(.system(size: 14))
 
                 Text("Create \"\(searchText)\"")
                     .font(.system(size: 12))
-                    .foregroundStyle(.accentColor)
+                    .foregroundColor(.accentColor)
 
                 Spacer()
             }

@@ -6,6 +6,7 @@
 //
 
 import Carbon.HIToolbox
+import Foundation
 import Testing
 @testable import PasteShelf
 
@@ -52,13 +53,13 @@ struct HotkeyManagerTests {
     @Test("Display string for common keys")
     func displayStringForCommonKeys() {
         let testCases: [(Int32, String)] = [
-            (kVK_ANSI_A, "A"),
-            (kVK_ANSI_V, "V"),
-            (kVK_ANSI_C, "C"),
-            (kVK_Space, "␣"),
-            (kVK_Return, "↩"),
-            (kVK_Tab, "⇥"),
-            (kVK_Escape, "⎋"),
+            (Int32(kVK_ANSI_A), "A"),
+            (Int32(kVK_ANSI_V), "V"),
+            (Int32(kVK_ANSI_C), "C"),
+            (Int32(kVK_Space), "␣"),
+            (Int32(kVK_Return), "↩"),
+            (Int32(kVK_Tab), "⇥"),
+            (Int32(kVK_Escape), "⎋"),
         ]
 
         for (keyCode, expectedKey) in testCases {
