@@ -11,6 +11,12 @@ import Combine
 import os.log
 import SwiftUI
 
+/// NSPanel subclass that can become key without requiring .titled style mask.
+/// This avoids the blue key-window focus indicator line that macOS draws on titled windows.
+private class KeyablePanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+}
+
 /// Controller for the floating clipboard history panel
 @MainActor
 final class FloatingPanelController: NSObject {
@@ -80,12 +86,13 @@ final class FloatingPanelController: NSObject {
     // MARK: - Setup
 
     private func setupPanel() {
-        // Create the panel with titled + nonActivating style for proper key window management
+        // Create a borderless panel. KeyablePanel overrides canBecomeKey so keyboard
+        // events work without .titled (which draws the blue focus indicator line).
         let contentRect = NSRect(x: 0, y: 0, width: panelWidth, height: panelHeight)
 
-        panel = NSPanel(
+        panel = KeyablePanel(
             contentRect: contentRect,
-            styleMask: [.nonactivatingPanel, .titled, .closable, .fullSizeContentView],
+            styleMask: [.nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -104,23 +111,6 @@ final class FloatingPanelController: NSObject {
         panel.isOpaque = false
         panel.hasShadow = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-
-        // Hide the title bar visually while keeping .titled in the style mask.
-        // This removes the blue key-window focus indicator line that macOS draws
-        // on titled windows, while preserving proper key window management.
-        panel.titlebarAppearsTransparent = true
-        panel.titleVisibility = .hidden
-        panel.titlebarSeparatorStyle = .none
-
-        // Hide traffic light buttons
-        panel.standardWindowButton(.closeButton)?.isHidden = true
-        panel.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        panel.standardWindowButton(.zoomButton)?.isHidden = true
-
-        // Hide the titlebar container view entirely to eliminate the blue focus line
-        if let titlebarContainer = panel.standardWindowButton(.closeButton)?.superview?.superview {
-            titlebarContainer.alphaValue = 0
-        }
 
         // Create SwiftUI hosting view
         let contentView = FloatingPanelView(viewModel: viewModel)
@@ -335,6 +325,7 @@ final class FloatingPanelController: NSObject {
         default: return nil
         }
     }
+
 }
 
 // MARK: - NSWindowDelegate
