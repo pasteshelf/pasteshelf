@@ -56,6 +56,9 @@ final class ContentParser: ContentParsing, Sendable {
         extractDocumentContent(from: pasteboard, into: &content)
         extractURLContent(from: pasteboard, into: &content)
 
+        // Refine primary type based on extracted content
+        refineContentType(&content)
+
         // Ensure we have at least some content
         guard !content.isEmpty else {
             Logger.clipboard.debug("Parsed content is empty")
@@ -240,9 +243,7 @@ final class ContentParser: ContentParsing, Sendable {
         }
 
         // Web URLs
-        if content.availableTypes.contains(.url) {
-            extractWebURL(from: pasteboard, into: &content)
-        }
+        extractWebURL(from: pasteboard, into: &content)
     }
 
     private func extractFileURLs(from pasteboard: NSPasteboard, into content: inout ClipboardContent) {
@@ -277,6 +278,44 @@ final class ContentParser: ContentParsing, Sendable {
            url.scheme != nil {
             content.url = url
         }
+    }
+
+    /// Re-evaluates primaryType based on actually extracted content.
+    /// Handles cases where pasteboard type priority doesn't match actual content
+    /// (e.g., HTML wrapper around an image, or a URL provided only as plain text).
+    private func refineContentType(_ content: inout ClipboardContent) {
+        // If we extracted image data but primary type is text, prefer image type
+        if content.imageData != nil && content.primaryType.isTextType {
+            if let imageType = content.availableTypes.first(where: { $0.isImageType }) {
+                content.primaryType = imageType
+            }
+        }
+
+        // If primary is plain text and content is a valid URL, upgrade to URL type
+        if content.primaryType == .plainText,
+           content.url != nil || isURL(content.plainText) {
+            if content.url == nil, let text = content.plainText,
+               let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                content.url = url
+            }
+            content.primaryType = .url
+            if !content.availableTypes.contains(.url) {
+                content.availableTypes.append(.url)
+            }
+        }
+    }
+
+    /// Checks if a string looks like a URL
+    private func isURL(_ text: String?) -> Bool {
+        guard let text = text?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !text.isEmpty,
+              !text.contains(" "),
+              !text.contains("\n"),
+              let url = URL(string: text),
+              let scheme = url.scheme?.lowercased(),
+              ["http", "https", "ftp", "ftps", "ssh"].contains(scheme)
+        else { return false }
+        return true
     }
 
     private func extractPlainTextFromRTF(_ pasteboard: NSPasteboard, into content: inout ClipboardContent) {

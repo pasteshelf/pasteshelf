@@ -71,13 +71,13 @@ public enum ContentType: String, CaseIterable, Codable, Sendable {
         switch self {
         case .richText: return 1
         case .html: return 2
-        case .plainText: return 3
-        case .png: return 4
-        case .jpeg: return 5
-        case .tiff: return 6
-        case .pdf: return 7
-        case .url: return 8
-        case .fileURL: return 9
+        case .fileURL: return 3
+        case .url: return 4
+        case .png: return 5
+        case .jpeg: return 6
+        case .tiff: return 7
+        case .pdf: return 8
+        case .plainText: return 9
         }
     }
 
