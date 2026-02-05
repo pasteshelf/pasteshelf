@@ -45,6 +45,9 @@ final class FloatingPanelController: NSObject {
     /// Cancellables for Combine subscriptions
     private var cancellables = Set<AnyCancellable>()
 
+    /// The app that was active before the panel was shown
+    private var previousApp: NSRunningApplication?
+
     /// Storage manager reference
     private let storageManager: StorageManager
 
@@ -65,6 +68,10 @@ final class FloatingPanelController: NSObject {
         viewModel = FloatingPanelViewModel(storageManager: storageManager)
         super.init()
 
+        viewModel.restorePreviousAppFocus = { [weak self] in
+            self?.restorePreviousAppFocus()
+        }
+
         setupPanel()
         setupBindings()
         setupSettingsObserver()
@@ -73,7 +80,7 @@ final class FloatingPanelController: NSObject {
     // MARK: - Setup
 
     private func setupPanel() {
-        // Create the panel with non-activating style
+        // Create the panel with titled + nonActivating style for proper key window management
         let contentRect = NSRect(x: 0, y: 0, width: panelWidth, height: panelHeight)
 
         panel = NSPanel(
@@ -93,12 +100,27 @@ final class FloatingPanelController: NSObject {
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
         panel.isMovableByWindowBackground = true
-        panel.titleVisibility = .hidden
-        panel.titlebarAppearsTransparent = true
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+
+        // Hide the title bar visually while keeping .titled in the style mask.
+        // This removes the blue key-window focus indicator line that macOS draws
+        // on titled windows, while preserving proper key window management.
+        panel.titlebarAppearsTransparent = true
+        panel.titleVisibility = .hidden
+        panel.titlebarSeparatorStyle = .none
+
+        // Hide traffic light buttons
+        panel.standardWindowButton(.closeButton)?.isHidden = true
+        panel.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        panel.standardWindowButton(.zoomButton)?.isHidden = true
+
+        // Hide the titlebar container view entirely to eliminate the blue focus line
+        if let titlebarContainer = panel.standardWindowButton(.closeButton)?.superview?.superview {
+            titlebarContainer.alphaValue = 0
+        }
 
         // Create SwiftUI hosting view
         let contentView = FloatingPanelView(viewModel: viewModel)
@@ -180,6 +202,12 @@ final class FloatingPanelController: NSObject {
     private func showPanel() {
         guard let panel = panel else { return }
 
+        // Capture the frontmost app BEFORE showing the panel
+        let frontmost = NSWorkspace.shared.frontmostApplication
+        if frontmost?.bundleIdentifier != Bundle.main.bundleIdentifier {
+            previousApp = frontmost
+        }
+
         // Position panel in center of main screen
         positionPanelCentered()
 
@@ -193,8 +221,16 @@ final class FloatingPanelController: NSObject {
     }
 
     private func hidePanel() {
+        guard panel?.isVisible == true else { return }
         panel?.orderOut(nil)
         logger.debug("Panel hidden")
+    }
+
+    /// Restores focus to the app that was active before the panel was shown
+    func restorePreviousAppFocus() {
+        guard let previousApp = previousApp else { return }
+        previousApp.activate()
+        self.previousApp = nil
     }
 
     // MARK: - Positioning

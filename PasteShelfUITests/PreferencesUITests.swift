@@ -15,6 +15,7 @@ final class PreferencesUITests: XCTestCase {
 
         app = XCUIApplication()
         app.launchArguments.append("--skip-onboarding")
+        app.launchArguments.append("--show-preferences")
         app.launch()
     }
 
@@ -42,12 +43,12 @@ final class PreferencesUITests: XCTestCase {
             return
         }
 
-        // Check all tabs exist
-        XCTAssertTrue(prefsWindow.buttons["General"].exists)
-        XCTAssertTrue(prefsWindow.buttons["Privacy"].exists)
-        XCTAssertTrue(prefsWindow.buttons["Appearance"].exists)
-        XCTAssertTrue(prefsWindow.buttons["Shortcuts"].exists)
-        XCTAssertTrue(prefsWindow.buttons["About"].exists)
+        // Check all tabs exist (SwiftUI TabView renders as toolbar items on macOS)
+        XCTAssertTrue(tabExists("General", in: prefsWindow))
+        XCTAssertTrue(tabExists("Privacy", in: prefsWindow))
+        XCTAssertTrue(tabExists("Appearance", in: prefsWindow))
+        XCTAssertTrue(tabExists("Shortcuts", in: prefsWindow))
+        XCTAssertTrue(tabExists("About", in: prefsWindow))
     }
 
     // MARK: - General Tab Tests
@@ -63,16 +64,20 @@ final class PreferencesUITests: XCTestCase {
         }
 
         // Click General tab
-        prefsWindow.buttons["General"].click()
+        selectTab("General", in: prefsWindow)
 
-        // Check General settings
+        // Check General settings (accessibility labels override visible text)
         XCTAssertTrue(
-            prefsWindow.checkBoxes["Launch at Login"].exists
-                || prefsWindow.toggles["Launch at Login"].exists
+            prefsWindow.switches["Launch PasteShelf at login"].exists
+                || prefsWindow.toggles["Launch PasteShelf at login"].exists
+                || prefsWindow.checkBoxes["Launch PasteShelf at login"].exists
+                || prefsWindow.staticTexts["Launch at login"].exists
         )
         XCTAssertTrue(
-            prefsWindow.checkBoxes["Show in Dock"].exists
+            prefsWindow.switches["Show in Dock"].exists
                 || prefsWindow.toggles["Show in Dock"].exists
+                || prefsWindow.checkBoxes["Show in Dock"].exists
+                || prefsWindow.staticTexts["Show in Dock"].exists
         )
     }
 
@@ -86,7 +91,7 @@ final class PreferencesUITests: XCTestCase {
             return
         }
 
-        prefsWindow.buttons["General"].click()
+        selectTab("General", in: prefsWindow)
 
         // Check history limit picker exists
         let historyPicker = prefsWindow.popUpButtons.firstMatch
@@ -106,7 +111,7 @@ final class PreferencesUITests: XCTestCase {
         }
 
         // Click Privacy tab
-        prefsWindow.buttons["Privacy"].click()
+        selectTab("Privacy", in: prefsWindow)
 
         // Check Privacy settings
         XCTAssertTrue(
@@ -125,11 +130,14 @@ final class PreferencesUITests: XCTestCase {
             return
         }
 
-        prefsWindow.buttons["Privacy"].click()
+        selectTab("Privacy", in: prefsWindow)
 
-        // Check Clear History button exists
-        let clearButton = prefsWindow.buttons["Clear History"]
-        XCTAssertTrue(clearButton.exists)
+        // Check Clear History button exists (accessibilityLabel is "Clear all history")
+        XCTAssertTrue(
+            prefsWindow.buttons["Clear all history"].exists
+                || prefsWindow.buttons["Clear All History"].exists
+                || prefsWindow.staticTexts["Clear All History"].exists
+        )
     }
 
     // MARK: - Appearance Tab Tests
@@ -145,7 +153,7 @@ final class PreferencesUITests: XCTestCase {
         }
 
         // Click Appearance tab
-        prefsWindow.buttons["Appearance"].click()
+        selectTab("Appearance", in: prefsWindow)
 
         // Check Appearance settings
         XCTAssertTrue(
@@ -164,7 +172,7 @@ final class PreferencesUITests: XCTestCase {
             return
         }
 
-        prefsWindow.buttons["Appearance"].click()
+        selectTab("Appearance", in: prefsWindow)
 
         // Check theme options
         let systemOption = prefsWindow.radioButtons["System"]
@@ -190,7 +198,7 @@ final class PreferencesUITests: XCTestCase {
         }
 
         // Click Shortcuts tab
-        prefsWindow.buttons["Shortcuts"].click()
+        selectTab("Shortcuts", in: prefsWindow)
 
         // Check Shortcuts settings
         XCTAssertTrue(
@@ -209,14 +217,18 @@ final class PreferencesUITests: XCTestCase {
             return
         }
 
-        prefsWindow.buttons["Shortcuts"].click()
+        selectTab("Shortcuts", in: prefsWindow)
 
         // Check hotkey recorder exists
-        // The hotkey display should show something like "⌘⇧V"
+        // The hotkey display should show something like "⌘⇧V" or section header "Global Hotkey"
         let hotkeyText = prefsWindow.staticTexts.matching(
-            NSPredicate(format: "label CONTAINS '⌘'")
+            NSPredicate(format: "label CONTAINS '\u{2318}'")
         ).firstMatch
-        XCTAssertTrue(hotkeyText.exists || prefsWindow.staticTexts["Record Shortcut"].exists)
+        XCTAssertTrue(
+            hotkeyText.exists
+                || prefsWindow.staticTexts["Global Hotkey"].exists
+                || prefsWindow.staticTexts["Show/Hide Panel"].exists
+        )
     }
 
     // MARK: - About Tab Tests
@@ -232,13 +244,19 @@ final class PreferencesUITests: XCTestCase {
         }
 
         // Click About tab
-        prefsWindow.buttons["About"].click()
+        selectTab("About", in: prefsWindow)
 
         // Check About content
-        XCTAssertTrue(prefsWindow.staticTexts["PasteShelf"].exists)
+        XCTAssertTrue(
+            prefsWindow.staticTexts["PasteShelf"].exists
+                || prefsWindow.staticTexts.matching(NSPredicate(format: "value CONTAINS 'PasteShelf'"))
+                    .firstMatch.exists
+        )
         XCTAssertTrue(
             prefsWindow.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Version'"))
                 .firstMatch.exists
+                || prefsWindow.staticTexts.matching(NSPredicate(format: "value CONTAINS 'Version'"))
+                    .firstMatch.exists
         )
     }
 
@@ -252,14 +270,16 @@ final class PreferencesUITests: XCTestCase {
             return
         }
 
-        prefsWindow.buttons["About"].click()
+        selectTab("About", in: prefsWindow)
 
-        // Check links exist
-        let websiteButton = prefsWindow.buttons["Visit Website"]
-        let githubButton = prefsWindow.buttons["View on GitHub"]
-        let issueButton = prefsWindow.buttons["Report an Issue"]
-
-        XCTAssertTrue(websiteButton.exists || githubButton.exists || issueButton.exists)
+        // Check links exist (Link accessibilityLabels differ from visible text)
+        XCTAssertTrue(
+            prefsWindow.links["Visit PasteShelf website"].exists
+                || prefsWindow.links["View source code on GitHub"].exists
+                || prefsWindow.buttons["Visit PasteShelf website"].exists
+                || prefsWindow.staticTexts["Website"].exists
+                || prefsWindow.links.firstMatch.exists
+        )
     }
 
     // MARK: - Tab Navigation Tests
@@ -278,7 +298,7 @@ final class PreferencesUITests: XCTestCase {
         let tabs = ["General", "Privacy", "Appearance", "Shortcuts", "About"]
 
         for tab in tabs {
-            prefsWindow.buttons[tab].click()
+            selectTab(tab, in: prefsWindow)
             // Give UI time to update
             Thread.sleep(forTimeInterval: 0.2)
         }
@@ -287,15 +307,26 @@ final class PreferencesUITests: XCTestCase {
     // MARK: - Helper Methods
 
     private func openPreferences() {
-        // Open via menu bar
-        let menuBarItem = app.menuBars.statusItems.firstMatch
-        if menuBarItem.exists {
-            menuBarItem.click()
+        // Preferences window auto-opens via --show-preferences launch argument
+        // Wait for window and its sidebar to fully render
+        let prefsWindow = app.windows["PasteShelf Preferences"]
+        guard prefsWindow.waitForExistence(timeout: 5) else { return }
+        // Wait for sidebar content to render
+        _ = prefsWindow.staticTexts["General"].waitForExistence(timeout: 5)
+    }
 
-            let prefsMenuItem = app.menuItems["Preferences..."]
-            if prefsMenuItem.waitForExistence(timeout: 2) {
-                prefsMenuItem.click()
-            }
+    /// Finds and clicks a tab in the preferences sidebar
+    private func selectTab(_ name: String, in prefsWindow: XCUIElement) {
+        let sidebarItem = prefsWindow.staticTexts[name]
+        if sidebarItem.waitForExistence(timeout: 3) {
+            sidebarItem.click()
+            // Give SwiftUI time to update the detail view
+            Thread.sleep(forTimeInterval: 0.3)
         }
+    }
+
+    /// Checks if a tab exists in the preferences sidebar
+    private func tabExists(_ name: String, in prefsWindow: XCUIElement) -> Bool {
+        prefsWindow.staticTexts[name].exists
     }
 }

@@ -30,13 +30,16 @@ final class PasteSimulator {
 
     /// Simulates a Cmd+V paste keystroke
     /// - Parameter delay: Optional delay before simulating (default: 0)
-    func simulatePaste(delay: TimeInterval = 0) {
+    /// - Returns: `true` if the paste was attempted with accessibility permission, `false` if permission is missing
+    @discardableResult
+    func simulatePaste(delay: TimeInterval = 0) -> Bool {
         if delay > 0 {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                 self?.performPaste()
             }
+            return hasAccessibilityPermission
         } else {
-            performPaste()
+            return performPaste()
         }
     }
 
@@ -53,10 +56,12 @@ final class PasteSimulator {
 
     // MARK: - Private Methods
 
-    private func performPaste() {
-        if !hasAccessibilityPermission {
-            logger.warning("Accessibility permission not granted - paste simulation may fail")
-            // Try anyway, but warn
+    @discardableResult
+    private func performPaste() -> Bool {
+        guard hasAccessibilityPermission else {
+            logger.warning("Accessibility permission not granted - requesting permission")
+            requestAccessibilityPermission()
+            return false
         }
 
         // Get the CGEventSource for keyboard events
@@ -65,13 +70,13 @@ final class PasteSimulator {
         // Create key down event for Cmd+V
         guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: Self.vKeyCode, keyDown: true) else {
             logger.error("Failed to create key down event")
-            return
+            return false
         }
 
         // Create key up event for Cmd+V
         guard let keyUp = CGEvent(keyboardEventSource: source, virtualKey: Self.vKeyCode, keyDown: false) else {
             logger.error("Failed to create key up event")
-            return
+            return false
         }
 
         // Add Command modifier to both events
@@ -83,6 +88,7 @@ final class PasteSimulator {
         keyUp.post(tap: .cghidEventTap)
 
         logger.debug("Paste keystroke simulated (Cmd+V)")
+        return true
     }
 
     /// Simulates typing a string (for future use)

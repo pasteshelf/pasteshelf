@@ -207,8 +207,13 @@ final class StorageManagerFetchTests: XCTestCase {
     }
 
     func testFetchFolderById() async {
-        let folder = await storageManager.saveFolder(name: "Test Folder")
-        guard let folderId = folder?.id else {
+        _ = await storageManager.saveFolder(name: "Test Folder")
+
+        // The returned object belongs to a background context, so access its
+        // properties by re-fetching from the view context instead.
+        let folders = await storageManager.fetchFolders()
+        guard let fetched = folders.first(where: { $0.name == "Test Folder" }),
+              let folderId = fetched.id else {
             XCTFail("Failed to create folder")
             return
         }

@@ -74,7 +74,7 @@ final class ImageProcessor: ImageProcessing, Sendable {
 
         // Don't upscale small images
         if originalSize.width <= thumbnailSize && originalSize.height <= thumbnailSize {
-            return image.pngData
+            return autoreleasepool { image.pngData }
         }
 
         // Calculate aspect-fit size
@@ -87,23 +87,25 @@ final class ImageProcessor: ImageProcessing, Sendable {
             height: floor(originalSize.height * ratio)
         )
 
-        // Create thumbnail
-        let thumbnail = NSImage(size: newSize)
+        // Wrap lockFocus/unlockFocus drawing in autoreleasepool to drain
+        // NSGraphicsContext and NSBitmapImageRep intermediates immediately
+        return autoreleasepool {
+            let thumbnail = NSImage(size: newSize)
 
-        thumbnail.lockFocus()
-        NSGraphicsContext.current?.imageInterpolation = .high
+            thumbnail.lockFocus()
+            NSGraphicsContext.current?.imageInterpolation = .high
 
-        image.draw(
-            in: NSRect(origin: .zero, size: newSize),
-            from: NSRect(origin: .zero, size: originalSize),
-            operation: .copy,
-            fraction: 1.0
-        )
+            image.draw(
+                in: NSRect(origin: .zero, size: newSize),
+                from: NSRect(origin: .zero, size: originalSize),
+                operation: .copy,
+                fraction: 1.0
+            )
 
-        thumbnail.unlockFocus()
+            thumbnail.unlockFocus()
 
-        // Return as PNG for best quality at small sizes
-        return thumbnail.pngData
+            return thumbnail.pngData
+        }
     }
 
     func compressIfNeeded(_ imageData: Data) -> (data: Data, isCompressed: Bool) {

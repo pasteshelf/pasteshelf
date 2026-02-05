@@ -16,7 +16,9 @@ struct SensitiveDataDetectorTests {
 
     @Test("Detects AWS access key")
     func detectsAwsAccessKey() {
-        let text = "AWS_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE"
+        // Use a fake key that won't be caught by the placeholder filter
+        // (the placeholder filter rejects strings containing "example", "test", "xxx", etc.)
+        let text = "AWS_ACCESS_KEY=AKIAIOSFODNN7FAKEVAL9"
         let result = detector.analyze(text: text)
 
         #expect(result.isSensitive)
@@ -27,7 +29,9 @@ struct SensitiveDataDetectorTests {
 
     @Test("Detects GitHub personal access token")
     func detectsGitHubToken() {
-        let text = "token: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        // Use alphanumeric chars that won't trigger the placeholder filter
+        // (the placeholder filter rejects strings containing "xxx", "test", etc.)
+        let text = "token: ghp_abcdefghij1234567890klmnopqrstuvwxyz"
         let result = detector.analyze(text: text)
 
         #expect(result.isSensitive)
@@ -124,12 +128,12 @@ struct SensitiveDataDetectorTests {
 
     @Test("Detects Stripe key pattern")
     func detectsStripeKeyPattern() {
-        // Using obviously fake test data that matches pattern but won't trigger secret scanning
-        let text = "api_key=STRIPE_KEY_PLACEHOLDER_FOR_TESTING"
+        // Use generic api_key assignment to avoid GitHub push protection blocking sk_live/sk_test patterns
+        let text = "api_key='rk_prod_9a8b7c6d5e4f3g2h1i0jklmn'"
         let result = detector.analyze(text: text)
 
         #expect(result.isSensitive)
-        #expect(result.detectedTypes.contains("API Key"))
+        #expect(result.detectedTypes.contains("Generic API Key"))
     }
 
     // MARK: - Severity Tests
@@ -184,9 +188,11 @@ struct SensitiveDataDetectorTests {
 
     @Test("Detects multiple sensitive items")
     func detectsMultipleSensitiveItems() {
+        // Use fake values that won't be caught by the placeholder filter
+        // (the placeholder filter rejects strings containing "example", "test", "xxx", etc.)
         let text = """
-        AWS_KEY=AKIAIOSFODNN7EXAMPLE
-        password='secret'
+        AWS_KEY=AKIAIOSFODNN7FAKEVAL9
+        password='mysecr3tpwd'
         SSN: 123-45-6789
         """
         let result = detector.analyze(text: text)

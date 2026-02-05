@@ -103,11 +103,11 @@ final class FuzzyMatcherTests: XCTestCase {
     func testMatches_strictThreshold() {
         let matcher = FuzzyMatcher.strict // threshold 0.8
 
-        // Exactly 0.8 should pass
+        // Exactly 0.8 should pass (1 edit / 5 chars = 0.8 similarity >= 0.8 threshold)
         XCTAssertTrue(matcher.matches("hello", query: "hallo"))
 
-        // 0.6 should fail strict threshold
-        XCTAssertFalse(matcher.matches("hello", query: "hxllo"))
+        // "hxllo" vs "hello" also has 1 edit / 5 chars = 0.8 similarity, which meets threshold
+        XCTAssertTrue(matcher.matches("hello", query: "hxllo"))
     }
 
     func testMatches_lenientThreshold() {

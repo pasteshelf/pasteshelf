@@ -11,13 +11,32 @@ import Foundation
 
 /// Handles content hashing and deduplication using SHA256
 final class Deduplicator: Deduplicating, Sendable {
+    // MARK: - Hex Encoding
+
+    /// Pure Swift hex lookup — avoids NSString bridging from String(format:)
+    private static let hexTable: [String] = (0...255).map {
+        let hi = "0123456789abcdef"
+        let hiIndex = hi.index(hi.startIndex, offsetBy: $0 >> 4)
+        let loIndex = hi.index(hi.startIndex, offsetBy: $0 & 0x0F)
+        return String(hi[hiIndex]) + String(hi[loIndex])
+    }
+
+    private func hexString(from digest: SHA256.Digest) -> String {
+        var result = ""
+        result.reserveCapacity(64) // SHA256 = 32 bytes = 64 hex chars
+        for byte in digest {
+            result += Self.hexTable[Int(byte)]
+        }
+        return result
+    }
+
     // MARK: - Deduplicating
 
     func computeHash(for content: ClipboardContent) -> String {
         var hasher = SHA256()
         hashContent(content, into: &hasher)
         let digest = hasher.finalize()
-        return digest.map { String(format: "%02x", $0) }.joined()
+        return hexString(from: digest)
     }
 
     /// Hashes content based on its primary type
@@ -99,7 +118,7 @@ final class Deduplicator: Deduplicating, Sendable {
         var hasher = SHA256()
         hashText(text, into: &hasher)
         let digest = hasher.finalize()
-        return digest.map { String(format: "%02x", $0) }.joined()
+        return hexString(from: digest)
     }
 
     func isDuplicate(_ content: ClipboardContent, comparing recentHashes: [String]) -> Bool {
@@ -121,11 +140,11 @@ final class Deduplicator: Deduplicating, Sendable {
     /// - Normalizes line endings to \n
     /// - Applies Unicode normalization (NFC)
     private func normalizeText(_ text: String) -> String {
-        text
+        let trimmed = text
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
-            .precomposedStringWithCanonicalMapping // NFC normalization
+        return trimmed.precomposedStringWithCanonicalMapping
     }
 
     /// Normalizes URL for consistent hashing

@@ -92,6 +92,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !isRunningTests && !CommandLine.arguments.contains("--skip-onboarding") {
             showOnboardingIfNeeded()
         }
+
+        if CommandLine.arguments.contains("--show-preferences") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.showPreferences()
+            }
+        }
         #else
         showOnboardingIfNeeded()
         #endif

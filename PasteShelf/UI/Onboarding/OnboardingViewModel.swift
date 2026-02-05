@@ -108,6 +108,12 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Check accessibility permission status
     func checkAccessibilityPermission() {
+        #if DEBUG
+        if CommandLine.arguments.contains("--bypass-permissions") {
+            hasAccessibilityPermission = true
+            return
+        }
+        #endif
         hasAccessibilityPermission = AXIsProcessTrusted()
         logger.debug("Accessibility permission: \(self.hasAccessibilityPermission)")
     }

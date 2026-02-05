@@ -32,7 +32,7 @@ final class PreferencesWindowController: NSObject {
     // MARK: - Configuration
 
     /// Window width
-    private let windowWidth: CGFloat = 550
+    private let windowWidth: CGFloat = 700
 
     /// Window height
     private let windowHeight: CGFloat = 450
@@ -88,7 +88,8 @@ final class PreferencesWindowController: NSObject {
             defer: false
         )
 
-        window.title = "PasteShelf Preferences"
+        window.title = "Preferences"
+        window.minSize = NSSize(width: windowWidth, height: windowHeight)
         window.isReleasedWhenClosed = false
         window.center()
 

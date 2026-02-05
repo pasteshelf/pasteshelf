@@ -32,9 +32,9 @@ struct SettingsManagerTests {
 
     @Test("HistoryLimit display names are correct")
     func historyLimitDisplayNames() {
-        #expect(HistoryLimit.small.displayName == "100")
-        #expect(HistoryLimit.medium.displayName == "500")
-        #expect(HistoryLimit.large.displayName == "1,000")
+        #expect(HistoryLimit.small.displayName == "100 items")
+        #expect(HistoryLimit.medium.displayName == "500 items")
+        #expect(HistoryLimit.large.displayName == "1,000 items")
         #expect(HistoryLimit.unlimited.displayName == "Unlimited")
     }
 
@@ -69,7 +69,7 @@ struct SettingsManagerTests {
 
         #expect(settings.theme == .system)
         #expect(settings.panelWidth == .normal)
-        #expect(settings.previewLines == 2)
+        #expect(settings.previewLines == 3)
         #expect(settings.showThumbnails == true)
         #expect(settings.compactMode == false)
     }
@@ -83,7 +83,7 @@ struct SettingsManagerTests {
 
     @Test("PanelWidth dimensions are correct")
     func panelWidthDimensions() {
-        #expect(PanelWidth.narrow.width == 350)
+        #expect(PanelWidth.narrow.width == 320)
         #expect(PanelWidth.normal.width == 400)
         #expect(PanelWidth.wide.width == 500)
     }

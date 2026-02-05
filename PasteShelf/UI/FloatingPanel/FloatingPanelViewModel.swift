@@ -122,6 +122,9 @@ final class FloatingPanelViewModel: ObservableObject {
     /// Paste simulator for Cmd+V simulation
     private let pasteSimulator = PasteSimulator()
 
+    /// Callback to restore focus to the previous app (set by FloatingPanelController)
+    var restorePreviousAppFocus: (@MainActor () -> Void)?
+
     // MARK: - Configuration
 
     /// Maximum number of items to display
@@ -477,9 +480,16 @@ final class FloatingPanelViewModel: ObservableObject {
         // Step 3: Hide the panel
         isVisible = false
 
-        // Step 4: Simulate paste after a short delay
-        try? await Task.sleep(for: .milliseconds(100))
-        pasteSimulator.simulatePaste()
+        // Step 3.5: Restore focus to the previous app
+        restorePreviousAppFocus?()
+
+        // Step 4: Simulate paste after a short delay (200ms for focus transfer)
+        try? await Task.sleep(for: .milliseconds(200))
+        let pasted = pasteSimulator.simulatePaste()
+
+        if !pasted {
+            errorMessage = "Item copied to clipboard. Grant Accessibility permission in System Settings to enable auto-paste."
+        }
 
         // Step 5: Resume monitoring after paste completes
         try? await Task.sleep(for: .milliseconds(300))

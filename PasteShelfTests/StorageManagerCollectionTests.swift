@@ -25,8 +25,9 @@ final class StorageManagerCollectionTests: XCTestCase {
     // MARK: - Collection CRUD Tests
 
     func testSaveCollection() async {
+        let id = UUID()
         let model = CollectionDisplayModel(
-            id: UUID(),
+            id: id,
             name: "Test Collection",
             icon: "folder",
             colorHex: "#007AFF",
@@ -42,12 +43,16 @@ final class StorageManagerCollectionTests: XCTestCase {
         )
 
         let savedCollection = await storageManager.saveCollection(from: model)
-
         XCTAssertNotNil(savedCollection)
-        XCTAssertEqual(savedCollection?.name, "Test Collection")
-        XCTAssertEqual(savedCollection?.icon, "folder")
-        XCTAssertEqual(savedCollection?.colorHex, "#007AFF")
-        XCTAssertTrue(savedCollection?.isAutomatic ?? false)
+
+        // Re-fetch from the view context to verify properties,
+        // since the returned object belongs to a background context.
+        let fetched = await storageManager.fetchCollection(byId: id)
+        XCTAssertNotNil(fetched)
+        XCTAssertEqual(fetched?.name, "Test Collection")
+        XCTAssertEqual(fetched?.icon, "folder")
+        XCTAssertEqual(fetched?.colorHex, "#007AFF")
+        XCTAssertTrue(fetched?.isAutomatic ?? false)
     }
 
     func testFetchCollections() async {
@@ -198,7 +203,10 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: nil
         )
-        guard let collection = await storageManager.saveCollection(from: collectionModel) else {
+        _ = await storageManager.saveCollection(from: collectionModel)
+
+        // Re-fetch collection from view context so property access works correctly
+        guard let collection = await storageManager.fetchCollection(byId: collectionId) else {
             XCTFail("Failed to create collection")
             return
         }
@@ -222,8 +230,14 @@ final class StorageManagerCollectionTests: XCTestCase {
         let success = await storageManager.addItemToCollection(item, collection: collection)
         XCTAssertTrue(success)
 
+        // Re-fetch collection to verify with fresh context state
+        guard let refreshedCollection = await storageManager.fetchCollection(byId: collectionId) else {
+            XCTFail("Failed to re-fetch collection")
+            return
+        }
+
         // Verify item is in collection
-        let isInCollection = await storageManager.isItemInCollection(item, collection: collection)
+        let isInCollection = await storageManager.isItemInCollection(item, collection: refreshedCollection)
         XCTAssertTrue(isInCollection)
     }
 
@@ -240,7 +254,10 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: nil
         )
-        guard let collection = await storageManager.saveCollection(from: collectionModel) else {
+        _ = await storageManager.saveCollection(from: collectionModel)
+
+        // Re-fetch from view context
+        guard let collection = await storageManager.fetchCollection(byId: collectionId) else {
             XCTFail("Failed to create collection")
             return
         }
@@ -262,16 +279,28 @@ final class StorageManagerCollectionTests: XCTestCase {
 
         _ = await storageManager.addItemToCollection(item, collection: collection)
 
+        // Re-fetch collection for fresh state
+        guard let refreshedCollection = await storageManager.fetchCollection(byId: collectionId) else {
+            XCTFail("Failed to re-fetch collection")
+            return
+        }
+
         // Verify item is in collection
-        var isInCollection = await storageManager.isItemInCollection(item, collection: collection)
+        var isInCollection = await storageManager.isItemInCollection(item, collection: refreshedCollection)
         XCTAssertTrue(isInCollection)
 
         // Remove item
-        let success = await storageManager.removeItemFromCollection(item, collection: collection)
+        let success = await storageManager.removeItemFromCollection(item, collection: refreshedCollection)
         XCTAssertTrue(success)
 
+        // Re-fetch again after removal
+        guard let finalCollection = await storageManager.fetchCollection(byId: collectionId) else {
+            XCTFail("Failed to re-fetch collection after removal")
+            return
+        }
+
         // Verify removal
-        isInCollection = await storageManager.isItemInCollection(item, collection: collection)
+        isInCollection = await storageManager.isItemInCollection(item, collection: finalCollection)
         XCTAssertFalse(isInCollection)
     }
 
@@ -288,7 +317,10 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: nil
         )
-        guard let collection = await storageManager.saveCollection(from: collectionModel) else {
+        _ = await storageManager.saveCollection(from: collectionModel)
+
+        // Re-fetch from view context
+        guard let collection = await storageManager.fetchCollection(byId: collectionId) else {
             XCTFail("Failed to create collection")
             return
         }
@@ -309,8 +341,14 @@ final class StorageManagerCollectionTests: XCTestCase {
             _ = await storageManager.addItemToCollection(item, collection: collection)
         }
 
+        // Re-fetch collection for fresh state
+        guard let refreshedCollection = await storageManager.fetchCollection(byId: collectionId) else {
+            XCTFail("Failed to re-fetch collection")
+            return
+        }
+
         // Verify count
-        let count = await storageManager.itemCountForCollection(collection)
+        let count = await storageManager.itemCountForCollection(refreshedCollection)
         XCTAssertEqual(count, 3)
     }
 
@@ -377,7 +415,10 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: rules
         )
-        guard let collection = await storageManager.saveCollection(from: collectionModel) else {
+        _ = await storageManager.saveCollection(from: collectionModel)
+
+        // Re-fetch from view context
+        guard let collection = await storageManager.fetchCollection(byId: collectionId) else {
             XCTFail("Failed to create collection")
             return
         }

@@ -16,6 +16,7 @@ final class OnboardingUITests: XCTestCase {
         app = XCUIApplication()
         // Reset onboarding state for testing
         app.launchArguments.append("--reset-onboarding")
+        app.launchArguments.append("--bypass-permissions")
         app.launch()
     }
 

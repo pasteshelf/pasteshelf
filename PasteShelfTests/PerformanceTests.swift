@@ -52,10 +52,12 @@ final class PerformanceTests: XCTestCase {
         let items = generateTestItems(count: 100)
 
         measure {
-            for item in items {
-                var content = ClipboardContent(primaryType: .plainText)
-                content.plainText = item
-                _ = deduplicator.isDuplicate(content, comparing: existingHashes)
+            autoreleasepool {
+                for item in items {
+                    var content = ClipboardContent(primaryType: .plainText)
+                    content.plainText = item
+                    _ = deduplicator.isDuplicate(content, comparing: existingHashes)
+                }
             }
         }
     }

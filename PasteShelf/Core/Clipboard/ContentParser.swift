@@ -298,11 +298,6 @@ final class ContentParser: ContentParsing, Sendable {
 // MARK: - Pasteboard Extensions
 
 extension NSPasteboard {
-    /// Convenience method to get string for a type
-    func string(forType type: NSPasteboard.PasteboardType) -> String? {
-        self.string(forType: type)
-    }
-
     /// Estimates the total size of pasteboard content
     var estimatedSize: Int {
         var totalSize = 0
