@@ -182,17 +182,7 @@ struct FloatingPanelView: View {
                         await viewModel.toggleFavoritesFilter()
                     }
                 }
-            ),
-            onContentTypeToggle: { filter in
-                Task {
-                    await viewModel.toggleContentTypeFilter(filter)
-                }
-            },
-            onFavoritesToggle: {
-                Task {
-                    await viewModel.toggleFavoritesFilter()
-                }
-            }
+            )
         )
     }
 
