@@ -127,7 +127,6 @@ struct WelcomeStepView: View {
 
             Spacer()
         }
-        .accessibilityElement(children: .combine)
     }
 }
 

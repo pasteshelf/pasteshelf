@@ -48,6 +48,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("PasteShelf launching")
 
+        // Handle test launch arguments
+        #if DEBUG
+        if CommandLine.arguments.contains("--reset-onboarding") {
+            OnboardingViewModel.resetOnboarding()
+        }
+        #endif
+
         // Apply saved settings on launch
         applySettingsOnLaunch()
 
@@ -80,7 +87,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         startBackgroundEmbeddingGeneration()
 
         // Show onboarding if needed
+        #if DEBUG
+        let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        if !isRunningTests && !CommandLine.arguments.contains("--skip-onboarding") {
+            showOnboardingIfNeeded()
+        }
+        #else
         showOnboardingIfNeeded()
+        #endif
 
         logger.info("PasteShelf launched successfully")
     }
