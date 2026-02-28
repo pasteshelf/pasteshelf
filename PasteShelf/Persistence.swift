@@ -2,7 +2,7 @@
 //  Persistence.swift
 //  PasteShelf
 //
-//  CoreData persistence controller with CloudKit support (Pro-ready).
+//  CoreData persistence controller with CloudKit support.
 //
 
 import CoreData

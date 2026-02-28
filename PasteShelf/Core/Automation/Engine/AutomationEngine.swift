@@ -36,7 +36,6 @@ struct AutomationResult: Sendable {
 
 /// Errors that can occur during automation execution
 enum AutomationError: Error, Sendable {
-    case featureNotAvailable
     case ruleEvaluationFailed(ruleName: String, reason: String)
     case actionExecutionFailed(actionType: String, reason: String)
     case webhookFailed(url: String, statusCode: Int?)

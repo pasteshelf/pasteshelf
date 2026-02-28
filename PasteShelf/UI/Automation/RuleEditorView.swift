@@ -455,16 +455,6 @@ struct ActionTypeButton: View {
                 }
 
                 Spacer()
-
-                if actionType.requiresEnterprise {
-                    Text("Enterprise")
-                        .font(.caption2)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.purple)
-                        .foregroundColor(.white)
-                        .cornerRadius(4)
-                }
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)

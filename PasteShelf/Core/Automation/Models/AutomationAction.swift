@@ -128,11 +128,6 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
         actionType.iconName
     }
 
-    /// Whether this action requires Enterprise license
-    var requiresEnterprise: Bool {
-        actionType.requiresEnterprise
-    }
-
     // MARK: - Codable
 
     private enum CodingKeys: String, CodingKey {
@@ -362,15 +357,6 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// Whether this action type requires Enterprise license
-    var requiresEnterprise: Bool {
-        switch self {
-        case .webhook:
-            return true
-        default:
-            return false
-        }
-    }
 }
 
 // MARK: - JSON Serialization

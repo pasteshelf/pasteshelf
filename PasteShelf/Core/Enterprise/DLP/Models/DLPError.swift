@@ -16,7 +16,7 @@ import Foundation
 /// and recovery suggestions for each error case.
 enum DLPError: Error, LocalizedError, Sendable {
 
-    /// The DLP feature requires an Enterprise license that is not currently active.
+    /// The DLP feature is not currently enabled.
     case featureUnavailable
 
     /// The regex pattern string for a DLP rule could not be compiled.
@@ -45,7 +45,7 @@ enum DLPError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .featureUnavailable:
-            return "Data Loss Prevention requires an active Enterprise license."
+            return "Data Loss Prevention is not enabled."
         case .invalidPattern(let pattern):
             return "The DLP rule pattern could not be compiled: \"\(pattern)\"."
         case .storageFailure(let reason):

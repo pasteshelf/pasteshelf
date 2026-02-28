@@ -92,12 +92,6 @@ struct AutomationRule: Codable, Equatable, Identifiable, Sendable {
     }
 
 
-    /// Whether this rule requires Enterprise license
-    var requiresEnterprise: Bool {
-        // Rules with webhook actions require Enterprise
-        actions.contains { $0.requiresEnterprise }
-    }
-
     // MARK: - Mutation Helpers
 
     /// Creates a copy with updated modification date
@@ -263,8 +257,6 @@ struct AutomationRuleDisplayModel: Identifiable, Sendable {
     let actionCount: Int
     let lastExecutedDescription: String?
     let executionCount: Int64
-    let requiresEnterprise: Bool
-
     init(from rule: AutomationRule) {
         self.id = rule.id
         self.name = rule.name
@@ -274,7 +266,6 @@ struct AutomationRuleDisplayModel: Identifiable, Sendable {
         self.conditionCount = rule.conditions.conditions.count
         self.actionCount = rule.actions.count
         self.executionCount = rule.executionCount
-        self.requiresEnterprise = rule.requiresEnterprise
 
         if let lastExecuted = rule.lastExecutedAt {
             let formatter = RelativeDateTimeFormatter()

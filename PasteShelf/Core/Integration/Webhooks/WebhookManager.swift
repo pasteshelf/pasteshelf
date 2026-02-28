@@ -426,7 +426,6 @@ enum WebhookError: LocalizedError {
     case invalidResponse
     case httpError(statusCode: Int, message: String?)
     case endpointNotFound
-    case featureNotAvailable
 
     var errorDescription: String? {
         switch self {
@@ -438,8 +437,6 @@ enum WebhookError: LocalizedError {
             return "HTTP error \(statusCode): \(message ?? "Unknown error")"
         case .endpointNotFound:
             return "Webhook endpoint not found"
-        case .featureNotAvailable:
-            return "Webhooks feature requires PasteShelf Enterprise"
         }
     }
 }

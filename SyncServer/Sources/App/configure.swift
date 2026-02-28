@@ -27,7 +27,9 @@ func configure(_ app: Application) async throws {
 
     // MARK: - JWT
 
-    let jwtSecret = Environment.get("JWT_SECRET") ?? "dev-secret-change-in-production"
+    guard let jwtSecret = Environment.get("JWT_SECRET") else {
+        fatalError("JWT_SECRET environment variable must be set")
+    }
     await app.jwt.keys.add(hmac: jwtSecret, digestAlgorithm: .sha256)
 
     // MARK: - Migrations

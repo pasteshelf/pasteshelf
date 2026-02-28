@@ -64,14 +64,11 @@ struct SearchClipboardIntent: AppIntent {
 
 @available(macOS 13.0, *)
 enum IntentError: Swift.Error, CustomLocalizedStringResourceConvertible {
-    case featureNotAvailable
     case invalidQuery
     case itemNotFound
 
     var localizedStringResource: LocalizedStringResource {
         switch self {
-        case .featureNotAvailable:
-            return "This feature requires PasteShelf Pro."
         case .invalidQuery:
             return "Please provide a valid search query."
         case .itemNotFound:

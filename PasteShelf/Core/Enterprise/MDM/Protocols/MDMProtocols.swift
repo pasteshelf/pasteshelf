@@ -78,9 +78,6 @@ enum MDMError: Error, LocalizedError, Sendable {
     /// The MDM configuration profile contains invalid or malformed values.
     case configurationInvalid(String)
 
-    /// The requested MDM feature is not available without an Enterprise license.
-    case featureNotAvailable
-
     // MARK: - LocalizedError
 
     var errorDescription: String? {
@@ -89,8 +86,6 @@ enum MDMError: Error, LocalizedError, Sendable {
             return "This device is not under MDM management. Managed preferences are unavailable."
         case .configurationInvalid(let reason):
             return "The MDM configuration profile is invalid: \(reason)"
-        case .featureNotAvailable:
-            return "This MDM feature requires an Enterprise license and is not available on the current plan."
         }
     }
 
@@ -100,8 +95,6 @@ enum MDMError: Error, LocalizedError, Sendable {
             return "No managed preferences domain was found on this device."
         case .configurationInvalid(let reason):
             return reason
-        case .featureNotAvailable:
-            return "The current license does not include Enterprise MDM functionality."
         }
     }
 
@@ -111,8 +104,6 @@ enum MDMError: Error, LocalizedError, Sendable {
             return "Enroll the device with an MDM server and push a PasteShelf configuration profile."
         case .configurationInvalid:
             return "Contact your IT administrator to review and correct the PasteShelf configuration profile."
-        case .featureNotAvailable:
-            return "Upgrade to the Enterprise plan to unlock MDM-based managed preferences."
         }
     }
 }
