@@ -12,9 +12,9 @@ import SwiftUI
 
 /// Top-level container for the Enterprise preferences tab.
 ///
-/// Hosts `SSOSettingsView`, `MDMSettingsView`, `AdminSettingsView`, and `AuditLogView`
-/// as sub-tabs using a `TabView`. This view is displayed when the user selects the
-/// "Enterprise" item in the preferences sidebar.
+/// Hosts `SSOSettingsView`, `MDMSettingsView`, `AdminSettingsView`, `DLPSettingsView`,
+/// and `AuditLogView` as sub-tabs using a `TabView`. This view is displayed when the
+/// user selects the "Enterprise" item in the preferences sidebar.
 struct EnterpriseTabView: View {
 
     // MARK: - Body
@@ -29,6 +29,9 @@ struct EnterpriseTabView: View {
 
             AdminSettingsView()
                 .tabItem { Label("Admin", systemImage: "server.rack") }
+
+            DLPSettingsView()
+                .tabItem { Label("DLP", systemImage: "shield.checkerboard") }
 
             AuditLogView()
                 .tabItem { Label("Audit Log", systemImage: "doc.text.magnifyingglass") }
