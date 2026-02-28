@@ -90,8 +90,8 @@ final class DLPManager: ObservableObject {
 
     /// Configures the DLP manager with production dependencies and activates the subsystem.
     ///
-    /// Call this from the application lifecycle after the Enterprise license has been
-    /// validated. The method loads rules from storage and enables DLP evaluation.
+    /// Call this from the application lifecycle during startup.
+    /// The method loads rules from storage and enables DLP evaluation.
     func configure() {
         let storage = DLPViolationStorageService()
         self.storageService = storage

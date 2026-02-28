@@ -172,7 +172,7 @@ enum AuditError: Error, LocalizedError, Sendable {
     /// The associated `String` provides the reason, such as a network error message.
     case syncFailed(String)
 
-    /// The audit logging feature requires an Enterprise license that is not active.
+    /// The audit logging feature is not currently enabled.
     case featureUnavailable
 
     // MARK: - LocalizedError
@@ -190,7 +190,7 @@ enum AuditError: Error, LocalizedError, Sendable {
         case .syncFailed(let reason):
             return "Failed to sync audit events to the admin console: \(reason)"
         case .featureUnavailable:
-            return "Audit logging requires an active Enterprise license."
+            return "Audit logging is not enabled."
         }
     }
 

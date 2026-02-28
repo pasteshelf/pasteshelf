@@ -453,7 +453,6 @@ enum PluginManagerError: Error, LocalizedError, Sendable {
     case notInitialized
     case pluginNotFound(String)
     case invalidState(current: PluginState, expected: PluginState)
-    case featureNotAvailable
 
     var errorDescription: String? {
         switch self {
@@ -463,8 +462,6 @@ enum PluginManagerError: Error, LocalizedError, Sendable {
             return "Plugin '\(id)' not found"
         case .invalidState(let current, let expected):
             return "Plugin is in state '\(current.rawValue)' but expected '\(expected.rawValue)'"
-        case .featureNotAvailable:
-            return "Plugin feature is not available"
         }
     }
 }

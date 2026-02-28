@@ -16,7 +16,7 @@ import SwiftUI
 /// Displays the admin console connection status, device enrollment lifecycle state,
 /// and the currently active admin policy pushed by the server. Interactive enrollment
 /// and unenrollment actions are available when the device is configured. When the
-/// Enterprise license is not active, an upgrade prompt is shown instead.
+/// the enterprise features are not configured, a setup guide is shown instead.
 struct AdminSettingsView: View {
 
     // MARK: - Properties

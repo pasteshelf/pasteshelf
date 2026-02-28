@@ -84,14 +84,13 @@ To confirm enrollment status for a device, navigate to **Intune admin center** â
 
 The **Intune Management Extension (IME)** must be installed on each device for shell-script-based deployments. It is installed automatically on enrolled macOS devices the first time a shell script or LOB app is assigned.
 
-### PasteShelf Enterprise License
+### PasteShelf Enterprise Setup
 
-- An active PasteShelf Enterprise license with a seat count covering all target devices.
-- Your **Organization ID** (`OrganizationID`), provided by the PasteShelf sales team at the time of purchase.
+- Your **Organization ID** (`OrganizationID`), configured by your IT administrator.
 
 ### PasteShelf Installer Package
 
-Download the signed `.pkg` from the PasteShelf customer portal or via the direct link provided with your license:
+Download the signed `.pkg` from the PasteShelf releases page:
 
 ```bash
 # Download the Enterprise package
@@ -467,7 +466,7 @@ The following is a complete `.mobileconfig` XML example ready for upload to Intu
             <key>PayloadDisplayName</key>
             <string>PasteShelf Application Preferences</string>
 
-            <!-- Organization ID provided with your Enterprise license -->
+            <!-- Organization ID configured by your IT administrator -->
             <key>OrganizationID</key>
             <string>org_abc123</string>
 
@@ -1237,8 +1236,7 @@ Devices must be able to reach the following endpoints over HTTPS (port 443):
 
 | Endpoint | Purpose |
 |----------|---------|
-| `https://license.company.com` (or your self-hosted URL) | Enterprise license validation |
-| `https://license.pasteshelf.app` | Cloud-hosted license fallback |
+| `https://sync.company.com` (or your self-hosted URL) | Self-hosted sync server |
 | `https://manage.microsoft.com` | Intune MDM channel |
 | `https://portal.manage.microsoft.com` | Company Portal communication |
 | `https://login.microsoftonline.com` | Azure AD / Entra ID authentication |

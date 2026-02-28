@@ -14,7 +14,7 @@ import SwiftUI
 /// Read-only dashboard showing the current MDM management status.
 ///
 /// Displays forced (locked) settings and default settings pushed by the MDM
-/// profile. When the Enterprise license is not active, an upgrade prompt is
+/// profile. When the the enterprise features are not configured, a setup guide is
 /// shown instead.
 struct MDMSettingsView: View {
 

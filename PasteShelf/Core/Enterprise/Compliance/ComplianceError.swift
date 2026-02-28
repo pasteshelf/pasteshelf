@@ -25,7 +25,7 @@ enum ComplianceError: Error, LocalizedError, Sendable {
         case .notConfigured:
             return "Compliance tools are not configured"
         case .featureUnavailable:
-            return "Compliance features require an Enterprise license"
+            return "Compliance features are not enabled"
         case .exportFailed(let error):
             return "Data export failed: \(error.localizedDescription)"
         case .deletionFailed(let error):

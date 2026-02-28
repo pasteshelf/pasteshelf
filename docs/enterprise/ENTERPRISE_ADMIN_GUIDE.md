@@ -523,7 +523,7 @@ team:
 │  ──────                                                                  │
 │                                                                          │
 │  ⚠️ High sync latency detected (Engineering team) - 2 hours ago        │
-│  ✓ Resolved: License validation timeout - 6 hours ago                   │
+│  ✓ Resolved: Configuration sync timeout - 6 hours ago                   │
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
