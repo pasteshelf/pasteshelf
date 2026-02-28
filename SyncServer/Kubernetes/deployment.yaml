@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pasteshelf-sync
+  labels:
+    app: pasteshelf-sync
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pasteshelf-sync
+  template:
+    metadata:
+      labels:
+        app: pasteshelf-sync
+    spec:
+      containers:
+        - name: sync-server
+          image: pasteshelf/sync-server:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: pasteshelf-sync-secrets
+                  key: database-host
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: pasteshelf-sync-secrets
+                  key: database-username
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pasteshelf-sync-secrets
+                  key: database-password
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: pasteshelf-sync-secrets
+                  key: database-name
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: pasteshelf-sync-secrets
+                  key: jwt-secret
+            - name: ORG_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: pasteshelf-sync-config
+                  key: org-id
+            - name: ENVIRONMENT
+              value: "production"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pasteshelf-sync
+spec:
+  selector:
+    app: pasteshelf-sync
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pasteshelf-sync
+  annotations:
+    nginx.ingress.kubernetes.io/websocket-services: "pasteshelf-sync"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  rules:
+    - host: sync.your-domain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pasteshelf-sync
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - sync.your-domain.com
+      secretName: pasteshelf-sync-tls
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pasteshelf-sync-config
+data:
+  org-id: "default"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pasteshelf-sync-secrets
+type: Opaque
+stringData:
+  database-host: "postgres-service"
+  database-username: "pasteshelf"
+  database-password: "REPLACE_ME"
+  database-name: "pasteshelf_sync"
+  jwt-secret: "REPLACE_ME"
