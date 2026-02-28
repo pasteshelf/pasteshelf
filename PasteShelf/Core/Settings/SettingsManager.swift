@@ -24,6 +24,8 @@ final class SettingsManager: ObservableObject {
     /// Current application settings
     @Published private(set) var settings: AppSettings {
         didSet {
+            guard !isApplyingMDM else { return }
+            reapplyMDMForcedValues()
             settings.save()
             notifySettingsChanged()
         }
@@ -37,10 +39,14 @@ final class SettingsManager: ObservableObject {
         category: "settings"
     )
 
+    /// Guard against recursive didSet when applying MDM overrides
+    private var isApplyingMDM = false
+
     // MARK: - Initialization
 
     private init() {
         settings = AppSettings.load()
+        applyMDMOverridesIfNeeded()
         logger.info("Settings loaded")
     }
 
@@ -102,6 +108,48 @@ final class SettingsManager: ObservableObject {
         AppSettings.reset()
         settings = .default
         logger.info("Settings reset to defaults")
+    }
+
+    // MARK: - MDM Integration
+
+    /// Applies MDM overrides on top of loaded settings (called once during init).
+    private func applyMDMOverridesIfNeeded() {
+        guard FeatureFlags.shared.isMDMEnabled else { return }
+        let mdm = MDMManager.shared
+        mdm.loadConfiguration()
+        guard mdm.isManaged else { return }
+
+        isApplyingMDM = true
+        defer { isApplyingMDM = false }
+
+        mdm.applyOverrides(to: &settings)
+        settings.save()
+        logger.info("MDM overrides applied during initialization")
+    }
+
+    /// Re-applies forced MDM values after a user change to prevent overriding locked settings.
+    private func reapplyMDMForcedValues() {
+        guard FeatureFlags.shared.isMDMEnabled else { return }
+        let mdm = MDMManager.shared
+        guard mdm.isManaged, !mdm.forcedKeys.isEmpty else { return }
+
+        var current = settings
+        mdm.applyOverrides(to: &current)
+
+        if current != settings {
+            isApplyingMDM = true
+            settings = current
+            isApplyingMDM = false
+        }
+    }
+
+    /// Checks if a specific preference key is locked by MDM policy.
+    ///
+    /// - Parameter key: The preference key to check.
+    /// - Returns: `true` if the setting is managed and cannot be changed by the user.
+    func isLocked(_ key: ManagedPreferenceKey) -> Bool {
+        guard FeatureFlags.shared.isMDMEnabled else { return false }
+        return MDMManager.shared.isSettingLocked(key)
     }
 
     // MARK: - Notifications
