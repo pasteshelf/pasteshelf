@@ -50,11 +50,6 @@ final class AutomationViewModel: ObservableObject {
         }
     }
 
-    /// Whether the automation feature is available
-    var isFeatureAvailable: Bool {
-        LicenseManager.shared.isFeatureAvailable(.automation)
-    }
-
     /// Count of enabled rules
     var enabledRulesCount: Int {
         rules.filter(\.isEnabled).count

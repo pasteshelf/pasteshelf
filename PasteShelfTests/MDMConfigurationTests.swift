@@ -268,9 +268,8 @@ struct ManagedPreferenceKeyTests {
         #expect(ManagedPreferenceKey.ssoDomain.settingsGroup == .enterprise)
     }
 
-    @Test("License keys belong to enterprise group")
-    func licenseKeysBelongToEnterpriseGroup() {
-        #expect(ManagedPreferenceKey.licenseServer.settingsGroup == .enterprise)
+    @Test("Organization ID key belongs to enterprise group")
+    func organizationIDKeyBelongsToEnterpriseGroup() {
         #expect(ManagedPreferenceKey.organizationID.settingsGroup == .enterprise)
     }
 
@@ -296,7 +295,6 @@ struct ManagedPreferenceKeyTests {
         #expect(ManagedPreferenceKey.maxHistoryDays.rawValue == "MaxHistoryDays")
         #expect(ManagedPreferenceKey.excludePrivateBrowsing.rawValue == "ExcludePrivateBrowsing")
         #expect(ManagedPreferenceKey.ssoEnabled.rawValue == "SSOEnabled")
-        #expect(ManagedPreferenceKey.licenseServer.rawValue == "LicenseServer")
         #expect(ManagedPreferenceKey.organizationID.rawValue == "OrganizationID")
         #expect(ManagedPreferenceKey.dlpEnabled.rawValue == "DLPEnabled")
         #expect(ManagedPreferenceKey.autoLockTimeout.rawValue == "AutoLockTimeout")

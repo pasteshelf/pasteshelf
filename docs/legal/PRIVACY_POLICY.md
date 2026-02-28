@@ -15,19 +15,17 @@ PasteShelf ("we", "our", or "the app") is a privacy-first clipboard manager for 
 
 ## Summary
 
-| Aspect | Community Edition | Pro Edition |
-|--------|-------------------|-------------|
-| Data Storage | Local only | Local + optional iCloud |
-| Data Collection | None | None |
-| Analytics | None | None |
-| Third-party Services | None | Apple iCloud (optional) |
-| Encryption | At rest (Pro) | At rest + in transit |
+| Aspect | Details |
+|--------|---------|
+| Data Storage | Local only (optional iCloud sync) |
+| Data Collection | None |
+| Analytics | None |
+| Third-party Services | Apple iCloud (optional, for sync) |
+| Encryption | At rest + in transit (when sync enabled) |
 
 ---
 
 ## Data We Collect
-
-### Community Edition
 
 **We collect NO data.** Zero. None.
 
@@ -37,20 +35,13 @@ PasteShelf ("we", "our", or "the app") is a privacy-first clipboard manager for 
 - No personal information
 - No clipboard content transmitted anywhere
 
-### Pro Edition
+### iCloud Sync (Optional)
 
-The Pro Edition adds optional features that may involve data transmission:
-
-**iCloud Sync (Optional)**:
-- If enabled, your encrypted clipboard data syncs through Apple's iCloud
+If you enable iCloud sync, the following applies:
+- Your encrypted clipboard data syncs through Apple's iCloud
 - Data is end-to-end encrypted before leaving your device
 - We cannot read your synced data
 - Apple's privacy policy applies to iCloud services
-
-**License Validation**:
-- Your license key is validated once during activation
-- We store: license key, device identifier (anonymous), activation date
-- We do NOT store: clipboard content, usage patterns, personal information
 
 ---
 
@@ -75,13 +66,10 @@ PasteShelf stores the following data locally on your Mac:
 
 ### Data Security
 
-**Community Edition**:
-- Data stored unencrypted (protected by macOS file permissions)
+- Data stored locally, protected by macOS file permissions
 - Only accessible to your user account
-
-**Pro Edition**:
 - Optional database encryption using macOS Keychain
-- iCloud data encrypted with end-to-end encryption
+- iCloud data (if sync enabled) encrypted with end-to-end encryption
 
 ---
 
@@ -112,16 +100,11 @@ You can customize these exclusions in Settings.
 
 ## Third-Party Services
 
-### Community Edition
-
-**None.** The Community Edition has no third-party service integrations.
-
-### Pro Edition
+PasteShelf has no third-party service integrations by default. If you enable iCloud sync:
 
 | Service | Purpose | Data Shared |
 |---------|---------|-------------|
 | Apple iCloud | Optional sync | Encrypted clipboard data |
-| License Server | Activation | License key, anonymous device ID |
 
 We do NOT use:
 - Analytics services (Google Analytics, Mixpanel, etc.)
@@ -141,7 +124,7 @@ All your data is stored locally. You can:
 
 ### Export Your Data
 
-Pro Edition includes data export functionality.
+PasteShelf includes data export functionality.
 
 ### Delete Your Data
 
@@ -155,8 +138,8 @@ You can delete your data anytime:
 You control:
 - What apps are excluded from capture
 - How long history is kept
-- Whether to use iCloud sync (Pro)
-- Whether to enable encryption (Pro)
+- Whether to use iCloud sync
+- Whether to enable encryption
 
 ---
 
@@ -168,7 +151,7 @@ PasteShelf is not intended for use by children under 13. We do not knowingly col
 
 ## International Users
 
-Your data stays on your device (Community Edition) or within Apple's iCloud infrastructure (Pro Edition with sync enabled). We do not transfer data internationally.
+Your data stays on your device, or within Apple's iCloud infrastructure if you enable sync. We do not transfer data internationally.
 
 ---
 
@@ -181,11 +164,11 @@ We will post any privacy policy changes on this page. Significant changes will b
 
 ---
 
-## Enterprise Edition
+## Enterprise Features
 
-The Enterprise Edition may include additional data processing for:
+PasteShelf includes enterprise features that may involve additional data processing when enabled:
 - SSO authentication (through your identity provider)
-- Audit logging (stored per your admin's configuration)
+- Audit logging (stored per your administrator's configuration)
 - Centralized management (if enabled by your organization)
 
 Contact your IT administrator for your organization's specific privacy policies.
@@ -194,7 +177,7 @@ Contact your IT administrator for your organization's specific privacy policies.
 
 ## Open Source
 
-PasteShelf Community Edition is open source (AGPL-3.0). You can:
+PasteShelf is free and open source (AGPL-3.0). You can:
 - Audit our code on GitHub
 - Verify our privacy claims
 - Build the app yourself
@@ -214,11 +197,11 @@ For privacy-related questions:
 
 ## Summary
 
-1. **Community Edition**: 100% local, zero data collection
-2. **Pro Edition**: Optional iCloud sync with end-to-end encryption
+1. **100% local by default**, zero data collection
+2. **Optional iCloud sync** with end-to-end encryption
 3. **No analytics, no telemetry, no ads**
 4. **You control your data**
-5. **Open source for transparency**
+5. **Open source** (AGPL-3.0) for full transparency
 
 ---
 

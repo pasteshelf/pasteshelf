@@ -53,9 +53,6 @@ final class OCRGenerator: ObservableObject {
     /// OCR manager for text extraction
     private let ocrManager: OCRManager
 
-    /// License manager for Pro feature checking
-    private let licenseManager: LicenseManager
-
     /// Logger for OCR operations
     private let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
@@ -72,12 +69,10 @@ final class OCRGenerator: ObservableObject {
 
     private init(
         storageManager: StorageManager = .shared,
-        ocrManager: OCRManager = .shared,
-        licenseManager: LicenseManager = .shared
+        ocrManager: OCRManager = .shared
     ) {
         self.storageManager = storageManager
         self.ocrManager = ocrManager
-        self.licenseManager = licenseManager
     }
 
     /// Creates an OCRGenerator for testing
@@ -93,11 +88,6 @@ final class OCRGenerator: ObservableObject {
     /// - Returns: True if OCR was extracted successfully
     @discardableResult
     func generateOCR(for itemId: UUID) async -> Bool {
-        // Check Pro license
-        guard licenseManager.isFeatureAvailable(.ocrSearch) else {
-            return false
-        }
-
         // Check if OCR manager is available
         guard ocrManager.isAvailable else {
             logger.warning("OCR manager not available")
@@ -180,12 +170,6 @@ final class OCRGenerator: ObservableObject {
     /// - Returns: Number of items processed
     @discardableResult
     func processAllMissingOCR() async -> Int {
-        // Check Pro license
-        guard licenseManager.isFeatureAvailable(.ocrSearch) else {
-            logger.info("OCR search requires Pro license")
-            return 0
-        }
-
         // Check if already processing
         guard !isProcessing else {
             logger.debug("Processing already in progress")
@@ -368,6 +352,6 @@ final class OCRGenerator: ObservableObject {
 
     /// Whether OCR search is available
     var isAvailable: Bool {
-        licenseManager.isFeatureAvailable(.ocrSearch) && ocrManager.isAvailable
+        ocrManager.isAvailable
     }
 }

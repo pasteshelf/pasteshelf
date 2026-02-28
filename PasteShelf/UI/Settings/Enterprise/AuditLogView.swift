@@ -9,11 +9,9 @@ import SwiftUI
 
 // MARK: - AuditLogView
 
-/// Enterprise audit log viewer for browsing, filtering, and exporting recorded events.
+/// Displays the audit log interface for reviewing recorded audit events.
 ///
-/// `AuditLogView` is gated behind the `auditLogs` Enterprise feature flag. When the
-/// current license does not include that feature, an upgrade prompt is displayed instead
-/// of the viewer. When the feature is available the view shows:
+/// The view shows:
 ///
 /// - A filter panel to narrow results by category and date range.
 /// - A scrollable list of audit events with inline severity indicators.
@@ -24,16 +22,11 @@ struct AuditLogView: View {
     // MARK: - Properties
 
     @StateObject private var viewModel = AuditLogViewModel()
-    @FeatureFlag(.auditLogs) private var auditLogsAvailable
 
     // MARK: - Body
 
     var body: some View {
-        if auditLogsAvailable {
-            auditLogContent
-        } else {
-            upgradePrompt
-        }
+        auditLogContent
     }
 
     // MARK: - Audit Log Content
@@ -192,30 +185,6 @@ struct AuditLogView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-    }
-
-    // MARK: - Upgrade Prompt
-
-    private var upgradePrompt: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: 52))
-                .foregroundStyle(.secondary)
-
-            Text("Enterprise Feature")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            Text("Audit logging requires an Enterprise license.\nRecord, search, and export all clipboard and authentication events for compliance.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 380)
-
-            Link("Learn about Enterprise", destination: URL(string: "https://pasteshelf.app/enterprise")!)
-                .buttonStyle(.borderedProminent)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Helpers

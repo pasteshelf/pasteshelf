@@ -456,16 +456,6 @@ struct ActionTypeButton: View {
 
                 Spacer()
 
-                if actionType.requiresPro {
-                    Text("Pro")
-                        .font(.caption2)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.orange)
-                        .foregroundColor(.white)
-                        .cornerRadius(4)
-                }
-
                 if actionType.requiresEnterprise {
                     Text("Enterprise")
                         .font(.caption2)

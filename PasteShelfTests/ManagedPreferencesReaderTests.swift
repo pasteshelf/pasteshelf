@@ -272,25 +272,11 @@ struct ManagedPreferencesReaderTests {
         #expect(config.forcedPreferences[.organizationID] == .string("org-123"))
     }
 
-    @Test("readConfiguration reads LicenseServer URL from ManagedPreferences dict")
-    func readsLicenseServerURL() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(
-                ["LicenseServer": "https://license.acme.com"],
-                forKey: "ManagedPreferences"
-            )
-        }
-        defer { cleanup(suiteName: suiteName, defaults: defaults) }
-
-        let config = reader.readConfiguration()
-        #expect(config.forcedPreferences[.licenseServer] == .string("https://license.acme.com"))
-    }
-
     @Test("readConfiguration reads multiple string preferences correctly")
     func readsMultipleStringPreferences() {
         let (reader, defaults, suiteName) = makeReader { d in
             d.set(
-                ["OrganizationID": "org-123", "LicenseServer": "https://license.acme.com"],
+                ["OrganizationID": "org-123", "AdminConsoleURL": "https://admin.acme.com"],
                 forKey: "ManagedPreferences"
             )
         }
@@ -298,7 +284,7 @@ struct ManagedPreferencesReaderTests {
 
         let config = reader.readConfiguration()
         #expect(config.forcedPreferences[.organizationID] == .string("org-123"))
-        #expect(config.forcedPreferences[.licenseServer] == .string("https://license.acme.com"))
+        #expect(config.forcedPreferences[.adminConsoleURL] == .string("https://admin.acme.com"))
     }
 
     // MARK: - value(for:) Generic Method

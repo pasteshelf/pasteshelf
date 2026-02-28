@@ -17,9 +17,6 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
     /// Storage manager for CoreData access
     private let storageManager: StorageManager
 
-    /// License manager for Pro feature checking
-    private let licenseManager: LicenseManager
-
     /// Logger for search operations
     private let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
@@ -38,11 +35,9 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
     // MARK: - Initialization
 
     init(
-        storageManager: StorageManager = .shared,
-        licenseManager: LicenseManager = .shared
+        storageManager: StorageManager = .shared
     ) {
         self.storageManager = storageManager
-        self.licenseManager = licenseManager
     }
 
     // MARK: - SearchEngine Protocol
@@ -55,12 +50,6 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !trimmedQuery.isEmpty else {
-            return []
-        }
-
-        // Check Pro license for OCR search
-        guard licenseManager.isFeatureAvailable(.ocrSearch) else {
-            logger.debug("OCR search requires Pro license")
             return []
         }
 
@@ -268,6 +257,6 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
 
     /// Whether OCR search is available on this system
     var isAvailable: Bool {
-        licenseManager.isFeatureAvailable(.ocrSearch) && OCRManager.shared.isAvailable
+        OCRManager.shared.isAvailable
     }
 }

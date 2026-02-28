@@ -66,14 +66,6 @@ public enum SyncError: Error, Equatable, Sendable {
     /// Encryption key mismatch between devices
     case keyMismatch
 
-    // MARK: - License Errors
-
-    /// Pro license required for sync
-    case licenseRequired
-
-    /// License expired
-    case licenseExpired
-
     // MARK: - Data Errors
 
     /// Data validation failed
@@ -158,12 +150,6 @@ extension SyncError: LocalizedError {
         case .keyMismatch:
             return String(localized: "Encryption key mismatch. Please re-authenticate on this device.")
 
-        case .licenseRequired:
-            return String(localized: "iCloud Sync requires PasteShelf Pro. Upgrade to enable sync.")
-
-        case .licenseExpired:
-            return String(localized: "Your Pro license has expired. Renew to continue syncing.")
-
         case let .invalidData(reason):
             return String(localized: "Invalid data: \(reason)")
 
@@ -195,8 +181,6 @@ extension SyncError: LocalizedError {
             return String(localized: "Manage your iCloud storage in System Settings.")
         case .networkUnavailable:
             return String(localized: "Check your internet connection.")
-        case .licenseRequired, .licenseExpired:
-            return String(localized: "Upgrade to Pro in Preferences > License.")
         case .encryptionKeyMissing, .keyMismatch:
             return String(localized: "Go to Preferences > Sync > Reset Sync to reconfigure.")
         case .serverConnectionFailed:
@@ -270,8 +254,6 @@ extension SyncError {
              (.encryptionKeyMissing, .encryptionKeyMissing),
              (.decryptionFailed, .decryptionFailed),
              (.keyMismatch, .keyMismatch),
-             (.licenseRequired, .licenseRequired),
-             (.licenseExpired, .licenseExpired),
              (.recordTooLarge, .recordTooLarge),
              (.certificatePinningFailed, .certificatePinningFailed),
              (.authenticationTokenExpired, .authenticationTokenExpired):

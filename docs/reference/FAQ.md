@@ -11,7 +11,6 @@ Answers to common questions about PasteShelf.
 - [General Questions](#general-questions)
 - [Features](#features)
 - [Privacy & Security](#privacy--security)
-- [Licensing](#licensing)
 - [Technical](#technical)
 - [Troubleshooting](#troubleshooting)
 
@@ -21,7 +20,7 @@ Answers to common questions about PasteShelf.
 
 ### What is PasteShelf?
 
-PasteShelf is a privacy-first clipboard manager for macOS that stores your clipboard history locally, with optional encrypted cloud sync. It features an open-core model with a free Community Edition and paid Pro/Enterprise tiers.
+PasteShelf is a privacy-first clipboard manager for macOS that stores your clipboard history locally, with optional encrypted cloud sync. All features are free and open source under AGPL-3.0.
 
 ### What macOS versions are supported?
 
@@ -32,23 +31,22 @@ PasteShelf requires **macOS 14.0 (Sonoma)** or later. This requirement enables m
 
 ### Is PasteShelf free?
 
-**Yes!** The Community Edition 🆓 is free and open source (AGPL-3.0). It includes:
+**Yes!** PasteShelf is completely free and open source (AGPL-3.0). All features are included:
 - Unlimited clipboard history
-- Full-text search
-- Keyboard shortcuts
-- App exclusions
-- Basic automation
-
-Pro ⭐ and Enterprise 🏢 editions offer additional features for power users and organizations.
+- Full-text, semantic, and OCR search
+- iCloud sync with E2E encryption
+- Keyboard shortcuts and automation
+- Plugin system
+- Enterprise features (SSO, MDM, audit logs, DLP)
 
 ### How does PasteShelf compare to other clipboard managers?
 
 | Feature | PasteShelf | Paste | Maccy | Alfred |
 |---------|------------|-------|-------|--------|
-| Free tier | ✅ Full-featured | ❌ | ✅ | ❌ |
-| Open source | ✅ Core | ❌ | ✅ | ❌ |
-| E2E sync | ✅ Pro | ✅ | ❌ | ❌ |
-| Semantic search | ✅ Pro | ❌ | ❌ | ❌ |
+| Free | ✅ All features | ❌ | ✅ | ❌ |
+| Open source | ✅ Fully | ❌ | ✅ | ❌ |
+| E2E sync | ✅ | ✅ | ❌ | ❌ |
+| Semantic search | ✅ | ❌ | ❌ | ❌ |
 | Enterprise MDM | ✅ | ❌ | ❌ | ❌ |
 
 ---
@@ -57,34 +55,27 @@ Pro ⭐ and Enterprise 🏢 editions offer additional features for power users a
 
 ### What content types are supported?
 
-🆓 **Community Edition**:
 - Plain text
 - Rich text (RTF)
 - Images (PNG, JPEG, GIF, TIFF)
 - File references
 - URLs
-
-⭐ **Pro Edition** adds:
 - Code snippets with syntax highlighting
 - Colors
 - Files (with preview)
 
 ### How many items can I store?
 
-| Edition | Limit |
-|---------|-------|
-| 🆓 Community | Unlimited (recommended: 10,000) |
-| ⭐ Pro | Unlimited |
-| 🏢 Enterprise | Configurable by admin |
+Unlimited (recommended: 10,000 for optimal performance). Administrators can configure limits via MDM.
 
 ### Can I organize my clipboard items?
 
 **Yes!** PasteShelf supports:
-- 🆓 Favorites/pinning
-- 🆓 Tags
-- ⭐ Smart collections
-- ⭐ Folders
-- 🏢 Shared collections (team)
+- Favorites/pinning
+- Tags
+- Smart collections
+- Folders
+- Shared collections (team)
 
 ### Does PasteShelf support keyboard shortcuts?
 
@@ -99,9 +90,9 @@ Pro ⭐ and Enterprise 🏢 editions offer additional features for power users a
 
 All shortcuts are customizable in Preferences.
 
-### Can I sync across devices? ⭐
+### Can I sync across devices?
 
-**Pro and Enterprise only.** Sync features:
+**Yes!** Sync features:
 - iCloud sync via CloudKit
 - End-to-end encryption
 - Selective sync (choose what syncs)
@@ -117,15 +108,15 @@ All shortcuts are customizable in Preferences.
 **Absolutely.** Privacy principles:
 
 1. **Local-first**: All data stored on your device by default
-2. **No telemetry**: Zero data collection in Community Edition
+2. **No telemetry**: Zero data collection
 3. **E2E encryption**: Sync data encrypted before leaving device
 4. **Open source**: Core code auditable by anyone
 
 ### Does PasteShelf send my data anywhere?
 
-**Community Edition**: No. Everything stays on your device.
+**By default**: No. Everything stays on your device.
 
-**Pro/Enterprise with sync**: Data is encrypted on your device before upload to iCloud. We cannot read your clipboard contents.
+**With sync enabled**: Data is encrypted on your device before upload to iCloud or your self-hosted server. We cannot read your clipboard contents.
 
 ### How is sensitive data protected?
 
@@ -160,12 +151,12 @@ You can customize exclusions in Preferences → Privacy.
 - Data export (JSON format)
 - Data deletion (complete wipe)
 - Data portability
-- No tracking in Community Edition
+- No tracking
 - Opt-in analytics only
 
-### Is PasteShelf HIPAA compliant? 🏢
+### Is PasteShelf HIPAA compliant?
 
-**Enterprise Edition** can be configured for HIPAA compliance:
+PasteShelf can be configured for HIPAA compliance:
 - BAA available
 - Full audit logging
 - PHI auto-detection
@@ -173,47 +164,6 @@ You can customize exclusions in Preferences → Privacy.
 - Access controls
 
 Contact: legal@pasteshelf.app
-
----
-
-## Licensing
-
-### What's the difference between editions?
-
-| Feature | 🆓 Community | ⭐ Pro | 🏢 Enterprise |
-|---------|-------------|-------|---------------|
-| Clipboard history | ✅ | ✅ | ✅ |
-| Search | Basic | Semantic + OCR | All |
-| Sync | ❌ | ✅ iCloud | Custom |
-| Automation | Basic | Advanced | Full |
-| Support | Community | Priority | Dedicated |
-| Price | Free | $29/year | Custom |
-
-### How much does Pro cost? ⭐
-
-- **Annual**: $29/year
-- **Lifetime**: $79 one-time
-
-Includes:
-- 3 device activations
-- All Pro features
-- Priority email support
-- 1 year of updates (lifetime: forever)
-
-### Is there a trial period?
-
-**Yes!** Pro features include a 14-day free trial. No credit card required.
-
-### Can I use Community Edition for work?
-
-**Yes!** The AGPL-3.0 license allows commercial use. However, if you modify and distribute PasteShelf, you must open-source your changes.
-
-### What happens if my Pro license expires?
-
-- App continues working
-- Pro features become read-only
-- Existing synced data remains accessible
-- Can renew anytime to restore full functionality
 
 ---
 
@@ -236,7 +186,7 @@ Includes:
 
 1. **Time Machine**: Automatic
 2. **Manual export**: File → Export History
-3. **iCloud sync** ⭐: Automatic backup
+3. **iCloud sync**: Automatic backup
 
 ### Does PasteShelf work offline?
 
@@ -288,10 +238,9 @@ File → Import → Select format
    Preferences → Advanced → Rebuild Index
    ```
 
-### Sync isn't working ⭐
+### Sync isn't working
 
-1. Verify Pro license is active
-2. Check iCloud sign-in status
+1. Check iCloud sign-in status
 3. Ensure iCloud Drive is enabled
 4. Check internet connection
 5. Reset sync state:
@@ -327,16 +276,13 @@ rm -rf ~/Library/Preferences/com.pasteshelf.PasteShelf.plist
 
 ## Still Have Questions?
 
-### Community Support 🆓
+### Community Support
 - [GitHub Discussions](https://github.com/pasteshelf/pasteshelf/discussions)
 - [GitHub Issues](https://github.com/pasteshelf/pasteshelf/issues)
 
-### Pro Support ⭐
-- Priority email: support@pasteshelf.app
-
-### Enterprise Support 🏢
-- Dedicated support channel
-- Contact: enterprise@pasteshelf.app
+### Email Support
+- Email: support@pasteshelf.app
+- Enterprise inquiries: enterprise@pasteshelf.app
 
 ---
 
@@ -346,7 +292,6 @@ rm -rf ~/Library/Preferences/com.pasteshelf.PasteShelf.plist
 |----------|-------------|
 | [Quick Start](../getting-started/QUICK_START.md) | Get started quickly |
 | [Troubleshooting](../operations/TROUBLESHOOTING.md) | Detailed solutions |
-| [Open-Core Model](../open-core/OPEN_CORE_MODEL.md) | Edition comparison |
 
 ---
 

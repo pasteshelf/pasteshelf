@@ -21,15 +21,15 @@ Documentation for PasteShelf's cross-device synchronization system.
 
 ## Overview
 
-The Sync Engine enables clipboard history synchronization across devices ⭐.
+The Sync Engine enables clipboard history synchronization across devices.
 
-| Feature | Tier | Description |
-|---------|------|-------------|
-| iCloud Sync | ⭐ Pro | Sync via Apple CloudKit |
-| E2E Encryption | ⭐ Pro | End-to-end encryption |
-| Selective Sync | ⭐ Pro | Choose what to sync |
-| Self-Hosted Sync | 🏢 Enterprise | On-premise sync server |
-| Team Sync | 🏢 Enterprise | Share across team members |
+| Feature | Description |
+|---------|-------------|
+| iCloud Sync | Sync via Apple CloudKit |
+| E2E Encryption | End-to-end encryption |
+| Selective Sync | Choose what to sync |
+| Self-Hosted Sync | On-premise sync server |
+| Team Sync | Share across team members |
 
 ### Sync Architecture
 
@@ -537,9 +537,9 @@ class SyncEncryptionManager {
 
 ---
 
-## Self-Hosted Option 🏢
+## Self-Hosted Option
 
-For Enterprise customers requiring on-premise sync.
+For organizations requiring on-premise sync.
 
 ### Architecture
 
@@ -623,7 +623,7 @@ retention:
 Checklist:
 1. ✅ iCloud signed in on all devices?
 2. ✅ iCloud Drive enabled?
-3. ✅ Pro license active?
+3. ✅ Sync enabled in preferences?
 4. ✅ Same Apple ID on all devices?
 5. ✅ Internet connection available?
 

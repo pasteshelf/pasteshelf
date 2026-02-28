@@ -12,7 +12,7 @@ Frequently asked questions about PasteShelf, your privacy-first clipboard manage
 - [Troubleshooting](#troubleshooting)
 - [Features](#features)
 - [Performance](#performance)
-- [Subscription & Licensing](#subscription--licensing)
+- [License](#license)
 
 ---
 
@@ -122,9 +122,9 @@ This includes:
 
 ### Does PasteShelf send data to the cloud?
 
-**No.** The Community Edition is 100% local. No data ever leaves your Mac.
+**No.** By default, PasteShelf is 100% local. No data ever leaves your Mac.
 
-The Pro Edition offers optional iCloud sync, which uses end-to-end encryption.
+If you enable iCloud sync, your data is protected with end-to-end encryption.
 
 ### How does PasteShelf detect sensitive data?
 
@@ -143,9 +143,9 @@ Yes, go to **Preferences > Privacy > Excluded Apps** to see and manage the list.
 
 ### Is my clipboard history encrypted?
 
-In the Community Edition, data is stored unencrypted (but only accessible to your user account).
+By default, data is stored unencrypted (but only accessible to your user account).
 
-The Pro Edition offers database encryption using your device keychain.
+You can enable database encryption using your device keychain in Preferences.
 
 ### What happens when I delete PasteShelf?
 
@@ -203,20 +203,16 @@ When you uninstall PasteShelf:
 
 ## Features
 
-### What's the difference between Community and Pro editions?
+### What features does PasteShelf include?
 
-| Feature | Community | Pro |
-|---------|-----------|-----|
-| Clipboard history | ✅ | ✅ |
-| Search | ✅ | ✅ |
-| Favorites | ✅ | ✅ |
-| Hotkey | ✅ | ✅ |
-| Unlimited history | ✅ | ✅ |
-| iCloud sync | ❌ | ✅ |
-| Semantic search | ❌ | ✅ |
-| OCR (text from images) | ❌ | ✅ |
-| Smart collections | ❌ | ✅ |
-| Plugins | ❌ | ✅ |
+All features are included for free:
+- Clipboard history (unlimited)
+- Full-text, semantic, and OCR search
+- Favorites, tags, and smart collections
+- Customizable hotkey and keyboard shortcuts
+- iCloud sync with end-to-end encryption
+- Plugin system
+- Enterprise features (SSO, MDM, audit logs, DLP)
 
 ### Does PasteShelf work with multiple monitors?
 
@@ -228,12 +224,11 @@ Yes. Each user account has its own separate clipboard history and settings.
 
 ### Does PasteShelf sync between Macs?
 
-- **Community Edition**: No sync (local only)
-- **Pro Edition**: Optional iCloud sync with end-to-end encryption
+Yes, PasteShelf supports optional iCloud sync with end-to-end encryption. Enable it in Preferences.
 
 ### Can I export my clipboard history?
 
-Currently, export isn't supported in the Community Edition. This feature is planned for the Pro Edition.
+Yes, PasteShelf supports data export. Use File > Export History to export your clipboard data.
 
 ---
 
@@ -259,38 +254,11 @@ Minimally. The clipboard polling is very efficient and doesn't significantly imp
 
 ---
 
-## Subscription & Licensing
+## License
 
 ### Is PasteShelf free?
 
-The **Community Edition** is free and open source (AGPL-3.0 license).
-
-### What does the Pro Edition cost?
-
-Pro Edition is $29/year, which includes:
-- All Pro features
-- Priority support
-- Early access to new features
-
-### Is there a trial for Pro Edition?
-
-Yes, there's a 14-day free trial with full Pro features.
-
-### Can I get a refund?
-
-Yes, refunds are available within 14 days of purchase. Contact support@pasteshelf.com.
-
-### Is there an Enterprise Edition?
-
-Yes! Enterprise Edition includes:
-- SSO integration (SAML, OIDC)
-- MDM deployment support
-- Centralized management
-- Audit logging
-- DLP policies
-- Self-hosted sync option
-
-Contact enterprise@pasteshelf.com for pricing.
+**Yes!** PasteShelf is completely free and open source under the AGPL-3.0 license. All features are included -- there are no paid tiers or subscriptions.
 
 ---
 

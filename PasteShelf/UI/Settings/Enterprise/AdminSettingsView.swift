@@ -4,7 +4,7 @@
 //
 //  Admin Console settings dashboard for the Enterprise preferences tab.
 //  Displays connection status, device enrollment state, and the active admin policy.
-//  Requires the Enterprise license tier (mdmSupport feature flag).
+//
 //
 
 import SwiftUI
@@ -22,16 +22,11 @@ struct AdminSettingsView: View {
     // MARK: - Properties
 
     @StateObject private var viewModel = AdminSettingsViewModel()
-    @FeatureFlag(.mdmSupport) private var adminAvailable
 
     // MARK: - Body
 
     var body: some View {
-        if adminAvailable {
-            adminContent
-        } else {
-            upgradePrompt
-        }
+        adminContent
     }
 
     // MARK: - Admin Content
@@ -146,29 +141,6 @@ struct AdminSettingsView: View {
         .formStyle(.grouped)
     }
 
-    // MARK: - Upgrade Prompt
-
-    private var upgradePrompt: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "server.rack")
-                .font(.system(size: 52))
-                .foregroundStyle(.secondary)
-
-            Text("Enterprise Feature")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            Text("Admin console management requires an Enterprise license.\nContact your administrator or upgrade to access this feature.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 380)
-
-            Link("Learn about Enterprise", destination: URL(string: "https://pasteshelf.app/enterprise")!)
-                .buttonStyle(.borderedProminent)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
 }
 
 // MARK: - Previews

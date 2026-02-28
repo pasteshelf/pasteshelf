@@ -4,7 +4,7 @@
 //
 //  Read-only MDM management status dashboard for the Enterprise preferences tab.
 //  Displays management state, organization ID, forced settings, and default settings.
-//  Requires the Enterprise license tier (mdmSupport feature flag).
+//
 //
 
 import SwiftUI
@@ -21,16 +21,11 @@ struct MDMSettingsView: View {
     // MARK: - Properties
 
     @StateObject private var viewModel = MDMSettingsViewModel()
-    @FeatureFlag(.mdmSupport) private var mdmAvailable
 
     // MARK: - Body
 
     var body: some View {
-        if mdmAvailable {
-            mdmContent
-        } else {
-            upgradePrompt
-        }
+        mdmContent
     }
 
     // MARK: - MDM Content
@@ -113,29 +108,6 @@ struct MDMSettingsView: View {
         .formStyle(.grouped)
     }
 
-    // MARK: - Upgrade Prompt
-
-    private var upgradePrompt: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "building.2")
-                .font(.system(size: 52))
-                .foregroundStyle(.secondary)
-
-            Text("Enterprise Feature")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            Text("MDM management requires an Enterprise license.\nContact your administrator or upgrade to access this feature.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 380)
-
-            Link("Learn about Enterprise", destination: URL(string: "https://pasteshelf.app/enterprise")!)
-                .buttonStyle(.borderedProminent)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
 }
 
 // MARK: - Previews

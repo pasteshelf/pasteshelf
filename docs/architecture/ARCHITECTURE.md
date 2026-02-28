@@ -25,7 +25,7 @@ PasteShelf is a privacy-first clipboard manager for macOS built with a modular, 
 
 - **Clean separation** between UI, business logic, and data layers
 - **Testability** through dependency injection and protocols
-- **Extensibility** via plugin system and feature flags
+- **Extensibility** via plugin system
 - **Scalability** from individual users to enterprise deployments
 
 ### Key Characteristics
@@ -52,7 +52,7 @@ PasteShelf is a privacy-first clipboard manager for macOS built with a modular, 
 │  • Clipboard capture: Local NSPasteboard                     │
 │  • Storage: Local CoreData with encryption                   │
 │  • Search: Local index with optional on-device ML            │
-│  • Sync: E2E encrypted CloudKit (Pro) or self-hosted         │
+│  • Sync: E2E encrypted CloudKit or self-hosted                │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -122,7 +122,7 @@ Feature/
                     ┌─────────────────────────┐
                     │       CloudKit          │
                     │   (Apple's Servers)     │
-                    │   E2E Encrypted ⭐ 🏢   │
+                    │   E2E Encrypted         │
                     └─────────────────────────┘
 ```
 
@@ -163,12 +163,12 @@ Feature/
 │  │  └────────────────┘  └────────────────┘  └────────────────────┘  │   │
 │  │                                                                    │   │
 │  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────────┐  │   │
-│  │  │    Security    │  │   Licensing    │  │      Sync ⭐       │  │   │
+│  │  │    Security    │  │   Config       │  │      Sync          │  │   │
 │  │  │   Use Cases    │  │   Use Cases    │  │    Use Cases       │  │   │
 │  │  │                │  │                │  │                    │  │   │
-│  │  │ • Encrypt      │  │ • Validate     │  │ • Push Changes     │  │   │
-│  │  │ • Biometric    │  │ • Check Feature│  │ • Pull Changes     │  │   │
-│  │  │ • Audit Log    │  │ • Activate     │  │ • Resolve Conflict │  │   │
+│  │  │ • Encrypt      │  │ • App Settings │  │ • Push Changes     │  │   │
+│  │  │ • Biometric    │  │ • Settings     │  │ • Pull Changes     │  │   │
+│  │  │ • Audit Log    │  │ • Preferences  │  │ • Resolve Conflict │  │   │
 │  │  └────────────────┘  └────────────────┘  └────────────────────┘  │   │
 │  │                                                                    │   │
 │  └───────────────────────────────┬────────────────────────────────────┘   │
@@ -181,7 +181,7 @@ Feature/
 │  │  │  Repository  │  │  Repository  │  │ Repository │  │Repository│ │  │
 │  │  │              │  │              │  │            │  │          │ │  │
 │  │  │ Local Store  │  │  Sync Store  │  │  Secrets   │  │  Images  │ │  │
-│  │  │ Search Index │  │  E2E Encrypt │  │  Licenses  │  │  Exports │ │  │
+│  │  │ Search Index │  │  E2E Encrypt │  │  Keys      │  │  Exports │ │  │
 │  │  └──────────────┘  └──────────────┘  └────────────┘  └──────────┘ │  │
 │  │                                                                     │  │
 │  └─────────────────────────────────────────────────────────────────────┘  │
@@ -193,7 +193,7 @@ Feature/
 
 ## Core Components
 
-### 1. Clipboard Engine 🆓
+### 1. Clipboard Engine
 
 **Responsibility**: Monitor system clipboard and capture items.
 
@@ -260,7 +260,7 @@ protocol SensitiveDataDetectorProtocol {
 
 See [Clipboard Engine](../features/CLIPBOARD_ENGINE.md) for detailed documentation.
 
-### 2. Search Engine 🆓
+### 2. Search Engine
 
 **Responsibility**: Index and search clipboard history.
 
@@ -278,10 +278,10 @@ See [Clipboard Engine](../features/CLIPBOARD_ENGINE.md) for detailed documentati
 │  │                    ┌─────────────────┐                   │ │
 │  │                    │  Search Modes   │                   │ │
 │  │                    │  ─────────────  │                   │ │
-│  │                    │  • Full-text 🆓 │                   │ │
-│  │                    │  • Fuzzy    🆓  │                   │ │
-│  │                    │  • Semantic ⭐  │                   │ │
-│  │                    │  • OCR      ⭐  │                   │ │
+│  │                    │  • Full-text    │                   │ │
+│  │                    │  • Fuzzy       │                   │ │
+│  │                    │  • Semantic    │                   │ │
+│  │                    │  • OCR         │                   │ │
 │  │                    └─────────────────┘                   │ │
 │  └──────────────────────────────────────────────────────────┘ │
 │                                                                │
@@ -301,7 +301,7 @@ See [Clipboard Engine](../features/CLIPBOARD_ENGINE.md) for detailed documentati
 
 See [Search Engine](../features/SEARCH_ENGINE.md) for detailed documentation.
 
-### 3. Storage Engine 🆓
+### 3. Storage Engine
 
 **Responsibility**: Persist clipboard items locally.
 
@@ -323,7 +323,7 @@ See [Search Engine](../features/SEARCH_ENGINE.md) for detailed documentation.
 │  │   │              Persistent Stores                   │    │ │
 │  │   │                                                  │    │ │
 │  │   │  ┌──────────────────┐  ┌──────────────────────┐ │    │ │
-│  │   │  │   Local Store    │  │   CloudKit Store ⭐  │ │    │ │
+│  │   │  │   Local Store    │  │   CloudKit Store     │ │    │ │
 │  │   │  │   ────────────   │  │   ─────────────────  │ │    │ │
 │  │   │  │   SQLite DB      │  │   Private Database   │ │    │ │
 │  │   │  │   ~/Library/     │  │   E2E Encrypted      │ │    │ │
@@ -347,13 +347,13 @@ See [Search Engine](../features/SEARCH_ENGINE.md) for detailed documentation.
 
 See [Database Schema](DATABASE_SCHEMA.md) for detailed documentation.
 
-### 4. Sync Engine ⭐
+### 4. Sync Engine
 
 **Responsibility**: Sync clipboard history across devices.
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
-│                      Sync Engine ⭐                            │
+│                      Sync Engine                               │
 ├───────────────────────────────────────────────────────────────┤
 │                                                                │
 │  ┌──────────────────────────────────────────────────────────┐ │
@@ -393,7 +393,7 @@ See [Database Schema](DATABASE_SCHEMA.md) for detailed documentation.
 
 See [Sync Engine](../features/SYNC_ENGINE.md) for detailed documentation.
 
-### 5. Security Engine 🆓
+### 5. Security Engine
 
 **Responsibility**: Encryption, authentication, and privacy protection.
 
@@ -419,11 +419,11 @@ See [Sync Engine](../features/SYNC_ENGINE.md) for detailed documentation.
 │  │                 Authentication Layer                      │ │
 │  │                                                           │ │
 │  │  ┌──────────────────┐    ┌──────────────────────────┐   │ │
-│  │  │  Biometric Auth  │    │     License Validation   │   │ │
+│  │  │  Biometric Auth  │    │     SSO / Enterprise     │   │ │
 │  │  │  ──────────────  │    │     ─────────────────    │   │ │
-│  │  │  • Touch ID      │    │     • JWT tokens         │   │ │
-│  │  │  • Watch unlock  │    │     • Online validation  │   │ │
-│  │  │  • Password      │    │     • Offline grace      │   │ │
+│  │  │  • Touch ID      │    │     • SAML 2.0           │   │ │
+│  │  │  • Watch unlock  │    │     • OIDC               │   │ │
+│  │  │  • Password      │    │     • Token management   │   │ │
 │  │  └──────────────────┘    └──────────────────────────┘   │ │
 │  └──────────────────────────────────────────────────────────┘ │
 │                                                                │
@@ -432,8 +432,8 @@ See [Sync Engine](../features/SYNC_ENGINE.md) for detailed documentation.
 │  │                                                           │ │
 │  │  Stored in Keychain:                                      │ │
 │  │  • Encryption keys                                        │ │
-│  │  • License tokens                                         │ │
 │  │  • Sync credentials                                       │ │
+│  │  • SSO tokens                                             │ │
 │  │  • Sensitive preferences                                  │ │
 │  └──────────────────────────────────────────────────────────┘ │
 └───────────────────────────────────────────────────────────────┘
@@ -475,7 +475,7 @@ See [Security](../security/SECURITY.md) for detailed documentation.
 │   │  Query  │    │  Rank Results   │    │  (Background)             │ │
 │   └─────────┘    └─────────────────┘    └───────────────────────────┘ │
 │                                                                         │
-│   SYNC (Pro)                                                           │
+│   SYNC                                                                 │
 │   ──────────                                                           │
 │                                                                         │
 │   ┌───────────────┐    ┌──────────────┐    ┌────────────────────────┐ │
@@ -615,7 +615,6 @@ enum PasteShelfError: Error {
     case clipboardAccessDenied
     case storageFailure(underlying: Error)
     case syncConflict
-    case licenseInvalid
 }
 
 // Usage
@@ -627,26 +626,12 @@ func captureItem() async throws {
 }
 ```
 
-### Feature Flags
+### User Settings
 
 ```swift
-@propertyWrapper
-struct FeatureFlag<Value> {
-    let key: String
-    let defaultValue: Value
-    let minimumTier: FeatureTier
-
-    var wrappedValue: Value {
-        guard LicenseManager.shared.currentTier >= minimumTier else {
-            return defaultValue
-        }
-        return UserDefaults.standard.value(forKey: key) as? Value ?? defaultValue
-    }
-}
-
 // Usage
-@FeatureFlag(key: "cloudSync", defaultValue: false, minimumTier: .pro)
-var isCloudSyncEnabled: Bool
+@AppStorage("cloudSync") var isCloudSyncEnabled: Bool = false
+@AppStorage("maxHistoryItems") var maxHistoryItems: Int = 1000
 ```
 
 ---

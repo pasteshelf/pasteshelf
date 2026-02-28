@@ -224,7 +224,7 @@ enum AuditError: Error, LocalizedError, Sendable {
         case .syncFailed:
             return "Check your network connection and verify the admin console server is reachable."
         case .featureUnavailable:
-            return "Upgrade to the Enterprise edition to enable audit logging."
+            return "Enable audit logging in Enterprise settings."
         }
     }
 }

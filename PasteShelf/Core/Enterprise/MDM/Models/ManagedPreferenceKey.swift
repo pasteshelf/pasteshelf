@@ -18,10 +18,7 @@ import Foundation
 /// work without any transformation.
 enum ManagedPreferenceKey: String, CaseIterable, Sendable {
 
-    // MARK: Enterprise / License
-
-    /// URL of the organization's on-premises license server
-    case licenseServer = "LicenseServer"
+    // MARK: Enterprise
 
     /// Unique identifier for the managing organization
     case organizationID = "OrganizationID"
@@ -98,7 +95,6 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
     /// Human-readable label used in admin UIs and audit logs
     var displayName: String {
         switch self {
-        case .licenseServer:        return "License Server"
         case .organizationID:       return "Organization ID"
         case .adminConsoleURL:      return "Admin Console URL"
         case .ssoEnabled:           return "SSO Enabled"
@@ -123,7 +119,7 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
     /// The logical settings group this key belongs to
     var settingsGroup: SettingsGroup {
         switch self {
-        case .licenseServer, .organizationID, .adminConsoleURL:
+        case .organizationID, .adminConsoleURL:
             return .enterprise
         case .ssoEnabled, .ssoProvider, .ssoDomain:
             return .enterprise

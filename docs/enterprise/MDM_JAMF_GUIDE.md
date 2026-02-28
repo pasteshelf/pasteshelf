@@ -56,17 +56,16 @@ Before beginning the deployment, confirm the following are in place.
 
 All configuration profile features in this guide are tested against Jamf Pro 10.44+ and 11.x.
 
-### PasteShelf Enterprise License
+### PasteShelf Enterprise Package
 
-- An active PasteShelf Enterprise license with a seat count covering all target devices.
-- Your **Organization ID** (`OrganizationID`) and **License Server URL** (`LicenseServer`), provided by the PasteShelf sales team at the time of purchase.
-- If using a self-hosted license server, confirm it is reachable from managed devices before deploying. See [Network Requirements](ENTERPRISE_DEPLOYMENT.md#network-requirements).
+- PasteShelf is free and open source. No license key is required.
+- Download the signed enterprise `.pkg` from the PasteShelf downloads page.
 
 ### Target Devices
 
 - macOS 14.0 (Sonoma) or later on all managed Macs.
 - Devices must be enrolled in Jamf Pro with a valid MDM enrollment profile.
-- Devices must be able to reach the PasteShelf license server (cloud or self-hosted) on port 443.
+- If using sync, devices must be able to reach the sync server (cloud or self-hosted) on port 443.
 
 ### PasteShelf Installer Package
 
@@ -174,8 +173,6 @@ All keys are read from the managed preferences domain `com.pasteshelf.PasteShelf
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `LicenseServer` | String | — | URL of the Enterprise license server. Required for enterprise license validation. Example: `https://license.company.com` |
-| `OrganizationID` | String | — | Your organization identifier, provided by PasteShelf at license issuance. Example: `org_abc123` |
 | `SSOEnabled` | Boolean | `false` | Enable SSO authentication. When `true`, users are required to authenticate via the configured identity provider before accessing the app. |
 | `SSOProvider` | String | — | Name of the identity provider. Accepted values: `okta`, `azure`, `google`, `onelogin`, `ping`, `custom` |
 | `SSODomain` | String | — | The IdP domain used for SSO. Example: `company.okta.com` |
@@ -268,18 +265,6 @@ The following is a complete `.mobileconfig` XML example ready for upload to Jamf
 
             <key>PayloadDisplayName</key>
             <string>PasteShelf Settings</string>
-
-            <!-- ─────────────────────────────────────
-                 License Configuration (Required)
-                 ───────────────────────────────────── -->
-
-            <!-- URL of your enterprise license server -->
-            <key>LicenseServer</key>
-            <string>https://license.company.com</string>
-
-            <!-- Organization ID provided with your Enterprise license -->
-            <key>OrganizationID</key>
-            <string>org_abc123</string>
 
             <!-- ─────────────────────────────────────
                  SSO Configuration
@@ -430,11 +415,6 @@ For organizations that only need to enforce licensing and DLP without restrictin
             <key>PayloadDisplayName</key>
             <string>PasteShelf Minimal Settings</string>
 
-            <key>LicenseServer</key>
-            <string>https://license.company.com</string>
-            <key>OrganizationID</key>
-            <string>org_abc123</string>
-
             <key>DLPEnabled</key>
             <true/>
             <key>BlockCreditCards</key>
@@ -550,9 +530,7 @@ Managed keys delivered by the MDM profile appear in the output. You should see t
 ```
 {
     DLPEnabled = 1;
-    LicenseServer = "https://license.company.com";
     MaxHistoryDays = 90;
-    OrganizationID = "org_abc123";
     RequireBiometricAuth = 1;
     SSOEnabled = 1;
     SSOProvider = okta;
@@ -673,28 +651,6 @@ PasteShelf observes `NSUserDefaultsDidChangeNotification` and re-reads managed p
 
 ---
 
-### PasteShelf Reports "License Validation Failed"
-
-**Symptom**: After deployment, PasteShelf shows a license error at launch.
-
-**Checklist**:
-- Verify the `LicenseServer` URL is reachable from the device:
-  ```bash
-  curl -sv https://license.company.com/health
-  ```
-- Verify the `OrganizationID` matches your license record exactly (it is case-sensitive).
-- Confirm your firewall rules allow outbound HTTPS (port 443) to the license server host.
-- Check PasteShelf license logs:
-  ```bash
-  log show \
-    --predicate 'subsystem == "com.pasteshelf.PasteShelf" AND category == "license"' \
-    --last 1h \
-    --level debug
-  ```
-- If using a self-hosted license server, confirm it is running and its TLS certificate is trusted by macOS.
-
----
-
 ### SSO Authentication Loop or Failure
 
 **Symptom**: Users are stuck in an SSO redirect loop or cannot complete authentication.
@@ -744,7 +700,6 @@ PasteShelf observes `NSUserDefaultsDidChangeNotification` and re-reads managed p
 |-----------------|--------------|------------|
 | `profiles list` shows no PasteShelf profile | Device out of scope or not enrolled | Check Smart Group membership; run `sudo jamf manage` |
 | Managed keys absent from `defaults read` | PayloadType mismatch in profile XML | Verify inner `PayloadType` is `com.pasteshelf.PasteShelf` |
-| "License Validation Failed" at launch | `LicenseServer` unreachable or `OrganizationID` wrong | Check firewall and verify key values |
 | Settings grayed out but wrong value shown | Stale profile not updated | Remove profile and re-deliver via Jamf Pro |
 | SSO redirect loop | Redirect URI not registered in IdP | Add `pasteshelf://auth/callback` to IdP app config |
 | DLP not blocking | Missing Accessibility/Input Monitoring permission | Grant permissions in System Settings → Privacy & Security |

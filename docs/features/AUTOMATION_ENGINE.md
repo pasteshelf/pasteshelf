@@ -20,16 +20,16 @@ Documentation for PasteShelf's automation and workflow capabilities.
 
 ## Overview
 
-The Automation Engine enables powerful clipboard workflows ⭐.
+The Automation Engine enables powerful clipboard workflows.
 
-| Feature | Tier | Description |
-|---------|------|-------------|
-| Basic Actions | 🆓 CE | Copy, paste, delete |
-| Custom Actions | ⭐ Pro | JavaScript transformations |
-| Auto-Rules | ⭐ Pro | Trigger-based automation |
-| Shortcuts | ⭐ Pro | Shortcuts.app integration |
-| AppleScript | ⭐ Pro | Script automation |
-| Webhooks | 🏢 Enterprise | External integrations |
+| Feature | Description |
+|---------|-------------|
+| Basic Actions | Copy, paste, delete |
+| Custom Actions | JavaScript transformations |
+| Auto-Rules | Trigger-based automation |
+| Shortcuts | Shortcuts.app integration |
+| AppleScript | Script automation |
+| Webhooks | External integrations |
 
 ### Architecture
 
@@ -80,7 +80,7 @@ The Automation Engine enables powerful clipboard workflows ⭐.
 
 ---
 
-## Rule Engine ⭐
+## Rule Engine
 
 ### Rule Structure
 
@@ -183,7 +183,7 @@ struct Condition: Codable {
 
 ## Actions
 
-### Built-in Actions ⭐
+### Built-in Actions
 
 | Action | Description | Parameters |
 |--------|-------------|------------|
@@ -262,7 +262,7 @@ enum TransformPreset: String, CaseIterable {
 
 ---
 
-## Shortcuts Integration ⭐
+## Shortcuts Integration
 
 ### App Intents
 
@@ -346,7 +346,7 @@ struct TransformContentIntent: AppIntent {
 
 ---
 
-## AppleScript Support ⭐
+## AppleScript Support
 
 ### AppleScript Dictionary
 
@@ -432,7 +432,7 @@ end idle
 
 ---
 
-## Webhooks 🏢
+## Webhooks
 
 ### Configuration
 

@@ -4,7 +4,7 @@
 //
 //  Enterprise SSO settings panel.
 //  Lists configured identity providers and provides add/edit/delete controls.
-//  Requires the Enterprise license tier (ssoIntegration feature flag).
+//
 //
 
 import SwiftUI
@@ -16,16 +16,11 @@ struct SSOSettingsView: View {
     // MARK: - Properties
 
     @StateObject private var viewModel = SSOSettingsViewModel()
-    @FeatureFlag(.ssoIntegration) private var ssoAvailable
 
     // MARK: - Body
 
     var body: some View {
-        if ssoAvailable {
-            ssoContent
-        } else {
-            enterpriseUpgradePrompt
-        }
+        ssoContent
     }
 
     // MARK: - Main Content
@@ -416,29 +411,6 @@ struct SSOSettingsView: View {
         .frame(minWidth: 560, minHeight: 500)
     }
 
-    // MARK: - Upgrade Prompt
-
-    private var enterpriseUpgradePrompt: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "key.fill")
-                .font(.system(size: 52))
-                .foregroundStyle(.secondary)
-
-            Text("Enterprise Feature")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            Text("Single Sign-On (SSO) integration requires an Enterprise license.\nContact your administrator or upgrade to access this feature.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 380)
-
-            Link("Learn about Enterprise", destination: URL(string: "https://pasteshelf.app/enterprise")!)
-                .buttonStyle(.borderedProminent)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
 }
 
 // MARK: - Provider List Row

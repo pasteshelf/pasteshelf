@@ -443,18 +443,6 @@ struct MDMPolicyEnforcerTests {
 
     // MARK: - Enterprise / No-op Keys
 
-    @Test("applyForcedPreferences treats licenseServer as no-op for AppSettings")
-    func enterpriseLicenseServerIsNoOp() {
-        var settings = AppSettings.default
-        let original = settings
-        let config = MDMConfiguration(forcedPreferences: [.licenseServer: .string("https://license.acme.com")])
-        let enforcer = MDMPolicyEnforcer()
-
-        enforcer.applyForcedPreferences(to: &settings, from: config)
-
-        #expect(settings == original)
-    }
-
     @Test("applyForcedPreferences treats organizationID as no-op for AppSettings")
     func enterpriseOrganizationIDIsNoOp() {
         var settings = AppSettings.default
@@ -508,7 +496,6 @@ struct MDMPolicyEnforcerTests {
         var settings = AppSettings.default
         let original = settings
         let config = MDMConfiguration(forcedPreferences: [
-            .licenseServer: .string("https://license.acme.com"),
             .organizationID: .string("org-123"),
             .ssoEnabled: .bool(true),
             .ssoProvider: .string("okta"),

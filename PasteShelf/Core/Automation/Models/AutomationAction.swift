@@ -128,11 +128,6 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
         actionType.iconName
     }
 
-    /// Whether this action requires Pro license
-    var requiresPro: Bool {
-        actionType.requiresPro
-    }
-
     /// Whether this action requires Enterprise license
     var requiresEnterprise: Bool {
         actionType.requiresEnterprise
@@ -364,17 +359,6 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
             return "lock.shield.fill"
         case .delete:
             return "trash.fill"
-        }
-    }
-
-    /// Whether this action type requires Pro license
-    var requiresPro: Bool {
-        switch self {
-        case .transform, .addTag, .removeTag, .setFavorite, .moveToFolder,
-             .copyToClipboard, .notify, .openURL, .runScript, .markSensitive, .delete:
-            return true
-        case .webhook:
-            return false // Requires Enterprise
         }
     }
 

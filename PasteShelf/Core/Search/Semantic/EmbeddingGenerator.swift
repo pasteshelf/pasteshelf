@@ -53,9 +53,6 @@ final class EmbeddingGenerator: ObservableObject {
     /// Embedding manager for generating embeddings
     private let embeddingManager: EmbeddingManager
 
-    /// License manager for Pro feature checking
-    private let licenseManager: LicenseManager
-
     /// Logger for indexing operations
     private let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
@@ -72,12 +69,10 @@ final class EmbeddingGenerator: ObservableObject {
 
     private init(
         storageManager: StorageManager = .shared,
-        embeddingManager: EmbeddingManager = .shared,
-        licenseManager: LicenseManager = .shared
+        embeddingManager: EmbeddingManager = .shared
     ) {
         self.storageManager = storageManager
         self.embeddingManager = embeddingManager
-        self.licenseManager = licenseManager
     }
 
     /// Creates an EmbeddingGenerator for testing
@@ -93,11 +88,6 @@ final class EmbeddingGenerator: ObservableObject {
     /// - Returns: True if embedding was generated successfully
     @discardableResult
     func generateEmbedding(for itemId: UUID) async -> Bool {
-        // Check Pro license
-        guard licenseManager.isFeatureAvailable(.semanticSearch) else {
-            return false
-        }
-
         // Check if embedding manager is available
         guard embeddingManager.isAvailable else {
             logger.warning("Embedding manager not available")
@@ -155,12 +145,6 @@ final class EmbeddingGenerator: ObservableObject {
     /// - Returns: Number of items indexed
     @discardableResult
     func indexAllMissingEmbeddings() async -> Int {
-        // Check Pro license
-        guard licenseManager.isFeatureAvailable(.semanticSearch) else {
-            logger.info("Semantic search requires Pro license")
-            return 0
-        }
-
         // Check if already indexing
         guard !isIndexing else {
             logger.debug("Indexing already in progress")
@@ -323,6 +307,6 @@ final class EmbeddingGenerator: ObservableObject {
 
     /// Whether semantic search is available
     var isAvailable: Bool {
-        licenseManager.isFeatureAvailable(.semanticSearch) && embeddingManager.isAvailable
+        embeddingManager.isAvailable
     }
 }

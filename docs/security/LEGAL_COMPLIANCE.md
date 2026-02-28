@@ -20,19 +20,10 @@ Legal framework and compliance information for PasteShelf.
 
 ### Data We Collect
 
-**Community Edition 🆓**:
-- No data collected by default
-- Optional: Anonymous crash reports
-
-**Pro Edition ⭐**:
-- License activation data
-- Encrypted sync data (E2E)
-- Optional: Usage analytics
-
-**Enterprise Edition 🏢**:
-- License and user data
-- Audit logs (if enabled)
-- Sync data (configurable)
+PasteShelf collects no data by default. The following are optional:
+- Anonymous crash reports (opt-in)
+- Encrypted sync data via iCloud (opt-in, E2E encrypted)
+- Audit logs (if enabled by administrator)
 
 ### Data We Don't Collect
 
@@ -88,7 +79,7 @@ Preferences → Privacy → Help Improve PasteShelf
 - **Legal Basis**: Legitimate interest (functionality)
 - **Data Location**: User's device, iCloud (if synced)
 - **Retention**: User-configurable
-- **DPA**: Available for Enterprise customers
+- **DPA**: Available upon request
 
 ### GDPR Features
 
@@ -128,7 +119,7 @@ func deleteAllUserData() {
 
 ### Covered Entities
 
-For healthcare organizations using Enterprise:
+For healthcare organizations:
 
 | Requirement | PasteShelf Support |
 |-------------|-------------------|
@@ -161,7 +152,7 @@ audit:
 
 ### BAA
 
-Business Associate Agreement available for Enterprise customers. Contact: legal@pasteshelf.app
+Business Associate Agreement available upon request. Contact: legal@pasteshelf.app
 
 ---
 
@@ -169,24 +160,19 @@ Business Associate Agreement available for Enterprise customers. Contact: legal@
 
 ### License Summary
 
-| Edition | License | Key Terms |
-|---------|---------|-----------|
-| Community | AGPL-3.0 | Open source, copyleft |
-| Pro | Commercial | Personal use, 3 devices |
-| Enterprise | Enterprise | Team use, custom terms |
+PasteShelf is licensed under AGPL-3.0 (open source, copyleft). All features are included for free.
 
 ### Acceptable Use
 
 **Permitted**:
 - Personal productivity
-- Business use (with appropriate license)
+- Business use
 - Integration with other tools
+- Modification and redistribution (under AGPL-3.0 terms)
 
 **Prohibited**:
-- Reverse engineering Pro features
-- Circumventing license validation
-- Reselling or redistributing
 - Use for illegal purposes
+- Violating AGPL-3.0 license terms
 
 ### Limitation of Liability
 

@@ -158,7 +158,7 @@ final class FloatingPanelViewModel: ObservableObject {
         setupSearchDebounce()
     }
 
-    /// Whether semantic search is available (Pro license and system support)
+    /// Whether semantic search is available (system support required)
     var isSemanticSearchAvailable: Bool {
         searchEngine.isSemanticSearchAvailable
     }
@@ -194,7 +194,7 @@ final class FloatingPanelViewModel: ObservableObject {
         )
         allItems = ClipboardItemDisplayModel.from(clipboardItems)
 
-        // Load OCR text for image items (Pro feature)
+        // Load OCR text for image items
         await loadOCRTextForItems()
 
         // If search is active, perform search; otherwise show all items

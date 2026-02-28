@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SwiftLint and SwiftFormat configuration
 - GitHub Actions CI/CD workflows
 - Issue and PR templates
-- AGPL-3.0 license for Community Edition
+- AGPL-3.0 license
 - Basic README and CONTRIBUTING documentation
 
 #### Technical Details
@@ -54,11 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Release Types
 
-| Type | Description |
-|------|-------------|
-| 🆓 **Community Edition** | Free, open-source features under AGPL-3.0 |
-| ⭐ **Pro Edition** | Premium features for individual power users |
-| 🏢 **Enterprise Edition** | Team features with admin controls and compliance |
+All PasteShelf releases are free and open source under AGPL-3.0. Every feature -- including sync, semantic search, OCR, plugins, and enterprise features -- is included at no cost.
 
 ## Versioning Scheme
 

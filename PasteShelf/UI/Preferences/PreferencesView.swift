@@ -50,8 +50,6 @@ struct PreferencesView: View {
             SyncTabView()
         case .automation:
             AutomationTabView()
-        case .license:
-            LicenseTabView(viewModel: LicenseViewModel())
         case .enterprise:
             EnterpriseTabView()
         case .about:

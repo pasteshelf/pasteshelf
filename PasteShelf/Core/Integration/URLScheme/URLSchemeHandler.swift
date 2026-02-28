@@ -47,12 +47,6 @@ final class URLSchemeHandler {
             return false
         }
 
-        // Check feature availability
-        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
-            showFeatureUnavailableAlert()
-            return false
-        }
-
         guard let host = url.host,
               let action = URLScheme.Host(rawValue: host)
         else {
@@ -384,17 +378,6 @@ final class URLSchemeHandler {
     }
 
     // MARK: - Error Alerts
-
-    private func showFeatureUnavailableAlert() {
-        DispatchQueue.main.async {
-            let alert = NSAlert()
-            alert.messageText = "Feature Not Available"
-            alert.informativeText = "URL scheme automation requires PasteShelf Pro."
-            alert.alertStyle = .warning
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
-        }
-    }
 
     private func showInvalidURLAlert(_ url: URL) {
         DispatchQueue.main.async {

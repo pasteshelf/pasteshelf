@@ -93,12 +93,6 @@ final class DLPManager: ObservableObject {
     /// Call this from the application lifecycle after the Enterprise license has been
     /// validated. The method loads rules from storage and enables DLP evaluation.
     func configure() {
-        guard LicenseManager.shared.isFeatureAvailable(.dlpPolicies) else {
-            logger.info("DLP feature not available — skipping configuration")
-            isEnabled = false
-            return
-        }
-
         let storage = DLPViolationStorageService()
         self.storageService = storage
 

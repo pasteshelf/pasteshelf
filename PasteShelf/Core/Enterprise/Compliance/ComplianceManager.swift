@@ -42,13 +42,8 @@ final class ComplianceManager: ObservableObject {
 
     // MARK: - Configuration
 
-    /// Configures the compliance manager. Call after LicenseManager is available.
+    /// Configures the compliance manager.
     func configure() {
-        guard LicenseManager.shared.isFeatureAvailable(.complianceTools) else {
-            isEnabled = false
-            logger.info("Compliance tools unavailable — enterprise license required")
-            return
-        }
         isEnabled = true
         logger.info("ComplianceManager configured and enabled")
     }

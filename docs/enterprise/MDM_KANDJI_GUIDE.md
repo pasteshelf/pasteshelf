@@ -27,12 +27,10 @@ Before beginning the deployment, confirm the following requirements are met.
 - Access to the **Kandji Admin Portal** (`https://subdomain.kandji.io`)
 - The `Manager` or `Admin` role assigned to your Kandji user
 
-### PasteShelf Enterprise License
+### PasteShelf Enterprise Package
 
-- An active PasteShelf Enterprise license
-- Your **Organization ID** (available from the PasteShelf admin console at `https://admin.pasteshelf.app`)
-- Your **License Server URL** (cloud-hosted: `https://license.pasteshelf.app`, or your self-hosted endpoint)
-- The signed enterprise `.pkg` installer downloaded from the PasteShelf customer portal
+- PasteShelf is free and open source. No license key is required.
+- The signed enterprise `.pkg` installer downloaded from the PasteShelf downloads page
 
 ### Target Devices
 
@@ -131,18 +129,6 @@ Create a file named `PasteShelf-Enterprise.mobileconfig` with the content below.
             <string>Managed configuration for PasteShelf Enterprise</string>
 
             <!-- ═══════════════════════════════════
-                 LICENSE CONFIGURATION
-                 ═══════════════════════════════════ -->
-
-            <!-- Enterprise license server URL -->
-            <key>LicenseServer</key>
-            <string>https://license.pasteshelf.app</string>
-
-            <!-- Organization identifier from the PasteShelf admin console -->
-            <key>OrganizationID</key>
-            <string>org_REPLACE_WITH_YOUR_ORG_ID</string>
-
-            <!-- ═══════════════════════════════════
                  SSO CONFIGURATION
                  ═══════════════════════════════════ -->
 
@@ -162,7 +148,7 @@ Create a file named `PasteShelf-Enterprise.mobileconfig` with the content below.
                  SYNC AND STORAGE CONFIGURATION
                  ═══════════════════════════════════ -->
 
-            <!-- Enable iCloud sync (Pro/Enterprise feature) -->
+            <!-- Enable iCloud sync -->
             <key>CloudSyncEnabled</key>
             <true/>
 
@@ -268,12 +254,10 @@ The table below lists all supported managed preference keys for the `com.pastesh
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `LicenseServer` | String | — | Enterprise license server URL |
-| `OrganizationID` | String | — | Organization identifier from admin console |
 | `SSOEnabled` | Boolean | `false` | Enable SSO authentication |
 | `SSOProvider` | String | — | Provider name (`okta`, `azure`, `google`, `onelogin`, `pingidentity`) |
 | `SSODomain` | String | — | Identity provider domain |
-| `CloudSyncEnabled` | Boolean | `true` | Enable iCloud sync (requires Pro or Enterprise) |
+| `CloudSyncEnabled` | Boolean | `true` | Enable iCloud sync |
 | `LocalStorageOnly` | Boolean | `false` | Restrict to local storage only; disables all cloud sync |
 | `PluginsEnabled` | Boolean | `true` | Allow users to install and use plugins |
 | `RequireBiometricAuth` | Boolean | `false` | Require Touch ID or password to access clipboard history |
@@ -383,9 +367,7 @@ Expected output (will vary based on your profile configuration):
     CloudSyncEnabled = 1;
     DLPEnabled = 0;
     ExcludePrivateBrowsing = 1;
-    LicenseServer = "https://license.pasteshelf.app";
     MaxHistoryItems = 500;
-    OrganizationID = "org_REPLACE_WITH_YOUR_ORG_ID";
     SSODomain = "company.okta.com";
     SSOEnabled = 1;
     SSOProvider = okta;

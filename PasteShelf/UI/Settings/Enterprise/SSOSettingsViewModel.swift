@@ -16,7 +16,7 @@ import os.log
 ///
 /// Manages provider CRUD operations and connection testing.
 /// Uses an in-memory store for providers when no persistent store is configured
-/// (e.g. in design-time previews or Community/Pro license tiers).
+/// (e.g. in design-time previews or when no persistent store is configured).
 @MainActor
 final class SSOSettingsViewModel: ObservableObject {
     // MARK: - Published State

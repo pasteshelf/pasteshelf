@@ -16,10 +16,10 @@ import os.log
 /// Main sync coordinator implementing SyncManaging protocol.
 ///
 /// Supports two sync backends:
-/// - **CloudKit** (Pro tier): Apple iCloud via `CloudKitSyncBackend`
-/// - **Self-Hosted** (Enterprise tier): Custom server via `SelfHostedSyncBackend`
+/// - **CloudKit**: Apple iCloud via `CloudKitSyncBackend`
+/// - **Self-Hosted**: Custom server via `SelfHostedSyncBackend`
 ///
-/// The active backend is selected in `start()` based on license tier and configuration.
+/// The active backend is selected in `start()` based on user configuration.
 @MainActor
 public final class SyncManager: ObservableObject, SyncManaging {
     // MARK: - Published Properties
@@ -50,7 +50,6 @@ public final class SyncManager: ObservableObject, SyncManaging {
     private let changeTracker: ChangeTracker
     private let conflictResolver: ConflictResolver
     private let encryptionManager: SyncEncryptionManager
-    private let licenseManager: LicenseManager
     private let persistenceController: PersistenceController
 
     // MARK: - Backend
@@ -104,14 +103,12 @@ public final class SyncManager: ObservableObject, SyncManaging {
         changeTracker: ChangeTracker = ChangeTracker(),
         conflictResolver: ConflictResolver = ConflictResolver(),
         encryptionManager: SyncEncryptionManager = SyncEncryptionManager(),
-        licenseManager: LicenseManager = .shared,
         persistenceController: PersistenceController = .shared
     ) {
         self.cloudKitProvider = cloudKitProvider
         self.changeTracker = changeTracker
         self.conflictResolver = conflictResolver
         self.encryptionManager = encryptionManager
-        self.licenseManager = licenseManager
         self.persistenceController = persistenceController
 
         // Load persisted state
@@ -196,23 +193,16 @@ public final class SyncManager: ObservableObject, SyncManaging {
         Self.logger.info("Sync engine started with \(self.activeBackendType?.rawValue ?? "unknown") backend")
     }
 
-    /// Determines the appropriate sync backend based on license tier and configuration.
+    /// Determines the appropriate sync backend based on configuration.
     private func resolveBackend() throws -> any SyncBackend {
-        // Enterprise self-hosted sync takes precedence if configured
-        if licenseManager.isFeatureAvailable(.selfHostedSync),
-           let config = selfHostedConfiguration, config.isConfigured, config.isEnabled {
+        // Self-hosted sync takes precedence if configured
+        if let config = selfHostedConfiguration, config.isConfigured, config.isEnabled {
             activeBackendType = .selfHosted
             Self.logger.info("Using self-hosted sync backend")
             return SelfHostedSyncBackend(configuration: config)
         }
 
-        // Fall back to CloudKit for Pro tier
-        guard licenseManager.isFeatureAvailable(.cloudSync) else {
-            Self.logger.warning("Sync requires at least Pro license")
-            status = .error(.licenseRequired)
-            throw SyncError.licenseRequired
-        }
-
+        // Fall back to CloudKit
         activeBackendType = .cloudKit
         Self.logger.info("Using CloudKit sync backend")
         return CloudKitSyncBackend(provider: cloudKitProvider)

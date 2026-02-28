@@ -117,11 +117,10 @@ struct MDMPolicyEnforcer {
             // Note: auto-lock timeout is not yet in AppSettings — will be a no-op
             logger.debug("MDM key 'AutoLockTimeout' received but not yet mapped to settings")
 
-        // MARK: Enterprise / License / SSO / DLP / Sync / Plugins
-        // These keys are handled by their respective managers (LicenseManager,
-        // SSOManager, DLPManager) and do not map directly to AppSettings fields.
-        case .licenseServer,
-             .organizationID,
+        // MARK: Enterprise / SSO / DLP / Sync / Plugins
+        // These keys are handled by their respective managers (SSOManager,
+        // DLPManager, etc.) and do not map directly to AppSettings fields.
+        case .organizationID,
              .adminConsoleURL,
              .ssoEnabled,
              .ssoProvider,

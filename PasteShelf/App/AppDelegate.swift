@@ -80,10 +80,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Start auto-cleanup manager
         AutoCleanupManager.shared.start()
 
-        // Initialize automation engine (Pro feature)
+        // Initialize automation engine
         initializeAutomation()
 
-        // Start background embedding generation for semantic search (Pro feature)
+        // Start background embedding generation for semantic search
         startBackgroundEmbeddingGeneration()
 
         // Show onboarding if needed
@@ -289,7 +289,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Semantic Search
 
-    /// Starts background embedding generation for semantic search (if Pro licensed)
+    /// Starts background embedding generation for semantic search
     private func startBackgroundEmbeddingGeneration() {
         // Check if semantic search is enabled in settings
         let semanticEnabled = UserDefaults.standard.bool(forKey: "semanticSearchEnabled")
@@ -326,7 +326,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Initializes the automation engine and seeds default rules
     private func initializeAutomation() {
-        // Seed default rules if this is first launch with Pro license
+        // Seed default rules if this is first launch
         Task {
             await AutomationRuleStorage.shared.seedDefaultRulesIfNeeded()
         }
@@ -353,7 +353,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
             userInfo: ["content": content]
         )
 
-        // Run automation rules (Pro feature)
+        // Run automation rules
         Task {
             await processAutomation(for: content, sourceApp: sourceApp)
         }
@@ -365,7 +365,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
             }
         }
 
-        // Generate embedding for semantic search (Pro feature)
+        // Generate embedding for semantic search
         generateEmbeddingForNewItem(id: content.id)
 
         logger.debug("Captured: \(content.primaryType.displayName)")
@@ -376,11 +376,6 @@ extension AppDelegate: ClipboardMonitorDelegate {
         for content: ClipboardContent,
         sourceApp: SourceApp?
     ) async {
-        // Skip if automation feature not available
-        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
-            return
-        }
-
         let result = await AutomationEngine.shared.evaluateRules(
             for: content,
             trigger: .onCapture,

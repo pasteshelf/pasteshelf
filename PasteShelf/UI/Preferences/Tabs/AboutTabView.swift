@@ -80,7 +80,7 @@ struct AboutTabView: View {
 
             // Copyright
             VStack(spacing: 4) {
-                Text("Community Edition (AGPL-3.0)")
+                Text("Open Source (AGPL-3.0)")
                     .font(.caption)
                     .foregroundColor(.secondary)
 

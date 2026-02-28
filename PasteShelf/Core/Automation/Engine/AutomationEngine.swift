@@ -90,20 +90,6 @@ final class AutomationEngine {
     ) async -> AutomationResult {
         logger.debug("Evaluating rules for trigger: \(trigger.displayName)")
 
-        // Check if automation feature is available
-        guard isAutomationAvailable() else {
-            logger.debug("Automation feature not available")
-            return AutomationResult(
-                originalContent: content,
-                transformedContent: content,
-                evaluatedRules: [],
-                matchedRules: [],
-                executedActions: [],
-                shouldDelete: false,
-                errors: [.featureNotAvailable]
-            )
-        }
-
         // Fetch enabled rules for this trigger
         let rules = await fetchEnabledRules(for: trigger)
         logger.debug("Found \(rules.count) rules for trigger \(trigger.rawType)")
@@ -424,13 +410,6 @@ final class AutomationEngine {
                 self.logger.error("Failed to record rule execution: \(error.localizedDescription)")
             }
         }
-    }
-
-    // MARK: - Feature Availability
-
-    /// Checks if automation feature is available
-    private func isAutomationAvailable() -> Bool {
-        LicenseManager.shared.isFeatureAvailable(.automation)
     }
 
     // MARK: - Date Parsing Helpers

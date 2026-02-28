@@ -12,10 +12,8 @@ struct SyncTabView: View {
     // MARK: - Properties
 
     @StateObject private var syncManager = SyncManager.shared
-    @ObservedObject private var licenseManager = LicenseManager.shared
 
     @State private var showingResetConfirmation = false
-    @State private var showingUpgradePrompt = false
     @State private var errorMessage: String?
 
     // MARK: - Body
@@ -42,13 +40,6 @@ struct SyncTabView: View {
             } header: {
                 Text("Actions")
             }
-
-            // Pro Feature Notice (if not licensed)
-            if !licenseManager.isFeatureAvailable(.cloudSync) {
-                Section {
-                    proFeatureNotice
-                }
-            }
         }
         .formStyle(.grouped)
         .alert("Reset Sync", isPresented: $showingResetConfirmation) {
@@ -58,9 +49,6 @@ struct SyncTabView: View {
             }
         } message: {
             Text("This will delete all sync data from iCloud and re-upload your local clipboard history. This action cannot be undone.")
-        }
-        .sheet(isPresented: $showingUpgradePrompt) {
-            UpgradePromptView(feature: .cloudSync)
         }
     }
 
@@ -153,14 +141,9 @@ struct SyncTabView: View {
         Toggle("Enable iCloud Sync", isOn: Binding(
             get: { syncManager.isEnabled },
             set: { newValue in
-                if newValue, !licenseManager.isFeatureAvailable(.cloudSync) {
-                    showingUpgradePrompt = true
-                } else {
-                    syncManager.isEnabled = newValue
-                }
+                syncManager.isEnabled = newValue
             }
         ))
-        .disabled(!licenseManager.isFeatureAvailable(.cloudSync))
 
         // Sync explanation
         VStack(alignment: .leading, spacing: 4) {
@@ -196,38 +179,6 @@ struct SyncTabView: View {
             Label("Reset Sync...", systemImage: "arrow.counterclockwise")
         }
         .disabled(!syncManager.isEnabled)
-    }
-
-    // MARK: - Pro Feature Notice
-
-    @ViewBuilder
-    private var proFeatureNotice: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "sparkles")
-                    .font(.title2)
-                    .foregroundStyle(.yellow)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Pro Feature")
-                        .font(.headline)
-
-                    Text("iCloud Sync is available with PasteShelf Pro")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Text("Upgrade to Pro to sync your clipboard history across all your Mac devices with end-to-end encryption.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Button("Upgrade to Pro") {
-                showingUpgradePrompt = true
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding(.vertical, 8)
     }
 
     // MARK: - Actions

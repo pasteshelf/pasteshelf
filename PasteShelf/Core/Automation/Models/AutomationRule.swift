@@ -91,11 +91,6 @@ struct AutomationRule: Codable, Equatable, Identifiable, Sendable {
         !name.isEmpty && hasActions
     }
 
-    /// Whether this rule requires Pro license
-    var requiresPro: Bool {
-        // All automation rules require Pro
-        true
-    }
 
     /// Whether this rule requires Enterprise license
     var requiresEnterprise: Bool {
