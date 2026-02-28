@@ -82,6 +82,20 @@ public enum SyncError: Error, Equatable, Sendable {
     /// Record too large for CloudKit
     case recordTooLarge
 
+    // MARK: - Self-Hosted Sync Errors
+
+    /// Failed to connect to self-hosted sync server
+    case serverConnectionFailed(message: String)
+
+    /// Certificate pinning validation failed
+    case certificatePinningFailed
+
+    /// Server authentication token expired
+    case authenticationTokenExpired
+
+    /// Self-hosted server returned an error
+    case selfHostedServerError(code: Int, message: String)
+
     // MARK: - Generic Errors
 
     /// Unknown error occurred
@@ -156,6 +170,18 @@ extension SyncError: LocalizedError {
         case .recordTooLarge:
             return String(localized: "Item is too large to sync. Maximum size is 1 MB.")
 
+        case let .serverConnectionFailed(message):
+            return String(localized: "Failed to connect to sync server: \(message)")
+
+        case .certificatePinningFailed:
+            return String(localized: "Server certificate validation failed. The server's identity could not be verified.")
+
+        case .authenticationTokenExpired:
+            return String(localized: "Your authentication has expired. Please sign in again.")
+
+        case let .selfHostedServerError(code, message):
+            return String(localized: "Sync server error (\(code)): \(message)")
+
         case let .unknown(message):
             return String(localized: "Sync error: \(message)")
         }
@@ -173,6 +199,12 @@ extension SyncError: LocalizedError {
             return String(localized: "Upgrade to Pro in Preferences > License.")
         case .encryptionKeyMissing, .keyMismatch:
             return String(localized: "Go to Preferences > Sync > Reset Sync to reconfigure.")
+        case .serverConnectionFailed:
+            return String(localized: "Check the server URL and ensure the sync server is running.")
+        case .certificatePinningFailed:
+            return String(localized: "Verify the server certificate in Preferences > Sync > Self-Hosted.")
+        case .authenticationTokenExpired:
+            return String(localized: "Sign in again via Preferences > Sync > Self-Hosted.")
         default:
             return nil
         }
@@ -240,7 +272,9 @@ extension SyncError {
              (.keyMismatch, .keyMismatch),
              (.licenseRequired, .licenseRequired),
              (.licenseExpired, .licenseExpired),
-             (.recordTooLarge, .recordTooLarge):
+             (.recordTooLarge, .recordTooLarge),
+             (.certificatePinningFailed, .certificatePinningFailed),
+             (.authenticationTokenExpired, .authenticationTokenExpired):
             return true
         case let (.serverError(lhsCode), .serverError(rhsCode)):
             return lhsCode == rhsCode
@@ -250,6 +284,10 @@ extension SyncError {
             return lhsErrors == rhsErrors
         case let (.invalidData(lhsReason), .invalidData(rhsReason)):
             return lhsReason == rhsReason
+        case let (.serverConnectionFailed(lhsMsg), .serverConnectionFailed(rhsMsg)):
+            return lhsMsg == rhsMsg
+        case let (.selfHostedServerError(lhsCode, lhsMsg), .selfHostedServerError(rhsCode, rhsMsg)):
+            return lhsCode == rhsCode && lhsMsg == rhsMsg
         case let (.unknown(lhsMessage), .unknown(rhsMessage)):
             return lhsMessage == rhsMessage
         default:

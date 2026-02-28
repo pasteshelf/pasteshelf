@@ -2,7 +2,8 @@
 //  SyncManager.swift
 //  PasteShelf
 //
-//  Main coordinator for iCloud sync operations.
+//  Main coordinator for sync operations.
+//  Supports both CloudKit (Pro) and self-hosted (Enterprise) backends.
 //
 
 import CloudKit
@@ -12,7 +13,13 @@ import Foundation
 import Network
 import os.log
 
-/// Main sync coordinator implementing SyncManaging protocol
+/// Main sync coordinator implementing SyncManaging protocol.
+///
+/// Supports two sync backends:
+/// - **CloudKit** (Pro tier): Apple iCloud via `CloudKitSyncBackend`
+/// - **Self-Hosted** (Enterprise tier): Custom server via `SelfHostedSyncBackend`
+///
+/// The active backend is selected in `start()` based on license tier and configuration.
 @MainActor
 public final class SyncManager: ObservableObject, SyncManaging {
     // MARK: - Published Properties
@@ -27,6 +34,9 @@ public final class SyncManager: ObservableObject, SyncManaging {
     }
 
     @Published public private(set) var lastSyncDate: Date?
+
+    /// The type of sync backend currently in use.
+    @Published public private(set) var activeBackendType: SyncBackendType?
 
     // MARK: - Publishers
 
@@ -43,6 +53,14 @@ public final class SyncManager: ObservableObject, SyncManaging {
     private let licenseManager: LicenseManager
     private let persistenceController: PersistenceController
 
+    // MARK: - Backend
+
+    /// The active sync backend (CloudKit or self-hosted). Set during `start()`.
+    private var syncBackend: (any SyncBackend)?
+
+    /// Configuration for the self-hosted sync server (Enterprise).
+    public var selfHostedConfiguration: SelfHostedSyncConfiguration?
+
     // MARK: - Network Monitoring
 
     private let networkMonitor = NWPathMonitor()
@@ -56,6 +74,9 @@ public final class SyncManager: ObservableObject, SyncManaging {
     private var pendingSync = false
     private var changeToken: CKServerChangeToken?
 
+    /// Backend-agnostic sync token stored as opaque Data.
+    private var backendSyncToken: Data?
+
     // MARK: - Constants
 
     private static let syncDebounceInterval: TimeInterval = 2.0
@@ -66,6 +87,8 @@ public final class SyncManager: ObservableObject, SyncManaging {
     private static let enabledKey = "com.pasteshelf.sync.enabled"
     private static let lastSyncKey = "com.pasteshelf.sync.lastSyncDate"
     private static let changeTokenKey = "com.pasteshelf.sync.changeToken"
+    private static let backendSyncTokenKey = "com.pasteshelf.sync.backendSyncToken"
+    private static let backendTypeKey = "com.pasteshelf.sync.backendType"
 
     // MARK: - Logger
 
@@ -110,20 +133,9 @@ public final class SyncManager: ObservableObject, SyncManaging {
     public func start() async throws {
         Self.logger.info("Starting sync engine")
 
-        // Check license
-        guard licenseManager.isFeatureAvailable(.cloudSync) else {
-            Self.logger.warning("Cloud sync requires Pro license")
-            status = .error(.licenseRequired)
-            throw SyncError.licenseRequired
-        }
-
-        // Check iCloud account
-        do {
-            _ = try await cloudKitProvider.checkAccountStatus()
-        } catch let error as SyncError {
-            status = .error(error)
-            throw error
-        }
+        // Determine which backend to use based on license and configuration
+        let backend = try resolveBackend()
+        syncBackend = backend
 
         // Check network
         guard isNetworkAvailable else {
@@ -131,12 +143,29 @@ public final class SyncManager: ObservableObject, SyncManaging {
             throw SyncError.networkUnavailable
         }
 
-        // Setup CloudKit zone and subscription
+        // Check backend availability
         status = .syncing(progress: 0.1)
+        let availability = try await backend.checkAvailability()
+        switch availability {
+        case .available:
+            break
+        case .authenticationRequired:
+            let error: SyncError = activeBackendType == .selfHosted
+                ? .authenticationTokenExpired
+                : .noAccount
+            status = .error(error)
+            throw error
+        case let .unavailable(reason):
+            let error: SyncError = activeBackendType == .selfHosted
+                ? .serverConnectionFailed(message: reason)
+                : .accountTemporarilyUnavailable
+            status = .error(error)
+            throw error
+        }
 
+        // Setup backend (create zones, register device, etc.)
         do {
-            try await cloudKitProvider.setupZone()
-            try await cloudKitProvider.subscribeToChanges()
+            try await backend.setup()
         } catch let error as SyncError {
             status = .error(error)
             throw error
@@ -148,7 +177,45 @@ public final class SyncManager: ObservableObject, SyncManaging {
         // Start auto-sync timer
         startAutoSyncTimer()
 
-        Self.logger.info("Sync engine started successfully")
+        // Subscribe to real-time change notifications
+        try? await backend.subscribeToChanges { [weak self] notification in
+            Task { @MainActor in
+                guard let self else { return }
+                Self.logger.info("Received sync notification: \(notification.type.rawValue)")
+                switch notification.type {
+                case .changesAvailable, .forceSync:
+                    try? await self.syncNow()
+                case .authExpired:
+                    self.status = .error(.authenticationTokenExpired)
+                case .deviceRemoved:
+                    self.stop()
+                }
+            }
+        }
+
+        Self.logger.info("Sync engine started with \(self.activeBackendType?.rawValue ?? "unknown") backend")
+    }
+
+    /// Determines the appropriate sync backend based on license tier and configuration.
+    private func resolveBackend() throws -> any SyncBackend {
+        // Enterprise self-hosted sync takes precedence if configured
+        if licenseManager.isFeatureAvailable(.selfHostedSync),
+           let config = selfHostedConfiguration, config.isConfigured, config.isEnabled {
+            activeBackendType = .selfHosted
+            Self.logger.info("Using self-hosted sync backend")
+            return SelfHostedSyncBackend(configuration: config)
+        }
+
+        // Fall back to CloudKit for Pro tier
+        guard licenseManager.isFeatureAvailable(.cloudSync) else {
+            Self.logger.warning("Sync requires at least Pro license")
+            status = .error(.licenseRequired)
+            throw SyncError.licenseRequired
+        }
+
+        activeBackendType = .cloudKit
+        Self.logger.info("Using CloudKit sync backend")
+        return CloudKitSyncBackend(provider: cloudKitProvider)
     }
 
     public func stop() {
@@ -158,6 +225,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
         syncTask = nil
         isCurrentlySyncing = false
         pendingSync = false
+        syncBackend = nil
 
         status = .disabled
     }
@@ -180,6 +248,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
     public func reset() async throws {
         Self.logger.info("Resetting sync state")
 
+        let backend = syncBackend
         stop()
 
         // Delete encryption keys
@@ -191,9 +260,18 @@ public final class SyncManager: ObservableObject, SyncManaging {
         // Clear stored tokens
         UserDefaults.standard.removeObject(forKey: Self.changeTokenKey)
         UserDefaults.standard.removeObject(forKey: Self.lastSyncKey)
+        UserDefaults.standard.removeObject(forKey: Self.backendSyncTokenKey)
+        UserDefaults.standard.removeObject(forKey: Self.backendTypeKey)
+        backendSyncToken = nil
+        activeBackendType = nil
 
-        // Reset CloudKit zone (deletes all data)
-        try await cloudKitProvider.reset()
+        // Tear down the backend (delete zone / unregister device)
+        if let backend {
+            try await backend.teardown()
+        } else {
+            // Fallback: reset CloudKit directly
+            try await cloudKitProvider.reset()
+        }
 
         // Mark all local items as pending sync
         try await markAllItemsAsPending()
@@ -251,9 +329,11 @@ public final class SyncManager: ObservableObject, SyncManaging {
     }
 
     private func pullRemoteChanges() async throws {
-        Self.logger.debug("Pulling remote changes")
+        guard let backend = syncBackend else { return }
 
-        let result = try await cloudKitProvider.pullChanges(since: changeToken)
+        Self.logger.debug("Pulling remote changes via \(self.activeBackendType?.rawValue ?? "unknown") backend")
+
+        let result = try await backend.pullChanges(sinceToken: backendSyncToken)
 
         if !result.changes.isEmpty {
             try await applyRemoteChanges(result.changes)
@@ -261,15 +341,22 @@ public final class SyncManager: ObservableObject, SyncManaging {
 
         // Save new token
         if let newToken = result.newToken {
-            changeToken = newToken
-            saveChangeToken(newToken)
+            backendSyncToken = newToken
+            saveBackendSyncToken(newToken)
+        }
+
+        // Continue pulling if more changes are available
+        if result.hasMore {
+            try await pullRemoteChanges()
         }
 
         Self.logger.debug("Pulled \(result.changes.count) remote changes")
     }
 
     private func pushLocalChanges() async throws {
-        Self.logger.debug("Pushing local changes")
+        guard let backend = syncBackend else { return }
+
+        Self.logger.debug("Pushing local changes via \(self.activeBackendType?.rawValue ?? "unknown") backend")
 
         // Get pending changes
         let pendingChanges = try await changeTracker.getPendingChanges()
@@ -282,13 +369,59 @@ public final class SyncManager: ObservableObject, SyncManaging {
         // Prepare changes with encrypted data
         let preparedChanges = try await changeTracker.prepareChangesForSync(pendingChanges)
 
-        // Push to CloudKit
-        try await cloudKitProvider.pushChanges(preparedChanges)
+        // Push to backend
+        let pushResult = try await backend.pushChanges(preparedChanges)
+
+        // Handle conflicts if any
+        if !pushResult.conflicts.isEmpty {
+            Self.logger.info("Push returned \(pushResult.conflicts.count) conflicts")
+            try await handlePushConflicts(pushResult.conflicts, originalChanges: preparedChanges)
+        }
+
+        // Update sync token from push result
+        if let newToken = pushResult.newToken {
+            backendSyncToken = newToken
+            saveBackendSyncToken(newToken)
+        }
 
         // Mark as synced
         try await changeTracker.markAsSynced(preparedChanges)
 
-        Self.logger.debug("Pushed \(preparedChanges.count) local changes")
+        Self.logger.debug("Pushed \(preparedChanges.count) local changes (\(pushResult.accepted) accepted)")
+    }
+
+    /// Handle conflicts returned from a push operation.
+    private func handlePushConflicts(_ conflicts: [SyncConflict], originalChanges: [SyncChange]) async throws {
+        for conflict in conflicts {
+            // Find the local change for this entity
+            guard let localChange = originalChanges.first(where: { $0.entityID == conflict.entityID }) else {
+                continue
+            }
+
+            // Create a remote change from the server's version
+            let remoteChange = SyncChange(
+                changeType: .remoteUpdate,
+                entityType: localChange.entityType,
+                entityID: conflict.entityID,
+                serverTimestamp: conflict.serverTimestamp,
+                encryptedData: conflict.serverEncryptedData
+            )
+
+            // Use the existing conflict resolver
+            let resolution = try await conflictResolver.resolve(local: localChange, remote: remoteChange)
+
+            switch resolution {
+            case .useLocal:
+                // Retry pushing the local version (already pending)
+                Self.logger.debug("Conflict resolved: using local version for \(conflict.entityID)")
+            case let .useRemote(change):
+                // Apply the server's version locally
+                try await applyRemoteChanges([change])
+            case let .merged(change):
+                // Apply the merged version locally, then re-push
+                try await applyRemoteChanges([change])
+            }
+        }
     }
 
     private func applyRemoteChanges(_ changes: [SyncChange]) async throws {
@@ -389,6 +522,11 @@ public final class SyncManager: ObservableObject, SyncManaging {
         isEnabled = UserDefaults.standard.bool(forKey: Self.enabledKey)
         lastSyncDate = UserDefaults.standard.object(forKey: Self.lastSyncKey) as? Date
         changeToken = loadChangeToken()
+        backendSyncToken = UserDefaults.standard.data(forKey: Self.backendSyncTokenKey)
+
+        if let typeString = UserDefaults.standard.string(forKey: Self.backendTypeKey) {
+            activeBackendType = SyncBackendType(rawValue: typeString)
+        }
 
         if isEnabled {
             status = lastSyncDate.map { .synced(lastSync: $0) } ?? .idle
@@ -407,6 +545,16 @@ public final class SyncManager: ObservableObject, SyncManaging {
     private func loadChangeToken() -> CKServerChangeToken? {
         guard let data = UserDefaults.standard.data(forKey: Self.changeTokenKey) else { return nil }
         return try? NSKeyedUnarchiver.unarchivedObject(ofClass: CKServerChangeToken.self, from: data)
+    }
+
+    /// Persist the backend-agnostic sync token.
+    private func saveBackendSyncToken(_ token: Data) {
+        UserDefaults.standard.set(token, forKey: Self.backendSyncTokenKey)
+    }
+
+    /// Persist the active backend type so we can restore it on next launch.
+    private func saveBackendType(_ type: SyncBackendType) {
+        UserDefaults.standard.set(type.rawValue, forKey: Self.backendTypeKey)
     }
 
     private func handleEnabledStateChange() {
