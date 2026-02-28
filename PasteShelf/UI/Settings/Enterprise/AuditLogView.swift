@@ -231,6 +231,8 @@ struct AuditLogView: View {
             return "Policy"
         case .authentication:
             return "Authentication"
+        case .compliance:
+            return "Compliance"
         }
     }
 

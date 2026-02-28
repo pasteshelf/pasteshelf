@@ -104,6 +104,10 @@ final class AuditRetentionService {
     /// - Returns: The number of entries that were pruned, or `0` if pruning failed.
     @discardableResult
     func runNow() async -> Int {
+        guard !configuration.isImmutable else {
+            logger.info("Audit retention: pruning skipped — immutable retention policy active (HIPAA)")
+            return 0
+        }
         logger.info("Audit retention: running manual pruning pass (retentionDays: \(self.configuration.retentionDays))")
         do {
             let count = try await storage.pruneExpired(retentionDays: configuration.retentionDays)

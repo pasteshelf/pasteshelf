@@ -207,7 +207,7 @@ final class AuditManager: ObservableObject {
             resourceId: resourceId,
             detail: detail
         )
-        try? await storageService?.save(event: event)
+        try? await storageService?.save(event)
     }
 
     // MARK: - Storage Access

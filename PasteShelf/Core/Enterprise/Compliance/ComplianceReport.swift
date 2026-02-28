@@ -7,10 +7,10 @@
 
 import Foundation
 
-// MARK: - ComplianceStatus
+// MARK: - ComplianceFindingStatus
 
 /// Status of an individual compliance finding.
-enum ComplianceStatus: String, Codable, Sendable {
+enum ComplianceFindingStatus: String, Codable, Sendable {
     case pass
     case fail
     case warning
@@ -22,7 +22,7 @@ enum ComplianceStatus: String, Codable, Sendable {
 struct ComplianceFinding: Codable, Sendable, Identifiable {
     let id: UUID
     let category: String
-    let status: ComplianceStatus
+    let status: ComplianceFindingStatus
     let description: String
     let recommendation: String?
     let timestamp: Date
@@ -30,7 +30,7 @@ struct ComplianceFinding: Codable, Sendable, Identifiable {
     init(
         id: UUID = UUID(),
         category: String,
-        status: ComplianceStatus,
+        status: ComplianceFindingStatus,
         description: String,
         recommendation: String? = nil,
         timestamp: Date = Date()
@@ -52,7 +52,7 @@ struct ComplianceReport: Codable, Sendable, Identifiable {
     let reportType: String
     let generatedAt: Date
     let findings: [ComplianceFinding]
-    let overallStatus: ComplianceStatus
+    let overallStatus: ComplianceFindingStatus
     let summary: String
 
     init(
