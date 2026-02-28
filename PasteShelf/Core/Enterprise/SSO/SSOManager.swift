@@ -32,8 +32,8 @@ final class SSOManager: ObservableObject {
 
     private let logger = Logger(subsystem: "com.pasteshelf", category: "sso")
     private let samlAuthenticator = SAMLAuthenticator()
-    private var sessionStore: SSOSessionStore?
-    private var providerStore: IdentityProviderStore?
+    private(set) var sessionStore: SSOSessionStore?
+    private(set) var providerStore: IdentityProviderStore?
 
     // MARK: - Initialization
 

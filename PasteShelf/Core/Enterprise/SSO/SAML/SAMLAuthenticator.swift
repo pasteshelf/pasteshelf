@@ -18,6 +18,7 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
     let providerType: IdentityProviderType = .saml
 
     private let parser = SAMLParser()
+    private let logoutHandler = SAMLLogoutHandler()
     private let logger = Logger(subsystem: "com.pasteshelf", category: "saml-auth")
 
     /// Callback URL scheme for receiving SAML responses
@@ -87,9 +88,15 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
     }
 
     func logout(session: SSOSession) async throws {
-        // Single logout is handled by SAMLLogoutHandler (separate task)
-        // This is a placeholder that clears the local session
         logger.info("SAML logout requested for session: \(session.id)")
+        guard let providerStore = await SSOManager.shared.providerStore,
+              let provider = try await providerStore.load(id: session.providerId),
+              let samlConfig = provider.samlConfig,
+              samlConfig.sloURL != nil else {
+            logger.info("No SLO endpoint configured, skipping IdP logout")
+            return
+        }
+        try await logoutHandler.performLogout(session: session, config: samlConfig)
     }
 
     // MARK: - AuthnRequest Generation
