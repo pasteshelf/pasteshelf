@@ -122,6 +122,7 @@ struct MDMPolicyEnforcer {
         // SSOManager, DLPManager) and do not map directly to AppSettings fields.
         case .licenseServer,
              .organizationID,
+             .adminConsoleURL,
              .ssoEnabled,
              .ssoProvider,
              .ssoDomain,

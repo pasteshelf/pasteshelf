@@ -26,6 +26,9 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
     /// Unique identifier for the managing organization
     case organizationID = "OrganizationID"
 
+    /// URL of the organization's enterprise admin console
+    case adminConsoleURL = "AdminConsoleURL"
+
     // MARK: SSO
 
     /// Whether Single Sign-On is enabled for the organization
@@ -97,6 +100,7 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
         switch self {
         case .licenseServer:        return "License Server"
         case .organizationID:       return "Organization ID"
+        case .adminConsoleURL:      return "Admin Console URL"
         case .ssoEnabled:           return "SSO Enabled"
         case .ssoProvider:          return "SSO Provider"
         case .ssoDomain:            return "SSO Domain"
@@ -119,7 +123,7 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
     /// The logical settings group this key belongs to
     var settingsGroup: SettingsGroup {
         switch self {
-        case .licenseServer, .organizationID:
+        case .licenseServer, .organizationID, .adminConsoleURL:
             return .enterprise
         case .ssoEnabled, .ssoProvider, .ssoDomain:
             return .enterprise
