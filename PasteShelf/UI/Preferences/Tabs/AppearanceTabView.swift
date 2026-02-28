@@ -26,6 +26,7 @@ struct AppearanceTabView: View {
                 .pickerStyle(.segmented)
                 .accessibilityLabel("Theme")
                 .accessibilityHint("Choose between system, light, or dark theme")
+                .managedSetting(.theme)
             } header: {
                 Text("Theme")
             } footer: {

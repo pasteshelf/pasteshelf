@@ -37,6 +37,7 @@ struct GeneralTabView: View {
                 }
                 .accessibilityLabel("History limit")
                 .accessibilityHint("Maximum number of clipboard items to keep")
+                .managedSetting(.maxHistoryItems)
             } header: {
                 Text("History")
             } footer: {

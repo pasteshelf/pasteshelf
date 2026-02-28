@@ -27,6 +27,7 @@ struct PrivacyTabView: View {
                 Toggle("Exclude private/incognito browsing", isOn: $viewModel.excludePrivateBrowsing)
                     .accessibilityLabel("Exclude private browsing")
                     .accessibilityHint("When enabled, content from private browser windows will not be captured")
+                    .managedSetting(.excludePrivateBrowsing)
             } header: {
                 Text("Monitoring")
             }
@@ -69,6 +70,7 @@ struct PrivacyTabView: View {
                 Toggle("Auto-delete old items", isOn: $viewModel.autoDeleteEnabled)
                     .accessibilityLabel("Auto-delete old items")
                     .accessibilityHint("When enabled, items older than the specified period will be automatically deleted")
+                    .managedSetting(.maxHistoryDays)
 
                 if viewModel.autoDeleteEnabled {
                     Picker("Delete items older than", selection: $viewModel.autoDeleteDays) {

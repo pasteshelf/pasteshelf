@@ -52,6 +52,8 @@ struct PreferencesView: View {
             AutomationTabView()
         case .license:
             LicenseTabView(viewModel: LicenseViewModel())
+        case .enterprise:
+            EnterpriseTabView()
         case .about:
             AboutTabView()
         }
