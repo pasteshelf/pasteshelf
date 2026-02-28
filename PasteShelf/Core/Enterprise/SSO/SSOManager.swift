@@ -33,6 +33,7 @@ final class SSOManager: ObservableObject {
     private let logger = Logger(subsystem: "com.pasteshelf", category: "sso")
     private let samlAuthenticator = SAMLAuthenticator()
     private let oidcAuthenticator = OIDCAuthenticator()
+    private let oidcTokenManager = OIDCTokenManager()
     private(set) var sessionStore: SSOSessionStore?
     private(set) var providerStore: IdentityProviderStore?
 
@@ -132,6 +133,27 @@ final class SSOManager: ObservableObject {
         }
 
         return session
+    }
+
+    /// Refreshes the current OIDC session's tokens if needed
+    func refreshCurrentSessionIfNeeded() async throws {
+        guard let session = currentSession, session.canRefresh else { return }
+
+        guard let providerStore,
+              let provider = try await providerStore.load(id: session.providerId),
+              let oidcConfig = provider.oidcConfig else { return }
+
+        guard oidcTokenManager.needsRefresh(session) else { return }
+
+        do {
+            let refreshed = try await oidcTokenManager.refreshTokens(session: session, config: oidcConfig)
+            try await sessionStore?.save(refreshed)
+            currentSession = refreshed
+            logger.info("OIDC tokens refreshed for session: \(session.id)")
+        } catch {
+            logger.error("Token refresh failed: \(error.localizedDescription)")
+            // Don't clear session — it may still be valid, just can't refresh
+        }
     }
 
     /// Validates the current session is still active
