@@ -207,4 +207,46 @@
             <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
         </fetchIndex>
     </entity>
+    <entity name="DLPRuleEntity" representedClassName="DLPRuleEntity" syncable="NO">
+        <attribute name="actionsJSON" optional="YES" attributeType="Binary"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isAdminManaged" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isEnabled" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="pattern" optional="YES" attributeType="String"/>
+        <attribute name="patternCategory" optional="YES" attributeType="String"/>
+        <attribute name="severity" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <fetchIndex name="byId">
+            <fetchIndexElement property="id" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsEnabled">
+            <fetchIndexElement property="isEnabled" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byPatternCategory">
+            <fetchIndexElement property="patternCategory" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="DLPViolationEntity" representedClassName="DLPViolationEntity" syncable="NO">
+        <attribute name="actionTaken" optional="YES" attributeType="String"/>
+        <attribute name="contentPreview" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="matchedPattern" optional="YES" attributeType="String"/>
+        <attribute name="ruleId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="ruleName" optional="YES" attributeType="String"/>
+        <attribute name="sourceAppBundleId" optional="YES" attributeType="String"/>
+        <attribute name="sourceAppName" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="wasBlocked" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <fetchIndex name="byId">
+            <fetchIndexElement property="id" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byRuleId">
+            <fetchIndexElement property="ruleId" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byTimestamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
+        </fetchIndex>
+    </entity>
 </model>
