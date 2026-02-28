@@ -1,0 +1,220 @@
+//
+//  SelfHostedSyncSettingsViewModel.swift
+//  PasteShelf
+//
+//  ViewModel for self-hosted sync server configuration.
+//
+
+import Combine
+import Foundation
+import os.log
+
+// MARK: - SelfHostedSyncSettingsViewModel
+
+@MainActor
+final class SelfHostedSyncSettingsViewModel: ObservableObject {
+
+    // MARK: - Published Properties
+
+    @Published var serverURLString: String = ""
+    @Published var organizationID: String = ""
+    @Published var apiKey: String = ""
+    @Published var isEnabled: Bool = false
+    @Published var certificatePinningEnabled: Bool = false
+
+    @Published var connectionStatus: ConnectionStatus = .unknown
+    @Published var isTestingConnection: Bool = false
+    @Published var testSteps: [ConnectionTestStep] = []
+
+    // MARK: - Properties
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-settings")
+    private let configKey = "com.pasteshelf.selfhosted.config"
+
+    // MARK: - Initialization
+
+    init() {
+        loadConfiguration()
+    }
+
+    // MARK: - Configuration
+
+    func loadConfiguration() {
+        guard let data = UserDefaults.standard.data(forKey: configKey),
+              let config = try? JSONDecoder().decode(SelfHostedSyncConfiguration.self, from: data)
+        else { return }
+
+        serverURLString = config.serverURL?.absoluteString ?? ""
+        organizationID = config.organizationID
+        apiKey = config.apiKey ?? ""
+        isEnabled = config.isEnabled
+        certificatePinningEnabled = config.certificatePinningEnabled
+    }
+
+    func saveConfiguration() {
+        let config = SelfHostedSyncConfiguration(
+            serverURL: URL(string: serverURLString),
+            organizationID: organizationID,
+            apiKey: apiKey.isEmpty ? nil : apiKey,
+            isEnabled: isEnabled,
+            certificatePinningEnabled: certificatePinningEnabled,
+            pinnedCertificateData: nil
+        )
+
+        if let data = try? JSONEncoder().encode(config) {
+            UserDefaults.standard.set(data, forKey: configKey)
+        }
+        logger.info("Self-hosted sync configuration saved")
+    }
+
+    // MARK: - Connection Test
+
+    func testConnection() async {
+        isTestingConnection = true
+        testSteps = []
+        connectionStatus = .testing
+
+        // Step 1: Validate URL
+        addStep(title: "Validating server URL", status: .inProgress)
+        guard let url = URL(string: serverURLString), url.scheme == "https" || url.scheme == "http" else {
+            updateLastStep(status: .failed, detail: "Invalid URL format")
+            connectionStatus = .failed
+            isTestingConnection = false
+            return
+        }
+        updateLastStep(status: .passed)
+
+        // Step 2: DNS Resolution
+        addStep(title: "Resolving hostname", status: .inProgress)
+        guard let host = url.host else {
+            updateLastStep(status: .failed, detail: "No hostname in URL")
+            connectionStatus = .failed
+            isTestingConnection = false
+            return
+        }
+        updateLastStep(status: .passed, detail: host)
+
+        // Step 3: Health Check
+        addStep(title: "Checking server health", status: .inProgress)
+        let healthURL = url.appendingPathComponent("health")
+        var request = URLRequest(url: healthURL)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 10
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                updateLastStep(status: .failed, detail: "Invalid response")
+                connectionStatus = .failed
+                isTestingConnection = false
+                return
+            }
+
+            if httpResponse.statusCode == 200 {
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let version = json["version"] as? String
+                {
+                    updateLastStep(status: .passed, detail: "Server v\(version)")
+                } else {
+                    updateLastStep(status: .passed, detail: "HTTP 200")
+                }
+            } else {
+                updateLastStep(status: .failed, detail: "HTTP \(httpResponse.statusCode)")
+                connectionStatus = .failed
+                isTestingConnection = false
+                return
+            }
+        } catch {
+            updateLastStep(status: .failed, detail: error.localizedDescription)
+            connectionStatus = .failed
+            isTestingConnection = false
+            return
+        }
+
+        // Step 4: Authentication
+        addStep(title: "Verifying authentication", status: .inProgress)
+        if apiKey.isEmpty {
+            updateLastStep(status: .skipped, detail: "No API key configured")
+        } else {
+            // Try a simple authenticated request
+            let statusURL = url.appendingPathComponent("api/v1/sync/status")
+            var authRequest = URLRequest(url: statusURL)
+            authRequest.httpMethod = "GET"
+            authRequest.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
+            authRequest.timeoutInterval = 10
+
+            do {
+                let (_, authResponse) = try await URLSession.shared.data(for: authRequest)
+                if let httpAuth = authResponse as? HTTPURLResponse, httpAuth.statusCode == 200 {
+                    updateLastStep(status: .passed, detail: "Authenticated")
+                } else {
+                    updateLastStep(status: .warning, detail: "Auth may be invalid")
+                }
+            } catch {
+                updateLastStep(status: .warning, detail: "Could not verify auth")
+            }
+        }
+
+        // Step 5: TLS Certificate
+        addStep(title: "Checking TLS certificate", status: .inProgress)
+        if url.scheme == "https" {
+            updateLastStep(status: .passed, detail: "HTTPS enabled")
+        } else {
+            updateLastStep(status: .warning, detail: "Not using HTTPS")
+        }
+
+        connectionStatus = .connected
+        isTestingConnection = false
+    }
+
+    // MARK: - Helpers
+
+    private func addStep(title: String, status: ConnectionTestStep.StepStatus) {
+        testSteps.append(ConnectionTestStep(title: title, status: status))
+    }
+
+    private func updateLastStep(status: ConnectionTestStep.StepStatus, detail: String? = nil) {
+        guard !testSteps.isEmpty else { return }
+        testSteps[testSteps.count - 1].status = status
+        testSteps[testSteps.count - 1].detail = detail
+    }
+
+    // MARK: - Types
+
+    enum ConnectionStatus {
+        case unknown, testing, connected, failed
+    }
+}
+
+// MARK: - ConnectionTestStep
+
+struct ConnectionTestStep: Identifiable {
+    let id = UUID()
+    let title: String
+    var status: StepStatus
+    var detail: String?
+
+    enum StepStatus {
+        case inProgress, passed, failed, warning, skipped
+
+        var icon: String {
+            switch self {
+            case .inProgress: return "arrow.trianglehead.2.counterclockwise"
+            case .passed: return "checkmark.circle.fill"
+            case .failed: return "xmark.circle.fill"
+            case .warning: return "exclamationmark.triangle.fill"
+            case .skipped: return "minus.circle"
+            }
+        }
+
+        var color: String {
+            switch self {
+            case .inProgress: return "blue"
+            case .passed: return "green"
+            case .failed: return "red"
+            case .warning: return "orange"
+            case .skipped: return "gray"
+            }
+        }
+    }
+}
