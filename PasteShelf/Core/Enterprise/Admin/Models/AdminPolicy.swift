@@ -186,6 +186,12 @@ struct AdminPolicy: Codable, Sendable, Identifiable, Equatable {
     /// Local data encryption requirements, or `nil` if not configured.
     var encryptionRequirements: EncryptionPolicy?
 
+    /// Data Loss Prevention policy, or `nil` if not configured.
+    ///
+    /// When present, the DLP policy's rules are evaluated against clipboard content
+    /// at capture time. See `DLPPolicy` for enforcement and rule details.
+    var dlpPolicy: DLPPolicy?
+
     // MARK: - Initialization
 
     /// Creates an admin policy with the given server-assigned fields and optional sub-policies.
@@ -199,6 +205,7 @@ struct AdminPolicy: Codable, Sendable, Identifiable, Equatable {
     ///   - excludedApps: Optional application exclusion rules.
     ///   - syncSettings: Optional iCloud sync settings.
     ///   - encryptionRequirements: Optional encryption requirements.
+    ///   - dlpPolicy: Optional DLP policy with rules and enforcement settings.
     init(
         id: String,
         version: String,
@@ -207,7 +214,8 @@ struct AdminPolicy: Codable, Sendable, Identifiable, Equatable {
         historyLimits: HistoryLimitPolicy? = nil,
         excludedApps: ExcludedAppsPolicy? = nil,
         syncSettings: SyncSettingsPolicy? = nil,
-        encryptionRequirements: EncryptionPolicy? = nil
+        encryptionRequirements: EncryptionPolicy? = nil,
+        dlpPolicy: DLPPolicy? = nil
     ) {
         self.id = id
         self.version = version
@@ -217,6 +225,7 @@ struct AdminPolicy: Codable, Sendable, Identifiable, Equatable {
         self.excludedApps = excludedApps
         self.syncSettings = syncSettings
         self.encryptionRequirements = encryptionRequirements
+        self.dlpPolicy = dlpPolicy
     }
 
     // MARK: - Empty Sentinel
@@ -232,6 +241,7 @@ struct AdminPolicy: Codable, Sendable, Identifiable, Equatable {
         historyLimits: nil,
         excludedApps: nil,
         syncSettings: nil,
-        encryptionRequirements: nil
+        encryptionRequirements: nil,
+        dlpPolicy: nil
     )
 }
