@@ -32,6 +32,7 @@ final class SSOManager: ObservableObject {
 
     private let logger = Logger(subsystem: "com.pasteshelf", category: "sso")
     private let samlAuthenticator = SAMLAuthenticator()
+    private let oidcAuthenticator = OIDCAuthenticator()
     private(set) var sessionStore: SSOSessionStore?
     private(set) var providerStore: IdentityProviderStore?
 
@@ -76,8 +77,8 @@ final class SSOManager: ObservableObject {
                 logger.info("Starting SAML authentication with '\(provider.name)'")
                 session = try await samlAuthenticator.authenticate(config: provider)
             case .oidc:
-                // OIDC authenticator will be added in PASTESHELF-144
-                throw SSOError.configurationInvalid("OIDC authentication not yet implemented")
+                logger.info("Starting OIDC authentication with '\(provider.name)'")
+                session = try await oidcAuthenticator.authenticate(config: provider)
             }
 
             // Store the session
@@ -166,8 +167,7 @@ final class SSOManager: ObservableObject {
             case .saml:
                 try await samlAuthenticator.logout(session: session)
             case .oidc:
-                // OIDC logout will be added later
-                break
+                try await oidcAuthenticator.logout(session: session)
             }
         }
 
