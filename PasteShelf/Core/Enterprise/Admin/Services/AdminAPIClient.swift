@@ -107,6 +107,15 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
         try await performVoid(request)
     }
 
+    func submitAuditEvents(_ events: [AuditEvent]) async throws {
+        let request = try makeRequest(
+            path: "/api/v1/audit/events",
+            method: "POST",
+            body: events
+        )
+        try await performVoid(request)
+    }
+
     func fetchDeviceStatus(deviceId: String) async throws -> DeviceEnrollmentStatus {
         let request = try makeRequest(
             path: "/api/v1/devices/\(deviceId)/status",

@@ -122,6 +122,9 @@ final class AdminManager: ObservableObject {
 
         self.analyticsReporter = AnalyticsReporter(apiClient: client)
 
+        // Configure audit logging
+        AuditManager.shared.configure(with: client)
+
         // Load existing registration if present
         if let existing = registration.currentRegistration() {
             deviceRegistration = existing
@@ -254,6 +257,7 @@ final class AdminManager: ObservableObject {
         healthService?.startReporting(interval: configuration.pollingInterval)
         policyService?.startPolling(interval: configuration.pollingInterval)
         analyticsReporter?.startAutoFlush()
+        AuditManager.shared.startMonitoring()
         logger.info("Admin monitoring started")
     }
 
@@ -262,6 +266,7 @@ final class AdminManager: ObservableObject {
         healthService?.stopReporting()
         policyService?.stopPolling()
         analyticsReporter?.stopAutoFlush()
+        AuditManager.shared.stopMonitoring()
         logger.info("Admin monitoring stopped")
     }
 

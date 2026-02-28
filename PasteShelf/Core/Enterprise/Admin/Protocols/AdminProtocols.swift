@@ -76,6 +76,16 @@ protocol AdminAPIProviding: Sendable {
     /// - Throws: `AdminError.networkError` on transport failure, or `AdminError.notEnrolled`
     ///   if no matching device record exists.
     func fetchDeviceStatus(deviceId: String) async throws -> DeviceEnrollmentStatus
+
+    /// Submits a batch of audit log events to the admin console.
+    ///
+    /// Audit events are persisted locally and flushed to the server periodically by the
+    /// `AuditLogSyncService`. This method handles the network transport for a single batch.
+    ///
+    /// - Parameter events: The array of `AuditEvent` values to upload.
+    /// - Throws: `AdminError.networkError` on transport failure, or `AdminError.serverError`
+    ///   if the server returns a non-success status code.
+    func submitAuditEvents(_ events: [AuditEvent]) async throws
 }
 
 // MARK: - DeviceRegistrationProviding

@@ -1,0 +1,141 @@
+//
+//  AuditRetentionService.swift
+//  PasteShelf
+//
+//  Schedules and executes periodic pruning of expired audit log entries.
+//
+
+import Foundation
+import os.log
+
+// MARK: - AuditRetentionService
+
+/// Drives scheduled pruning of audit log entries that exceed the configured retention window.
+///
+/// `AuditRetentionService` uses a daily `Timer` to check whether 24 hours have elapsed
+/// since the last cleanup pass. When the threshold is met, it calls
+/// `storage.pruneExpired(retentionDays:)` to delete stale entries and records the
+/// completion timestamp in `UserDefaults` so that the schedule survives application
+/// restarts.
+///
+/// A manual `runNow()` entry point is provided for immediate pruning on demand (e.g.
+/// when the retention policy is changed by the administrator).
+final class AuditRetentionService {
+
+    // MARK: - Constants
+
+    /// `UserDefaults` key used to persist the timestamp of the last successful cleanup pass.
+    private static let lastCleanupKey = "com.pasteshelf.audit.lastRetentionCleanup"
+
+    /// The minimum interval between successive cleanup passes (24 hours).
+    private static let cleanupInterval: TimeInterval = 24 * 60 * 60
+
+    // MARK: - Dependencies
+
+    private let storage: AuditLogStoring
+    private let configuration: AuditRetentionConfiguration
+
+    // MARK: - Timer State
+
+    private var cleanupTimer: Timer?
+
+    // MARK: - Logger
+
+    private let logger = Logger.audit
+
+    // MARK: - Initialization
+
+    /// Creates an `AuditRetentionService` with the given storage backend and retention configuration.
+    ///
+    /// - Parameters:
+    ///   - storage: The `AuditLogStoring` implementation used to prune expired entries.
+    ///   - configuration: The retention policy specifying the number of days to keep entries.
+    ///     Defaults to `AuditRetentionConfiguration.default` (90 days).
+    init(
+        storage: AuditLogStoring,
+        configuration: AuditRetentionConfiguration = .default
+    ) {
+        self.storage = storage
+        self.configuration = configuration
+    }
+
+    // MARK: - Lifecycle
+
+    /// Starts the daily cleanup timer.
+    ///
+    /// The timer fires every 24 hours and triggers a pruning pass if at least 24 hours
+    /// have elapsed since the last successful cleanup. If more than 24 hours have passed
+    /// since the last cleanup (or if no cleanup has ever been recorded), a pass is
+    /// triggered immediately on the first timer fire.
+    func start() {
+        stop()
+        cleanupTimer = Timer.scheduledTimer(
+            withTimeInterval: Self.cleanupInterval,
+            repeats: true
+        ) { [weak self] _ in
+            guard let self else { return }
+            self.logger.debug("Audit retention timer fired — checking for expired entries")
+            Task {
+                _ = await self.runIfDue()
+            }
+        }
+        logger.info("Audit retention service started (retentionDays: \(self.configuration.retentionDays))")
+
+        // Run an initial check at startup without waiting for the first timer fire.
+        Task {
+            _ = await runIfDue()
+        }
+    }
+
+    /// Stops the daily cleanup timer.
+    ///
+    /// After calling this method, no further automatic pruning passes are scheduled
+    /// until `start()` is called again.
+    func stop() {
+        cleanupTimer?.invalidate()
+        cleanupTimer = nil
+        logger.debug("Audit retention service stopped")
+    }
+
+    /// Immediately prunes expired audit log entries, regardless of the regular schedule.
+    ///
+    /// Updates the `UserDefaults` last-cleanup timestamp upon successful completion.
+    ///
+    /// - Returns: The number of entries that were pruned, or `0` if pruning failed.
+    @discardableResult
+    func runNow() async -> Int {
+        logger.info("Audit retention: running manual pruning pass (retentionDays: \(self.configuration.retentionDays))")
+        do {
+            let count = try await storage.pruneExpired(retentionDays: configuration.retentionDays)
+            UserDefaults.standard.set(Date(), forKey: Self.lastCleanupKey)
+            logger.info("Audit retention: pruned \(count) expired entries")
+            return count
+        } catch {
+            logger.error("Audit retention: pruning failed — \(error.localizedDescription)")
+            return 0
+        }
+    }
+
+    // MARK: - Private Helpers
+
+    /// Runs a pruning pass only if 24 hours have elapsed since the last cleanup.
+    ///
+    /// - Returns: The number of entries pruned, or `0` if the cleanup was skipped.
+    @discardableResult
+    private func runIfDue() async -> Int {
+        let lastCleanup = UserDefaults.standard.object(forKey: Self.lastCleanupKey) as? Date
+        let isDue: Bool
+        if let lastCleanup {
+            isDue = Date().timeIntervalSince(lastCleanup) >= Self.cleanupInterval
+        } else {
+            isDue = true // Never cleaned up before
+        }
+
+        guard isDue else {
+            logger.debug("Audit retention: cleanup not yet due — skipping")
+            return 0
+        }
+
+        return await runNow()
+    }
+}
