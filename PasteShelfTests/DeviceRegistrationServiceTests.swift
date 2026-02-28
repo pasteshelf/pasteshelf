@@ -24,6 +24,7 @@ final class MockAdminAPIClient: AdminAPIProviding, @unchecked Sendable {
     var submitHealthReportCalls: [DeviceHealthReport] = []
     var submitAnalyticsEventsCalls: [[AdminAnalyticsEvent]] = []
     var fetchDeviceStatusCalls: [String] = []
+    var submitAuditEventsCalls: [[AuditEvent]] = []
 
     // MARK: - Stubbed Results
 
@@ -33,6 +34,7 @@ final class MockAdminAPIClient: AdminAPIProviding, @unchecked Sendable {
     var submitHealthReportResult: Result<Void, Error> = .success(())
     var submitAnalyticsEventsResult: Result<Void, Error> = .success(())
     var fetchDeviceStatusResult: Result<DeviceEnrollmentStatus, Error> = .success(.enrolled)
+    var submitAuditEventsResult: Result<Void, Error> = .success(())
 
     // MARK: - AdminAPIProviding
 
@@ -64,6 +66,11 @@ final class MockAdminAPIClient: AdminAPIProviding, @unchecked Sendable {
     func fetchDeviceStatus(deviceId: String) async throws -> DeviceEnrollmentStatus {
         fetchDeviceStatusCalls.append(deviceId)
         return try fetchDeviceStatusResult.get()
+    }
+
+    func submitAuditEvents(_ events: [AuditEvent]) async throws {
+        submitAuditEventsCalls.append(events)
+        try submitAuditEventsResult.get()
     }
 }
 
