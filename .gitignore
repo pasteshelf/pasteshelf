@@ -1,6 +1,7 @@
 # AI/Development files (do not commit)
 TASKS.md
 CLAUDE.md
+AGENTS.md
 .claude/
 
 # Xcode
@@ -93,3 +94,12 @@ screenshots/**/*.png
 # Temporary files
 *.tmp
 *.temp
+
+# Internal business documents
+docs/reference/COST_ESTIMATION.md
+
+# App Store metadata (internal)
+docs/appstore/
+
+# Internal development scripts
+scripts/
