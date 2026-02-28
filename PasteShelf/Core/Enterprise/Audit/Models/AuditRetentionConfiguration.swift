@@ -22,12 +22,20 @@ struct AuditRetentionConfiguration: Codable, Sendable, Equatable {
     /// are removed during the next scheduled retention sweep.
     var retentionDays: Int
 
+    /// When true, audit log entries cannot be pruned regardless of age.
+    /// Required for HIPAA compliance where a minimum 6-year retention is mandated.
+    var isImmutable: Bool
+
     /// The default retention configuration used when no explicit policy has been set.
     ///
     /// Defaults to a 90-day retention window, which balances compliance requirements
     /// with local storage consumption for most enterprise deployments.
-    static let `default` = AuditRetentionConfiguration(retentionDays: 90)
+    static let `default` = AuditRetentionConfiguration(retentionDays: 90, isImmutable: false)
 
     /// The set of supported retention window values (in days) available in the UI.
-    static let options: [Int] = [30, 60, 90, 180, 365]
+    /// Includes 2190 (6 years) for HIPAA compliance.
+    static let options: [Int] = [30, 60, 90, 180, 365, 2190]
+
+    /// The HIPAA-mandated minimum retention (6 years = 2190 days).
+    static let hipaaMinimumDays: Int = 2190
 }
