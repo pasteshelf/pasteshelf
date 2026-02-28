@@ -3,7 +3,7 @@
 //  PasteShelf
 //
 //  Container view for the Enterprise preferences tab.
-//  Hosts SSO, MDM, and Admin Console settings as sub-tabs within the Enterprise section.
+//  Hosts SSO, MDM, Admin Console, and Audit Log settings as sub-tabs within the Enterprise section.
 //
 
 import SwiftUI
@@ -12,9 +12,9 @@ import SwiftUI
 
 /// Top-level container for the Enterprise preferences tab.
 ///
-/// Hosts `SSOSettingsView`, `MDMSettingsView`, and `AdminSettingsView` as sub-tabs
-/// using a `TabView`. This view is displayed when the user selects the "Enterprise"
-/// item in the preferences sidebar.
+/// Hosts `SSOSettingsView`, `MDMSettingsView`, `AdminSettingsView`, and `AuditLogView`
+/// as sub-tabs using a `TabView`. This view is displayed when the user selects the
+/// "Enterprise" item in the preferences sidebar.
 struct EnterpriseTabView: View {
 
     // MARK: - Body
@@ -29,6 +29,9 @@ struct EnterpriseTabView: View {
 
             AdminSettingsView()
                 .tabItem { Label("Admin", systemImage: "server.rack") }
+
+            AuditLogView()
+                .tabItem { Label("Audit Log", systemImage: "doc.text.magnifyingglass") }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
