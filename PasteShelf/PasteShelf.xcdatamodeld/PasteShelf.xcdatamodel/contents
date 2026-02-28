@@ -181,4 +181,30 @@
             <fetchIndexElement property="isEnabled" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
+    <entity name="AuditLogEntry" representedClassName="AuditLogEntry" syncable="NO">
+        <attribute name="action" optional="YES" attributeType="String"/>
+        <attribute name="deviceId" optional="YES" attributeType="String"/>
+        <attribute name="encryptedDetail" optional="YES" attributeType="Binary"/>
+        <attribute name="eventCategory" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isSynced" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="resourceId" optional="YES" attributeType="String"/>
+        <attribute name="resourceType" optional="YES" attributeType="String"/>
+        <attribute name="severity" optional="YES" attributeType="String"/>
+        <attribute name="syncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userId" optional="YES" attributeType="String"/>
+        <fetchIndex name="byEventCategory">
+            <fetchIndexElement property="eventCategory" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byId">
+            <fetchIndexElement property="id" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsSynced">
+            <fetchIndexElement property="isSynced" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byTimestamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
+        </fetchIndex>
+    </entity>
 </model>

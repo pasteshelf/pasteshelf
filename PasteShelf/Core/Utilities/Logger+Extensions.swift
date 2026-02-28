@@ -45,6 +45,9 @@ extension Logger {
 
     /// Logger for Enterprise SSO and authentication operations
     static let enterprise = Logger(subsystem: subsystem, category: "Enterprise")
+
+    /// Logger for audit event recording and retention operations
+    static let audit = Logger(subsystem: subsystem, category: "Audit")
 }
 
 // MARK: - Debug/Release Configuration
