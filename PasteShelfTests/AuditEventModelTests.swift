@@ -69,18 +69,19 @@ struct AuditEventCategoryTests {
 
     // MARK: CaseIterable
 
-    @Test("AuditEventCategory.allCases contains exactly 4 cases")
-    func allCasesContainsFourCases() {
-        #expect(AuditEventCategory.allCases.count == 4)
+    @Test("AuditEventCategory.allCases contains exactly 5 cases")
+    func allCasesContainsFiveCases() {
+        #expect(AuditEventCategory.allCases.count == 5)
     }
 
-    @Test("AuditEventCategory.allCases contains clipboard, userAction, policy, and authentication")
+    @Test("AuditEventCategory.allCases contains clipboard, userAction, policy, authentication, and compliance")
     func allCasesContainsExpectedValues() {
         let cases = AuditEventCategory.allCases
         #expect(cases.contains(.clipboard))
         #expect(cases.contains(.userAction))
         #expect(cases.contains(.policy))
         #expect(cases.contains(.authentication))
+        #expect(cases.contains(.compliance))
     }
 
     // MARK: Codable Round-trip
@@ -414,14 +415,14 @@ struct AuditRetentionConfigurationTests {
         #expect(AuditRetentionConfiguration.default.retentionDays == 90)
     }
 
-    @Test("AuditRetentionConfiguration.options contains [30, 60, 90, 180, 365]")
+    @Test("AuditRetentionConfiguration.options contains [30, 60, 90, 180, 365, 2190]")
     func optionsContainsExpectedValues() {
-        #expect(AuditRetentionConfiguration.options == [30, 60, 90, 180, 365])
+        #expect(AuditRetentionConfiguration.options == [30, 60, 90, 180, 365, 2190])
     }
 
-    @Test("AuditRetentionConfiguration.options contains 5 elements")
-    func optionsContainsFiveElements() {
-        #expect(AuditRetentionConfiguration.options.count == 5)
+    @Test("AuditRetentionConfiguration.options contains 6 elements")
+    func optionsContainsSixElements() {
+        #expect(AuditRetentionConfiguration.options.count == 6)
     }
 
     @Test("AuditRetentionConfiguration.default is in options list")
@@ -431,23 +432,24 @@ struct AuditRetentionConfigurationTests {
 
     @Test("AuditRetentionConfiguration survives Codable round-trip")
     func codableRoundTrip() throws {
-        let original = AuditRetentionConfiguration(retentionDays: 180)
+        let original = AuditRetentionConfiguration(retentionDays: 180, isImmutable: false)
         let data = try JSONEncoder().encode(original)
         let decoded = try JSONDecoder().decode(AuditRetentionConfiguration.self, from: data)
         #expect(decoded.retentionDays == original.retentionDays)
+        #expect(decoded.isImmutable == original.isImmutable)
     }
 
-    @Test("Two AuditRetentionConfigurations with same retentionDays are equal")
+    @Test("Two AuditRetentionConfigurations with same values are equal")
     func equalConfigurations() {
-        let config1 = AuditRetentionConfiguration(retentionDays: 30)
-        let config2 = AuditRetentionConfiguration(retentionDays: 30)
+        let config1 = AuditRetentionConfiguration(retentionDays: 30, isImmutable: false)
+        let config2 = AuditRetentionConfiguration(retentionDays: 30, isImmutable: false)
         #expect(config1 == config2)
     }
 
     @Test("Two AuditRetentionConfigurations with different retentionDays are not equal")
     func notEqualConfigurations() {
-        let config1 = AuditRetentionConfiguration(retentionDays: 30)
-        let config2 = AuditRetentionConfiguration(retentionDays: 90)
+        let config1 = AuditRetentionConfiguration(retentionDays: 30, isImmutable: false)
+        let config2 = AuditRetentionConfiguration(retentionDays: 90, isImmutable: false)
         #expect(config1 != config2)
     }
 }
