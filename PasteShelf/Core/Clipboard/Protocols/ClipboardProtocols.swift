@@ -137,7 +137,7 @@ struct SensitiveDetection: Sendable {
 }
 
 /// Severity levels for sensitive data
-enum SensitiveSeverity: Int, Comparable, Sendable {
+enum SensitiveSeverity: Int, Codable, Comparable, Sendable {
     case none = 0
     case low = 1
     case medium = 2

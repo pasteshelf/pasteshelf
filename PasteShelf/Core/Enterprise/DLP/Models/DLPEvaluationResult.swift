@@ -1,0 +1,71 @@
+//
+//  DLPEvaluationResult.swift
+//  PasteShelf
+//
+//  Result of evaluating clipboard content against a set of DLP rules.
+//
+
+import Foundation
+
+// MARK: - DLPEvaluationResult
+
+/// The result returned by a `DLPRuleEvaluating` implementation after scanning
+/// clipboard content against a set of active `DLPRule` values.
+///
+/// `DLPEvaluationResult` aggregates all violations found during a single evaluation
+/// pass and provides derived flags that the clipboard capture pipeline uses to decide
+/// whether to store, redact, or discard the incoming content.
+///
+/// Use the `clean` static sentinel when content passes all checks without any violations.
+struct DLPEvaluationResult: Sendable {
+
+    // MARK: - Violations
+
+    /// All policy violations found during the evaluation pass.
+    ///
+    /// An empty array indicates that no active rules were matched. Use `hasViolations`
+    /// as a convenience check.
+    let violations: [DLPViolation]
+
+    // MARK: - Outcome Flags
+
+    /// Whether the clipboard item must be blocked from being stored.
+    ///
+    /// `true` when at least one matched rule included a `.block` action, or when the
+    /// policy's `blockUnknownSensitive` flag caused an unconditional block.
+    let shouldBlock: Bool
+
+    /// Whether the matched portions of the clipboard item must be redacted before storage.
+    ///
+    /// `true` when at least one matched rule included a `.redact` action.
+    let shouldRedact: Bool
+
+    // MARK: - Redacted Content
+
+    /// The redacted version of the clipboard content, or `nil` if no redaction was required.
+    ///
+    /// When `shouldRedact` is `true`, this property contains the content string with
+    /// all matched sensitive substrings replaced by redaction markers. The clipboard
+    /// capture pipeline stores this value instead of the original content.
+    ///
+    /// `nil` when `shouldRedact` is `false`.
+    let redactedContent: String?
+
+    // MARK: - Convenience
+
+    /// Whether any violations were found during evaluation.
+    var hasViolations: Bool { !violations.isEmpty }
+
+    // MARK: - Clean Sentinel
+
+    /// A result representing content that passed all DLP checks without any violations.
+    ///
+    /// Use this as the result value when no active rules matched the content, or
+    /// when DLP evaluation is skipped (e.g. the feature is unavailable).
+    static let clean = DLPEvaluationResult(
+        violations: [],
+        shouldBlock: false,
+        shouldRedact: false,
+        redactedContent: nil
+    )
+}
