@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+
+<!--
+    PasteShelf Enterprise MDM Configuration Profile Template
+    =========================================================
+    This file is a TEMPLATE and must be customized before deployment.
+    Replace all placeholder values (marked with REPLACE_ME or example.com)
+    with your organization's actual values.
+
+    Deployment Instructions:
+    1. Replace PayloadOrganization with your organization name.
+    2. Generate unique UUIDs for PayloadUUID fields (use `uuidgen` on macOS).
+    3. Update LicenseServer with your enterprise license server URL.
+    4. Set OrganizationID to your PasteShelf organization identifier.
+    5. Configure SSO settings to match your identity provider.
+    6. Adjust policy keys (DLP, security, privacy) to meet your requirements.
+    7. Sign the profile with your MDM certificate before distribution.
+    8. Deploy via your MDM solution (Jamf Pro, Mosyle, Kandji, Workspace ONE, etc.).
+
+    Documentation: https://docs.pasteshelf.app/enterprise/mdm-deployment
+-->
+
+<plist version="1.0">
+<dict>
+
+    <!-- ============================================================
+         Top-Level Payload Metadata
+         These keys describe the configuration profile itself.
+         ============================================================ -->
+
+    <!-- Human-readable name shown in System Settings > Privacy & Security > Profiles -->
+    <key>PayloadDisplayName</key>
+    <string>PasteShelf Enterprise Configuration</string>
+
+    <!-- Brief description of what this profile configures -->
+    <key>PayloadDescription</key>
+    <string>Configures PasteShelf clipboard manager with enterprise license, SSO, security, and DLP policies for managed Mac deployments.</string>
+
+    <!-- Your organization's name as it should appear in the profile UI -->
+    <key>PayloadOrganization</key>
+    <string>Your Organization</string>
+
+    <!-- Must be "Configuration" for a configuration profile -->
+    <key>PayloadType</key>
+    <string>Configuration</string>
+
+    <!-- Profile format version; always 1 -->
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+
+    <!-- Unique identifier for this profile.
+         IMPORTANT: Generate a new UUID with `uuidgen` before deploying.
+         Do NOT reuse this template UUID across deployments. -->
+    <key>PayloadUUID</key>
+    <string>A1B2C3D4-E5F6-7890-ABCD-EF1234567890</string>
+
+    <!-- Reverse-DNS identifier for the profile; can match your app ID -->
+    <key>PayloadIdentifier</key>
+    <string>com.pasteshelf.PasteShelf.mdm-profile</string>
+
+    <!-- Set to true to prevent users from removing this profile without MDM authorization -->
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+
+    <!-- ============================================================
+         Payload Content Array
+         Contains one or more payload dictionaries — one per app or
+         system component being configured. PasteShelf uses a single
+         managed preferences payload.
+         ============================================================ -->
+
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+
+            <!-- Identifies this payload as PasteShelf application preferences -->
+            <key>PayloadType</key>
+            <string>com.pasteshelf.PasteShelf</string>
+
+            <!-- Payload format version; always 1 -->
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+
+            <!-- Human-readable name for this specific payload -->
+            <key>PayloadDisplayName</key>
+            <string>PasteShelf Application Preferences</string>
+
+            <!-- Unique identifier for this payload within the profile.
+                 IMPORTANT: Generate a new UUID with `uuidgen` before deploying. -->
+            <key>PayloadUUID</key>
+            <string>B2C3D4E5-F6A7-8901-BCDE-F12345678901</string>
+
+            <!-- Must match the app's bundle identifier -->
+            <key>PayloadIdentifier</key>
+            <string>com.pasteshelf.PasteShelf</string>
+
+            <!-- ====================================================
+                 License Configuration
+                 Connect PasteShelf to your enterprise license server.
+                 Contact sales@pasteshelf.app to obtain these values.
+                 ==================================================== -->
+
+            <!-- URL of your organization's PasteShelf enterprise license server.
+                 Must use HTTPS. Contact PasteShelf sales for your server URL. -->
+            <key>LicenseServer</key>
+            <string>https://license.example.com</string>
+
+            <!-- Your organization's unique identifier issued by PasteShelf.
+                 Format: org_ followed by your identifier string. -->
+            <key>OrganizationID</key>
+            <string>org_REPLACE_ME</string>
+
+            <!-- ====================================================
+                 SSO Configuration
+                 Configure Single Sign-On for your identity provider.
+                 Supported providers: okta, azure, google, onelogin,
+                 ping, custom (SAML 2.0 / OIDC).
+                 ==================================================== -->
+
+            <!-- Set to true to require SSO authentication for PasteShelf.
+                 When enabled, users must sign in via your identity provider. -->
+            <key>SSOEnabled</key>
+            <true/>
+
+            <!-- Identity provider name. Accepted values:
+                 "okta", "azure", "google", "onelogin", "ping", "custom" -->
+            <key>SSOProvider</key>
+            <string>okta</string>
+
+            <!-- Your organization's identity provider domain.
+                 Example for Okta: "yourcompany.okta.com"
+                 Example for Azure AD: "yourcompany.onmicrosoft.com"
+                 Example for Google Workspace: "yourcompany.com" -->
+            <key>SSODomain</key>
+            <string>yourcompany.example.com</string>
+
+            <!-- ====================================================
+                 Feature Configuration
+                 Enable or disable specific PasteShelf features
+                 across your fleet. Managed keys take precedence over
+                 user preferences.
+                 ==================================================== -->
+
+            <!-- Set to true to allow iCloud sync (requires Pro/Enterprise license).
+                 Set to false to restrict all data to local storage only. -->
+            <key>CloudSyncEnabled</key>
+            <false/>
+
+            <!-- Set to true to enforce local-only storage.
+                 Overrides CloudSyncEnabled. Recommended for high-security environments. -->
+            <key>LocalStorageOnly</key>
+            <true/>
+
+            <!-- Set to true to allow users to install and use PasteShelf plugins.
+                 Set to false to disable the plugin system entirely. -->
+            <key>PluginsEnabled</key>
+            <false/>
+
+            <!-- ====================================================
+                 Security Settings
+                 Enforce authentication and session security policies.
+                 ==================================================== -->
+
+            <!-- Set to true to require Touch ID or Apple Watch authentication
+                 before the clipboard history can be accessed or viewed. -->
+            <key>RequireBiometricAuth</key>
+            <true/>
+
+            <!-- Number of seconds of inactivity before PasteShelf locks.
+                 The user must re-authenticate after this period.
+                 Common values: 300 (5 min), 900 (15 min), 1800 (30 min).
+                 Set to 0 to disable auto-lock (not recommended). -->
+            <key>AutoLockTimeout</key>
+            <integer>900</integer>
+
+            <!-- Set to true to automatically clear all clipboard history
+                 when the user quits PasteShelf. Useful for shared workstations
+                 or high-security environments. -->
+            <key>ClearOnQuit</key>
+            <false/>
+
+            <!-- ====================================================
+                 Privacy Settings
+                 Control clipboard history retention and content scope.
+                 ==================================================== -->
+
+            <!-- Maximum number of days to retain clipboard history.
+                 Items older than this are automatically deleted.
+                 Set to 0 for no time-based limit (rely on MaxHistoryItems instead).
+                 Recommended for compliance: 30 or 90 days. -->
+            <key>MaxHistoryDays</key>
+            <integer>30</integer>
+
+            <!-- Maximum number of clipboard items to retain in history.
+                 Oldest items are pruned when this limit is reached.
+                 Set to 0 for no item count limit. -->
+            <key>MaxHistoryItems</key>
+            <integer>1000</integer>
+
+            <!-- Set to true to prevent PasteShelf from capturing clipboard content
+                 copied from private browsing windows (Safari Private, Firefox Private,
+                 Chrome Incognito). Requires macOS 14.0 or later. -->
+            <key>ExcludePrivateBrowsing</key>
+            <true/>
+
+            <!-- ====================================================
+                 DLP Settings (Data Loss Prevention)
+                 Configure automatic detection and blocking of sensitive
+                 data patterns in clipboard content. Requires Enterprise license.
+                 ==================================================== -->
+
+            <!-- Set to true to enable the DLP engine.
+                 When enabled, clipboard content is scanned against the patterns
+                 configured below before being stored in history. -->
+            <key>DLPEnabled</key>
+            <true/>
+
+            <!-- Set to true to prevent clipboard storage of content matching
+                 credit card number patterns (Visa, Mastercard, Amex, Discover, etc.).
+                 Matched content is blocked and an audit log entry is created. -->
+            <key>BlockCreditCards</key>
+            <true/>
+
+            <!-- Set to true to prevent clipboard storage of content matching
+                 common API key and secret patterns (AWS keys, GitHub tokens,
+                 generic high-entropy strings, etc.).
+                 Matched content is blocked and an audit log entry is created. -->
+            <key>BlockAPIKeys</key>
+            <true/>
+
+            <!-- ====================================================
+                 Appearance
+                 Set default or enforced UI appearance for PasteShelf.
+                 ==================================================== -->
+
+            <!-- UI color theme. Accepted values:
+                 "system" — Follow macOS system appearance (default)
+                 "light"  — Always use light mode
+                 "dark"   — Always use dark mode
+                 When set via MDM, users cannot override this preference. -->
+            <key>Theme</key>
+            <string>system</string>
+
+        </dict>
+    </array>
+
+</dict>
+</plist>
