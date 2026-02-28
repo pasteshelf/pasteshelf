@@ -77,6 +77,8 @@ struct AuditLogDisplayItem: Identifiable, Hashable {
             return "Policy"
         case .authentication:
             return "Authentication"
+        case .compliance:
+            return "Compliance"
         }
     }
 

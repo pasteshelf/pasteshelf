@@ -28,6 +28,9 @@ enum AuditEventCategory: String, Codable, Sendable, CaseIterable {
 
     /// Events related to SSO login, logout, and authentication failures.
     case authentication
+
+    /// Events related to compliance operations (HIPAA, GDPR, SOC2).
+    case compliance
 }
 
 // MARK: - AuditEventSeverity
@@ -93,6 +96,26 @@ enum AuditAction: String, Codable, Sendable {
 
     /// An SSO authentication attempt failed.
     case loginFailure = "login_failure"
+
+    // MARK: Compliance Actions
+
+    /// User data was exported (GDPR Article 20).
+    case dataExported = "data_exported"
+
+    /// User data was deleted (GDPR Article 17).
+    case dataDeleted = "data_deleted"
+
+    /// A consent preference was changed.
+    case consentChanged = "consent_changed"
+
+    /// A compliance report was generated.
+    case complianceReportGenerated = "compliance_report_generated"
+
+    /// A HIPAA-mode access attempt was recorded.
+    case hipaaAccessAttempt = "hipaa_access_attempt"
+
+    /// Encryption status was verified for compliance.
+    case encryptionVerified = "encryption_verified"
 }
 
 // MARK: - AuditEvent

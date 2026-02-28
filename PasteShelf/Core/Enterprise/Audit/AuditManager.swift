@@ -182,6 +182,34 @@ final class AuditManager: ObservableObject {
         await auditLogger?.logAuthEvent(action: action, severity: severity, detail: detail)
     }
 
+    /// Records a compliance-related audit event.
+    ///
+    /// - Parameters:
+    ///   - action: The compliance action being recorded.
+    ///   - severity: The operational significance of this event. Defaults to `.info`.
+    ///   - resourceType: The type of resource affected, if applicable.
+    ///   - resourceId: The identifier of the affected resource, if applicable.
+    ///   - detail: Arbitrary key/value context for this event. Defaults to empty.
+    func logComplianceEvent(
+        action: AuditAction,
+        severity: AuditEventSeverity = .info,
+        resourceType: String? = nil,
+        resourceId: String? = nil,
+        detail: [String: String] = [:]
+    ) async {
+        let event = AuditEvent(
+            category: .compliance,
+            action: action,
+            severity: severity,
+            userId: SSOManager.shared.currentSession?.userId,
+            deviceId: AdminManager.shared.deviceRegistration?.deviceId,
+            resourceType: resourceType,
+            resourceId: resourceId,
+            detail: detail
+        )
+        try? await storageService?.save(event: event)
+    }
+
     // MARK: - Storage Access
 
     /// The `AuditLogStoring` backend, exposed for use by the audit log viewer.

@@ -48,6 +48,9 @@ extension Logger {
 
     /// Logger for audit event recording and retention operations
     static let audit = Logger(subsystem: subsystem, category: "Audit")
+
+    /// Logger for compliance operations (HIPAA, GDPR, SOC2)
+    static let compliance = Logger(subsystem: subsystem, category: "Compliance")
 }
 
 // MARK: - Debug/Release Configuration
