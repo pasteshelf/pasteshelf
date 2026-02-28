@@ -41,24 +41,12 @@ struct TransformContentIntent: AppIntent {
     // MARK: - Perform
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
-        // Check if automation/shortcuts feature is available
-        guard await isFeatureAvailable() else {
-            throw IntentError.featureNotAvailable
-        }
-
         // Apply transformation
         let result = transformation.preset.transform(text)
 
         return .result(value: result)
     }
 
-    // MARK: - Helpers
-
-    private func isFeatureAvailable() async -> Bool {
-        await MainActor.run {
-            LicenseManager.shared.isFeatureAvailable(.automation)
-        }
-    }
 }
 
 // MARK: - Transformation Type Enum

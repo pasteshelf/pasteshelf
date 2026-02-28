@@ -21,7 +21,7 @@ Complete guide for administering PasteShelf Enterprise.
 
 ## Overview
 
-PasteShelf Enterprise provides centralized management for organizations 🏢.
+PasteShelf provides centralized management for organizations.
 
 ### Enterprise Features
 
@@ -85,12 +85,6 @@ URL: https://admin.pasteshelf.app
 │  │   1 hour ago                        │    │                         │ │
 │  └─────────────────────────────────────┘    └─────────────────────────┘ │
 │                                                                          │
-│  License Status                                                          │
-│  ──────────────                                                          │
-│  Plan: Enterprise (500 seats)                                            │
-│  Renewal: 2027-02-03                                                     │
-│  Status: Active ✓                                                        │
-│                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -115,7 +109,7 @@ Admin Console → Users → Add User
 │  Role:         [User                           ▼]           │
 │                                                              │
 │  Permissions:                                                │
-│  ☑ Can use Pro features                                     │
+│  ☑ Can use all features                                     │
 │  ☑ Can sync to cloud                                        │
 │  ☐ Can share with team                                      │
 │  ☐ Can export data                                          │
@@ -411,7 +405,6 @@ Admin Console → Audit → Event Log
 | DLP Violations | Blocked content events | Real-time |
 | Sync Activity | Cross-device sync events | Weekly |
 | Policy Changes | Admin configuration changes | Real-time |
-| License Usage | Seat utilization | Monthly |
 
 ### Export Formats
 
@@ -511,7 +504,6 @@ team:
 │  Services                                                                │
 │  ────────                                                                │
 │                                                                          │
-│  ● License Server       Healthy     Response: 45ms                      │
 │  ● Sync Server          Healthy     Response: 120ms                     │
 │  ● Admin Console        Healthy     Response: 80ms                      │
 │  ● SCIM Endpoint        Healthy     Response: 65ms                      │
@@ -546,11 +538,6 @@ alerts:
     duration: "5 minutes"
     severity: "critical"
     notify: ["ops@company.com", "pagerduty"]
-
-  - name: "License Approaching Limit"
-    condition: "active_users > seats * 0.9"
-    severity: "warning"
-    notify: ["admin@company.com"]
 
   - name: "DLP Critical Violation"
     condition: "dlp_severity == 'critical'"

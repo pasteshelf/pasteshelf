@@ -24,13 +24,8 @@ struct AutomationTabView: View {
             // Header
             headerView
 
-            // Feature gate check
-            if !viewModel.isFeatureAvailable {
-                featureUnavailableView
-            } else {
-                // Rules list
-                rulesListView
-            }
+            // Rules list
+            rulesListView
         }
         .padding()
         .sheet(isPresented: $showingRuleEditor) {
@@ -89,37 +84,9 @@ struct AutomationTabView: View {
                 } label: {
                     Label("Add Rule", systemImage: "plus")
                 }
-                .disabled(!viewModel.isFeatureAvailable)
             }
             .padding(.top, 4)
         }
-    }
-
-    private var featureUnavailableView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "lock.fill")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary)
-
-            Text("Automation Requires Pro")
-                .font(.headline)
-
-            Text("Upgrade to PasteShelf Pro to create automation rules that automatically process your clipboard items.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-
-            Button("Upgrade to Pro") {
-                // Open license tab or purchase flow
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("OpenLicenseTab"),
-                    object: nil
-                )
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
     }
 
     private var rulesListView: some View {

@@ -62,7 +62,7 @@ struct SearchOptions: Sendable, Equatable {
 
     // MARK: - Semantic Search Options
 
-    /// Enable semantic/AI-powered search (Pro feature)
+    /// Enable semantic/AI-powered search
     var enableSemanticSearch: Bool
 
     /// Minimum similarity threshold for semantic matches (0.0 to 1.0)
@@ -73,7 +73,7 @@ struct SearchOptions: Sendable, Equatable {
 
     // MARK: - OCR Search Options
 
-    /// Enable OCR text extraction search from images (Pro feature)
+    /// Enable OCR text extraction search from images
     var enableOCRSearch: Bool
 
     // MARK: - Initialization
@@ -255,13 +255,13 @@ enum MatchType: String, Sendable, Equatable {
     /// Match in metadata (app name, type, etc.)
     case metadata
 
-    /// Semantic/AI-powered similarity match (Pro feature)
+    /// Semantic/AI-powered similarity match
     case semantic
 
     /// Hybrid match (combined full-text and semantic)
     case hybrid
 
-    /// Match found in OCR-extracted text from image (Pro feature)
+    /// Match found in OCR-extracted text from image
     case ocr
 
     /// Score multiplier for ranking

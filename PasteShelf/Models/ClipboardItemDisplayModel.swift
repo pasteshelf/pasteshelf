@@ -46,7 +46,7 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
     /// Thumbnail dimensions
     let thumbnailSize: CGSize?
 
-    /// OCR-extracted text from image (Pro feature)
+    /// OCR-extracted text from image
     var ocrText: String?
 
     // MARK: - Computed Properties

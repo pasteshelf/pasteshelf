@@ -114,7 +114,6 @@ final class SettingsManager: ObservableObject {
 
     /// Applies MDM overrides on top of loaded settings (called once during init).
     private func applyMDMOverridesIfNeeded() {
-        guard FeatureFlags.shared.isMDMEnabled else { return }
         let mdm = MDMManager.shared
         mdm.loadConfiguration()
         guard mdm.isManaged else { return }
@@ -129,7 +128,6 @@ final class SettingsManager: ObservableObject {
 
     /// Re-applies forced MDM values after a user change to prevent overriding locked settings.
     private func reapplyMDMForcedValues() {
-        guard FeatureFlags.shared.isMDMEnabled else { return }
         let mdm = MDMManager.shared
         guard mdm.isManaged, !mdm.forcedKeys.isEmpty else { return }
 
@@ -148,7 +146,6 @@ final class SettingsManager: ObservableObject {
     /// - Parameter key: The preference key to check.
     /// - Returns: `true` if the setting is managed and cannot be changed by the user.
     func isLocked(_ key: ManagedPreferenceKey) -> Bool {
-        guard FeatureFlags.shared.isMDMEnabled else { return false }
         return MDMManager.shared.isSettingLocked(key)
     }
 

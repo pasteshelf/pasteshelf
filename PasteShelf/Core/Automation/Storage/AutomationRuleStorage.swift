@@ -319,12 +319,6 @@ final class AutomationRuleStorage {
             return
         }
 
-        // Don't seed for Community users (automation is Pro feature)
-        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
-            logger.debug("Automation not available, skipping default rules")
-            return
-        }
-
         logger.info("Seeding default automation rules")
 
         // Example rules

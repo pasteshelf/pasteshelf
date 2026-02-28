@@ -398,21 +398,21 @@ Preferences → Privacy → Excluded Apps → Remove password manager
 
 **Note**: Standard search only works on text content.
 
-**For image text search** (OCR): Requires Pro Edition with OCR feature enabled.
+**For image text search** (OCR): Enable OCR in Preferences > Search > Enable OCR.
 
-**Workaround**: Search by:
+**Alternative**: You can also search by:
 - Source application name
 - Date/time (use filters)
 - Image type filter
 
 ---
 
-## Sync Issues ⭐
+## Sync Issues
 
 ### Sync Not Working
 
 **Checklist**:
-- [ ] Pro license active?
+- [ ] Sync enabled in Preferences?
 - [ ] Signed into iCloud?
 - [ ] iCloud Drive enabled?
 - [ ] Internet connection?
@@ -481,11 +481,11 @@ PasteShelf → Help → Generate Diagnostic Report
 
 ### Support Channels
 
-| Tier | Channel |
-|------|---------|
-| 🆓 Community | GitHub Issues, Discussions |
-| ⭐ Pro | Priority email |
-| 🏢 Enterprise | Dedicated support |
+| Channel | Details |
+|---------|---------|
+| GitHub Issues | Bug reports and feature requests |
+| GitHub Discussions | Community help and questions |
+| Email | support@pasteshelf.app |
 
 ---
 

@@ -16,13 +16,6 @@ import Foundation
 @objc(GetClipboardHistoryCommand)
 class GetClipboardHistoryCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        // Check feature availability
-        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
-            scriptErrorNumber = errOSAGeneralError
-            scriptErrorString = "This feature requires PasteShelf Pro."
-            return nil
-        }
-
         // Get parameters
         let limit = (evaluatedArguments?["limit"] as? Int) ?? 10
         let favoritesOnly = (evaluatedArguments?["favoritesOnly"] as? Bool) ?? false
@@ -63,13 +56,6 @@ class GetClipboardHistoryCommand: NSScriptCommand {
 @objc(SearchClipboardCommand)
 class SearchClipboardCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        // Check feature availability
-        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
-            scriptErrorNumber = errOSAGeneralError
-            scriptErrorString = "This feature requires PasteShelf Pro."
-            return nil
-        }
-
         // Get search query from direct parameter
         guard let query = directParameter as? String, !query.isEmpty else {
             scriptErrorNumber = errOSAGeneralError
@@ -113,13 +99,6 @@ class SearchClipboardCommand: NSScriptCommand {
 @objc(CopyItemCommand)
 class CopyItemCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        // Check feature availability
-        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
-            scriptErrorNumber = errOSAGeneralError
-            scriptErrorString = "This feature requires PasteShelf Pro."
-            return false
-        }
-
         // Get the item from direct parameter
         guard let scriptable = directParameter as? ClipboardItemScriptable else {
             scriptErrorNumber = errOSAGeneralError
@@ -210,13 +189,6 @@ class CopyItemCommand: NSScriptCommand {
 @objc(CopyTextCommand)
 class CopyTextCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        // Check feature availability
-        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
-            scriptErrorNumber = errOSAGeneralError
-            scriptErrorString = "This feature requires PasteShelf Pro."
-            return false
-        }
-
         // Get text from direct parameter
         guard let text = directParameter as? String else {
             scriptErrorNumber = errOSAGeneralError
@@ -238,13 +210,6 @@ class CopyTextCommand: NSScriptCommand {
 @objc(TransformTextCommand)
 class TransformTextCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        // Check feature availability
-        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
-            scriptErrorNumber = errOSAGeneralError
-            scriptErrorString = "This feature requires PasteShelf Pro."
-            return nil
-        }
-
         // Get text from direct parameter
         guard let text = directParameter as? String else {
             scriptErrorNumber = errOSAGeneralError
@@ -299,13 +264,6 @@ class TransformTextCommand: NSScriptCommand {
 @objc(DeleteItemCommand)
 class DeleteItemCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        // Check feature availability
-        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
-            scriptErrorNumber = errOSAGeneralError
-            scriptErrorString = "This feature requires PasteShelf Pro."
-            return false
-        }
-
         // Get the item from direct parameter
         guard let scriptable = directParameter as? ClipboardItemScriptable else {
             scriptErrorNumber = errOSAGeneralError
@@ -348,13 +306,6 @@ class DeleteItemCommand: NSScriptCommand {
 @objc(ClearHistoryCommand)
 class ClearHistoryCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        // Check feature availability
-        guard LicenseManager.shared.isFeatureAvailable(.automation) else {
-            scriptErrorNumber = errOSAGeneralError
-            scriptErrorString = "This feature requires PasteShelf Pro."
-            return false
-        }
-
         let keepFavorites = (evaluatedArguments?["keepFavorites"] as? Bool) ?? true
 
         let context = StorageManager.shared.viewContext

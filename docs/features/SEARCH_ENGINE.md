@@ -23,13 +23,13 @@ Complete documentation for PasteShelf's search capabilities.
 
 PasteShelf provides multiple search modes to help you find clipboard items quickly:
 
-| Mode | Tier | Description |
-|------|------|-------------|
-| Full-Text | 🆓 CE | Traditional text matching |
-| Fuzzy | 🆓 CE | Approximate matching with typo tolerance |
-| Filter | 🆓 CE | Filter by type, date, app |
-| Semantic | ⭐ Pro | AI-powered natural language search |
-| OCR | ⭐ Pro | Search text within images |
+| Mode | Description |
+|------|-------------|
+| Full-Text | Traditional text matching |
+| Fuzzy | Approximate matching with typo tolerance |
+| Filter | Filter by type, date, app |
+| Semantic | AI-powered natural language search |
+| OCR | Search text within images |
 
 ### Search Architecture
 
@@ -55,7 +55,7 @@ PasteShelf provides multiple search modes to help you find clipboard items quick
 │   │                  Search Dispatcher                               │   │
 │   │                                                                  │   │
 │   │   ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌──────────┐ │   │
-│   │   │ Full-Text 🆓│ │  Fuzzy 🆓   │ │ Semantic ⭐ │ │  OCR ⭐  │ │   │
+│   │   │ Full-Text  │ │  Fuzzy      │ │ Semantic    │ │  OCR     │ │   │
 │   │   │   Search    │ │   Search    │ │   Search    │ │  Search  │ │   │
 │   │   └──────┬──────┘ └──────┬──────┘ └──────┬──────┘ └─────┬────┘ │   │
 │   │          │               │               │              │       │   │
@@ -82,7 +82,7 @@ PasteShelf provides multiple search modes to help you find clipboard items quick
 
 ## Search Modes
 
-### Full-Text Search 🆓
+### Full-Text Search
 
 Traditional text matching with support for:
 - Exact phrase matching
@@ -138,7 +138,7 @@ class FullTextSearchEngine {
 }
 ```
 
-### Fuzzy Search 🆓
+### Fuzzy Search
 
 Tolerates typos and minor variations:
 
@@ -207,7 +207,7 @@ class FuzzySearchEngine {
 
 ---
 
-## Semantic Search ⭐
+## Semantic Search
 
 AI-powered search using natural language understanding.
 
@@ -348,7 +348,7 @@ class SemanticSearchEngine {
 
 ---
 
-## OCR Search ⭐
+## OCR Search
 
 Search text within images using Vision framework.
 
@@ -429,7 +429,7 @@ class OCRSearchEngine {
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      OCR Settings ⭐                         │
+│                      OCR Settings                            │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  Preferences → Search → OCR:                                 │
@@ -449,7 +449,7 @@ class OCRSearchEngine {
 │  │                                                      │    │
 │  │  ─────────────────────────────────────────────────  │    │
 │  │                                                      │    │
-│  │  ☑ Index images on capture (Pro recommended)        │    │
+│  │  ☑ Index images on capture (recommended)             │    │
 │  │  ☐ Index images on demand only                      │    │
 │  │                                                      │    │
 │  │  [Re-index All Images]                               │    │
@@ -487,7 +487,7 @@ class OCRSearchEngine {
 │   └─────────────────────────────────────────────────────────────────┘   │
 │                                                                          │
 │   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │                    Semantic Index ⭐                              │   │
+│   │                    Semantic Index                                 │   │
 │   │                                                                  │   │
 │   │   Implementation: In-memory vector store                         │   │
 │   │                                                                  │   │
@@ -499,7 +499,7 @@ class OCRSearchEngine {
 │   └─────────────────────────────────────────────────────────────────┘   │
 │                                                                          │
 │   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │                      OCR Index ⭐                                 │   │
+│   │                      OCR Index                                    │   │
 │   │                                                                  │   │
 │   │   Implementation: CoreData + full-text                           │   │
 │   │                                                                  │   │
@@ -526,13 +526,13 @@ class SearchIndexManager {
         // Full-text index (always)
         await spotlight.index(item)
 
-        // Semantic index (Pro)
-        if FeatureFlags.shared.isSemanticSearchEnabled {
+        // Semantic index
+        if options.enableSemanticSearch {
             await semanticIndex.index(item)
         }
 
-        // OCR index for images (Pro)
-        if FeatureFlags.shared.isOCRSearchEnabled && item.contentType.isImage {
+        // OCR index for images
+        if options.enableOCRSearch && item.contentType.isImage {
             await ocrIndex.index(item)
         }
     }
@@ -559,7 +559,7 @@ class SearchIndexManager {
 
 ## Query Syntax
 
-### Basic Queries 🆓
+### Basic Queries
 
 | Query | Behavior |
 |-------|----------|
@@ -567,7 +567,7 @@ class SearchIndexManager {
 | `hello world` | Items containing both "hello" AND "world" |
 | `"hello world"` | Items containing exact phrase "hello world" |
 
-### Filters 🆓
+### Filters
 
 | Filter | Example | Description |
 |--------|---------|-------------|
@@ -576,7 +576,7 @@ class SearchIndexManager {
 | `in:` | `in:favorites` | Filter by folder/collection |
 | `is:` | `is:pinned` | Filter by status |
 
-### Date Filters 🆓
+### Date Filters
 
 | Filter | Example | Description |
 |--------|---------|-------------|
@@ -585,7 +585,7 @@ class SearchIndexManager {
 | `before:` | `before:yesterday` | Items before date |
 | `after:` | `after:last-week` | Items after date |
 
-### Advanced Operators ⭐
+### Advanced Operators
 
 | Operator | Example | Description |
 |----------|---------|-------------|

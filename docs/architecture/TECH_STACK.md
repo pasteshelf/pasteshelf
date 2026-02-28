@@ -492,7 +492,6 @@ For Enterprise features:
 
 | Service | Provider | Purpose |
 |---------|----------|---------|
-| License Server | Self-hosted | License validation |
 | Sync Server | Self-hosted option | Air-gapped sync |
 | Analytics | Privacy-respecting | Usage metrics |
 

@@ -12,7 +12,7 @@ PasteShelf development roadmap and planned features.
 - [Current Status](#current-status)
 - [Release Schedule](#release-schedule)
 - [Phase 1: Foundation](#phase-1-foundation)
-- [Phase 2: Pro Features](#phase-2-pro-features)
+- [Phase 2: Advanced Features](#phase-2-advanced-features)
 - [Phase 3: Enterprise](#phase-3-enterprise)
 - [Phase 4: Ecosystem](#phase-4-ecosystem)
 - [Future Considerations](#future-considerations)
@@ -21,12 +21,12 @@ PasteShelf development roadmap and planned features.
 
 ## Vision
 
-**PasteShelf** aims to be the most privacy-respecting, powerful clipboard manager for macOS, serving individual users and enterprises alike with an open-core model.
+**PasteShelf** aims to be the most privacy-respecting, powerful clipboard manager for macOS, serving individual users and enterprises alike.
 
 ### Core Principles
 
 1. **Privacy First**: Local-first, E2E encryption, no tracking
-2. **Open Core**: Free Community Edition, paid Pro/Enterprise
+2. **Open Source**: Free and open source under AGPL-3.0
 3. **Native Experience**: Built with Swift/SwiftUI, feels like Apple made it
 4. **Extensible**: Plugin system for customization
 
@@ -57,16 +57,16 @@ PasteShelf development roadmap and planned features.
 | 0.1.0 | Q1 2026 | 🚧 In Progress | Core clipboard functionality |
 | 0.2.0 | Q2 2026 | 📋 Planned | Search and organization |
 | 0.3.0 | Q2 2026 | 📋 Planned | UI polish, settings |
-| 1.0.0 | Q3 2026 | 📋 Planned | Community Edition release |
-| 1.1.0 | Q4 2026 | 📋 Planned | Pro Edition launch |
-| 2.0.0 | Q1 2027 | 📋 Planned | Enterprise Edition |
+| 1.0.0 | Q3 2026 | 📋 Planned | Stable release |
+| 1.1.0 | Q4 2026 | 📋 Planned | Sync, semantic search, OCR |
+| 2.0.0 | Q1 2027 | 📋 Planned | Enterprise features |
 
 ---
 
 ## Phase 1: Foundation
 
 **Timeline**: Q1-Q3 2026
-**Goal**: Stable Community Edition release
+**Goal**: Stable initial release
 
 ### v0.1.0 - Core Engine 🚧
 
@@ -131,9 +131,9 @@ PasteShelf development roadmap and planned features.
 - [ ] App exclusion rules
 - [ ] Auto-cleanup settings
 
-### v1.0.0 - Community Edition Release 📋
+### v1.0.0 - Stable Release 📋
 
-**Major Milestone**: Public release of free, open-source edition
+**Major Milestone**: Public release
 
 **Features**:
 - ✅ All Phase 1 features
@@ -144,16 +144,16 @@ PasteShelf development roadmap and planned features.
 
 ---
 
-## Phase 2: Pro Features
+## Phase 2: Advanced Features
 
 **Timeline**: Q4 2026
-**Goal**: Launch monetization with Pro Edition
+**Goal**: Sync, search, and automation features
 
-### v1.1.0 - Pro Edition Launch ⭐
+### v1.1.0 - Sync & Search
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Pro Features                                                │
+│  Sync & Search Features                                      │
 ├─────────────────────────────────────────────────────────────┤
 │  • iCloud sync with E2E encryption                          │
 │  • Semantic search (NaturalLanguage)                        │
@@ -164,14 +164,12 @@ PasteShelf development roadmap and planned features.
 ```
 
 **Deliverables**:
-- [ ] License validation system
 - [ ] CloudKit sync engine
 - [ ] E2E encryption layer
 - [ ] Semantic search
 - [ ] OCR integration
-- [ ] Payment integration
 
-### v1.2.0 - Automation ⭐
+### v1.2.0 - Automation
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -192,7 +190,7 @@ PasteShelf development roadmap and planned features.
 - [ ] URL scheme handler
 - [ ] Webhook system
 
-### v1.3.0 - Plugin System ⭐
+### v1.3.0 - Plugin System
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -219,7 +217,7 @@ PasteShelf development roadmap and planned features.
 **Timeline**: Q1 2027
 **Goal**: Enterprise-ready deployment
 
-### v2.0.0 - Enterprise Edition 🏢
+### v2.0.0 - Enterprise Features
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -242,7 +240,7 @@ PasteShelf development roadmap and planned features.
 - [ ] DLP rule engine
 - [ ] Self-hosted sync server
 
-### v2.1.0 - Compliance 🏢
+### v2.1.0 - Compliance
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -324,7 +322,6 @@ We track feature requests via GitHub Issues. Top requested features are prioriti
 | Document | Description |
 |----------|-------------|
 | [Contributing](../contributing/CONTRIBUTING.md) | How to contribute |
-| [Open-Core Model](../open-core/OPEN_CORE_MODEL.md) | Edition comparison |
 | [Architecture](../architecture/ARCHITECTURE.md) | Technical design |
 
 ---

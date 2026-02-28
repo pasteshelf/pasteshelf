@@ -9,11 +9,9 @@ import SwiftUI
 
 // MARK: - DLPSettingsView
 
-/// Enterprise DLP policy settings view for browsing, editing, and testing DLP rules.
+/// Displays the DLP (Data Loss Prevention) settings interface.
 ///
-/// `DLPSettingsView` is gated behind the `dlpPolicies` Enterprise feature flag. When the
-/// current license does not include that feature, an upgrade prompt is displayed instead
-/// of the settings panel. When the feature is available the view shows:
+/// The view shows:
 ///
 /// - A list of configured DLP rules with enable/disable toggles.
 /// - A recent violations log with action and severity indicators.
@@ -24,16 +22,11 @@ struct DLPSettingsView: View {
     // MARK: - Properties
 
     @StateObject private var viewModel = DLPSettingsViewModel()
-    @FeatureFlag(.dlpPolicies) private var dlpAvailable
 
     // MARK: - Body
 
     var body: some View {
-        if dlpAvailable {
-            dlpContent
-        } else {
-            upgradePrompt
-        }
+        dlpContent
     }
 
     // MARK: - DLP Content
@@ -167,29 +160,6 @@ struct DLPSettingsView: View {
         }
     }
 
-    // MARK: - Upgrade Prompt
-
-    private var upgradePrompt: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "shield.checkerboard")
-                .font(.system(size: 52))
-                .foregroundStyle(.secondary)
-
-            Text("Enterprise Feature")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            Text("Data Loss Prevention requires an Enterprise license.\nDefine rules to detect, block, and log sensitive clipboard content across your organization.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 380)
-
-            Link("Learn about Enterprise", destination: URL(string: "https://pasteshelf.app/enterprise")!)
-                .buttonStyle(.borderedProminent)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
 }
 
 // MARK: - DLPRuleRowView

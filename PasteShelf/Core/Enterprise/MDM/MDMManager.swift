@@ -128,14 +128,6 @@ final class MDMManager: ObservableObject {
         return nil
     }
 
-    /// Returns the license server URL from MDM configuration, if set.
-    var licenseServer: String? {
-        if case .string(let url) = configuration.effectiveValue(for: .licenseServer) {
-            return url
-        }
-        return nil
-    }
-
     // MARK: - Private Helpers
 
     /// Updates internal state from a new configuration.

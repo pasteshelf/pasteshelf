@@ -87,8 +87,7 @@ The **Intune Management Extension (IME)** must be installed on each device for s
 ### PasteShelf Enterprise License
 
 - An active PasteShelf Enterprise license with a seat count covering all target devices.
-- Your **Organization ID** (`OrganizationID`) and **License Server URL** (`LicenseServer`), provided by the PasteShelf sales team at the time of purchase.
-- If using a self-hosted license server, confirm it is reachable from managed devices over HTTPS (port 443) before deploying. See [Network Requirements](ENTERPRISE_DEPLOYMENT.md#network-requirements).
+- Your **Organization ID** (`OrganizationID`), provided by the PasteShelf sales team at the time of purchase.
 
 ### PasteShelf Installer Package
 
@@ -369,7 +368,6 @@ All keys are read from the managed preferences domain `com.pasteshelf.PasteShelf
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `LicenseServer` | String | — | URL of the Enterprise license server. Required for enterprise license validation. Must use HTTPS. Example: `https://license.company.com` |
 | `OrganizationID` | String | — | Your organization identifier, provided by PasteShelf at license issuance. Example: `org_abc123` |
 | `SSOEnabled` | Boolean | `false` | Enable SSO authentication. When `true`, users are required to authenticate via the configured identity provider before accessing the app. |
 | `SSOProvider` | String | — | Name of the identity provider. Accepted values: `okta`, `azure`, `google`, `onelogin`, `ping`, `custom` |
@@ -468,14 +466,6 @@ The following is a complete `.mobileconfig` XML example ready for upload to Intu
 
             <key>PayloadDisplayName</key>
             <string>PasteShelf Application Preferences</string>
-
-            <!-- ─────────────────────────────────────
-                 License Configuration (Required)
-                 ───────────────────────────────────── -->
-
-            <!-- URL of your enterprise license server -->
-            <key>LicenseServer</key>
-            <string>https://license.company.com</string>
 
             <!-- Organization ID provided with your Enterprise license -->
             <key>OrganizationID</key>
@@ -639,8 +629,6 @@ For organizations that only need to enforce licensing and DLP without restrictin
             <key>PayloadDisplayName</key>
             <string>PasteShelf Minimal Settings</string>
 
-            <key>LicenseServer</key>
-            <string>https://license.company.com</string>
             <key>OrganizationID</key>
             <string>org_abc123</string>
 
@@ -796,7 +784,6 @@ Managed keys delivered by the Intune profile appear in the output. You should se
     BlockAPIKeys = 1;
     BlockCreditCards = 1;
     DLPEnabled = 1;
-    LicenseServer = "https://license.company.com";
     LocalStorageOnly = 1;
     MaxHistoryDays = 90;
     OrganizationID = "org_abc123";
@@ -813,9 +800,6 @@ To read a specific key:
 ```bash
 defaults read com.pasteshelf.PasteShelf DLPEnabled
 # Expected: 1
-
-defaults read com.pasteshelf.PasteShelf LicenseServer
-# Expected: https://license.company.com
 ```
 
 ### 3. Verify the App Is Installed
@@ -1019,28 +1003,6 @@ PasteShelf observes `NSUserDefaultsDidChangeNotification` and re-reads managed p
 
 ---
 
-### PasteShelf Reports "License Validation Failed"
-
-**Symptom**: After deployment, PasteShelf shows a license error at launch.
-
-**Checklist**:
-- Verify the `LicenseServer` URL is reachable from the device:
-  ```bash
-  curl -sv https://license.company.com/health
-  ```
-- Verify the `OrganizationID` matches your license record exactly (it is case-sensitive).
-- Confirm network/firewall rules allow outbound HTTPS (port 443) to the license server hostname.
-- Check PasteShelf license logs:
-  ```bash
-  log show \
-    --predicate 'subsystem == "com.pasteshelf.PasteShelf" AND category == "license"' \
-    --last 1h \
-    --level debug
-  ```
-- If using a self-hosted license server, confirm it is running and its TLS certificate is trusted by macOS system roots.
-
----
-
 ### SSO Authentication Loop or Failure (Azure AD)
 
 **Symptom**: Users are stuck in an SSO redirect loop or cannot complete authentication with Azure AD.
@@ -1127,7 +1089,6 @@ defaults read com.pasteshelf.PasteShelf > /tmp/pasteshelf-defaults.txt
 | Profile deployment shows `Failed` in Intune | Invalid XML in `.mobileconfig` | Validate XML, re-upload; check Intune portal error details |
 | Managed keys absent from `defaults read` | Inner `PayloadType` mismatch | Verify inner `PayloadType` is `com.pasteshelf.PasteShelf` |
 | App shows `Failed` in Intune managed apps | Invalid `.intunemac` or IME not running | Re-wrap package; check IME installation |
-| "License Validation Failed" at launch | `LicenseServer` unreachable or `OrganizationID` wrong | Check firewall and verify key values |
 | Settings grayed out but wrong value shown | Stale profile not updated | Delete and re-assign profile in Intune |
 | SSO redirect loop with Azure AD | Redirect URI not registered in Azure App Registration | Add `pasteshelf://auth/callback` to app registration |
 | DLP not blocking content | Missing Accessibility/Input Monitoring permission | Grant permissions in System Settings → Privacy & Security |

@@ -61,12 +61,6 @@ final class WebhookManager {
     ///   - event: The event type
     ///   - payload: The webhook payload
     func send(event: WebhookEventType, payload: WebhookPayload) async {
-        // Check feature availability (Enterprise only)
-        guard LicenseManager.shared.isFeatureAvailable(.webhooks) else {
-            logger.debug("Webhooks feature not available")
-            return
-        }
-
         let endpoints = await fetchEnabledEndpoints(for: event)
 
         guard !endpoints.isEmpty else {

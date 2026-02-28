@@ -41,9 +41,8 @@ Guide for deploying PasteShelf in enterprise environments.
 │                                                                          │
 │   ┌─────────┐        ┌─────────────────────┐                           │
 │   │ Mac     │◀──────▶│  PasteShelf Cloud   │                           │
-│   │ Devices │        │  • License server   │                           │
-│   └─────────┘        │  • Sync server      │                           │
-│                      │  • Admin console    │                           │
+│   │ Devices │        │  • Sync server      │                           │
+│   └─────────┘        │  • Admin console    │                           │
 │                      └─────────────────────┘                           │
 │                                                                          │
 │   OPTION 2: MDM Deployed (Hybrid)                                       │
@@ -51,7 +50,7 @@ Guide for deploying PasteShelf in enterprise environments.
 │                                                                          │
 │   ┌─────────┐   ┌────────┐        ┌─────────────────────┐              │
 │   │ Mac     │◀──│  MDM   │        │  PasteShelf Cloud   │              │
-│   │ Devices │   │ Server │        │  (License + Sync)   │              │
+│   │ Devices │   │ Server │        │  (Sync + Admin)     │              │
 │   └─────────┘   └────────┘        └─────────────────────┘              │
 │       │              │                      ▲                           │
 │       └──────────────┴──────────────────────┘                           │
@@ -60,22 +59,24 @@ Guide for deploying PasteShelf in enterprise environments.
 │   ─────────────────────                                                 │
 │                                                                          │
 │   ┌─────────┐        ┌─────────────────────────────────────┐           │
+│   ┌─────────┐        ┌─────────────────────────────────────┐           │
 │   │ Mac     │◀──────▶│  Your Infrastructure                │           │
-│   │ Devices │        │  ┌──────────┐  ┌──────────────────┐ │           │
-│   └─────────┘        │  │ License  │  │   Sync Server    │ │           │
-│                      │  │  Server  │  │   (PostgreSQL)   │ │           │
-│                      │  └──────────┘  └──────────────────┘ │           │
+│   │ Devices │        │  ┌──────────────────┐               │           │
+│   └─────────┘        │  │   Sync Server    │               │           │
+│                      │  │   (PostgreSQL)   │               │           │
+│                      │  └──────────────────┘               │           │
 │                      └─────────────────────────────────────┘           │
 │                                                                          │
 │   OPTION 4: Air-Gapped                                                  │
 │   ────────────────────                                                  │
 │                                                                          │
 │   ┌─────────┐        ┌─────────────────────────────────────┐           │
+│   ┌─────────┐        ┌─────────────────────────────────────┐           │
 │   │ Mac     │◀──────▶│  Isolated Network                   │           │
-│   │ Devices │        │  ┌──────────┐  ┌──────────────────┐ │           │
-│   └─────────┘        │  │ License  │  │   Local Sync     │ │           │
-│   (No Internet)      │  │  Server  │  │   (No Cloud)     │ │           │
-│                      │  └──────────┘  └──────────────────┘ │           │
+│   │ Devices │        │  ┌──────────────────┐               │           │
+│   └─────────┘        │  │   Local Sync     │               │           │
+│   (No Internet)      │  │   (No Cloud)     │               │           │
+│                      │  └──────────────────┘               │           │
 │                      └─────────────────────────────────────┘           │
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -130,12 +131,6 @@ shasum -a 256 PasteShelf-Enterprise-1.0.0.pkg
             <string>A1B2C3D4-E5F6-7890-ABCD-EF1234567890</string>
             <key>PayloadDisplayName</key>
             <string>PasteShelf Configuration</string>
-
-            <!-- License Configuration -->
-            <key>LicenseServer</key>
-            <string>https://license.company.com</string>
-            <key>OrganizationID</key>
-            <string>org_abc123</string>
 
             <!-- SSO Configuration -->
             <key>SSOEnabled</key>
@@ -226,16 +221,6 @@ items:
         <!-- Profile content -->
       </configuration_profile>
 
-  - type: custom_script
-    name: "PasteShelf License Activation"
-    script: |
-      #!/bin/bash
-      # Activate enterprise license
-      /Applications/PasteShelf.app/Contents/MacOS/pasteshelf-cli \
-        activate --enterprise \
-        --server https://license.company.com \
-        --org org_abc123
-
 assignment:
   blueprints:
     - "Engineering Macs"
@@ -250,7 +235,6 @@ assignment:
 
 | Component | Minimum | Recommended |
 |-----------|---------|-------------|
-| **License Server** | 1 vCPU, 2GB RAM | 2 vCPU, 4GB RAM |
 | **Sync Server** | 2 vCPU, 4GB RAM | 4 vCPU, 8GB RAM |
 | **Database** | PostgreSQL 14+ | PostgreSQL 15+ with replication |
 | **Storage** | 100GB SSD | 500GB SSD |
@@ -262,45 +246,25 @@ assignment:
 version: '3.8'
 
 services:
-  license-server:
-    image: pasteshelf/license-server:latest
-    environment:
-      - DATABASE_URL=postgres://USERNAME:PASSWORD@db:5432/licenses
-      - JWT_SECRET=${JWT_SECRET}
-      - ADMIN_EMAIL=admin@company.com
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   sync-server:
     image: pasteshelf/sync-server:latest
     environment:
       - DATABASE_URL=postgres://USERNAME:PASSWORD@db:5432/sync
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - LICENSE_SERVER_URL=http://license-server:8080
     ports:
       - "8081:8081"
     depends_on:
       - db
-      - license-server
     volumes:
       - sync-data:/data
 
   admin-console:
     image: pasteshelf/admin-console:latest
     environment:
-      - API_URL=http://license-server:8080
       - SYNC_URL=http://sync-server:8081
     ports:
       - "443:443"
     depends_on:
-      - license-server
       - sync-server
 
   db:
@@ -320,72 +284,7 @@ volumes:
 
 ### Kubernetes Deployment
 
-```yaml
-# k8s/deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: pasteshelf-license-server
-  namespace: pasteshelf
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: license-server
-  template:
-    metadata:
-      labels:
-        app: license-server
-    spec:
-      containers:
-      - name: license-server
-        image: pasteshelf/license-server:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: pasteshelf-secrets
-              key: database-url
-        - name: JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: pasteshelf-secrets
-              key: jwt-secret
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: license-server
-  namespace: pasteshelf
-spec:
-  selector:
-    app: license-server
-  ports:
-  - port: 80
-    targetPort: 8080
-  type: ClusterIP
-```
+Kubernetes manifests for sync server and admin console deployments are available in the `SyncServer/Kubernetes/` directory of the repository.
 
 ---
 
@@ -406,11 +305,9 @@ For high-security environments without internet access.
 │   │   ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │ │
 │   │   │   Mac #1    │  │   Mac #2    │  │      Internal           │  │ │
 │   │   │             │  │             │  │      Servers            │  │ │
-│   │   │  PasteShelf │  │  PasteShelf │  │  ┌─────────────────┐   │  │ │
-│   │   │             │  │             │  │  │ License Server  │   │  │ │
-│   │   └──────┬──────┘  └──────┬──────┘  │  └─────────────────┘   │  │ │
-│   │          │                │         │  ┌─────────────────┐   │  │ │
-│   │          │                │         │  │  Sync Server    │   │  │ │
+│   │   │  PasteShelf │  │  PasteShelf │  │                        │  │ │
+│   │   │             │  │             │  │  ┌─────────────────┐   │  │ │
+│   │   └──────┬──────┘  └──────┬──────┘  │  │  Sync Server    │   │  │ │
 │   │          └────────┬───────┘         │  │  (Local only)   │   │  │ │
 │   │                   │                 │  └─────────────────┘   │  │ │
 │   │                   └─────────────────│                        │  │ │
@@ -419,37 +316,11 @@ For high-security environments without internet access.
 │                                                                          │
 │   No Internet Required                                                   │
 │   ────────────────────                                                   │
-│   • Offline license validation                                           │
 │   • Local-only sync                                                      │
 │   • No telemetry                                                         │
 │   • Manual updates                                                       │
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
-```
-
-### Offline License Activation
-
-```bash
-# 1. Generate activation request on air-gapped machine
-/Applications/PasteShelf.app/Contents/MacOS/pasteshelf-cli \
-  license generate-request \
-  --output /tmp/activation-request.json
-
-# 2. Transfer request to internet-connected machine
-# (via USB, secure file transfer, etc.)
-
-# 3. On internet-connected machine, get license
-curl -X POST https://license.pasteshelf.app/api/v1/activate/offline \
-  -H "Authorization: Bearer <admin_token>" \
-  -d @activation-request.json \
-  -o activation-response.json
-
-# 4. Transfer response back to air-gapped machine
-
-# 5. Apply license
-/Applications/PasteShelf.app/Contents/MacOS/pasteshelf-cli \
-  license apply \
-  --file /tmp/activation-response.json
 ```
 
 ### Local Sync Server
@@ -541,7 +412,6 @@ sync:
 
 | Service | Destination | Port | Protocol |
 |---------|-------------|------|----------|
-| License Validation | license.pasteshelf.app | 443 | HTTPS |
 | CloudKit Sync | *.icloud-content.com | 443 | HTTPS |
 | Admin Console | admin.pasteshelf.app | 443 | HTTPS |
 | Updates | download.pasteshelf.app | 443 | HTTPS |
@@ -550,7 +420,6 @@ sync:
 
 | Service | Internal Port | Notes |
 |---------|---------------|-------|
-| License Server | 8080 | Behind load balancer |
 | Sync Server | 8081 | WebSocket support required |
 | Admin Console | 443 | HTTPS required |
 | Database | 5432 | Internal only |
@@ -560,20 +429,6 @@ sync:
 ## Troubleshooting
 
 ### Common Issues
-
-#### License Activation Failure
-
-```bash
-# Check network connectivity
-curl -v https://license.pasteshelf.app/health
-
-# View detailed logs
-log show --predicate 'subsystem == "com.pasteshelf.PasteShelf"' \
-  --last 1h --level debug | grep -i license
-
-# Reset license state
-defaults delete com.pasteshelf.PasteShelf LicenseToken
-```
 
 #### Sync Issues
 

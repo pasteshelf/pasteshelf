@@ -195,30 +195,24 @@ struct SOC2SecurityControlsReport: Sendable {
         controls.append(SecurityControl(
             name: "Single Sign-On (SSO)",
             description: "Enterprise SSO via SAML 2.0 or OIDC for centralized authentication",
-            status: LicenseManager.shared.isFeatureAvailable(.ssoIntegration) ? .pass : .warning,
-            evidence: "SSOManager with SAML/OIDC authenticator implementations",
-            recommendation: LicenseManager.shared.isFeatureAvailable(.ssoIntegration)
-                ? nil
-                : "Enterprise license required for SSO integration"
+            status: .pass,
+            evidence: "SSOManager with SAML/OIDC authenticator implementations"
         ))
 
-        // License-based feature gating
+        // Feature availability
         controls.append(SecurityControl(
-            name: "Feature Gating",
-            description: "Features are gated by license tier to prevent unauthorized access",
+            name: "Feature Access Control",
+            description: "All features are available to all users as open-source software",
             status: .pass,
-            evidence: "LicenseManager with JWT validation, @FeatureFlag property wrapper"
+            evidence: "Open-source distribution with all features enabled by default"
         ))
 
         // MDM policy enforcement
         controls.append(SecurityControl(
             name: "MDM Policy Enforcement",
             description: "Device policies can be enforced via MDM configuration profiles",
-            status: LicenseManager.shared.isFeatureAvailable(.mdmSupport) ? .pass : .warning,
-            evidence: "MDMManager with ManagedPreferencesReader for forced settings",
-            recommendation: LicenseManager.shared.isFeatureAvailable(.mdmSupport)
-                ? nil
-                : "Enterprise license required for MDM support"
+            status: .pass,
+            evidence: "MDMManager with ManagedPreferencesReader for forced settings"
         ))
 
         return ControlCategory(
@@ -248,11 +242,8 @@ struct SOC2SecurityControlsReport: Sendable {
         controls.append(SecurityControl(
             name: "Data Loss Prevention",
             description: "Real-time content inspection against DLP rules with block/alert/redact actions",
-            status: LicenseManager.shared.isFeatureAvailable(.dlpPolicies) ? .pass : .warning,
-            evidence: "DLPManager with regex-based rule engine and violation tracking",
-            recommendation: LicenseManager.shared.isFeatureAvailable(.dlpPolicies)
-                ? nil
-                : "Enterprise license required for DLP policies"
+            status: .pass,
+            evidence: "DLPManager with regex-based rule engine and violation tracking"
         ))
 
         // Sensitive data detection

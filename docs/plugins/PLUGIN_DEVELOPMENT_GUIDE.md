@@ -32,7 +32,7 @@ Plugins are Swift bundles (`.pasteshelfplugin`) that implement the `PasteShelfPl
 - macOS 14.0+ (Sonoma)
 - Swift 5.9+
 - Xcode 15+
-- PasteShelf Pro license (plugins are a Pro feature)
+- PasteShelf installed
 
 ---
 

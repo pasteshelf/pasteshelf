@@ -2,7 +2,7 @@
 //  AuditLogger.swift
 //  PasteShelf
 //
-//  Feature-flag-gated audit event recorder. Conforms to AuditLogging and delegates
+//  Audit event recorder. Conforms to AuditLogging and delegates
 //  persistence to an AuditLogStoring implementation.
 //
 
@@ -11,11 +11,10 @@ import os.log
 
 // MARK: - AuditLogger
 
-/// Records audit events to local storage, gated behind the Enterprise `auditLogs` feature flag.
+/// Records audit events to local encrypted storage.
 ///
-/// `AuditLogger` is the primary entry point for the audit logging subsystem. It checks
-/// whether the current license includes the `auditLogs` feature before persisting any
-/// event, and provides typed convenience methods that build `AuditEvent` values from
+/// `AuditLogger` is the primary entry point for the audit logging subsystem. It provides
+/// typed convenience methods that build `AuditEvent` values from
 /// named parameters so call sites remain concise.
 ///
 /// Both `deviceIdProvider` and `userIdProvider` are closure-based to allow late binding
@@ -56,17 +55,12 @@ final class AuditLogger: AuditLogging, @unchecked Sendable {
 
     /// Records a single audit event to local storage.
     ///
-    /// The call is silently dropped if the `auditLogs` Enterprise feature is not available
-    /// on the current license. Storage errors are logged but not re-thrown so that audit
+    /// The call is silently dropped if audit logging is not enabled.
+    /// Storage errors are logged but not re-thrown so that audit
     /// logging never disrupts the main application flow.
     ///
     /// - Parameter event: The `AuditEvent` to record.
     func log(_ event: AuditEvent) async {
-        guard LicenseManager.shared.isFeatureAvailable(.auditLogs) else {
-            logger.debug("Audit logging skipped — feature not available on current license")
-            return
-        }
-
         do {
             try await storage.save(event)
             logger.debug("Logged audit event \(event.id) [\(event.category.rawValue)/\(event.action.rawValue)]")
@@ -77,17 +71,11 @@ final class AuditLogger: AuditLogging, @unchecked Sendable {
 
     /// Records a batch of audit events to local storage.
     ///
-    /// The entire batch is silently dropped if the `auditLogs` feature is not available.
     /// Individual storage errors are logged but do not prevent subsequent events in the
     /// batch from being attempted.
     ///
     /// - Parameter events: The array of `AuditEvent` values to record.
     func logBatch(_ events: [AuditEvent]) async {
-        guard LicenseManager.shared.isFeatureAvailable(.auditLogs) else {
-            logger.debug("Audit batch logging skipped — feature not available on current license")
-            return
-        }
-
         for event in events {
             do {
                 try await storage.save(event)

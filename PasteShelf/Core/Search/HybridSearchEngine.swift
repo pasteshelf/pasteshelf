@@ -33,9 +33,6 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     /// OCR search engine for text in images
     private let ocrEngine: OCRSearchEngine
 
-    /// License manager for Pro feature checking
-    private let licenseManager: LicenseManager
-
     /// Query parser for natural language understanding
     private let queryParser: NaturalLanguageQueryParser.Type
 
@@ -54,13 +51,11 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     // MARK: - Initialization
 
     init(
-        storageManager: StorageManager = .shared,
-        licenseManager: LicenseManager = .shared
+        storageManager: StorageManager = .shared
     ) {
         self.fullTextEngine = FullTextSearchEngine(storageManager: storageManager)
         self.semanticEngine = SemanticSearchEngine(storageManager: storageManager)
-        self.ocrEngine = OCRSearchEngine(storageManager: storageManager, licenseManager: licenseManager)
-        self.licenseManager = licenseManager
+        self.ocrEngine = OCRSearchEngine(storageManager: storageManager)
         self.queryParser = NaturalLanguageQueryParser.self
     }
 
@@ -183,12 +178,6 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
             return false
         }
 
-        // Check Pro license
-        guard licenseManager.isFeatureAvailable(.semanticSearch) else {
-            logger.debug("Semantic search requires Pro license")
-            return false
-        }
-
         // Check if semantic engine is available
         guard semanticEngine.isAvailable else {
             logger.debug("Semantic search engine not available")
@@ -202,12 +191,6 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     private func shouldUseOCRSearch(options: SearchOptions) -> Bool {
         // Check if explicitly disabled
         guard options.enableOCRSearch else {
-            return false
-        }
-
-        // Check Pro license
-        guard licenseManager.isFeatureAvailable(.ocrSearch) else {
-            logger.debug("OCR search requires Pro license")
             return false
         }
 
@@ -322,13 +305,13 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
     // MARK: - Availability
 
-    /// Whether semantic search is available (Pro license and system support)
+    /// Whether semantic search is available (system support)
     var isSemanticSearchAvailable: Bool {
-        licenseManager.isFeatureAvailable(.semanticSearch) && semanticEngine.isAvailable
+        semanticEngine.isAvailable
     }
 
-    /// Whether OCR search is available (Pro license and system support)
+    /// Whether OCR search is available (system support)
     var isOCRSearchAvailable: Bool {
-        licenseManager.isFeatureAvailable(.ocrSearch) && ocrEngine.isAvailable
+        ocrEngine.isAvailable
     }
 }

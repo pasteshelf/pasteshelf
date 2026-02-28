@@ -3,7 +3,7 @@
 //  PasteShelf
 //
 //  Search settings tab in preferences.
-//  Includes semantic search toggle and indexing progress (Pro feature).
+//  Includes semantic search toggle, indexing progress, and OCR settings.
 //
 
 import SwiftUI
@@ -14,9 +14,7 @@ struct SearchTabView: View {
 
     @StateObject private var embeddingGenerator = EmbeddingGenerator.shared
     @StateObject private var ocrGenerator = OCRGenerator.shared
-    @ObservedObject private var licenseManager = LicenseManager.shared
 
-    @State private var showingUpgradePrompt = false
     @State private var showingClearConfirmation = false
     @State private var showingOCRClearConfirmation = false
     @State private var indexedCount: Int = 0
@@ -37,49 +35,32 @@ struct SearchTabView: View {
                 Text("Search Settings")
             }
 
-            // Semantic Search Section (Pro)
+            // Semantic Search Section
             Section {
                 semanticSearchSection
             } header: {
-                HStack {
-                    Text("Semantic Search")
-                    ProBadge()
-                }
+                Text("Semantic Search")
             }
 
             // Indexing Status Section
-            if licenseManager.isFeatureAvailable(.semanticSearch) {
-                Section {
-                    indexingStatusSection
-                } header: {
-                    Text("Search Index")
-                }
+            Section {
+                indexingStatusSection
+            } header: {
+                Text("Search Index")
             }
 
-            // OCR Search Section (Pro)
+            // OCR Search Section
             Section {
                 ocrSearchSection
             } header: {
-                HStack {
-                    Text("OCR Search")
-                    ProBadge()
-                }
+                Text("OCR Search")
             }
 
             // OCR Processing Status Section
-            if licenseManager.isFeatureAvailable(.ocrSearch) {
-                Section {
-                    ocrProcessingStatusSection
-                } header: {
-                    Text("Image Text Extraction")
-                }
-            }
-
-            // Pro Feature Notice (if not licensed)
-            if !licenseManager.isFeatureAvailable(.semanticSearch) && !licenseManager.isFeatureAvailable(.ocrSearch) {
-                Section {
-                    proFeatureNotice
-                }
+            Section {
+                ocrProcessingStatusSection
+            } header: {
+                Text("Image Text Extraction")
             }
         }
         .formStyle(.grouped)
@@ -102,9 +83,6 @@ struct SearchTabView: View {
             }
         } message: {
             Text("This will delete all extracted text from images. The cache will be rebuilt when you process images again.")
-        }
-        .sheet(isPresented: $showingUpgradePrompt) {
-            UpgradePromptView(feature: .semanticSearch)
         }
     }
 
@@ -129,20 +107,15 @@ struct SearchTabView: View {
         Toggle("Enable Semantic Search", isOn: Binding(
             get: { semanticSearchEnabled },
             set: { newValue in
-                if newValue, !licenseManager.isFeatureAvailable(.semanticSearch) {
-                    showingUpgradePrompt = true
-                } else {
-                    semanticSearchEnabled = newValue
-                    UserDefaults.standard.set(newValue, forKey: "semanticSearchEnabled")
-                    if newValue {
-                        Task {
-                            await startIndexing()
-                        }
+                semanticSearchEnabled = newValue
+                UserDefaults.standard.set(newValue, forKey: "semanticSearchEnabled")
+                if newValue {
+                    Task {
+                        await startIndexing()
                     }
                 }
             }
         ))
-        .disabled(!licenseManager.isFeatureAvailable(.semanticSearch))
 
         // Description
         VStack(alignment: .leading, spacing: 4) {
@@ -157,26 +130,24 @@ struct SearchTabView: View {
         .padding(.vertical, 4)
 
         // Similarity Threshold
-        if licenseManager.isFeatureAvailable(.semanticSearch) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Similarity Threshold")
-                    Spacer()
-                    Text(String(format: "%.0f%%", semanticThreshold * 100))
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                }
-
-                Slider(value: $semanticThreshold, in: 0.3...0.8, step: 0.05) { _ in
-                    UserDefaults.standard.set(semanticThreshold, forKey: "semanticThreshold")
-                }
-
-                Text("Higher values show only more relevant matches. Lower values show more results.")
-                    .font(.caption)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Similarity Threshold")
+                Spacer()
+                Text(String(format: "%.0f%%", semanticThreshold * 100))
                     .foregroundStyle(.secondary)
+                    .monospacedDigit()
             }
-            .disabled(!semanticSearchEnabled)
+
+            Slider(value: $semanticThreshold, in: 0.3...0.8, step: 0.05) { _ in
+                UserDefaults.standard.set(semanticThreshold, forKey: "semanticThreshold")
+            }
+
+            Text("Higher values show only more relevant matches. Lower values show more results.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
+        .disabled(!semanticSearchEnabled)
     }
 
     // MARK: - OCR Search Section
@@ -187,20 +158,15 @@ struct SearchTabView: View {
         Toggle("Enable OCR Search", isOn: Binding(
             get: { ocrSearchEnabled },
             set: { newValue in
-                if newValue, !licenseManager.isFeatureAvailable(.ocrSearch) {
-                    showingUpgradePrompt = true
-                } else {
-                    ocrSearchEnabled = newValue
-                    UserDefaults.standard.set(newValue, forKey: "ocrSearchEnabled")
-                    if newValue {
-                        Task {
-                            await startOCRProcessing()
-                        }
+                ocrSearchEnabled = newValue
+                UserDefaults.standard.set(newValue, forKey: "ocrSearchEnabled")
+                if newValue {
+                    Task {
+                        await startOCRProcessing()
                     }
                 }
             }
         ))
-        .disabled(!licenseManager.isFeatureAvailable(.ocrSearch))
 
         // Description
         VStack(alignment: .leading, spacing: 4) {
@@ -215,26 +181,24 @@ struct SearchTabView: View {
         .padding(.vertical, 4)
 
         // Confidence Threshold
-        if licenseManager.isFeatureAvailable(.ocrSearch) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Confidence Threshold")
-                    Spacer()
-                    Text(String(format: "%.0f%%", ocrConfidenceThreshold * 100))
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                }
-
-                Slider(value: $ocrConfidenceThreshold, in: 0.3...0.9, step: 0.05) { _ in
-                    UserDefaults.standard.set(ocrConfidenceThreshold, forKey: "ocrConfidenceThreshold")
-                }
-
-                Text("Higher values require more accurate text recognition. Lower values may include misread text.")
-                    .font(.caption)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Confidence Threshold")
+                Spacer()
+                Text(String(format: "%.0f%%", ocrConfidenceThreshold * 100))
                     .foregroundStyle(.secondary)
+                    .monospacedDigit()
             }
-            .disabled(!ocrSearchEnabled)
+
+            Slider(value: $ocrConfidenceThreshold, in: 0.3...0.9, step: 0.05) { _ in
+                UserDefaults.standard.set(ocrConfidenceThreshold, forKey: "ocrConfidenceThreshold")
+            }
+
+            Text("Higher values require more accurate text recognition. Lower values may include misread text.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
+        .disabled(!ocrSearchEnabled)
     }
 
     // MARK: - OCR Processing Status Section
@@ -367,38 +331,6 @@ struct SearchTabView: View {
         }
     }
 
-    // MARK: - Pro Feature Notice
-
-    @ViewBuilder
-    private var proFeatureNotice: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "brain")
-                    .font(.title2)
-                    .foregroundStyle(.purple)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Pro Feature")
-                        .font(.headline)
-
-                    Text("Semantic Search is available with PasteShelf Pro")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Text("Upgrade to Pro to search your clipboard history using natural language. Find what you're looking for even if you don't remember the exact words.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Button("Upgrade to Pro") {
-                showingUpgradePrompt = true
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding(.vertical, 8)
-    }
-
     // MARK: - Actions
 
     private func loadIndexedCount() async {
@@ -433,21 +365,6 @@ struct SearchTabView: View {
             await ocrGenerator.clearAllOCR()
             ocrProcessedCount = 0
         }
-    }
-}
-
-// MARK: - Pro Badge
-
-/// Small badge indicating a Pro feature
-struct ProBadge: View {
-    var body: some View {
-        Text("PRO")
-            .font(.caption2.bold())
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(Color.purple.opacity(0.2))
-            .foregroundStyle(.purple)
-            .clipShape(Capsule())
     }
 }
 

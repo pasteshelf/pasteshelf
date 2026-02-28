@@ -2,8 +2,8 @@
 //  AuditLoggerTests.swift
 //  PasteShelfTests
 //
-//  Tests for AuditLogger: feature-flag gating, convenience logging methods, and
-//  batch operations using a mock AuditLogStoring implementation.
+//  Tests for AuditLogger: convenience logging methods, batch operations,
+//  and error handling using a mock AuditLogStoring implementation.
 //
 
 import Foundation
@@ -51,10 +51,10 @@ final class MockAuditLogStorage: AuditLogStoring, @unchecked Sendable {
 
 struct AuditLoggerTests {
 
-    // MARK: - Feature Flag Gating
+    // MARK: - Event Persistence
 
-    @Test("log does not persist event when auditLogs feature is unavailable")
-    func logDropsEventWhenFeatureUnavailable() async {
+    @Test("log persists event to storage")
+    func logPersistsEvent() async {
         let storage = MockAuditLogStorage()
         let logger = AuditLogger(
             storage: storage,
@@ -65,13 +65,12 @@ struct AuditLoggerTests {
         let event = AuditEvent(category: .clipboard, action: .copyCaptured)
         await logger.log(event)
 
-        // LicenseManager.shared.isFeatureAvailable(.auditLogs) returns false in tests,
-        // so the event is silently dropped.
-        #expect(storage.savedEvents.isEmpty)
+        #expect(storage.savedEvents.count == 1)
+        #expect(storage.savedEvents.first?.category == .clipboard)
     }
 
-    @Test("logBatch does not persist any events when auditLogs feature is unavailable")
-    func logBatchDropsEventsWhenFeatureUnavailable() async {
+    @Test("logBatch persists all events to storage")
+    func logBatchPersistsEvents() async {
         let storage = MockAuditLogStorage()
         let logger = AuditLogger(
             storage: storage,
@@ -86,13 +85,13 @@ struct AuditLoggerTests {
         ]
         await logger.logBatch(events)
 
-        #expect(storage.savedEvents.isEmpty)
+        #expect(storage.savedEvents.count == 3)
     }
 
-    // MARK: - Convenience Methods (Feature-Flag Blocked)
+    // MARK: - Convenience Methods
 
-    @Test("logClipboardEvent is blocked by feature flag — storage remains empty")
-    func logClipboardEventBlockedByFeatureFlag() async {
+    @Test("logClipboardEvent persists event with correct category")
+    func logClipboardEventPersists() async {
         let storage = MockAuditLogStorage()
         let logger = AuditLogger(
             storage: storage,
@@ -102,11 +101,12 @@ struct AuditLoggerTests {
 
         await logger.logClipboardEvent(action: .copyCaptured, resourceId: "item-123", detail: ["contentType": "text/plain"])
 
-        #expect(storage.savedEvents.isEmpty)
+        #expect(storage.savedEvents.count == 1)
+        #expect(storage.savedEvents.first?.category == .clipboard)
     }
 
-    @Test("logUserAction is blocked by feature flag — storage remains empty")
-    func logUserActionBlockedByFeatureFlag() async {
+    @Test("logUserAction persists event with correct category")
+    func logUserActionPersists() async {
         let storage = MockAuditLogStorage()
         let logger = AuditLogger(
             storage: storage,
@@ -116,11 +116,11 @@ struct AuditLoggerTests {
 
         await logger.logUserAction(action: .searchPerformed, resourceId: nil, detail: [:])
 
-        #expect(storage.savedEvents.isEmpty)
+        #expect(storage.savedEvents.count == 1)
     }
 
-    @Test("logPolicyEvent is blocked by feature flag — storage remains empty")
-    func logPolicyEventBlockedByFeatureFlag() async {
+    @Test("logPolicyEvent persists event with correct category")
+    func logPolicyEventPersists() async {
         let storage = MockAuditLogStorage()
         let logger = AuditLogger(
             storage: storage,
@@ -130,11 +130,11 @@ struct AuditLoggerTests {
 
         await logger.logPolicyEvent(action: .policyViolation, policyId: "pol-007")
 
-        #expect(storage.savedEvents.isEmpty)
+        #expect(storage.savedEvents.count == 1)
     }
 
-    @Test("logAuthEvent is blocked by feature flag — storage remains empty")
-    func logAuthEventBlockedByFeatureFlag() async {
+    @Test("logAuthEvent persists event with correct category")
+    func logAuthEventPersists() async {
         let storage = MockAuditLogStorage()
         let logger = AuditLogger(
             storage: storage,
@@ -144,15 +144,13 @@ struct AuditLoggerTests {
 
         await logger.logAuthEvent(action: .loginFailure, severity: .critical)
 
-        #expect(storage.savedEvents.isEmpty)
+        #expect(storage.savedEvents.count == 1)
     }
 
     // MARK: - Error Swallowing
 
     @Test("log does not throw when storage fails (errors are swallowed)")
     func logDoesNotThrowWhenStorageFails() async {
-        // Even if storage were to be invoked, errors should not propagate to callers.
-        // Since the feature flag blocks execution in tests, this verifies the interface is non-throwing.
         let storage = MockAuditLogStorage()
         storage.shouldFail = true
         let logger = AuditLogger(
@@ -164,13 +162,13 @@ struct AuditLoggerTests {
         let event = AuditEvent(category: .clipboard, action: .copyCaptured)
         // log(_:) is async but not throwing — must compile without try
         await logger.log(event)
-        // No throw means the test passes
+        // Storage failed so no events persisted, but no throw either
         #expect(storage.savedEvents.isEmpty)
     }
 
     // MARK: - Device and User ID Providers
 
-    @Test("Device ID provider is consulted but feature flag blocks persistence")
+    @Test("Device ID provider is consulted during event logging")
     func deviceIdProviderIsConsulted() async {
         var providerCalled = false
         let storage = MockAuditLogStorage()
@@ -185,12 +183,11 @@ struct AuditLoggerTests {
 
         await logger.logClipboardEvent(action: .copyCaptured)
 
-        // Feature flag blocks save, but the provider was called to build the event
         #expect(providerCalled)
-        #expect(storage.savedEvents.isEmpty)
+        #expect(storage.savedEvents.count == 1)
     }
 
-    @Test("User ID provider is consulted but feature flag blocks persistence")
+    @Test("User ID provider is consulted during event logging")
     func userIdProviderIsConsulted() async {
         var providerCalled = false
         let storage = MockAuditLogStorage()
@@ -206,16 +203,13 @@ struct AuditLoggerTests {
         await logger.logAuthEvent(action: .ssoLogin)
 
         #expect(providerCalled)
-        #expect(storage.savedEvents.isEmpty)
+        #expect(storage.savedEvents.count == 1)
     }
 
-    // MARK: - Event Structure Verification (via direct log bypass is not possible,
-    //         but we verify the event structures would be built correctly)
+    // MARK: - Event Structure Verification
 
     @Test("logClipboardEvent sets category to .clipboard")
     func logClipboardEventCategoryIsClipboard() async {
-        // We verify the AuditEvent construction logic by examining a pre-built event
-        // that mirrors what logClipboardEvent would produce (without feature-flag bypass).
         let userId = "user-test"
         let deviceId = "dev-test"
         let resourceId = "item-001"

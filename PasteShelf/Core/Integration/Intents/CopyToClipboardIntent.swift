@@ -37,11 +37,6 @@ struct CopyToClipboardIntent: AppIntent {
     // MARK: - Perform
 
     func perform() async throws -> some IntentResult {
-        // Check if automation/shortcuts feature is available
-        guard await isFeatureAvailable() else {
-            throw IntentError.featureNotAvailable
-        }
-
         // Copy the item to clipboard
         let success = await copyItemToClipboard(id: item.id)
 
@@ -53,12 +48,6 @@ struct CopyToClipboardIntent: AppIntent {
     }
 
     // MARK: - Helpers
-
-    private func isFeatureAvailable() async -> Bool {
-        await MainActor.run {
-            LicenseManager.shared.isFeatureAvailable(.automation)
-        }
-    }
 
     private func copyItemToClipboard(id: UUID) async -> Bool {
         let context = await MainActor.run { StorageManager.shared.viewContext }
@@ -151,11 +140,6 @@ struct CopyTextToClipboardIntent: AppIntent {
     // MARK: - Perform
 
     func perform() async throws -> some IntentResult {
-        // Check if automation/shortcuts feature is available
-        guard await isFeatureAvailable() else {
-            throw IntentError.featureNotAvailable
-        }
-
         // Copy text to clipboard
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
@@ -164,11 +148,4 @@ struct CopyTextToClipboardIntent: AppIntent {
         return .result()
     }
 
-    // MARK: - Helpers
-
-    private func isFeatureAvailable() async -> Bool {
-        await MainActor.run {
-            LicenseManager.shared.isFeatureAvailable(.automation)
-        }
-    }
 }

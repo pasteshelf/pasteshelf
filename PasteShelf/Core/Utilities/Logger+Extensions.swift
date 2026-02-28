@@ -25,7 +25,7 @@ extension Logger {
     /// Logger for search engine operations (full-text, semantic, OCR)
     static let search = Logger(subsystem: subsystem, category: "Search")
 
-    /// Logger for CloudKit sync operations (Pro feature)
+    /// Logger for CloudKit sync operations
     static let sync = Logger(subsystem: subsystem, category: "Sync")
 
     /// Logger for encryption, sensitive data handling, and security operations
@@ -37,10 +37,10 @@ extension Logger {
     /// Logger for app lifecycle and general application events
     static let app = Logger(subsystem: subsystem, category: "App")
 
-    /// Logger for licensing and feature gating operations
+    /// Logger for configuration operations
     static let licensing = Logger(subsystem: subsystem, category: "Licensing")
 
-    /// Logger for plugin system operations (Pro feature)
+    /// Logger for plugin system operations
     static let plugins = Logger(subsystem: subsystem, category: "Plugins")
 
     /// Logger for Enterprise SSO and authentication operations

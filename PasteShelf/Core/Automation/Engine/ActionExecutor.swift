@@ -287,11 +287,6 @@ final class ActionExecutor {
         content: ClipboardContent,
         rule: AutomationRule
     ) async throws -> ActionExecutionResult {
-        // Check Enterprise license
-        guard LicenseManager.shared.isFeatureAvailable(.auditLogs) else {
-            throw AutomationError.featureNotAvailable
-        }
-
         // Fetch webhook endpoint configuration
         guard let endpoint = await fetchWebhookEndpoint(id: endpointId) else {
             throw AutomationError.invalidConfiguration(

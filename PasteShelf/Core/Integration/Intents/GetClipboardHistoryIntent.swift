@@ -45,11 +45,6 @@ struct GetClipboardHistoryIntent: AppIntent {
     // MARK: - Perform
 
     func perform() async throws -> some IntentResult & ReturnsValue<[ClipboardItemEntity]> {
-        // Check if automation/shortcuts feature is available
-        guard await isFeatureAvailable() else {
-            throw IntentError.featureNotAvailable
-        }
-
         // Clamp count between 1 and 100
         let limitedCount = max(1, min(count, 100))
 
@@ -64,11 +59,4 @@ struct GetClipboardHistoryIntent: AppIntent {
         return .result(value: results)
     }
 
-    // MARK: - Helpers
-
-    private func isFeatureAvailable() async -> Bool {
-        await MainActor.run {
-            LicenseManager.shared.isFeatureAvailable(.automation)
-        }
-    }
 }

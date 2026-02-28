@@ -44,11 +44,6 @@ struct SearchClipboardIntent: AppIntent {
     // MARK: - Perform
 
     func perform() async throws -> some IntentResult & ReturnsValue<[ClipboardItemEntity]> {
-        // Check if automation/shortcuts feature is available
-        guard await isFeatureAvailable() else {
-            throw IntentError.featureNotAvailable
-        }
-
         // Validate query
         guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw IntentError.invalidQuery
@@ -63,13 +58,6 @@ struct SearchClipboardIntent: AppIntent {
         return .result(value: results)
     }
 
-    // MARK: - Helpers
-
-    private func isFeatureAvailable() async -> Bool {
-        await MainActor.run {
-            LicenseManager.shared.isFeatureAvailable(.automation)
-        }
-    }
 }
 
 // MARK: - Intent Errors

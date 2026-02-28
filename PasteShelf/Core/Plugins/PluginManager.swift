@@ -3,7 +3,6 @@
 //  PasteShelf
 //
 //  Central manager for plugin lifecycle, state, and coordination.
-//  Feature-gated by .plugins license check.
 //
 
 import Combine
@@ -89,12 +88,6 @@ final class PluginManager: ObservableObject {
     func initialize(contextFactory: PluginContextFactory) async {
         guard !isInitialized else {
             logger.warning("Plugin system already initialized")
-            return
-        }
-
-        // Check feature availability
-        guard isPluginFeatureAvailable() else {
-            logger.info("Plugin feature not available (requires Pro license)")
             return
         }
 
@@ -403,12 +396,6 @@ final class PluginManager: ObservableObject {
         logger.info("Plugin refresh complete: \(self.plugins.count) plugins")
     }
 
-    // MARK: - Feature Gating
-
-    private func isPluginFeatureAvailable() -> Bool {
-        LicenseManager.shared.isFeatureAvailable(.plugins)
-    }
-
     // MARK: - Cleanup
 
     /// Shuts down the plugin system
@@ -477,7 +464,7 @@ enum PluginManagerError: Error, LocalizedError, Sendable {
         case .invalidState(let current, let expected):
             return "Plugin is in state '\(current.rawValue)' but expected '\(expected.rawValue)'"
         case .featureNotAvailable:
-            return "Plugin feature requires Pro license"
+            return "Plugin feature is not available"
         }
     }
 }

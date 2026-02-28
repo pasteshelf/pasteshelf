@@ -109,9 +109,6 @@ PasteShelf/
 │   │   │   ├── EncryptionManager.swift
 │   │   │   ├── SensitiveDataDetector.swift
 │   │   │   └── BiometricAuth.swift
-│   │   ├── Licensing/             # License validation
-│   │   │   ├── LicenseManager.swift
-│   │   │   └── FeatureFlags.swift
 │   │   └── Plugins/               # Plugin system
 │   │       ├── PluginManager.swift
 │   │       └── PluginProtocol.swift
@@ -504,31 +501,17 @@ Profile with Instruments (`⌘I`):
 
 ## Feature Development
 
-### Feature Flags
+### Application Settings
 
-Features are gated by tier:
+User preferences are managed via `@AppStorage`:
 
 ```swift
-enum FeatureTier {
-    case community  // 🆓 Free
-    case pro        // ⭐ Pro
-    case enterprise // 🏢 Enterprise
-}
+class AppSettings: ObservableObject {
+    static let shared = AppSettings()
 
-class FeatureFlags {
-    static let shared = FeatureFlags()
-
-    var currentTier: FeatureTier {
-        LicenseManager.shared.activeTier
-    }
-
-    var isCloudSyncEnabled: Bool {
-        currentTier >= .pro
-    }
-
-    var isTeamSharingEnabled: Bool {
-        currentTier >= .enterprise
-    }
+    @AppStorage("cloudSyncEnabled") var isCloudSyncEnabled = false
+    @AppStorage("maxHistoryItems") var maxHistoryItems = 1000
+    @AppStorage("autoDeleteAfterDays") var autoDeleteAfterDays = 30
 }
 ```
 
@@ -544,9 +527,9 @@ class FeatureFlags {
    - Add UI in `UI/`
    - Add tests
 
-3. **Gate by tier if needed**
+3. **Check settings if needed**
    ```swift
-   if FeatureFlags.shared.isSmartFoldersEnabled {
+   if AppSettings.shared.isSmartFoldersEnabled {
        // Show smart folders UI
    }
    ```

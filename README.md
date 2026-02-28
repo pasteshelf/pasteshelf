@@ -6,7 +6,7 @@
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/contributing/CONTRIBUTING.md)
 
-**Privacy-first clipboard manager for macOS.** Open-core model with a free Community Edition and paid Pro/Enterprise tiers.
+**Privacy-first clipboard manager for macOS.** Fully open-source under AGPL-3.0 — all features free.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -36,7 +36,9 @@
 
 ## Features
 
-### 🆓 Community Edition (Free & Open Source)
+All features are free and open-source.
+
+### Core
 
 | Feature | Description |
 |---------|-------------|
@@ -48,9 +50,7 @@
 | **Keyboard Driven** | Full keyboard navigation support |
 | **Privacy First** | All data stored locally, no telemetry |
 
-### ⭐ Pro Edition ($29/year)
-
-Everything in Community, plus:
+### Advanced
 
 | Feature | Description |
 |---------|-------------|
@@ -58,13 +58,10 @@ Everything in Community, plus:
 | **Semantic Search** | Natural language queries ("that email from last week") |
 | **OCR Search** | Find text within images |
 | **Smart Collections** | Auto-organize with rules |
-| **Advanced Automation** | Shortcuts, AppleScript, webhooks |
+| **Automation** | Shortcuts, AppleScript, webhooks |
 | **Plugin System** | Extend with community plugins |
-| **Priority Support** | Direct email support |
 
-### 🏢 Enterprise Edition (Custom pricing)
-
-Everything in Pro, plus:
+### Enterprise
 
 | Feature | Description |
 |---------|-------------|
@@ -74,7 +71,7 @@ Everything in Pro, plus:
 | **Audit Logging** | Complete activity trail |
 | **DLP Policies** | Data loss prevention rules |
 | **Self-Hosted Sync** | On-premise deployment option |
-| **Dedicated Support** | SLA-backed enterprise support |
+| **Compliance** | HIPAA, GDPR, SOC 2 tools |
 
 ---
 
@@ -120,7 +117,7 @@ brew install --cask pasteshelf
 └─────────────────────────────────────────────┘
 ```
 
-📖 **[Full Quick Start Guide →](docs/getting-started/QUICK_START.md)**
+[Full Quick Start Guide](docs/getting-started/QUICK_START.md)
 
 ---
 
@@ -149,24 +146,16 @@ brew install --cask pasteshelf
 | [Privacy & Security](docs/features/PRIVACY_SECURITY_FEATURES.md) | Encryption, sensitive data handling |
 | [Clipboard Engine](docs/features/CLIPBOARD_ENGINE.md) | How clipboard monitoring works |
 | [Search Engine](docs/features/SEARCH_ENGINE.md) | Full-text, semantic, OCR search |
-| [Sync Engine](docs/features/SYNC_ENGINE.md) | iCloud sync architecture ⭐ |
-| [Automation](docs/features/AUTOMATION_ENGINE.md) | Rules, Shortcuts, AppleScript ⭐ |
-| [Plugins](docs/features/PLUGIN_SYSTEM.md) | Plugin development ⭐ |
-
-### Business Model
-
-| Document | Description |
-|----------|-------------|
-| [Open-Core Model](docs/open-core/OPEN_CORE_MODEL.md) | Edition comparison and philosophy |
-| [License System](docs/open-core/LICENSE_SYSTEM.md) | License validation architecture |
-| [Repository Structure](docs/open-core/REPOSITORY_STRUCTURE.md) | Public vs private code |
+| [Sync Engine](docs/features/SYNC_ENGINE.md) | iCloud and self-hosted sync |
+| [Automation](docs/features/AUTOMATION_ENGINE.md) | Rules, Shortcuts, AppleScript |
+| [Plugins](docs/features/PLUGIN_SYSTEM.md) | Plugin development |
 
 ### Enterprise
 
 | Document | Description |
 |----------|-------------|
-| [Admin Guide](docs/enterprise/ENTERPRISE_ADMIN_GUIDE.md) | SSO, MDM, policies 🏢 |
-| [Deployment Guide](docs/enterprise/ENTERPRISE_DEPLOYMENT.md) | Enterprise deployment 🏢 |
+| [Admin Guide](docs/enterprise/ENTERPRISE_ADMIN_GUIDE.md) | SSO, MDM, policies |
+| [Deployment Guide](docs/enterprise/ENTERPRISE_DEPLOYMENT.md) | Enterprise deployment |
 
 ### Reference
 
@@ -213,8 +202,9 @@ PasteShelf/
 │   │   ├── Clipboard/       # Clipboard monitoring
 │   │   ├── Search/          # Search engine
 │   │   ├── Storage/         # CoreData persistence
-│   │   ├── Sync/            # CloudKit sync ⭐
-│   │   └── Security/        # Encryption
+│   │   ├── Sync/            # CloudKit sync
+│   │   ├── Security/        # Encryption
+│   │   └── Enterprise/      # SSO, MDM, DLP, compliance
 │   ├── UI/                  # SwiftUI views
 │   ├── Models/              # Data models
 │   └── Resources/           # Assets, localization
@@ -223,7 +213,7 @@ PasteShelf/
 └── docs/                    # Documentation
 ```
 
-📖 **[Full Development Guide →](docs/getting-started/DEVELOPMENT_GUIDE.md)**
+[Full Development Guide](docs/getting-started/DEVELOPMENT_GUIDE.md)
 
 ---
 
@@ -252,13 +242,13 @@ xcodebuild test -scheme PasteShelf
 
 ### Areas We Need Help
 
-- 🌍 **Translations** - Help us localize PasteShelf
-- 📖 **Documentation** - Improve guides and tutorials
-- 🐛 **Bug Reports** - Find and report issues
-- ✨ **Features** - Implement roadmap items
-- 🧪 **Testing** - Improve test coverage
+- Translations - Help us localize PasteShelf
+- Documentation - Improve guides and tutorials
+- Bug Reports - Find and report issues
+- Features - Implement roadmap items
+- Testing - Improve test coverage
 
-📖 **[Full Contributing Guide →](docs/contributing/CONTRIBUTING.md)**
+[Full Contributing Guide](docs/contributing/CONTRIBUTING.md)
 
 ---
 
@@ -268,24 +258,19 @@ xcodebuild test -scheme PasteShelf
 |---------|--------|-------|
 | 0.1.0 | Q1 2026 | Core clipboard functionality |
 | 0.2.0 | Q2 2026 | Search and organization |
-| 1.0.0 | Q3 2026 | Community Edition release |
-| 1.1.0 | Q4 2026 | Pro Edition launch |
-| 2.0.0 | Q1 2027 | Enterprise Edition |
+| 1.0.0 | Q3 2026 | Stable release |
+| 1.1.0 | Q4 2026 | Sync, automation, plugins |
+| 2.0.0 | Q1 2027 | Enterprise features |
 
-📖 **[Full Roadmap →](docs/reference/ROADMAP.md)**
+[Full Roadmap](docs/reference/ROADMAP.md)
 
 ---
 
 ## License
 
-**Community Edition**: [GNU Affero General Public License v3.0](LICENSE)
+[GNU Affero General Public License v3.0](LICENSE)
 
-**Pro & Enterprise**: Commercial license. See [pasteshelf.app/pricing](https://pasteshelf.app/pricing) for details.
-
-The open-core model means:
-- Core clipboard functionality is free and open source forever
-- Advanced features (sync, AI search, enterprise) require a paid license
-- Your contributions to the open source core benefit everyone
+PasteShelf is fully open-source. All features — including sync, search, enterprise administration, and compliance tools — are free and available to everyone.
 
 ---
 
@@ -296,8 +281,6 @@ The open-core model means:
 | [GitHub Issues](https://github.com/pasteshelf/pasteshelf/issues) | Bug reports |
 | [GitHub Discussions](https://github.com/pasteshelf/pasteshelf/discussions) | Questions, ideas |
 | [Documentation](docs/) | Guides and references |
-| support@pasteshelf.app | Pro support ⭐ |
-| enterprise@pasteshelf.app | Enterprise inquiries 🏢 |
 
 ---
 

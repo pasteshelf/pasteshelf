@@ -193,9 +193,9 @@ public struct SyncNotification: Sendable {
 
 /// Identifies which sync backend is in use.
 public enum SyncBackendType: String, Sendable, Codable {
-    /// Apple iCloud via CloudKit (Pro tier).
+    /// Apple iCloud via CloudKit.
     case cloudKit = "cloudkit"
 
-    /// Self-hosted sync server (Enterprise tier).
+    /// Self-hosted sync server.
     case selfHosted = "self_hosted"
 }

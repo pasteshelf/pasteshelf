@@ -77,7 +77,7 @@ enum DLPError: Error, LocalizedError, Sendable {
     var recoverySuggestion: String? {
         switch self {
         case .featureUnavailable:
-            return "Upgrade to the Enterprise edition to enable Data Loss Prevention."
+            return "Enable Data Loss Prevention in Enterprise settings."
         case .invalidPattern:
             return "Review the regular expression syntax and correct the pattern in the DLP rule editor."
         case .storageFailure:

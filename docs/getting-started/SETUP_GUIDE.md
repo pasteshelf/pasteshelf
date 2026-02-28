@@ -13,8 +13,7 @@ Complete guide to setting up PasteShelf for users and developers.
 - [Initial Configuration](#initial-configuration)
 - [System Permissions](#system-permissions)
 - [User Preferences](#user-preferences)
-- [Pro Edition Setup](#pro-edition-setup)
-- [Enterprise Edition Setup](#enterprise-edition-setup)
+- [Advanced Features Setup](#advanced-features-setup)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -29,7 +28,7 @@ Complete guide to setting up PasteShelf for users and developers.
 | **Processor** | Apple Silicon (M1/M2/M3) or Intel x86_64 |
 | **RAM** | 4 GB minimum, 8 GB recommended |
 | **Storage** | 100 MB for app, 500 MB+ for clipboard history |
-| **Apple ID** | Required for iCloud sync (Pro/Enterprise) |
+| **Apple ID** | Required for iCloud sync |
 
 ### For Developers
 
@@ -45,7 +44,7 @@ Complete guide to setting up PasteShelf for users and developers.
 
 ## Installation
 
-### Method 1: Direct Download 🆓
+### Method 1: Direct Download
 
 1. **Download the latest release**
    ```
@@ -231,21 +230,11 @@ Access Preferences with `⌘,` or from the menu bar icon.
 
 ---
 
-## Pro Edition Setup ⭐
+## Advanced Features Setup
 
-### Activation
+All features are included in PasteShelf. Here is how to enable the advanced features.
 
-1. **Purchase a license** at [pasteshelf.app/pro](https://pasteshelf.app/pro)
-2. **Receive license key** via email
-3. **Enter key in PasteShelf**:
-   - Open Preferences → License
-   - Click "Activate Pro"
-   - Paste your license key
-   - Click "Activate"
-
-### Pro Features Configuration
-
-#### iCloud Sync Setup
+### iCloud Sync Setup
 
 ```
 Preferences → Sync → Enable iCloud Sync ✓
@@ -256,15 +245,15 @@ Requirements:
 - iCloud Drive enabled
 - Sufficient iCloud storage
 
-#### AI-Powered Search
+### AI-Powered Search
 
 ```
 Preferences → Search → Enable AI Search ✓
 ```
 
-> ℹ️ **Info**: AI processing happens on-device using Core ML. No data leaves your Mac.
+> AI processing happens on-device using Core ML. No data leaves your Mac.
 
-#### Custom Actions
+### Custom Actions
 
 ```
 Preferences → Actions → Create New Action
@@ -278,25 +267,7 @@ function transform(text) {
 }
 ```
 
----
-
-## Enterprise Edition Setup 🏢
-
-### Prerequisites
-
-- Enterprise license agreement
-- Admin console credentials
-- MDM solution (optional)
-
-### Deployment Options
-
-#### Option 1: Manual Installation
-
-1. Download enterprise package from admin console
-2. Deploy via standard macOS installation
-3. Configure using MDM profile
-
-#### Option 2: MDM Deployment
+### MDM Deployment
 
 Supported MDM solutions:
 - Jamf Pro
@@ -316,12 +287,10 @@ Example Jamf deployment:
 </dict>
 ```
 
-### Enterprise Configuration
-
-#### SSO Integration
+### SSO Integration
 
 ```
-Admin Console → Settings → Authentication → Configure SSO
+Preferences → Authentication → Configure SSO
 ```
 
 Supported providers:
@@ -331,21 +300,10 @@ Supported providers:
 - OneLogin
 - Custom SAML 2.0
 
-#### Team Management
+### Compliance Settings
 
 ```
-Admin Console → Teams → Create Team
-```
-
-Features:
-- Shared clipboard snippets
-- Team-wide search
-- Usage analytics
-
-#### Compliance Settings
-
-```
-Admin Console → Compliance → Configure Policies
+Preferences → Compliance → Configure Policies
 ```
 
 Available policies:
@@ -387,13 +345,12 @@ Or: Right-click → Open → Open
 2. Disable image previews
 3. Clear old history items
 
-#### iCloud sync not working ⭐
+#### iCloud sync not working
 
 **Checklist**:
-1. ✅ Pro license activated?
-2. ✅ Signed into iCloud?
-3. ✅ iCloud Drive enabled?
-4. ✅ Internet connection active?
+1. ✅ Signed into iCloud?
+2. ✅ iCloud Drive enabled?
+3. ✅ Internet connection active?
 
 ### Getting Help
 

@@ -12,12 +12,11 @@
     Deployment Instructions:
     1. Replace PayloadOrganization with your organization name.
     2. Generate unique UUIDs for PayloadUUID fields (use `uuidgen` on macOS).
-    3. Update LicenseServer with your enterprise license server URL.
-    4. Set OrganizationID to your PasteShelf organization identifier.
-    5. Configure SSO settings to match your identity provider.
-    6. Adjust policy keys (DLP, security, privacy) to meet your requirements.
-    7. Sign the profile with your MDM certificate before distribution.
-    8. Deploy via your MDM solution (Jamf Pro, Mosyle, Kandji, Workspace ONE, etc.).
+    3. Set OrganizationID to your PasteShelf organization identifier.
+    4. Configure SSO settings to match your identity provider.
+    5. Adjust policy keys (DLP, security, privacy) to meet your requirements.
+    6. Sign the profile with your MDM certificate before distribution.
+    7. Deploy via your MDM solution (Jamf Pro, Mosyle, Kandji, Workspace ONE, etc.).
 
     Documentation: https://docs.pasteshelf.app/enterprise/mdm-deployment
 -->
@@ -36,7 +35,7 @@
 
     <!-- Brief description of what this profile configures -->
     <key>PayloadDescription</key>
-    <string>Configures PasteShelf clipboard manager with enterprise license, SSO, security, and DLP policies for managed Mac deployments.</string>
+    <string>Configures PasteShelf clipboard manager with SSO, security, and DLP policies for managed Mac deployments.</string>
 
     <!-- Your organization's name as it should appear in the profile UI -->
     <key>PayloadOrganization</key>
@@ -96,17 +95,6 @@
             <key>PayloadIdentifier</key>
             <string>com.pasteshelf.PasteShelf</string>
 
-            <!-- ====================================================
-                 License Configuration
-                 Connect PasteShelf to your enterprise license server.
-                 Contact sales@pasteshelf.app to obtain these values.
-                 ==================================================== -->
-
-            <!-- URL of your organization's PasteShelf enterprise license server.
-                 Must use HTTPS. Contact PasteShelf sales for your server URL. -->
-            <key>LicenseServer</key>
-            <string>https://license.example.com</string>
-
             <!-- Your organization's unique identifier issued by PasteShelf.
                  Format: org_ followed by your identifier string. -->
             <key>OrganizationID</key>
@@ -143,7 +131,7 @@
                  user preferences.
                  ==================================================== -->
 
-            <!-- Set to true to allow iCloud sync (requires Pro/Enterprise license).
+            <!-- Set to true to allow iCloud sync.
                  Set to false to restrict all data to local storage only. -->
             <key>CloudSyncEnabled</key>
             <false/>
@@ -208,7 +196,7 @@
             <!-- ====================================================
                  DLP Settings (Data Loss Prevention)
                  Configure automatic detection and blocking of sensitive
-                 data patterns in clipboard content. Requires Enterprise license.
+                 data patterns in clipboard content.
                  ==================================================== -->
 
             <!-- Set to true to enable the DLP engine.

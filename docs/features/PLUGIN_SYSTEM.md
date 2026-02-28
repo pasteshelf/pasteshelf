@@ -20,14 +20,14 @@ Complete guide to developing and using PasteShelf plugins.
 
 ## Overview
 
-The Plugin System enables extending PasteShelf with custom functionality ⭐.
+The Plugin System enables extending PasteShelf with custom functionality.
 
-| Feature | Tier | Description |
-|---------|------|-------------|
-| Use Plugins | ⭐ Pro | Install and use community plugins |
-| Create Plugins | ⭐ Pro | Develop custom plugins |
-| Plugin Store | ⭐ Pro | Browse and install plugins |
-| Enterprise Plugins | 🏢 Enterprise | Private plugin distribution |
+| Feature | Description |
+|---------|-------------|
+| Use Plugins | Install and use community plugins |
+| Create Plugins | Develop custom plugins |
+| Plugin Store | Browse and install plugins |
+| Private Distribution | Private plugin distribution for organizations |
 
 ### What Plugins Can Do
 
@@ -453,7 +453,7 @@ public protocol PluginNetwork {
 
 ## Distribution
 
-### Plugin Store ⭐
+### Plugin Store
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -495,7 +495,7 @@ public protocol PluginNetwork {
 4. **Testing**: Must pass automated tests
 5. **Review**: Manual review for security and quality
 
-### Enterprise Distribution 🏢
+### Private Distribution
 
 ```yaml
 # enterprise-plugins.yaml
