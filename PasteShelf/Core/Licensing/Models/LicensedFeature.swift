@@ -56,6 +56,9 @@ enum LicensedFeature: String, Codable, Sendable, CaseIterable {
     /// Webhook notifications for external integrations
     case webhooks = "webhooks"
 
+    /// HIPAA, GDPR, and SOC 2 compliance tools
+    case complianceTools = "compliance_tools"
+
     // MARK: - Properties
 
     /// Minimum tier required for this feature
@@ -68,7 +71,8 @@ enum LicensedFeature: String, Codable, Sendable, CaseIterable {
 
         // Enterprise features
         case .ssoIntegration, .mdmSupport, .dlpPolicies,
-             .auditLogs, .selfHostedSync, .adminConsole, .teamSharing, .webhooks:
+             .auditLogs, .selfHostedSync, .adminConsole, .teamSharing, .webhooks,
+             .complianceTools:
             return .enterprise
         }
     }
@@ -104,6 +108,8 @@ enum LicensedFeature: String, Codable, Sendable, CaseIterable {
             return String(localized: "Team Sharing")
         case .webhooks:
             return String(localized: "Webhooks")
+        case .complianceTools:
+            return String(localized: "Compliance Tools")
         }
     }
 
@@ -138,6 +144,8 @@ enum LicensedFeature: String, Codable, Sendable, CaseIterable {
             return String(localized: "Share clipboard items with team members")
         case .webhooks:
             return String(localized: "Send webhook notifications for clipboard events")
+        case .complianceTools:
+            return String(localized: "HIPAA, GDPR, and SOC 2 compliance tools for regulated industries")
         }
     }
 
@@ -172,6 +180,8 @@ enum LicensedFeature: String, Codable, Sendable, CaseIterable {
             return "person.3.fill"
         case .webhooks:
             return "arrow.up.right.square"
+        case .complianceTools:
+            return "checkmark.shield.fill"
         }
     }
 

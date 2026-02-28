@@ -249,4 +249,19 @@
             <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
         </fetchIndex>
     </entity>
+    <entity name="ConsentRecord" representedClassName="ConsentRecord" syncable="NO">
+        <attribute name="category" optional="YES" attributeType="String"/>
+        <attribute name="grantedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isGranted" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="revokedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="version" optional="YES" attributeType="String"/>
+        <fetchIndex name="byCategory">
+            <fetchIndexElement property="category" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byId">
+            <fetchIndexElement property="id" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
 </model>

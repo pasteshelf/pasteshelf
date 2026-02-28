@@ -35,6 +35,9 @@ struct EnterpriseTabView: View {
 
             AuditLogView()
                 .tabItem { Label("Audit Log", systemImage: "doc.text.magnifyingglass") }
+
+            ComplianceSettingsView()
+                .tabItem { Label("Compliance", systemImage: "checkmark.shield.fill") }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
