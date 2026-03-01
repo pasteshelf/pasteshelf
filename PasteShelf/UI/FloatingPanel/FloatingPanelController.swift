@@ -114,6 +114,7 @@ final class FloatingPanelController: NSObject {
 
         // Create SwiftUI hosting view
         let contentView = FloatingPanelView(viewModel: viewModel)
+            .environmentObject(SettingsManager.shared)
             .environment(\.controlActiveState, .active)
 
         let hostingView = NSHostingView(rootView: contentView)

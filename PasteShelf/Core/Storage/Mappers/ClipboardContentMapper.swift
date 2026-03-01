@@ -40,6 +40,7 @@ enum ClipboardContentMapper {
         // Create ClipboardContentData
         let contentData = ClipboardContentData(context: context)
         contentData.id = UUID()
+        contentData.plainTextData = content.plainText
         contentData.rtfData = content.rtfData
         contentData.htmlContent = content.html
         contentData.imageData = content.imageData
@@ -101,12 +102,15 @@ enum ClipboardContentMapper {
             sourceApp = SourceApp(bundleId: bundleId, name: name, iconData: nil)
         }
 
+        // Prefer full plain text from contentData, fall back to preview
+        let plainText = contentData?.plainTextData ?? item.plainTextPreview
+
         return ClipboardContent(
             id: id,
             timestamp: timestamp,
             primaryType: primaryType,
             availableTypes: availableTypes,
-            plainText: item.plainTextPreview,
+            plainText: plainText,
             rtfData: contentData?.rtfData,
             html: contentData?.htmlContent,
             imageData: contentData?.imageData,
@@ -154,6 +158,7 @@ enum ClipboardContentMapper {
 
         // Update or create content data
         if let contentData = item.content {
+            contentData.plainTextData = content.plainText
             contentData.rtfData = content.rtfData
             contentData.htmlContent = content.html
             contentData.imageData = content.imageData
@@ -167,6 +172,7 @@ enum ClipboardContentMapper {
         } else {
             let contentData = ClipboardContentData(context: context)
             contentData.id = UUID()
+            contentData.plainTextData = content.plainText
             contentData.rtfData = content.rtfData
             contentData.htmlContent = content.html
             contentData.imageData = content.imageData

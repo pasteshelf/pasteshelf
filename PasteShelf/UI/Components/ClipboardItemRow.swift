@@ -25,7 +25,7 @@ struct ClipboardItemRow: View {
     // MARK: - State
 
     /// Observe settings for reactive updates
-    @ObservedObject private var settingsManager = SettingsManager.shared
+    @EnvironmentObject var settingsManager: SettingsManager
 
     @State private var isHovered = false
 
@@ -211,6 +211,7 @@ struct ClipboardItemRow: View {
             .frame(width: 400)
             .padding(.vertical, 8)
             .background(Color(NSColor.windowBackgroundColor))
+            .environmentObject(SettingsManager.shared)
         }
     }
 #endif

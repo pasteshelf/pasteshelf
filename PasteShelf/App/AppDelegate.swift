@@ -74,13 +74,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up settings observers
         setupSettingsObservers()
 
-        // Start clipboard monitoring (unless paused in settings)
+        // Start clipboard monitoring (always start timer, then pause if needed)
+        clipboardMonitor?.startMonitoring()
         if SettingsManager.shared.privacy.isMonitoringPaused {
             clipboardMonitor?.pause()
             menuBarController?.updateState(.paused)
             logger.info("Clipboard monitoring started in paused state (user preference)")
-        } else {
-            clipboardMonitor?.startMonitoring()
         }
 
         // Start auto-cleanup manager
@@ -202,7 +201,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
 
         // Show main window (from URL scheme pasteshelf://show and AppleScript)
-        NotificationCenter.default.publisher(for: NSNotification.Name("ShowMainWindow"))
+        NotificationCenter.default.publisher(for: .showMainWindow)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.floatingPanelController?.show()
@@ -210,7 +209,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
 
         // Show main window with search (from URL scheme pasteshelf://search)
-        NotificationCenter.default.publisher(for: NSNotification.Name("ShowMainWindowWithSearch"))
+        NotificationCenter.default.publisher(for: .showMainWindowWithSearch)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] notification in
                 self?.floatingPanelController?.show()
@@ -320,6 +319,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if settings.privacy.isMonitoringPaused != clipboardMonitor?.isPaused {
             toggleMonitoring()
         }
+
+        // TODO: Wire checkForUpdates setting to an update framework (e.g., Sparkle)
+        // settings.general.checkForUpdates is stored but not yet consumed by any service
 
         // Apply history limit by triggering cleanup if needed
         if let limit = settings.general.historyLimit.limit {
@@ -438,9 +440,13 @@ extension AppDelegate: ClipboardMonitorDelegate {
             }
         }
 
-        // If shouldDelete is true, the item should not be stored
-        // This is handled by the ClipboardMonitor already saving before automation runs
-        // Future improvement: integrate automation before storage
+        // If shouldDelete is true, remove the item that was already saved
+        if result.shouldDelete {
+            let deleted = await storageManager.deleteItem(byId: content.id)
+            if deleted {
+                logger.info("Automation: deleted item \(content.id) per rule action")
+            }
+        }
     }
 
     func clipboardMonitor(

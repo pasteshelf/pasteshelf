@@ -6,6 +6,7 @@
 //  in clipboard content. Uses regex matching with optional validation.
 //
 
+import AppKit
 import Foundation
 import os.log
 
@@ -59,8 +60,11 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
             textToAnalyze.append(html)
         }
 
-        // For RTF, we'd need to extract text - for now analyze plain text version
-        // RTF analysis would be done via NSAttributedString conversion
+        // Extract text from RTF data for analysis
+        if let rtfData = content.rtfData,
+           let attrString = NSAttributedString(rtf: rtfData, documentAttributes: nil) {
+            textToAnalyze.append(attrString.string)
+        }
 
         if let url = content.url {
             textToAnalyze.append(url.absoluteString)

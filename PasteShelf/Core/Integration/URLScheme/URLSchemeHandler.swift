@@ -209,7 +209,7 @@ final class URLSchemeHandler {
 
             // Post notification with search query
             NotificationCenter.default.post(
-                name: NSNotification.Name("ShowMainWindowWithSearch"),
+                name: .showMainWindowWithSearch,
                 object: nil,
                 userInfo: ["query": query, "limit": actualLimit]
             )
@@ -240,7 +240,7 @@ final class URLSchemeHandler {
             }
 
             NotificationCenter.default.post(
-                name: NSNotification.Name("ShowMainWindow"),
+                name: .showMainWindow,
                 object: nil,
                 userInfo: userInfo.isEmpty ? nil : userInfo
             )

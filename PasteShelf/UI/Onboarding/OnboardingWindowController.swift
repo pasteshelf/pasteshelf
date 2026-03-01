@@ -130,8 +130,10 @@ final class OnboardingWindowController: NSObject {
 
     private func handleCompletion() {
         logger.info("Onboarding completed, closing window")
+        let completion = onComplete
+        onComplete = nil
         close()
-        onComplete?()
+        completion?()
     }
 }
 
@@ -144,7 +146,9 @@ extension OnboardingWindowController: NSWindowDelegate {
         if viewModel?.isComplete == false {
             viewModel?.completeOnboarding()
         }
-        onComplete?()
+        let completion = onComplete
+        onComplete = nil
+        completion?()
         logger.debug("Onboarding window will close")
     }
 

@@ -308,4 +308,10 @@ extension Notification.Name {
 
     /// Posted to paste a specific clipboard item
     static let pasteClipboardItem = Notification.Name("pasteClipboardItem")
+
+    /// Posted to show the main window (from URL scheme and AppleScript)
+    static let showMainWindow = Notification.Name("ShowMainWindow")
+
+    /// Posted to show the main window with a search query
+    static let showMainWindowWithSearch = Notification.Name("ShowMainWindowWithSearch")
 }
