@@ -36,9 +36,6 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     /// Sensitive data detector
     private let sensitiveDetector: SensitiveDataDetecting
 
-    /// Deduplicator for hash checking
-    private let deduplicator: Deduplicating
-
     /// Exclusion manager
     private let exclusionManager: ExclusionManager
 
@@ -73,7 +70,6 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     init(
         contentParser: ContentParsing = ContentParser(),
         sensitiveDetector: SensitiveDataDetecting = SensitiveDataDetector(),
-        deduplicator: Deduplicating = Deduplicator(),
         exclusionManager: ExclusionManager = .shared,
         storage: ClipboardItemStoring? = nil,
         pollInterval: TimeInterval = 0.25,
@@ -82,7 +78,6 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     ) {
         self.contentParser = contentParser
         self.sensitiveDetector = sensitiveDetector
-        self.deduplicator = deduplicator
         self.exclusionManager = exclusionManager
         self.storage = storage
         self.pollInterval = pollInterval
@@ -222,9 +217,17 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         metrics.lastCaptureTime = Date()
 
         updateRecentHashes(with: content.contentHash)
-        saveToStorage(content, sourceApp: sourceApp)
 
-        delegate?.clipboardMonitor(self, didCapture: content, from: sourceApp)
+        // Save first, then notify delegate after persistence completes
+        Task {
+            let saved = await saveToStorageAsync(content, sourceApp: sourceApp)
+            if !saved {
+                metrics.errorCount += 1
+                Logger.clipboard.error("Failed to save clipboard content to storage")
+            }
+            delegate?.clipboardMonitor(self, didCapture: content, from: sourceApp)
+        }
+
         let timeMs = String(format: "%.2fms", captureTime * 1_000)
         Logger.clipboard.info("Captured: \(content.primaryType.displayName), sensitive=\(content.isSensitive), time=\(timeMs)")
     }
@@ -237,11 +240,9 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         }
     }
 
-    private func saveToStorage(_ content: ClipboardContent, sourceApp: SourceApp?) {
-        guard let storage = storage else { return }
-        Task {
-            _ = await storage.save(content: content, from: sourceApp)
-        }
+    private func saveToStorageAsync(_ content: ClipboardContent, sourceApp: SourceApp?) async -> Bool {
+        guard let storage = storage else { return false }
+        return await storage.save(content: content, from: sourceApp)
     }
 
     // MARK: - Control Methods

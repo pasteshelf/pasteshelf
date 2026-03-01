@@ -88,6 +88,21 @@ struct FloatingPanelView: View {
             }
             return .handled
         }
+        .onKeyPress(characters: .decimalDigits, phases: .down) { press in
+            guard SettingsManager.shared.shortcuts.quickPasteEnabled,
+                  press.modifiers.contains(.command),
+                  let digit = press.characters.first?.wholeNumberValue,
+                  digit >= 1, digit <= 9 else {
+                return .ignored
+            }
+            let index = digit - 1
+            guard index < viewModel.items.count else { return .ignored }
+            viewModel.select(at: index)
+            Task {
+                await viewModel.pasteSelected()
+            }
+            return .handled
+        }
         // Note: Cmd+S and Cmd+F shortcuts are handled via keyboardShortcut on buttons in the menu bar
     }
 

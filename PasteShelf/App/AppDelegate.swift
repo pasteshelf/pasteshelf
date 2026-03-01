@@ -294,6 +294,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Apply dock visibility changes
         DockVisibilityManager.shared.setVisible(settings.general.showInDock)
 
+        // Apply launch at login changes
+        LaunchAtLoginManager.shared.setEnabled(settings.general.launchAtLogin)
+
+        // Apply monitoring pause state
+        if settings.privacy.isMonitoringPaused != clipboardMonitor?.isPaused {
+            toggleMonitoring()
+        }
+
         // Apply history limit by triggering cleanup if needed
         if let limit = settings.general.historyLimit.limit {
             Task {

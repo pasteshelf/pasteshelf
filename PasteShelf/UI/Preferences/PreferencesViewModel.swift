@@ -198,8 +198,6 @@ final class PreferencesViewModel: ObservableObject {
     private func syncExclusionManager() {
         let exclusionManager = ExclusionManager.shared
         let currentExcluded = Set(excludedAppBundleIds)
-
-        // Get user-excluded apps (not including defaults)
         let defaultExcluded = Set(exclusionManager.defaultExcludedBundleIds)
 
         // Add new exclusions
@@ -207,8 +205,10 @@ final class PreferencesViewModel: ObservableObject {
             exclusionManager.exclude(bundleId: bundleId)
         }
 
-        // Note: We don't automatically remove exclusions to avoid accidents
-        // Users must explicitly remove apps from the list
+        // Remove exclusions that are no longer in the settings list
+        for bundleId in exclusionManager.userExcludedBundleIds where !currentExcluded.contains(bundleId) {
+            exclusionManager.include(bundleId: bundleId)
+        }
     }
 
     private func updateAppearance() {
