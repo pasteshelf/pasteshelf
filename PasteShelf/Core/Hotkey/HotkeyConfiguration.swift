@@ -102,30 +102,27 @@ struct HotkeyConfiguration: Codable, Equatable {
         }
     }
 
-    // MARK: - Persistence
+    // MARK: - Persistence (delegates to SettingsManager)
 
-    private static let userDefaultsKey = "com.pasteshelf.hotkey"
-
-    /// Saves the configuration to UserDefaults
+    /// Saves the configuration via SettingsManager
     func save() {
-        if let encoded = try? JSONEncoder().encode(self) {
-            UserDefaults.standard.set(encoded, forKey: Self.userDefaultsKey)
-        }
+        SettingsManager.shared.shortcuts = ShortcutsSettings(
+            globalHotkey: StoredHotkey(from: self),
+            quickPasteEnabled: SettingsManager.shared.shortcuts.quickPasteEnabled
+        )
     }
 
-    /// Loads the configuration from UserDefaults, or returns the default
+    /// Loads the configuration from SettingsManager
     static func load() -> HotkeyConfiguration {
-        guard let data = UserDefaults.standard.data(forKey: userDefaultsKey),
-              let config = try? JSONDecoder().decode(HotkeyConfiguration.self, from: data)
-        else {
-            return .default
-        }
-        return config
+        SettingsManager.shared.shortcuts.globalHotkey.toHotkeyConfiguration
     }
 
     /// Resets to default configuration
     static func reset() {
-        UserDefaults.standard.removeObject(forKey: userDefaultsKey)
+        SettingsManager.shared.shortcuts = ShortcutsSettings(
+            globalHotkey: .default,
+            quickPasteEnabled: SettingsManager.shared.shortcuts.quickPasteEnabled
+        )
     }
 }
 

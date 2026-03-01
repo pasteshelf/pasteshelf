@@ -14,6 +14,9 @@ struct FloatingPanelView: View {
 
     @ObservedObject var viewModel: FloatingPanelViewModel
 
+    /// Observe settings for reactive updates
+    @ObservedObject private var settingsManager = SettingsManager.shared
+
     /// Focus state for keyboard handling
     @FocusState private var isFocused: Bool
 
@@ -48,7 +51,7 @@ struct FloatingPanelView: View {
             .animation(.easeInOut(duration: 0.2), value: viewModel.isLoading)
             .animation(.easeInOut(duration: 0.2), value: viewModel.items.count)
         }
-        .frame(width: SettingsManager.shared.appearance.panelWidth.width, height: 520)
+        .frame(width: settingsManager.appearance.panelWidth.width, height: 520)
         .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
@@ -89,7 +92,7 @@ struct FloatingPanelView: View {
             return .handled
         }
         .onKeyPress(characters: .decimalDigits, phases: .down) { press in
-            guard SettingsManager.shared.shortcuts.quickPasteEnabled,
+            guard settingsManager.shortcuts.quickPasteEnabled,
                   press.modifiers.contains(.command),
                   let digit = press.characters.first?.wholeNumberValue,
                   digit >= 1, digit <= 9 else {
@@ -256,6 +259,17 @@ struct FloatingPanelView: View {
                             viewModel.activeFilters.selectedTagIds = newValue
                         }
                     ),
+                    onCreateTag: { name, color in
+                        Task {
+                            if let tag = await StorageManager.shared.saveTag(name: name, color: color) {
+                                if let tagId = tag.id {
+                                    viewModel.activeFilters.selectedTagIds.insert(tagId)
+                                }
+                                availableTags = await viewModel.loadAvailableTags()
+                                await viewModel.loadItems()
+                            }
+                        }
+                    },
                     onSelectionChanged: {
                         Task {
                             await viewModel.loadItems()

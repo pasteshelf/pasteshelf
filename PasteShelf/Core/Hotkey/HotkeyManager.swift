@@ -88,7 +88,6 @@ final class HotkeyManager {
 
         if status == noErr {
             self.hotkeyRef = hotkeyRef
-            configuration.save()
             logger.info("Hotkey registered: \(configuration.displayString)")
             return true
         } else {

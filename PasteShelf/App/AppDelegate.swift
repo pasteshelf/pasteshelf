@@ -170,7 +170,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotkeyManager?.onHotkeyPressed = { [weak self] in
             self?.floatingPanelController?.toggle()
         }
-        // Register the saved hotkey configuration (falls back to default if none saved)
+        // Register the hotkey from SettingsManager (HotkeyManager.init loads from SettingsManager)
         hotkeyManager?.register(configuration: hotkeyManager?.configuration ?? .default)
     }
 
@@ -197,6 +197,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] notification in
                 if let itemId = notification.object as? UUID {
                     self?.pasteItem(id: itemId)
+                }
+            }
+            .store(in: &cancellables)
+
+        // Show main window (from URL scheme pasteshelf://show and AppleScript)
+        NotificationCenter.default.publisher(for: NSNotification.Name("ShowMainWindow"))
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.floatingPanelController?.show()
+            }
+            .store(in: &cancellables)
+
+        // Show main window with search (from URL scheme pasteshelf://search)
+        NotificationCenter.default.publisher(for: NSNotification.Name("ShowMainWindowWithSearch"))
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                self?.floatingPanelController?.show()
+                if let query = notification.userInfo?["query"] as? String {
+                    self?.floatingPanelController?.viewModel.searchQuery = query
                 }
             }
             .store(in: &cancellables)

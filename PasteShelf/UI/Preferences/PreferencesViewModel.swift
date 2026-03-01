@@ -196,19 +196,8 @@ final class PreferencesViewModel: ObservableObject {
     }
 
     private func syncExclusionManager() {
-        let exclusionManager = ExclusionManager.shared
-        let currentExcluded = Set(excludedAppBundleIds)
-        let defaultExcluded = Set(exclusionManager.defaultExcludedBundleIds)
-
-        // Add new exclusions
-        for bundleId in currentExcluded where !defaultExcluded.contains(bundleId) {
-            exclusionManager.exclude(bundleId: bundleId)
-        }
-
-        // Remove exclusions that are no longer in the settings list
-        for bundleId in exclusionManager.userExcludedBundleIds where !currentExcluded.contains(bundleId) {
-            exclusionManager.include(bundleId: bundleId)
-        }
+        // ExclusionManager now reads directly from SettingsManager.privacy.excludedAppBundleIds,
+        // so no explicit sync is needed. This method is kept for any future side effects.
     }
 
     private func updateAppearance() {

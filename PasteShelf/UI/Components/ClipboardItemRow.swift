@@ -24,6 +24,9 @@ struct ClipboardItemRow: View {
 
     // MARK: - State
 
+    /// Observe settings for reactive updates
+    @ObservedObject private var settingsManager = SettingsManager.shared
+
     @State private var isHovered = false
 
     // MARK: - Body
@@ -139,7 +142,7 @@ struct ClipboardItemRow: View {
                 .help("Paste (Enter)")
 
                 // Quick number indicator for keyboard shortcut (if enabled)
-                if SettingsManager.shared.shortcuts.quickPasteEnabled, index < 9 {
+                if settingsManager.shortcuts.quickPasteEnabled, index < 9 {
                     Text("\(index + 1)")
                         .font(.caption2)
                         .fontWeight(.medium)
