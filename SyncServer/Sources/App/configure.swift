@@ -13,13 +13,26 @@ import Vapor
 func configure(_ app: Application) async throws {
     // MARK: - Database
 
+    guard let dbHost = Environment.get("DATABASE_HOST") else {
+        fatalError("DATABASE_HOST environment variable must be set")
+    }
+    guard let dbUsername = Environment.get("DATABASE_USERNAME") else {
+        fatalError("DATABASE_USERNAME environment variable must be set")
+    }
+    guard let dbPassword = Environment.get("DATABASE_PASSWORD") else {
+        fatalError("DATABASE_PASSWORD environment variable must be set")
+    }
+    guard let dbName = Environment.get("DATABASE_NAME") else {
+        fatalError("DATABASE_NAME environment variable must be set")
+    }
+
     app.databases.use(
         .postgres(configuration: .init(
-            hostname: Environment.get("DATABASE_HOST") ?? "localhost",
+            hostname: dbHost,
             port: Environment.get("DATABASE_PORT").flatMap(Int.init) ?? 5432,
-            username: Environment.get("DATABASE_USERNAME") ?? "pasteshelf",
-            password: Environment.get("DATABASE_PASSWORD") ?? "pasteshelf",
-            database: Environment.get("DATABASE_NAME") ?? "pasteshelf_sync",
+            username: dbUsername,
+            password: dbPassword,
+            database: dbName,
             tls: .disable
         )),
         as: .psql
