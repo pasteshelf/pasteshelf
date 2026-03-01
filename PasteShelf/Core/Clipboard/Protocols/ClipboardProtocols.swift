@@ -262,40 +262,42 @@ protocol ClipboardItemStoring: AnyObject {
     func fetchRecentHashes(limit: Int) async -> [String]
 }
 
-// MARK: - Mock Storage for Phase 1.2
+// MARK: - Mock Storage (Debug/Testing Only)
 
-/// In-memory mock storage for testing before CoreData implementation
-@MainActor
-final class MockClipboardItemStore: ClipboardItemStoring {
-    private var items: [(content: ClipboardContent, sourceApp: SourceApp?)] = []
-    private let maxItems: Int
+#if DEBUG
+    /// In-memory mock storage for testing
+    @MainActor
+    final class MockClipboardItemStore: ClipboardItemStoring {
+        private var items: [(content: ClipboardContent, sourceApp: SourceApp?)] = []
+        private let maxItems: Int
 
-    init(maxItems: Int = 100) {
-        self.maxItems = maxItems
-    }
-
-    func save(content: ClipboardContent, from sourceApp: SourceApp?) async -> Bool {
-        items.insert((content, sourceApp), at: 0)
-        if items.count > maxItems {
-            items.removeLast()
+        init(maxItems: Int = 100) {
+            self.maxItems = maxItems
         }
-        return true
-    }
 
-    func fetchRecentHashes(limit: Int) async -> [String] {
-        items.prefix(limit).compactMap { $0.content.contentHash }
-    }
+        func save(content: ClipboardContent, from sourceApp: SourceApp?) async -> Bool {
+            items.insert((content, sourceApp), at: 0)
+            if items.count > maxItems {
+                items.removeLast()
+            }
+            return true
+        }
 
-    /// Access to stored items for testing
-    var storedItems: [(content: ClipboardContent, sourceApp: SourceApp?)] {
-        items
-    }
+        func fetchRecentHashes(limit: Int) async -> [String] {
+            items.prefix(limit).compactMap { $0.content.contentHash }
+        }
 
-    /// Clear all stored items
-    func clear() {
-        items.removeAll()
+        /// Access to stored items for testing
+        var storedItems: [(content: ClipboardContent, sourceApp: SourceApp?)] {
+            items
+        }
+
+        /// Clear all stored items
+        func clear() {
+            items.removeAll()
+        }
     }
-}
+#endif
 
 // MARK: - Default Delegate Implementations
 

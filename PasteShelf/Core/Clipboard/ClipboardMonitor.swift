@@ -337,12 +337,14 @@ struct ClipboardMonitorMetrics {
 
 // MARK: - Convenience Factory Methods
 
-@MainActor
-extension ClipboardMonitor {
-    /// Creates a monitor with mock storage for testing
-    static func forTesting(
-        storage: ClipboardItemStoring? = nil
-    ) -> ClipboardMonitor {
-        ClipboardMonitor(storage: storage ?? MockClipboardItemStore(), pollInterval: 0.1)
+#if DEBUG
+    @MainActor
+    extension ClipboardMonitor {
+        /// Creates a monitor with mock storage for testing
+        static func forTesting(
+            storage: ClipboardItemStoring? = nil
+        ) -> ClipboardMonitor {
+            ClipboardMonitor(storage: storage ?? MockClipboardItemStore(), pollInterval: 0.1)
+        }
     }
-}
+#endif

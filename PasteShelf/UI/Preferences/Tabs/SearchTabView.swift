@@ -12,6 +12,7 @@ import SwiftUI
 struct SearchTabView: View {
     // MARK: - Properties
 
+    @ObservedObject private var settingsManager = SettingsManager.shared
     @ObservedObject private var embeddingGenerator = EmbeddingGenerator.shared
     @ObservedObject private var ocrGenerator = OCRGenerator.shared
 
@@ -19,10 +20,11 @@ struct SearchTabView: View {
     @State private var showingOCRClearConfirmation = false
     @State private var indexedCount: Int = 0
     @State private var ocrProcessedCount: Int = 0
-    @State private var semanticSearchEnabled: Bool = SettingsManager.shared.search.semanticSearchEnabled
-    @State private var semanticThreshold: Double = SettingsManager.shared.search.semanticThreshold
-    @State private var ocrSearchEnabled: Bool = SettingsManager.shared.search.ocrSearchEnabled
-    @State private var ocrConfidenceThreshold: Double = SettingsManager.shared.search.ocrConfidenceThreshold
+
+    private var semanticSearchEnabled: Bool { settingsManager.search.semanticSearchEnabled }
+    private var semanticThreshold: Double { settingsManager.search.semanticThreshold }
+    private var ocrSearchEnabled: Bool { settingsManager.search.ocrSearchEnabled }
+    private var ocrConfidenceThreshold: Double { settingsManager.search.ocrConfidenceThreshold }
 
     // MARK: - Body
 
@@ -105,10 +107,9 @@ struct SearchTabView: View {
     private var semanticSearchSection: some View {
         // Enable/Disable Toggle
         Toggle("Enable Semantic Search", isOn: Binding(
-            get: { semanticSearchEnabled },
+            get: { settingsManager.search.semanticSearchEnabled },
             set: { newValue in
-                semanticSearchEnabled = newValue
-                SettingsManager.shared.update { $0.search.semanticSearchEnabled = newValue }
+                settingsManager.update { $0.search.semanticSearchEnabled = newValue }
                 if newValue {
                     Task {
                         await startIndexing()
@@ -139,9 +140,14 @@ struct SearchTabView: View {
                     .monospacedDigit()
             }
 
-            Slider(value: $semanticThreshold, in: 0.3...0.8, step: 0.05) { _ in
-                SettingsManager.shared.update { $0.search.semanticThreshold = semanticThreshold }
-            }
+            Slider(
+                value: Binding(
+                    get: { settingsManager.search.semanticThreshold },
+                    set: { newValue in settingsManager.update { $0.search.semanticThreshold = newValue } }
+                ),
+                in: 0.3...0.8,
+                step: 0.05
+            )
 
             Text("Higher values show only more relevant matches. Lower values show more results.")
                 .font(.caption)
@@ -156,10 +162,9 @@ struct SearchTabView: View {
     private var ocrSearchSection: some View {
         // Enable/Disable Toggle
         Toggle("Enable OCR Search", isOn: Binding(
-            get: { ocrSearchEnabled },
+            get: { settingsManager.search.ocrSearchEnabled },
             set: { newValue in
-                ocrSearchEnabled = newValue
-                SettingsManager.shared.update { $0.search.ocrSearchEnabled = newValue }
+                settingsManager.update { $0.search.ocrSearchEnabled = newValue }
                 if newValue {
                     Task {
                         await startOCRProcessing()
@@ -190,9 +195,14 @@ struct SearchTabView: View {
                     .monospacedDigit()
             }
 
-            Slider(value: $ocrConfidenceThreshold, in: 0.3...0.9, step: 0.05) { _ in
-                SettingsManager.shared.update { $0.search.ocrConfidenceThreshold = ocrConfidenceThreshold }
-            }
+            Slider(
+                value: Binding(
+                    get: { settingsManager.search.ocrConfidenceThreshold },
+                    set: { newValue in settingsManager.update { $0.search.ocrConfidenceThreshold = newValue } }
+                ),
+                in: 0.3...0.9,
+                step: 0.05
+            )
 
             Text("Higher values require more accurate text recognition. Lower values may include misread text.")
                 .font(.caption)

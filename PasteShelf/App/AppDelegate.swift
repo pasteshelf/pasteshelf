@@ -228,9 +228,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if monitor.isPaused {
             monitor.resume()
             menuBarController?.updateState(.idle)
+            SettingsManager.shared.update { $0.privacy.isMonitoringPaused = false }
         } else {
             monitor.pause()
             menuBarController?.updateState(.paused)
+            SettingsManager.shared.update { $0.privacy.isMonitoringPaused = true }
         }
     }
 
