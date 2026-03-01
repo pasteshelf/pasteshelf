@@ -45,21 +45,6 @@ enum MenuBarIconProvider {
     static var idleImage: NSImage? {
         image(for: idleIcon)
     }
-
-    /// Returns the active state icon as NSImage
-    static var activeImage: NSImage? {
-        image(for: activeIcon)
-    }
-
-    /// Returns the paused state icon as NSImage
-    static var pausedImage: NSImage? {
-        image(for: pausedIcon)
-    }
-
-    /// Returns the error state icon as NSImage
-    static var errorImage: NSImage? {
-        image(for: errorIcon)
-    }
 }
 
 // MARK: - Menu Bar State

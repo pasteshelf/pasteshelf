@@ -331,9 +331,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Apply monitoring pause state explicitly to prevent drift
         setMonitoringPaused(settings.privacy.isMonitoringPaused)
 
-        // TODO: Wire checkForUpdates setting to an update framework (e.g., Sparkle)
-        // settings.general.checkForUpdates is stored but not yet consumed by any service
-
         // Apply history limit by triggering cleanup if needed
         if let limit = settings.general.historyLimit.limit {
             Task {
