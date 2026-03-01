@@ -27,6 +27,7 @@
 		68632E092F32682C00DA156E /* PasteShelf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PasteShelf.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		68632E1B2F32682E00DA156E /* PasteShelfTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PasteShelfTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		68632E252F32682E00DA156E /* PasteShelfUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PasteShelfUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC000001AAAA000100000001 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +76,7 @@
 		68632E002F32682C00DA156E = {
 			isa = PBXGroup;
 			children = (
+				CC000002AAAA000200000002 /* Configuration */,
 				68632E0B2F32682C00DA156E /* PasteShelf */,
 				68632E1E2F32682E00DA156E /* PasteShelfTests */,
 				68632E282F32682E00DA156E /* PasteShelfUITests */,
@@ -90,6 +92,14 @@
 				68632E252F32682E00DA156E /* PasteShelfUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CC000002AAAA000200000002 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				CC000001AAAA000100000001 /* Shared.xcconfig */,
+			);
+			path = Configuration;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -271,6 +281,7 @@
 /* Begin XCBuildConfiguration section */
 		68632E2D2F32682E00DA156E /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC000001AAAA000100000001 /* Shared.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -304,7 +315,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -335,6 +345,7 @@
 		};
 		68632E2E2F32682E00DA156E /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC000001AAAA000100000001 /* Shared.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -368,7 +379,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -391,6 +401,7 @@
 		};
 		68632E302F32682E00DA156E /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC000001AAAA000100000001 /* Shared.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -398,7 +409,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -425,6 +435,7 @@
 		};
 		68632E312F32682E00DA156E /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC000001AAAA000100000001 /* Shared.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -432,7 +443,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -459,11 +469,11 @@
 		};
 		68632E332F32682E00DA156E /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC000001AAAA000100000001 /* Shared.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
@@ -480,11 +490,11 @@
 		};
 		68632E342F32682E00DA156E /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC000001AAAA000100000001 /* Shared.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
@@ -501,10 +511,10 @@
 		};
 		68632E362F32682E00DA156E /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC000001AAAA000100000001 /* Shared.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pasteshelf.PasteShelfUITests;
@@ -520,10 +530,10 @@
 		};
 		68632E372F32682E00DA156E /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC000001AAAA000100000001 /* Shared.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pasteshelf.PasteShelfUITests;
