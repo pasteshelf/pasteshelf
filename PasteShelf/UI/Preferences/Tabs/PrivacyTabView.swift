@@ -5,6 +5,7 @@
 //  Privacy settings tab for preferences window.
 //
 
+import AppKit
 import SwiftUI
 
 /// Privacy settings tab view

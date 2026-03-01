@@ -96,6 +96,7 @@ final class PreferencesWindowController: NSObject {
         // Create SwiftUI content
         let viewModel = PreferencesViewModel()
         let contentView = PreferencesView(viewModel: viewModel)
+            .environmentObject(SettingsManager.shared)
         let hostingView = NSHostingView(rootView: contentView)
         hostingView.frame = contentRect
 

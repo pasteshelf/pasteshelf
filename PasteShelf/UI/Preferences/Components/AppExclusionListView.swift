@@ -5,6 +5,7 @@
 //  Displays a list of excluded applications with remove buttons.
 //
 
+import AppKit
 import SwiftUI
 
 /// View showing a list of excluded app bundle IDs

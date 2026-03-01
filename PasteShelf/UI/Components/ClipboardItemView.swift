@@ -6,6 +6,7 @@
 //  Handles text, images, URLs, and sensitive content with appropriate masking.
 //
 
+import AppKit
 import SwiftUI
 
 /// View for displaying a single clipboard item

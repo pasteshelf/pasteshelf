@@ -11,7 +11,7 @@ import SwiftUI
 struct SyncTabView: View {
     // MARK: - Properties
 
-    @StateObject private var syncManager = SyncManager.shared
+    @ObservedObject private var syncManager = SyncManager.shared
 
     @State private var showingResetConfirmation = false
     @State private var errorMessage: String?
@@ -192,14 +192,6 @@ struct SyncTabView: View {
             }
         }
     }
-}
-
-// MARK: - SyncManager Shared Instance Extension
-
-extension SyncManager {
-    /// Shared singleton instance
-    @MainActor
-    static let shared = SyncManager()
 }
 
 // MARK: - Preview

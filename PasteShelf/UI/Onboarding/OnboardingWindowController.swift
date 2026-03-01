@@ -112,6 +112,7 @@ final class OnboardingWindowController: NSObject {
 
         // Create SwiftUI content
         let contentView = OnboardingView(viewModel: vm)
+            .environmentObject(SettingsManager.shared)
             .onReceive(vm.$isComplete) { [weak self] isComplete in
                 if isComplete {
                     self?.handleCompletion()
