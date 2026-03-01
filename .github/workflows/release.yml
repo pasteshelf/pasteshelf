@@ -43,15 +43,31 @@ jobs:
             echo "VERSION=dev-$(date +%Y%m%d%H%M%S)" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build Release Archive
+      - name: Inject Team ID into ExportOptions
+        if: env.APPLE_TEAM_ID != ''
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
+          sed -i '' "s/TEAM_ID_PLACEHOLDER/$APPLE_TEAM_ID/g" ExportOptions.plist
+          sed -i '' "s/TEAM_ID_PLACEHOLDER/$APPLE_TEAM_ID/g" ExportOptions-AppStore.plist
+
+      - name: Build Release Archive
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          TEAM_FLAG=""
+          SIGNING_FLAG="CODE_SIGNING_ALLOWED=NO"
+          if [ -n "$APPLE_TEAM_ID" ]; then
+            TEAM_FLAG="DEVELOPMENT_TEAM=$APPLE_TEAM_ID"
+            SIGNING_FLAG=""
+          fi
           xcodebuild archive \
             -scheme PasteShelf \
             -configuration Release \
             -archivePath build/PasteShelf.xcarchive \
-            CODE_SIGNING_ALLOWED=NO
+            $SIGNING_FLAG $TEAM_FLAG
 
-      - name: Export App (Unsigned)
+      - name: Export App
         run: |
           xcodebuild -exportArchive \
             -archivePath build/PasteShelf.xcarchive \
@@ -84,8 +100,10 @@ jobs:
       #     security list-keychains -d user -s build.keychain login.keychain
       #
       # - name: Sign App
+      #   env:
+      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       #   run: |
-      #     codesign --force --deep --sign "Developer ID Application: Your Name (TEAM_ID)" \
+      #     codesign --force --deep --sign "Developer ID Application: PasteShelf ($APPLE_TEAM_ID)" \
       #       --options runtime \
       #       build/export/PasteShelf.app
 
