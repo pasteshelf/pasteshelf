@@ -118,14 +118,14 @@ metadata:
 data:
   org-id: "default"
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: pasteshelf-sync-secrets
-type: Opaque
-stringData:
-  database-host: "postgres-service"
-  database-username: "pasteshelf"
-  database-password: "REPLACE_ME"
-  database-name: "pasteshelf_sync"
-  jwt-secret: "REPLACE_ME"
+# IMPORTANT: Do NOT define Secrets in version control.
+# Create the required secret before deploying:
+#
+#   kubectl create secret generic pasteshelf-sync-secrets \
+#     --from-literal=database-host=<DB_HOST> \
+#     --from-literal=database-username=<DB_USER> \
+#     --from-literal=database-password="$(openssl rand -base64 24)" \
+#     --from-literal=database-name=<DB_NAME> \
+#     --from-literal=jwt-secret="$(openssl rand -hex 32)"
+#
+# Or use your preferred secret management solution (SealedSecrets, ExternalSecrets, Vault, etc.).
