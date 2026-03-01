@@ -132,6 +132,30 @@ struct DeduplicatorTests {
     }
 }
 
+// MARK: - Deduplication Options (test-only)
+
+/// Options for customizing deduplication behavior
+struct DeduplicationOptions: Sendable {
+    /// Whether to consider whitespace differences as unique content
+    var whitespaceSignificant: Bool = false
+
+    /// Whether to consider case differences as unique content
+    var caseSensitive: Bool = true
+
+    /// Whether to consider RTF formatting as part of uniqueness
+    var formattingSignificant: Bool = false
+
+    /// Default options - semantic comparison only
+    static let `default` = DeduplicationOptions()
+
+    /// Strict options - all differences matter
+    static let strict = DeduplicationOptions(
+        whitespaceSignificant: true,
+        caseSensitive: true,
+        formattingSignificant: true
+    )
+}
+
 // MARK: - Configurable Deduplicator (test-only)
 
 /// Deduplicator with configurable comparison options (used only in tests)

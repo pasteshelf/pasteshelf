@@ -6,6 +6,7 @@
 //  preview options, and display preferences.
 //
 
+import CoreGraphics
 import Foundation
 
 /// Appearance and UI settings

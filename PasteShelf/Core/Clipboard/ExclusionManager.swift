@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import ApplicationServices
 import Foundation
 import os.log
 

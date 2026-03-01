@@ -113,6 +113,9 @@ final class FloatingPanelViewModel: ObservableObject {
     /// Search engine for full-text and semantic search
     private let searchEngine: HybridSearchEngine
 
+    /// Settings manager for reading search preferences
+    private let settingsManager: SettingsManager
+
     /// Whether semantic search is active for the current results
     @Published private(set) var isSemanticSearchActive: Bool = false
 
@@ -152,8 +155,9 @@ final class FloatingPanelViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(storageManager: StorageManager = .shared) {
+    init(storageManager: StorageManager = .shared, settingsManager: SettingsManager = .shared) {
         self.storageManager = storageManager
+        self.settingsManager = settingsManager
         self.searchEngine = HybridSearchEngine(storageManager: storageManager)
         setupSearchDebounce()
     }
@@ -265,7 +269,7 @@ final class FloatingPanelViewModel: ObservableObject {
         var options = activeFilters.toSearchOptions(limit: maxItems)
 
         // Enable semantic search if available and user has enabled it
-        let searchSettings = SettingsManager.shared.search
+        let searchSettings = settingsManager.search
         options.enableSemanticSearch = searchSettings.semanticSearchEnabled && isSemanticSearchAvailable
         options.semanticThreshold = searchSettings.semanticThreshold
 

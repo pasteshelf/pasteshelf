@@ -91,6 +91,11 @@ final class Deduplicator: Deduplicating, Sendable {
     private func hashImage(_ content: ClipboardContent, into hasher: inout SHA256) {
         if let imageData = content.imageData {
             hasher.update(data: imageData)
+        } else {
+            // Use content type + ID as fallback to avoid hash collisions
+            // when imageData extraction fails
+            let fallback = "image-no-data-\(content.id.uuidString)"
+            hasher.update(data: Data(fallback.utf8))
         }
     }
 
@@ -178,27 +183,4 @@ final class Deduplicator: Deduplicating, Sendable {
     }
 }
 
-// MARK: - Hash Comparison Options
-
-/// Options for customizing deduplication behavior
-struct DeduplicationOptions: Sendable {
-    /// Whether to consider whitespace differences as unique content
-    var whitespaceSignificant: Bool = false
-
-    /// Whether to consider case differences as unique content
-    var caseSensitive: Bool = true
-
-    /// Whether to consider RTF formatting as part of uniqueness
-    var formattingSignificant: Bool = false
-
-    /// Default options - semantic comparison only
-    static let `default` = DeduplicationOptions()
-
-    /// Strict options - all differences matter
-    static let strict = DeduplicationOptions(
-        whitespaceSignificant: true,
-        caseSensitive: true,
-        formattingSignificant: true
-    )
-}
 
