@@ -46,10 +46,15 @@ struct GeneralTabView: View {
                     .foregroundColor(.secondary)
             }
 
+            // TODO: Wire to an update framework (e.g. Sparkle) when auto-update is implemented
             Section {
                 Toggle("Check for updates automatically", isOn: $viewModel.checkForUpdates)
                     .accessibilityLabel("Check for updates automatically")
                     .accessibilityHint("When enabled, PasteShelf will check for updates periodically")
+                    .disabled(true)
+                Text("Auto-update is not yet available. Check GitHub for new releases.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             } header: {
                 Text("Updates")
             }

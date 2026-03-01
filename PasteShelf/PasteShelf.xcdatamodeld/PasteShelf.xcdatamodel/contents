@@ -4,6 +4,11 @@
         <attribute name="bundleId" optional="YES" attributeType="String"/>
         <attribute name="isExcluded" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="bundleId"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="ClipboardContentData" representedClassName="ClipboardContentData" syncable="YES">
         <attribute name="availableTypesJSON" optional="YES" attributeType="String"/>
@@ -69,7 +74,7 @@
         <attribute name="sortOrder" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ClipboardItem" inverseName="folder" inverseEntity="ClipboardItem"/>
         <relationship name="parentFolder" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Folder" inverseName="subfolders" inverseEntity="Folder"/>
-        <relationship name="subfolders" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Folder" inverseName="parentFolder" inverseEntity="Folder"/>
+        <relationship name="subfolders" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Folder" inverseName="parentFolder" inverseEntity="Folder"/>
     </entity>
     <entity name="SyncMetadata" representedClassName="SyncMetadata" syncable="YES">
         <attribute name="changeToken" optional="YES" attributeType="Binary"/>

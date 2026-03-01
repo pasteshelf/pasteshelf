@@ -68,7 +68,7 @@ final class ExclusionManager: AppExcluding {
     // MARK: - Properties
 
     /// User-customized excluded bundle IDs (stored in UserDefaults)
-    private var userExcludedBundleIds: Set<String> {
+    private(set) var userExcludedBundleIds: Set<String> {
         didSet {
             saveUserExclusions()
         }
@@ -212,10 +212,13 @@ final class ExclusionManager: AppExcluding {
             return nil
         }
 
+        // windowElement from kAXFocusedWindowAttribute is always an AXUIElement
+        // swiftlint:disable:next force_cast
+        let axWindow = windowElement as! AXUIElement
+
         var titleValue: CFTypeRef?
         let titleResult = AXUIElementCopyAttributeValue(
-            // swiftlint:disable:next force_cast
-            windowElement as! AXUIElement,
+            axWindow,
             kAXTitleAttribute as CFString,
             &titleValue
         )
