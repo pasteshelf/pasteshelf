@@ -234,6 +234,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Explicitly sets monitoring pause state to prevent drift
+    private func setMonitoringPaused(_ paused: Bool) {
+        guard let monitor = clipboardMonitor else { return }
+
+        if paused && !monitor.isPaused {
+            monitor.pause()
+            menuBarController?.updateState(.paused)
+        } else if !paused && monitor.isPaused {
+            monitor.resume()
+            menuBarController?.updateState(.idle)
+        }
+    }
+
     private func showPreferences() {
         PreferencesWindowController.shared.show()
         logger.debug("Preferences window shown")
@@ -315,10 +328,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Apply launch at login changes
         LaunchAtLoginManager.shared.setEnabled(settings.general.launchAtLogin)
 
-        // Apply monitoring pause state
-        if settings.privacy.isMonitoringPaused != clipboardMonitor?.isPaused {
-            toggleMonitoring()
-        }
+        // Apply monitoring pause state explicitly to prevent drift
+        setMonitoringPaused(settings.privacy.isMonitoringPaused)
 
         // TODO: Wire checkForUpdates setting to an update framework (e.g., Sparkle)
         // settings.general.checkForUpdates is stored but not yet consumed by any service
@@ -338,8 +349,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Starts background embedding generation for semantic search
     private func startBackgroundEmbeddingGeneration() {
         // Check if semantic search is enabled in settings
-        let semanticEnabled = UserDefaults.standard.bool(forKey: "semanticSearchEnabled")
-        guard semanticEnabled else {
+        guard SettingsManager.shared.search.semanticSearchEnabled else {
             logger.debug("Semantic search disabled, skipping embedding generation")
             return
         }
@@ -360,8 +370,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Generates embedding for a newly captured clipboard item
     private func generateEmbeddingForNewItem(id: UUID) {
         // Check if semantic search is enabled
-        let semanticEnabled = UserDefaults.standard.bool(forKey: "semanticSearchEnabled")
-        guard semanticEnabled else { return }
+        guard SettingsManager.shared.search.semanticSearchEnabled else { return }
 
         Task.detached(priority: .background) {
             await EmbeddingGenerator.shared.generateEmbedding(for: id)

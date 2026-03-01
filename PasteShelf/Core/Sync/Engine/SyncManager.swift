@@ -620,3 +620,11 @@ public final class SyncManager: ObservableObject, SyncManaging {
         }
     }
 }
+
+// MARK: - Shared Instance
+
+extension SyncManager {
+    /// Shared singleton instance
+    @MainActor
+    static let shared = SyncManager()
+}

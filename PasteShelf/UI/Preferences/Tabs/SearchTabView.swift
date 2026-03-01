@@ -12,17 +12,17 @@ import SwiftUI
 struct SearchTabView: View {
     // MARK: - Properties
 
-    @StateObject private var embeddingGenerator = EmbeddingGenerator.shared
-    @StateObject private var ocrGenerator = OCRGenerator.shared
+    @ObservedObject private var embeddingGenerator = EmbeddingGenerator.shared
+    @ObservedObject private var ocrGenerator = OCRGenerator.shared
 
     @State private var showingClearConfirmation = false
     @State private var showingOCRClearConfirmation = false
     @State private var indexedCount: Int = 0
     @State private var ocrProcessedCount: Int = 0
-    @State private var semanticSearchEnabled: Bool = UserDefaults.standard.bool(forKey: "semanticSearchEnabled")
-    @State private var semanticThreshold: Double = UserDefaults.standard.double(forKey: "semanticThreshold") == 0 ? 0.5 : UserDefaults.standard.double(forKey: "semanticThreshold")
-    @State private var ocrSearchEnabled: Bool = UserDefaults.standard.bool(forKey: "ocrSearchEnabled")
-    @State private var ocrConfidenceThreshold: Double = UserDefaults.standard.double(forKey: "ocrConfidenceThreshold") == 0 ? 0.5 : UserDefaults.standard.double(forKey: "ocrConfidenceThreshold")
+    @State private var semanticSearchEnabled: Bool = SettingsManager.shared.search.semanticSearchEnabled
+    @State private var semanticThreshold: Double = SettingsManager.shared.search.semanticThreshold
+    @State private var ocrSearchEnabled: Bool = SettingsManager.shared.search.ocrSearchEnabled
+    @State private var ocrConfidenceThreshold: Double = SettingsManager.shared.search.ocrConfidenceThreshold
 
     // MARK: - Body
 
@@ -108,7 +108,7 @@ struct SearchTabView: View {
             get: { semanticSearchEnabled },
             set: { newValue in
                 semanticSearchEnabled = newValue
-                UserDefaults.standard.set(newValue, forKey: "semanticSearchEnabled")
+                SettingsManager.shared.update { $0.search.semanticSearchEnabled = newValue }
                 if newValue {
                     Task {
                         await startIndexing()
@@ -140,7 +140,7 @@ struct SearchTabView: View {
             }
 
             Slider(value: $semanticThreshold, in: 0.3...0.8, step: 0.05) { _ in
-                UserDefaults.standard.set(semanticThreshold, forKey: "semanticThreshold")
+                SettingsManager.shared.update { $0.search.semanticThreshold = semanticThreshold }
             }
 
             Text("Higher values show only more relevant matches. Lower values show more results.")
@@ -159,7 +159,7 @@ struct SearchTabView: View {
             get: { ocrSearchEnabled },
             set: { newValue in
                 ocrSearchEnabled = newValue
-                UserDefaults.standard.set(newValue, forKey: "ocrSearchEnabled")
+                SettingsManager.shared.update { $0.search.ocrSearchEnabled = newValue }
                 if newValue {
                     Task {
                         await startOCRProcessing()
@@ -191,7 +191,7 @@ struct SearchTabView: View {
             }
 
             Slider(value: $ocrConfidenceThreshold, in: 0.3...0.9, step: 0.05) { _ in
-                UserDefaults.standard.set(ocrConfidenceThreshold, forKey: "ocrConfidenceThreshold")
+                SettingsManager.shared.update { $0.search.ocrConfidenceThreshold = ocrConfidenceThreshold }
             }
 
             Text("Higher values require more accurate text recognition. Lower values may include misread text.")

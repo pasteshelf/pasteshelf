@@ -6,6 +6,7 @@
 //  Used for presenting tags in SwiftUI views.
 //
 
+import AppKit
 import SwiftUI
 
 /// UI-friendly model for displaying tags

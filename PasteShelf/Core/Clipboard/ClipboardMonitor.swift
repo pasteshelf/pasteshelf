@@ -223,14 +223,15 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
 
         updateRecentHashes(with: content.contentHash)
 
-        // Save first, then notify delegate after persistence completes
+        // Save first, then notify delegate only after successful persistence
         Task {
             let saved = await saveToStorageAsync(content, sourceApp: sourceApp)
-            if !saved {
+            if saved {
+                delegate?.clipboardMonitor(self, didCapture: content, from: sourceApp)
+            } else {
                 metrics.errorCount += 1
                 Logger.clipboard.error("Failed to save clipboard content to storage")
             }
-            delegate?.clipboardMonitor(self, didCapture: content, from: sourceApp)
         }
 
         let timeMs = String(format: "%.2fms", captureTime * 1_000)

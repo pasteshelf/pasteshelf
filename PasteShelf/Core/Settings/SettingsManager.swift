@@ -88,6 +88,15 @@ final class SettingsManager: ObservableObject {
         }
     }
 
+    /// Search settings
+    var search: SearchSettings {
+        get { settings.search }
+        set {
+            settings.search = newValue
+            logger.debug("Search settings updated")
+        }
+    }
+
     // MARK: - Methods
 
     /// Updates a specific setting using a closure

@@ -5,6 +5,7 @@
 //  About tab for preferences window.
 //
 
+import AppKit
 import SwiftUI
 
 /// About tab view

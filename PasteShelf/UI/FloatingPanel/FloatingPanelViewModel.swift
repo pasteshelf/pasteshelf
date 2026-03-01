@@ -265,9 +265,9 @@ final class FloatingPanelViewModel: ObservableObject {
         var options = activeFilters.toSearchOptions(limit: maxItems)
 
         // Enable semantic search if available and user has enabled it
-        let semanticEnabled = UserDefaults.standard.bool(forKey: "semanticSearchEnabled")
-        options.enableSemanticSearch = semanticEnabled && isSemanticSearchAvailable
-        options.semanticThreshold = UserDefaults.standard.double(forKey: "semanticThreshold") == 0 ? 0.5 : UserDefaults.standard.double(forKey: "semanticThreshold")
+        let searchSettings = SettingsManager.shared.search
+        options.enableSemanticSearch = searchSettings.semanticSearchEnabled && isSemanticSearchAvailable
+        options.semanticThreshold = searchSettings.semanticThreshold
 
         // Execute search
         let results = await searchEngine.search(query: trimmedQuery, options: options)
