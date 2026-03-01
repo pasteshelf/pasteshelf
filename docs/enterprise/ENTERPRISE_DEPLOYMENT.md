@@ -249,7 +249,7 @@ services:
   sync-server:
     image: pasteshelf/sync-server:latest
     environment:
-      - DATABASE_URL=postgres://USERNAME:PASSWORD@db:5432/sync
+      - DATABASE_URL=postgres://<USERNAME>:<PASSWORD>@db:5432/sync
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     ports:
       - "8081:8081"
