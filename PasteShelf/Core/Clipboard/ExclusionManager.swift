@@ -67,10 +67,17 @@ final class ExclusionManager: AppExcluding {
 
     // MARK: - Properties
 
-    /// User-customized excluded bundle IDs (stored in UserDefaults)
-    private(set) var userExcludedBundleIds: Set<String> {
-        didSet {
-            saveUserExclusions()
+    /// User-customized excluded bundle IDs (delegates to SettingsManager)
+    var userExcludedBundleIds: Set<String> {
+        get { Set(SettingsManager.shared.privacy.excludedAppBundleIds) }
+        set {
+            SettingsManager.shared.privacy = PrivacySettings(
+                autoDeleteEnabled: SettingsManager.shared.privacy.autoDeleteEnabled,
+                autoDeleteDays: SettingsManager.shared.privacy.autoDeleteDays,
+                isMonitoringPaused: SettingsManager.shared.privacy.isMonitoringPaused,
+                excludePrivateBrowsing: SettingsManager.shared.privacy.excludePrivateBrowsing,
+                excludedAppBundleIds: Array(newValue)
+            )
         }
     }
 
@@ -80,12 +87,14 @@ final class ExclusionManager: AppExcluding {
     /// Own bundle ID
     private let ownBundleId: String
 
+    /// Override for testing (bypasses SettingsManager)
+    private var testUserExclusions: Set<String>?
+
     // MARK: - Initialization
 
     private init(excludeOwnApp: Bool = true) {
         self.excludeOwnApp = excludeOwnApp
         self.ownBundleId = Bundle.main.bundleIdentifier ?? "com.pasteshelf.PasteShelf"
-        self.userExcludedBundleIds = Self.loadUserExclusions()
     }
 
     /// Creates an ExclusionManager for testing
@@ -95,15 +104,20 @@ final class ExclusionManager: AppExcluding {
         excludeOwnApp: Bool = false
     ) -> ExclusionManager {
         let manager = ExclusionManager(excludeOwnApp: excludeOwnApp)
-        manager.userExcludedBundleIds = userExclusions
+        manager.testUserExclusions = userExclusions
         return manager
     }
 
     // MARK: - AppExcluding
 
+    /// Effective user exclusions (uses test override if set)
+    private var effectiveUserExclusions: Set<String> {
+        testUserExclusions ?? userExcludedBundleIds
+    }
+
     var excludedBundleIds: [String] {
         var allExcluded = Set(defaultExcludedBundleIds)
-        allExcluded.formUnion(userExcludedBundleIds)
+        allExcluded.formUnion(effectiveUserExclusions)
         if excludeOwnApp {
             allExcluded.insert(ownBundleId)
         }
@@ -122,7 +136,7 @@ final class ExclusionManager: AppExcluding {
         }
 
         // Check user exclusions
-        if userExcludedBundleIds.contains(bundleId) {
+        if effectiveUserExclusions.contains(bundleId) {
             return true
         }
 
@@ -142,7 +156,13 @@ final class ExclusionManager: AppExcluding {
             Logger.clipboard.debug("Bundle ID \(bundleId) is already in default exclusions")
             return
         }
-        userExcludedBundleIds.insert(bundleId)
+        if testUserExclusions != nil {
+            testUserExclusions?.insert(bundleId)
+        } else {
+            var current = userExcludedBundleIds
+            current.insert(bundleId)
+            userExcludedBundleIds = current
+        }
         Logger.clipboard.info("Added \(bundleId) to exclusion list")
     }
 
@@ -151,7 +171,13 @@ final class ExclusionManager: AppExcluding {
             Logger.clipboard.warning("Cannot include default-excluded app: \(bundleId)")
             return
         }
-        userExcludedBundleIds.remove(bundleId)
+        if testUserExclusions != nil {
+            testUserExclusions?.remove(bundleId)
+        } else {
+            var current = userExcludedBundleIds
+            current.remove(bundleId)
+            userExcludedBundleIds = current
+        }
         Logger.clipboard.info("Removed \(bundleId) from exclusion list")
     }
 
@@ -229,22 +255,6 @@ final class ExclusionManager: AppExcluding {
         }
 
         return title
-    }
-
-    // MARK: - Persistence
-
-    private static let userExclusionsKey = "PasteShelf.UserExcludedBundleIds"
-
-    private static func loadUserExclusions() -> Set<String> {
-        let array = UserDefaults.standard.stringArray(forKey: userExclusionsKey) ?? []
-        return Set(array)
-    }
-
-    private func saveUserExclusions() {
-        UserDefaults.standard.set(
-            Array(userExcludedBundleIds),
-            forKey: Self.userExclusionsKey
-        )
     }
 
     // MARK: - Utility Methods

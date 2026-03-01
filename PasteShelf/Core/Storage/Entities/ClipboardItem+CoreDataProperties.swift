@@ -39,6 +39,9 @@ extension ClipboardItem {
     /// Whether this item contains sensitive data
     @NSManaged public var isSensitive: Bool
 
+    /// JSON-encoded array of sensitive data types detected (e.g., "password", "creditCard")
+    @NSManaged public var sensitiveTypesJSON: String?
+
     /// Whether this item is marked as favorite
     @NSManaged public var isFavorite: Bool
 

@@ -20,6 +20,9 @@ struct ClipboardItemView: View {
     /// Optional search query for highlighting
     var searchQuery: String?
 
+    /// Observe settings for reactive updates
+    @ObservedObject private var settingsManager = SettingsManager.shared
+
     /// Whether sensitive content should be revealed
     @State private var isRevealed = false
 
@@ -52,8 +55,8 @@ struct ClipboardItemView: View {
             // Actions/indicators
             indicators
         }
-        .padding(.horizontal, SettingsManager.shared.appearance.compactMode ? 8 : 12)
-        .padding(.vertical, SettingsManager.shared.appearance.compactMode ? 4 : 8)
+        .padding(.horizontal, settingsManager.appearance.compactMode ? 8 : 12)
+        .padding(.vertical, settingsManager.appearance.compactMode ? 4 : 8)
     }
 
     // MARK: - Content Type Icon
@@ -102,7 +105,7 @@ struct ClipboardItemView: View {
     private var contentPreview: some View {
         if item.isSensitive, !isRevealed {
             sensitiveContentView
-        } else if item.contentType.isImageType, item.hasThumbnail, SettingsManager.shared.appearance.showThumbnails {
+        } else if item.contentType.isImageType, item.hasThumbnail, settingsManager.appearance.showThumbnails {
             imagePreviewView
         } else {
             textPreviewView
@@ -201,21 +204,21 @@ struct ClipboardItemView: View {
                 HighlightedTextView(
                     text: item.shortDisplayText(maxLength: 100),
                     query: query,
-                    lineLimit: SettingsManager.shared.appearance.previewLines
+                    lineLimit: settingsManager.appearance.previewLines
                 )
             } else if !searchHighlights.isEmpty {
                 // Use provided highlight ranges
                 HighlightedTextView(
                     text: item.shortDisplayText(maxLength: 100),
                     matchRanges: searchHighlights,
-                    lineLimit: SettingsManager.shared.appearance.previewLines
+                    lineLimit: settingsManager.appearance.previewLines
                 )
             } else {
                 // Regular text
                 Text(item.shortDisplayText(maxLength: 100))
                     .font(.subheadline)
                     .foregroundColor(.primary)
-                    .lineLimit(SettingsManager.shared.appearance.previewLines)
+                    .lineLimit(settingsManager.appearance.previewLines)
                     .multilineTextAlignment(.leading)
             }
         }
