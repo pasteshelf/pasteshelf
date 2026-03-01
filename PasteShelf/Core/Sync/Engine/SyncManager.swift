@@ -3,7 +3,7 @@
 //  PasteShelf
 //
 //  Main coordinator for sync operations.
-//  Supports both CloudKit (Pro) and self-hosted (Enterprise) backends.
+//  Supports both CloudKit and self-hosted backends.
 //
 
 import CloudKit
@@ -57,7 +57,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
     /// The active sync backend (CloudKit or self-hosted). Set during `start()`.
     private var syncBackend: (any SyncBackend)?
 
-    /// Configuration for the self-hosted sync server (Enterprise).
+    /// Configuration for the self-hosted sync server.
     public var selfHostedConfiguration: SelfHostedSyncConfiguration?
 
     // MARK: - Network Monitoring
@@ -130,7 +130,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
     public func start() async throws {
         Self.logger.info("Starting sync engine")
 
-        // Determine which backend to use based on license and configuration
+        // Determine which backend to use based on configuration
         let backend = try resolveBackend()
         syncBackend = backend
 

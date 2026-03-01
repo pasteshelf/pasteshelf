@@ -2,7 +2,7 @@
 //  SelfHostedSyncConfiguration.swift
 //  PasteShelf
 //
-//  Configuration for connecting to a self-hosted sync server (Enterprise).
+//  Configuration for connecting to a self-hosted sync server.
 //
 
 import Foundation

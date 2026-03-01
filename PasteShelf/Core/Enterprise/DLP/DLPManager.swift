@@ -34,8 +34,8 @@ extension Notification.Name {
 /// before storing content. The evaluation result determines whether the content is blocked,
 /// redacted, or stored as-is.
 ///
-/// DLP is gated behind the `.dlpPolicies` licensed feature. All public methods check
-/// feature availability and return safe defaults when the feature is unavailable.
+/// All public methods check feature availability and return safe defaults when
+/// the feature is unavailable.
 @MainActor
 final class DLPManager: ObservableObject {
 

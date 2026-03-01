@@ -332,6 +332,18 @@ final class FloatingPanelViewModel: ObservableObject {
         await loadItems()
     }
 
+    /// Toggles a tag filter and reloads items
+    func toggleTagFilter(_ tagId: UUID) async {
+        activeFilters.toggleTag(tagId)
+        await loadItems()
+    }
+
+    /// Loads available tags from storage
+    func loadAvailableTags() async -> [TagDisplayModel] {
+        let tags = await storageManager.fetchTags()
+        return TagDisplayModel.from(tags)
+    }
+
     /// Clears all filters
     func clearAllFilters() async {
         activeFilters.clearAll()

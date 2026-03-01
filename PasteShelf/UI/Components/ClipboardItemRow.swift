@@ -138,8 +138,8 @@ struct ClipboardItemRow: View {
                 .buttonStyle(.plain)
                 .help("Paste (Enter)")
 
-                // Quick number indicator for keyboard shortcut
-                if index < 9 {
+                // Quick number indicator for keyboard shortcut (if enabled)
+                if SettingsManager.shared.shortcuts.quickPasteEnabled, index < 9 {
                     Text("\(index + 1)")
                         .font(.caption2)
                         .fontWeight(.medium)

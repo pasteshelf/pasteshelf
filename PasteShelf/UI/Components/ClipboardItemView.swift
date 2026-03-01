@@ -52,8 +52,8 @@ struct ClipboardItemView: View {
             // Actions/indicators
             indicators
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, SettingsManager.shared.appearance.compactMode ? 8 : 12)
+        .padding(.vertical, SettingsManager.shared.appearance.compactMode ? 4 : 8)
     }
 
     // MARK: - Content Type Icon
@@ -102,7 +102,7 @@ struct ClipboardItemView: View {
     private var contentPreview: some View {
         if item.isSensitive, !isRevealed {
             sensitiveContentView
-        } else if item.contentType.isImageType, item.hasThumbnail {
+        } else if item.contentType.isImageType, item.hasThumbnail, SettingsManager.shared.appearance.showThumbnails {
             imagePreviewView
         } else {
             textPreviewView
@@ -201,21 +201,21 @@ struct ClipboardItemView: View {
                 HighlightedTextView(
                     text: item.shortDisplayText(maxLength: 100),
                     query: query,
-                    lineLimit: 2
+                    lineLimit: SettingsManager.shared.appearance.previewLines
                 )
             } else if !searchHighlights.isEmpty {
                 // Use provided highlight ranges
                 HighlightedTextView(
                     text: item.shortDisplayText(maxLength: 100),
                     matchRanges: searchHighlights,
-                    lineLimit: 2
+                    lineLimit: SettingsManager.shared.appearance.previewLines
                 )
             } else {
                 // Regular text
                 Text(item.shortDisplayText(maxLength: 100))
                     .font(.subheadline)
                     .foregroundColor(.primary)
-                    .lineLimit(2)
+                    .lineLimit(SettingsManager.shared.appearance.previewLines)
                     .multilineTextAlignment(.leading)
             }
         }
