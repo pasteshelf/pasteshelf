@@ -38,7 +38,7 @@ extension Logger {
     static let app = Logger(subsystem: subsystem, category: "App")
 
     /// Logger for configuration operations
-    static let licensing = Logger(subsystem: subsystem, category: "Licensing")
+    static let configuration = Logger(subsystem: subsystem, category: "Configuration")
 
     /// Logger for plugin system operations
     static let plugins = Logger(subsystem: subsystem, category: "Plugins")

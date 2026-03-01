@@ -207,7 +207,7 @@ enum AuditError: Error, LocalizedError, Sendable {
         case .syncFailed(let reason):
             return reason
         case .featureUnavailable:
-            return "The current license does not include the Enterprise audit logging feature."
+            return "The audit logging feature is not currently available."
         }
     }
 

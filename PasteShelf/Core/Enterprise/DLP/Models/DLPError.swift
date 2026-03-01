@@ -61,7 +61,7 @@ enum DLPError: Error, LocalizedError, Sendable {
     var failureReason: String? {
         switch self {
         case .featureUnavailable:
-            return "The current license does not include the Enterprise DLP feature."
+            return "The DLP feature is not currently available."
         case .invalidPattern(let pattern):
             return "The regular expression \"\(pattern)\" is syntactically invalid and cannot be compiled by NSRegularExpression."
         case .storageFailure(let reason):

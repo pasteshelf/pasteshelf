@@ -48,7 +48,7 @@ struct FloatingPanelView: View {
             .animation(.easeInOut(duration: 0.2), value: viewModel.isLoading)
             .animation(.easeInOut(duration: 0.2), value: viewModel.items.count)
         }
-        .frame(width: 400, height: 520)
+        .frame(width: SettingsManager.shared.appearance.panelWidth.width, height: 520)
         .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
@@ -161,29 +161,94 @@ struct FloatingPanelView: View {
 
     // MARK: - Filter Chips
 
+    /// Whether the tag picker popover is shown
+    @State private var showTagPicker = false
+
+    /// Available tags loaded from storage
+    @State private var availableTags: [TagDisplayModel] = []
+
     private var filterChipsView: some View {
-        FilterChipsView(
-            selectedContentType: Binding(
-                get: { viewModel.activeFilters.contentTypeFilter },
-                set: { newValue in
-                    Task {
-                        if let filter = newValue {
-                            await viewModel.toggleContentTypeFilter(filter)
-                        } else if viewModel.activeFilters.contentTypeFilter != nil {
-                            await viewModel.toggleContentTypeFilter(viewModel.activeFilters.contentTypeFilter!)
+        HStack(spacing: 0) {
+            FilterChipsView(
+                selectedContentType: Binding(
+                    get: { viewModel.activeFilters.contentTypeFilter },
+                    set: { newValue in
+                        Task {
+                            if let filter = newValue {
+                                await viewModel.toggleContentTypeFilter(filter)
+                            } else if viewModel.activeFilters.contentTypeFilter != nil {
+                                await viewModel.toggleContentTypeFilter(viewModel.activeFilters.contentTypeFilter!)
+                            }
                         }
                     }
+                ),
+                favoritesOnly: Binding(
+                    get: { viewModel.activeFilters.favoritesOnly },
+                    set: { _ in
+                        Task {
+                            await viewModel.toggleFavoritesFilter()
+                        }
+                    }
+                )
+            )
+
+            // Tag filter button
+            Button {
+                Task {
+                    availableTags = await viewModel.loadAvailableTags()
                 }
-            ),
-            favoritesOnly: Binding(
-                get: { viewModel.activeFilters.favoritesOnly },
-                set: { _ in
-                    Task {
-                        await viewModel.toggleFavoritesFilter()
+                showTagPicker.toggle()
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "tag")
+                        .font(.system(size: 10, weight: .medium))
+                    if !viewModel.activeFilters.selectedTagIds.isEmpty {
+                        Text("\(viewModel.activeFilters.selectedTagIds.count)")
+                            .font(.system(size: 10, weight: .bold))
                     }
                 }
-            )
-        )
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    viewModel.activeFilters.selectedTagIds.isEmpty
+                        ? Color.clear
+                        : Color.accentColor.opacity(0.15)
+                )
+                .foregroundColor(
+                    viewModel.activeFilters.selectedTagIds.isEmpty
+                        ? .secondary
+                        : .accentColor
+                )
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .stroke(
+                            viewModel.activeFilters.selectedTagIds.isEmpty
+                                ? Color.secondary.opacity(0.3)
+                                : Color.accentColor.opacity(0.3),
+                            lineWidth: 1
+                        )
+                )
+            }
+            .buttonStyle(.plain)
+            .padding(.trailing, 12)
+            .popover(isPresented: $showTagPicker) {
+                TagPickerView(
+                    availableTags: availableTags,
+                    selectedTagIds: Binding(
+                        get: { viewModel.activeFilters.selectedTagIds },
+                        set: { newValue in
+                            viewModel.activeFilters.selectedTagIds = newValue
+                        }
+                    ),
+                    onSelectionChanged: {
+                        Task {
+                            await viewModel.loadItems()
+                        }
+                    }
+                )
+            }
+        }
     }
 
     // MARK: - Loading View

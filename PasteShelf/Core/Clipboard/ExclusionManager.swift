@@ -258,8 +258,8 @@ final class ExclusionManager: AppExcluding {
             return (true, .excludedApp(bundleId: bundleId))
         }
 
-        // Check private browsing
-        if isPrivateBrowsingActive() {
+        // Check private browsing (only if the setting is enabled)
+        if SettingsManager.shared.privacy.excludePrivateBrowsing, isPrivateBrowsingActive() {
             return (true, .privateBrowsing)
         }
 

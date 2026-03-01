@@ -119,8 +119,8 @@ final class MDMManager: ObservableObject {
 
     /// Returns the organization ID from MDM configuration, if set.
     ///
-    /// This is always read regardless of license tier since it's used for
-    /// license activation.
+    /// This is always read regardless of configuration since it's used for
+    /// organization identification.
     var organizationID: String? {
         if case .string(let id) = configuration.effectiveValue(for: .organizationID) {
             return id

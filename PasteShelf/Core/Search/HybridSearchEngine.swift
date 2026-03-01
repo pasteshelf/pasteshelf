@@ -22,6 +22,9 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     /// Weight for OCR search results (0.0 to 1.0)
     private let ocrWeight: Double = 0.5
 
+    /// Weight for fuzzy search results (0.0 to 1.0)
+    private let fuzzyWeight: Double = 0.3
+
     // MARK: - Properties
 
     /// Full-text search engine
@@ -32,6 +35,12 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
     /// OCR search engine for text in images
     private let ocrEngine: OCRSearchEngine
+
+    /// Fuzzy matcher for approximate string matching
+    private let fuzzyMatcher: FuzzyMatcher
+
+    /// Storage manager for fuzzy search item fetching
+    private let storageManager: StorageManager
 
     /// Query parser for natural language understanding
     private let queryParser: NaturalLanguageQueryParser.Type
@@ -51,11 +60,14 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     // MARK: - Initialization
 
     init(
-        storageManager: StorageManager = .shared
+        storageManager: StorageManager = .shared,
+        fuzzyMatcher: FuzzyMatcher = .default
     ) {
+        self.storageManager = storageManager
         self.fullTextEngine = FullTextSearchEngine(storageManager: storageManager)
         self.semanticEngine = SemanticSearchEngine(storageManager: storageManager)
         self.ocrEngine = OCRSearchEngine(storageManager: storageManager)
+        self.fuzzyMatcher = fuzzyMatcher
         self.queryParser = NaturalLanguageQueryParser.self
     }
 
@@ -115,15 +127,31 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
                 return []
             }
 
+            // Run fuzzy search as fallback when full-text returns few results
+            let fuzzyResults: [SearchResult]
+            if enhancedOptions.fuzzyMatching, fullText.count < enhancedOptions.limit / 2 {
+                let existingIds = Set(fullText.map(\.itemId))
+                    .union(semanticResults.map(\.itemId))
+                    .union(ocrResults.map(\.itemId))
+                fuzzyResults = await self.performFuzzySearch(
+                    query: trimmedQuery,
+                    options: enhancedOptions,
+                    excluding: existingIds
+                )
+            } else {
+                fuzzyResults = []
+            }
+
             // Merge results from all engines
             let merged = mergeResults(
                 fullText: fullText,
                 semantic: semanticResults,
                 ocr: ocrResults,
+                fuzzy: fuzzyResults,
                 limit: options.limit
             )
 
-            logger.debug("Hybrid search completed: \(merged.count) results (FT: \(fullText.count), Semantic: \(semanticResults.count), OCR: \(ocrResults.count))")
+            logger.debug("Hybrid search completed: \(merged.count) results (FT: \(fullText.count), Semantic: \(semanticResults.count), OCR: \(ocrResults.count), Fuzzy: \(fuzzyResults.count))")
             return merged
         }
 
@@ -205,11 +233,12 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
     // MARK: - Result Merging
 
-    /// Merges full-text, semantic, and OCR results using weighted scoring
+    /// Merges full-text, semantic, OCR, and fuzzy results using weighted scoring
     private func mergeResults(
         fullText: [SearchResult],
         semantic: [SearchResult],
         ocr: [SearchResult],
+        fuzzy: [SearchResult] = [],
         limit: Int
     ) -> [SearchResult] {
         // Create lookup dictionaries
@@ -228,10 +257,16 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
             ocrScores[result.itemId] = result
         }
 
+        var fuzzyScores: [UUID: SearchResult] = [:]
+        for result in fuzzy {
+            fuzzyScores[result.itemId] = result
+        }
+
         // Get all unique item IDs
         let allIds = Set(fullTextScores.keys)
             .union(semanticScores.keys)
             .union(ocrScores.keys)
+            .union(fuzzyScores.keys)
 
         // Calculate merged scores
         var mergedResults: [SearchResult] = []
@@ -276,6 +311,18 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
                 matchCount += 1
             }
 
+            // Add fuzzy contribution
+            if let fuz = fuzzyScores[itemId] {
+                combinedScore += fuz.relevanceScore * fuzzyWeight
+                if matchRanges.isEmpty {
+                    matchRanges = fuz.matchRanges
+                }
+                if matchCount == 0 {
+                    matchType = .fuzzy
+                }
+                matchCount += 1
+            }
+
             // Upgrade to hybrid if multiple engines matched
             if matchCount > 1 {
                 matchType = .hybrid
@@ -300,6 +347,49 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
             mergedResults
                 .sorted { $0.relevanceScore > $1.relevanceScore }
                 .prefix(limit)
+        )
+    }
+
+    // MARK: - Fuzzy Search
+
+    /// Performs fuzzy matching against recent clipboard items
+    private func performFuzzySearch(
+        query: String,
+        options: SearchOptions,
+        excluding existingIds: Set<UUID>
+    ) async -> [SearchResult] {
+        let matcher = FuzzyMatcher(threshold: options.fuzzyThreshold)
+
+        // Fetch recent items to fuzzy match against
+        let items = await storageManager.fetchRecentItems(
+            limit: options.limit * 2,
+            offset: 0
+        )
+
+        var results: [SearchResult] = []
+        for item in items {
+            guard let id = item.id, !existingIds.contains(id) else { continue }
+
+            let preview = item.plainTextPreview ?? ""
+            guard !preview.isEmpty else { continue }
+
+            if let match = matcher.findBestMatch(in: preview, for: query) {
+                let matchRange = matcher.toMatchRange(match, in: preview)
+                results.append(SearchResult(
+                    id: id,
+                    itemId: id,
+                    relevanceScore: match.similarity,
+                    matchRanges: [matchRange],
+                    matchType: .fuzzy
+                ))
+            }
+        }
+
+        // Sort by relevance and limit
+        return Array(
+            results
+                .sorted { $0.relevanceScore > $1.relevanceScore }
+                .prefix(options.limit)
         )
     }
 

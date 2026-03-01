@@ -74,8 +74,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up settings observers
         setupSettingsObservers()
 
-        // Start clipboard monitoring
-        clipboardMonitor?.startMonitoring()
+        // Start clipboard monitoring (unless paused in settings)
+        if SettingsManager.shared.privacy.isMonitoringPaused {
+            clipboardMonitor?.pause()
+            menuBarController?.updateState(.paused)
+            logger.info("Clipboard monitoring started in paused state (user preference)")
+        } else {
+            clipboardMonitor?.startMonitoring()
+        }
 
         // Start auto-cleanup manager
         AutoCleanupManager.shared.start()
@@ -113,6 +119,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Unregister hotkey
         hotkeyManager?.unregisterHotkey()
+
+        // Stop auto-cleanup
+        AutoCleanupManager.shared.stop()
 
         // Tear down menu bar
         menuBarController?.teardown()
@@ -161,7 +170,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotkeyManager?.onHotkeyPressed = { [weak self] in
             self?.floatingPanelController?.toggle()
         }
-        hotkeyManager?.registerDefaultHotkey()
+        // Register the saved hotkey configuration (falls back to default if none saved)
+        hotkeyManager?.register(configuration: hotkeyManager?.configuration ?? .default)
     }
 
     private func setupNotificationObservers() {
@@ -229,7 +239,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         OnboardingWindowController.shared.show { [weak self] in
             self?.logger.info("Onboarding completed")
             // Reload hotkey after onboarding in case user changed it
-            self?.hotkeyManager?.registerDefaultHotkey()
+            let config = HotkeyConfiguration.load()
+            self?.hotkeyManager?.register(configuration: config)
         }
     }
 
@@ -276,6 +287,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Apply hotkey changes
         let hotkeyConfig = settings.shortcuts.globalHotkey.toHotkeyConfiguration
         hotkeyManager?.updateHotkey(hotkeyConfig)
+
+        // Apply theme changes
+        applyTheme(settings.appearance.theme)
+
+        // Apply dock visibility changes
+        DockVisibilityManager.shared.setVisible(settings.general.showInDock)
 
         // Apply history limit by triggering cleanup if needed
         if let limit = settings.general.historyLimit.limit {

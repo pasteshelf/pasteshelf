@@ -295,8 +295,9 @@ final class FloatingPanelController: NSObject {
                 }
                 return true
             }
-            // Check for number keys 1-9 for quick selection
-            if let number = numberFromKeyCode(event.keyCode), number >= 1, number <= 9 {
+            // Check for number keys 1-9 for quick selection (if enabled)
+            if SettingsManager.shared.shortcuts.quickPasteEnabled,
+               let number = numberFromKeyCode(event.keyCode), number >= 1, number <= 9 {
                 let index = number - 1
                 if index < viewModel.items.count {
                     viewModel.select(at: index)
