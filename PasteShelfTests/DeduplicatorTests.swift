@@ -132,6 +132,54 @@ struct DeduplicatorTests {
     }
 }
 
+// MARK: - Configurable Deduplicator (test-only)
+
+/// Deduplicator with configurable comparison options (used only in tests)
+final class ConfigurableDeduplicator: Deduplicating, Sendable {
+    private let options: DeduplicationOptions
+    private let baseDeduplicator = Deduplicator()
+
+    init(options: DeduplicationOptions = .default) {
+        self.options = options
+    }
+
+    func computeHash(for content: ClipboardContent) -> String {
+        guard content.primaryType.isTextType else {
+            return baseDeduplicator.computeHash(for: content)
+        }
+        guard var text = content.plainText else {
+            return baseDeduplicator.computeHash(for: content)
+        }
+        if !options.whitespaceSignificant {
+            text = text.components(separatedBy: .whitespacesAndNewlines)
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+        }
+        if !options.caseSensitive {
+            text = text.lowercased()
+        }
+        return computeHash(forText: text)
+    }
+
+    func computeHash(forText text: String) -> String {
+        var processedText = text
+        if !options.whitespaceSignificant {
+            processedText = processedText.components(separatedBy: .whitespacesAndNewlines)
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+        }
+        if !options.caseSensitive {
+            processedText = processedText.lowercased()
+        }
+        return baseDeduplicator.computeHash(forText: processedText)
+    }
+
+    func isDuplicate(_ content: ClipboardContent, comparing recentHashes: [String]) -> Bool {
+        let hash = computeHash(for: content)
+        return recentHashes.contains(hash)
+    }
+}
+
 // MARK: - Configurable Deduplicator Tests
 
 struct ConfigurableDeduplicatorTests {

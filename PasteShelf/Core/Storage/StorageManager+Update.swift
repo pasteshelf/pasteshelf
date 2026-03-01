@@ -167,7 +167,69 @@ extension StorageManager {
         }
     }
 
+    // MARK: - Tag Update
+
+    /// Updates the name and color of a tag
+    /// - Parameters:
+    ///   - tagId: The UUID of the tag to update
+    ///   - name: The new name (nil to keep unchanged)
+    ///   - color: The new color hex string (nil to keep unchanged)
+    /// - Returns: True if update succeeded
+    func updateTag(id tagId: UUID, name: String? = nil, color: String? = nil) async -> Bool {
+        do {
+            try await performBackgroundTask { context in
+                let request = Tag.fetchRequest()
+                request.predicate = NSPredicate(format: "id == %@", tagId as CVarArg)
+                request.fetchLimit = 1
+
+                guard let tag = try context.fetch(request).first else {
+                    return
+                }
+
+                if let name = name {
+                    tag.name = name
+                }
+                if let color = color {
+                    tag.color = color
+                }
+            }
+            return true
+        } catch {
+            return false
+        }
+    }
+
     // MARK: - Folder Operations
+
+    /// Updates the name and icon of a folder
+    /// - Parameters:
+    ///   - folderId: The UUID of the folder to update
+    ///   - name: The new name (nil to keep unchanged)
+    ///   - icon: The new icon (nil to keep unchanged)
+    /// - Returns: True if update succeeded
+    func updateFolder(id folderId: UUID, name: String? = nil, icon: String? = nil) async -> Bool {
+        do {
+            try await performBackgroundTask { context in
+                let request = Folder.fetchRequest()
+                request.predicate = NSPredicate(format: "id == %@", folderId as CVarArg)
+                request.fetchLimit = 1
+
+                guard let folder = try context.fetch(request).first else {
+                    return
+                }
+
+                if let name = name {
+                    folder.name = name
+                }
+                if let icon = icon {
+                    folder.icon = icon
+                }
+            }
+            return true
+        } catch {
+            return false
+        }
+    }
 
     /// Moves a clipboard item to a folder
     /// - Parameters:

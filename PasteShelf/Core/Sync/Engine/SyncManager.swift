@@ -576,6 +576,46 @@ public final class SyncManager: ObservableObject, SyncManaging {
             }
         }
         networkMonitor.start(queue: networkQueue)
+
+        // Observe NetworkMonitor notifications as a secondary signal
+        NotificationCenter.default.addObserver(
+            forName: .networkRestored,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.isEnabled else { return }
+                Self.logger.debug("NetworkMonitor reported network restored")
+                try? await self.syncNow()
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: .networkLost,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                Self.logger.debug("NetworkMonitor reported network lost")
+                self.status = .offline
+            }
+        }
+
+        // Observe iCloud account switches to reset sync state
+        NotificationCenter.default.addObserver(
+            forName: .iCloudAccountSwitched,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            Task { @MainActor in
+                guard let self, self.isEnabled else { return }
+                let newUserId = notification.userInfo?["newUserID"] as? String
+                Self.logger.info("iCloud account switched to: \(newUserId ?? "unknown")")
+                self.stop()
+                try? await self.start()
+            }
+        }
     }
 
     private func setupCoreDataObservation() {

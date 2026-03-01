@@ -9,7 +9,6 @@
 import AppKit
 import Combine
 import os.log
-import SwiftUI
 
 /// Manages the menu bar status item and its interactions
 @MainActor
@@ -66,6 +65,21 @@ final class MenuBarController: NSObject, ObservableObject {
         button.target = self
         button.action = #selector(statusItemClicked(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+
+        // Observe plugin changes to refresh menu when plugin items change
+        NotificationCenter.default.publisher(for: .pluginMenuItemsChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.logger.debug("Plugin menu items changed, menu will refresh on next open")
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: .pluginActionsChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.logger.debug("Plugin actions changed, menu will refresh on next open")
+            }
+            .store(in: &cancellables)
 
         logger.info("Menu bar status item configured")
     }

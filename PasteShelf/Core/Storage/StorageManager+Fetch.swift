@@ -245,10 +245,3 @@ extension StorageManager {
     }
 }
 
-// MARK: - Private Logger Extension
-
-private extension StorageManager {
-    var logger: Logger {
-        Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf", category: "storage")
-    }
-}

@@ -216,17 +216,17 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     }
 
     private func finalizeCapture(_ content: ClipboardContent, sourceApp: SourceApp?, startTime: CFAbsoluteTime) {
-        metrics.captureCount += 1
         let captureTime = CFAbsoluteTimeGetCurrent() - startTime
         metrics.updateAverageCaptureTime(captureTime)
         metrics.lastCaptureTime = Date()
 
-        updateRecentHashes(with: content.contentHash)
-
-        // Save first, then notify delegate only after successful persistence
+        // Save first, then update metrics and hash cache only after successful persistence.
+        // This prevents orphaned hashes from permanently deduplicating content that was never stored.
         Task {
             let saved = await saveToStorageAsync(content, sourceApp: sourceApp)
             if saved {
+                metrics.captureCount += 1
+                updateRecentHashes(with: content.contentHash)
                 delegate?.clipboardMonitor(self, didCapture: content, from: sourceApp)
             } else {
                 metrics.errorCount += 1
