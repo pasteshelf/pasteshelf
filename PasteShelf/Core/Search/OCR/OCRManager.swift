@@ -8,6 +8,7 @@
 
 import AppKit
 import Foundation
+import NaturalLanguage
 import os.log
 import Vision
 
@@ -321,6 +322,3 @@ final class OCRManager: @unchecked Sendable {
     }
 }
 
-// MARK: - NLLanguageRecognizer Extension
-
-import NaturalLanguage

@@ -15,7 +15,7 @@ struct FloatingPanelView: View {
     @ObservedObject var viewModel: FloatingPanelViewModel
 
     /// Observe settings for reactive updates
-    @ObservedObject private var settingsManager = SettingsManager.shared
+    @EnvironmentObject var settingsManager: SettingsManager
 
     /// Focus state for keyboard handling
     @FocusState private var isFocused: Bool
@@ -261,13 +261,7 @@ struct FloatingPanelView: View {
                     ),
                     onCreateTag: { name, color in
                         Task {
-                            if let tag = await StorageManager.shared.saveTag(name: name, color: color) {
-                                if let tagId = tag.id {
-                                    viewModel.activeFilters.selectedTagIds.insert(tagId)
-                                }
-                                availableTags = await viewModel.loadAvailableTags()
-                                await viewModel.loadItems()
-                            }
+                            availableTags = await viewModel.createTag(name: name, color: color)
                         }
                     },
                     onSelectionChanged: {
@@ -419,6 +413,7 @@ struct FloatingPanelView: View {
 
             // Manually set items for preview
             FloatingPanelView(viewModel: viewModel)
+                .environmentObject(SettingsManager.shared)
                 .onAppear {
                     // Simulate some items in preview
                 }

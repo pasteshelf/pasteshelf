@@ -20,6 +20,7 @@
         <attribute name="imageWidth" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="isImageCompressed" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="pdfData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="plainTextData" optional="YES" attributeType="String"/>
         <attribute name="rtfData" optional="YES" attributeType="Binary"/>
         <attribute name="urlString" optional="YES" attributeType="String"/>
         <relationship name="clipboardItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ClipboardItem" inverseName="content" inverseEntity="ClipboardItem"/>

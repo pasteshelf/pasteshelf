@@ -177,9 +177,6 @@ final class PreferencesViewModel: ObservableObject {
     private func updatePrivacy() {
         guard !isUpdating else { return }
 
-        // Sync excluded apps with ExclusionManager
-        syncExclusionManager()
-
         // Post notification for monitoring pause state
         let previousPaused = settingsManager.privacy.isMonitoringPaused
         if isMonitoringPaused != previousPaused {
@@ -193,11 +190,6 @@ final class PreferencesViewModel: ObservableObject {
             excludePrivateBrowsing: excludePrivateBrowsing,
             excludedAppBundleIds: excludedAppBundleIds
         )
-    }
-
-    private func syncExclusionManager() {
-        // ExclusionManager now reads directly from SettingsManager.privacy.excludedAppBundleIds,
-        // so no explicit sync is needed. This method is kept for any future side effects.
     }
 
     private func updateAppearance() {

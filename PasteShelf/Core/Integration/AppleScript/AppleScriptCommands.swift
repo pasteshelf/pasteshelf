@@ -350,7 +350,7 @@ class ShowWindowCommand: NSScriptCommand {
 
             // Post notification for app to handle
             NotificationCenter.default.post(
-                name: NSNotification.Name("ShowMainWindow"),
+                name: .showMainWindow,
                 object: nil
             )
         }

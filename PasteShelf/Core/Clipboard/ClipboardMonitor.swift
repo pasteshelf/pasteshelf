@@ -100,14 +100,22 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         // Initialize with current change count
         lastChangeCount = pasteboard.changeCount
 
-        // Load recent hashes for deduplication
+        // Load recent hashes for deduplication, then start timer
         Task {
             if let storage = storage {
                 recentHashes = await storage.fetchRecentHashes(limit: duplicateCheckLimit)
             }
+
+            // Start polling timer after hashes are loaded
+            self.startPollingTimer()
         }
 
-        // Start polling timer
+        isMonitoring = true
+        Logger.clipboard.info("Clipboard monitoring started (interval: \(self.pollInterval)s)")
+    }
+
+    /// Starts the polling timer (called after hash cache is loaded)
+    private func startPollingTimer() {
         timer = Timer.scheduledTimer(
             withTimeInterval: pollInterval,
             repeats: true
@@ -121,9 +129,6 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         if let timer = timer {
             RunLoop.main.add(timer, forMode: .common)
         }
-
-        isMonitoring = true
-        Logger.clipboard.info("Clipboard monitoring started (interval: \(self.pollInterval)s)")
     }
 
     func stopMonitoring() {

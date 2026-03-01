@@ -21,7 +21,7 @@ struct ClipboardItemView: View {
     var searchQuery: String?
 
     /// Observe settings for reactive updates
-    @ObservedObject private var settingsManager = SettingsManager.shared
+    @EnvironmentObject var settingsManager: SettingsManager
 
     /// Whether sensitive content should be revealed
     @State private var isRevealed = false
@@ -310,6 +310,7 @@ struct ClipboardItemView: View {
                     .background(Color(NSColor.windowBackgroundColor))
             }
             .frame(width: 400)
+            .environmentObject(SettingsManager.shared)
         }
     }
 #endif

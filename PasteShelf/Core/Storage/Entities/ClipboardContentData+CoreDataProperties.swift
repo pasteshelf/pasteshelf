@@ -30,6 +30,9 @@ extension ClipboardContentData {
     /// PDF document data - uses external binary storage
     @NSManaged public var pdfData: Data?
 
+    /// Full plain text content
+    @NSManaged public var plainTextData: String?
+
     /// Web URL as string
     @NSManaged public var urlString: String?
 
@@ -113,9 +116,13 @@ extension ClipboardContentData: Identifiable {}
 // MARK: - Text Content Helper
 
 extension ClipboardContentData {
-    /// Returns text content from HTML or parent item's plainTextPreview
+    /// Returns text content from full plain text, HTML, or parent item's plainTextPreview
     var textContent: String? {
-        // Try HTML first
+        // Try full plain text first
+        if let text = plainTextData, !text.isEmpty {
+            return text
+        }
+        // Try HTML
         if let html = htmlContent, !html.isEmpty {
             return html
         }

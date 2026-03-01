@@ -344,6 +344,22 @@ final class FloatingPanelViewModel: ObservableObject {
         return TagDisplayModel.from(tags)
     }
 
+    /// Creates a new tag and adds it to the active filter
+    /// - Parameters:
+    ///   - name: Tag name
+    ///   - color: Tag color hex string
+    /// - Returns: Updated list of available tags
+    func createTag(name: String, color: String) async -> [TagDisplayModel] {
+        if let tag = await storageManager.saveTag(name: name, color: color) {
+            if let tagId = tag.id {
+                activeFilters.selectedTagIds.insert(tagId)
+            }
+        }
+        let tags = await loadAvailableTags()
+        await loadItems()
+        return tags
+    }
+
     /// Clears all filters
     func clearAllFilters() async {
         activeFilters.clearAll()
@@ -467,11 +483,19 @@ final class FloatingPanelViewModel: ObservableObject {
 
     /// Pastes a specific item by ID
     func paste(itemId: UUID) async {
-        guard let item = items.first(where: { $0.id == itemId }) else {
+        // Try local items first, then fetch from storage (for menu-bar quick-paste)
+        if let item = items.first(where: { $0.id == itemId }) {
+            await paste(item: item)
+        } else if let clipboardItem = await storageManager.fetchItem(byId: itemId) {
+            let displayModel = ClipboardItemDisplayModel.from([clipboardItem]).first
+            if let item = displayModel {
+                await paste(item: item)
+            } else {
+                logger.warning("Item not found: \(itemId)")
+            }
+        } else {
             logger.warning("Item not found: \(itemId)")
-            return
         }
-        await paste(item: item)
     }
 
     /// Pastes the specified item
