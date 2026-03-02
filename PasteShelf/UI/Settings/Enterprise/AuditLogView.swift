@@ -171,7 +171,7 @@ struct AuditLogView: View {
             LabeledContent("Keep events for") {
                 Picker("Retention", selection: Binding(
                     get: { AuditManager.shared.retentionConfiguration.retentionDays },
-                    set: { _ in }
+                    set: { AuditManager.shared.updateRetentionDays($0) }
                 )) {
                     ForEach(AuditRetentionConfiguration.options, id: \.self) { days in
                         Text(retentionLabel(days: days)).tag(days)

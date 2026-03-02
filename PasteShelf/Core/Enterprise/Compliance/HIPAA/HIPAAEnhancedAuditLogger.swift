@@ -49,17 +49,18 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
 
     // MARK: - HIPAA Enrichment
 
-    /// Enriches an audit event with HIPAA-required metadata if HIPAA mode is active.
+    /// Static entry point for HIPAA enrichment, callable without an instance.
+    ///
+    /// This allows `AuditLogger.log(_:)` to enrich events inline when HIPAA mode is active,
+    /// without requiring the decorator pattern to be wired through the entire call chain.
     ///
     /// - Parameter event: The original audit event.
-    /// - Returns: The event with HIPAA fields injected into `detail`, or the original event if HIPAA mode is disabled.
-    private func enrichIfHIPAAEnabled(_ event: AuditEvent) -> AuditEvent {
+    /// - Returns: The event with HIPAA fields injected, or the original event if HIPAA mode is disabled.
+    static func enrichIfNeeded(_ event: AuditEvent) -> AuditEvent {
         let config = HIPAAComplianceMode.load()
         guard config.isEnabled else { return event }
 
         var enrichedDetail = event.detail
-
-        // Inject HIPAA-required fields if not already present
         if enrichedDetail["hipaa.accessReason"] == nil {
             enrichedDetail["hipaa.accessReason"] = accessReason(for: event)
         }
@@ -84,8 +85,16 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
         )
     }
 
+    /// Enriches an audit event with HIPAA-required metadata if HIPAA mode is active.
+    ///
+    /// - Parameter event: The original audit event.
+    /// - Returns: The event with HIPAA fields injected into `detail`, or the original event if HIPAA mode is disabled.
+    private func enrichIfHIPAAEnabled(_ event: AuditEvent) -> AuditEvent {
+        Self.enrichIfNeeded(event)
+    }
+
     /// Derives a default access reason from the event's action.
-    private func accessReason(for event: AuditEvent) -> String {
+    private static func accessReason(for event: AuditEvent) -> String {
         switch event.action {
         case .copyCaptured:
             return "clipboard_capture"
@@ -105,7 +114,7 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
     }
 
     /// Determines whether the event may involve Protected Health Information.
-    private func phiIndicator(for event: AuditEvent) -> String {
+    private static func phiIndicator(for event: AuditEvent) -> String {
         // Check if the event detail or context suggests sensitive/PHI content
         if event.detail["isSensitive"] == "true" {
             return "true"

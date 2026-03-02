@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 import os.log
+import Security
 
 // MARK: - SelfHostedSyncSettingsViewModel
 
@@ -30,6 +31,8 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
 
     private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-settings")
     private let configKey = "com.pasteshelf.selfhosted.config"
+    private let apiKeyService = "com.pasteshelf.selfhosted.apiKey"
+    private let apiKeyAccount = "selfHostedConfig"
 
     // MARK: - Initialization
 
@@ -46,16 +49,17 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
 
         serverURLString = config.serverURL?.absoluteString ?? ""
         organizationID = config.organizationID
-        apiKey = config.apiKey ?? ""
+        apiKey = loadApiKeyFromKeychain() ?? ""
         isEnabled = config.isEnabled
         certificatePinningEnabled = config.certificatePinningEnabled
     }
 
     func saveConfiguration() {
+        // Store config without API key in UserDefaults
         let config = SelfHostedSyncConfiguration(
             serverURL: URL(string: serverURLString),
             organizationID: organizationID,
-            apiKey: apiKey.isEmpty ? nil : apiKey,
+            apiKey: nil,
             isEnabled: isEnabled,
             certificatePinningEnabled: certificatePinningEnabled,
             pinnedCertificateData: nil
@@ -64,7 +68,58 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         if let data = try? JSONEncoder().encode(config) {
             UserDefaults.standard.set(data, forKey: configKey)
         }
+
+        // Store API key securely in Keychain
+        if apiKey.isEmpty {
+            deleteApiKeyFromKeychain()
+        } else {
+            saveApiKeyToKeychain(apiKey)
+        }
         logger.info("Self-hosted sync configuration saved")
+    }
+
+    // MARK: - Keychain Helpers
+
+    private func saveApiKeyToKeychain(_ key: String) {
+        guard let data = key.data(using: .utf8) else { return }
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: apiKeyService,
+            kSecAttrAccount as String: apiKeyAccount
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: apiKeyService,
+            kSecAttrAccount as String: apiKeyAccount,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+        ]
+        SecItemAdd(addQuery as CFDictionary, nil)
+    }
+
+    private func loadApiKeyFromKeychain() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: apiKeyService,
+            kSecAttrAccount as String: apiKeyAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private func deleteApiKeyFromKeychain() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: apiKeyService,
+            kSecAttrAccount as String: apiKeyAccount
+        ]
+        SecItemDelete(query as CFDictionary)
     }
 
     // MARK: - Connection Test

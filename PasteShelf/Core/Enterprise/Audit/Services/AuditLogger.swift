@@ -61,11 +61,14 @@ final class AuditLogger: AuditLogging, @unchecked Sendable {
     ///
     /// - Parameter event: The `AuditEvent` to record.
     func log(_ event: AuditEvent) async {
+        // Enrich with HIPAA metadata when HIPAA compliance mode is active
+        let finalEvent = HIPAAEnhancedAuditLogger.enrichIfNeeded(event)
+
         do {
-            try await storage.save(event)
-            logger.debug("Logged audit event \(event.id) [\(event.category.rawValue)/\(event.action.rawValue)]")
+            try await storage.save(finalEvent)
+            logger.debug("Logged audit event \(finalEvent.id) [\(finalEvent.category.rawValue)/\(finalEvent.action.rawValue)]")
         } catch {
-            logger.error("Failed to persist audit event \(event.id): \(error.localizedDescription)")
+            logger.error("Failed to persist audit event \(finalEvent.id): \(error.localizedDescription)")
         }
     }
 

@@ -6,6 +6,7 @@
 //  for Enterprise SSO authentication.
 //
 
+import AppKit
 import AuthenticationServices
 import CryptoKit
 import Foundation

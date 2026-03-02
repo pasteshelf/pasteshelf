@@ -13,8 +13,9 @@ import SwiftUI
 /// Top-level container for the Enterprise preferences tab.
 ///
 /// Hosts `SSOSettingsView`, `MDMSettingsView`, `AdminSettingsView`, `DLPSettingsView`,
-/// and `AuditLogView` as sub-tabs using a `TabView`. This view is displayed when the
-/// user selects the "Enterprise" item in the preferences sidebar.
+/// `AuditLogView`, `ComplianceSettingsView`, and `SelfHostedSyncSettingsView` as sub-tabs
+/// using a `TabView`. This view is displayed when the user selects the "Enterprise" item
+/// in the preferences sidebar.
 struct EnterpriseTabView: View {
 
     // MARK: - Body
@@ -38,6 +39,9 @@ struct EnterpriseTabView: View {
 
             ComplianceSettingsView()
                 .tabItem { Label("Compliance", systemImage: "checkmark.shield.fill") }
+
+            SelfHostedSyncSettingsView()
+                .tabItem { Label("Self-Hosted Sync", systemImage: "server.rack") }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

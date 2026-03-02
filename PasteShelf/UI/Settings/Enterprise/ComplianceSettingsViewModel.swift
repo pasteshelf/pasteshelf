@@ -28,6 +28,7 @@ final class ComplianceSettingsViewModel: ObservableObject {
     // MARK: - SOC 2 State
 
     @Published var soc2Report: SOC2SecurityControlsReport.Report?
+    @Published var soc2EncryptionReport: SOC2EncryptionReport?
 
     // MARK: - Loading State
 
@@ -75,6 +76,33 @@ final class ComplianceSettingsViewModel: ObservableObject {
 
         soc2Report = SOC2SecurityControlsReport.generateReport()
         logger.info("SOC 2 report generated")
+    }
+
+    /// Runs SOC 2 encryption verification across all data-protection layers.
+    func verifySOC2Encryption() async {
+        isVerifying = true
+        defer { isVerifying = false }
+
+        soc2EncryptionReport = await SOC2EncryptionVerifier.verify()
+        logger.info("SOC 2 encryption verification complete")
+    }
+
+    /// Exports SOC 2 access control evidence for the given date range.
+    ///
+    /// - Parameter dateRange: The date range to export evidence for.
+    /// - Returns: The URL of the evidence directory, or nil on failure.
+    func exportAccessControlEvidence(dateRange: ClosedRange<Date>) async -> URL? {
+        isExporting = true
+        defer { isExporting = false }
+
+        do {
+            let url = try await SOC2AccessControlEvidence.exportEvidencePackage(dateRange: dateRange)
+            logger.info("SOC 2 access control evidence exported to \(url.lastPathComponent)")
+            return url
+        } catch {
+            lastError = .reportGenerationFailed(error.localizedDescription)
+            return nil
+        }
     }
 
     // MARK: - Audit Trail Export
