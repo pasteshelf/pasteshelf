@@ -105,6 +105,54 @@ final class ComplianceSettingsViewModel: ObservableObject {
         }
     }
 
+    // MARK: - GDPR Data Rights
+
+    /// Whether a GDPR data export is in progress.
+    @Published var isGDPRExporting = false
+
+    /// Whether a GDPR data deletion is in progress.
+    @Published var isGDPRDeleting = false
+
+    /// Progress of the current GDPR data export (0.0–1.0).
+    @Published var gdprExportProgress: Double = 0
+
+    /// Exports all user data in a portable format (GDPR Article 20).
+    ///
+    /// - Returns: The URL of the export directory, or nil on failure.
+    func exportGDPRData() async -> URL? {
+        isGDPRExporting = true
+        defer { isGDPRExporting = false }
+
+        do {
+            let url = try await GDPRDataExportService.exportUserData { [weak self] progress in
+                self?.gdprExportProgress = progress
+            }
+            logger.info("GDPR data exported to \(url.lastPathComponent)")
+            return url
+        } catch {
+            lastError = error as? ComplianceError
+            return nil
+        }
+    }
+
+    /// Permanently deletes all user data (GDPR Article 17).
+    ///
+    /// - Returns: `true` if deletion succeeded.
+    @discardableResult
+    func deleteAllGDPRData() async -> Bool {
+        isGDPRDeleting = true
+        defer { isGDPRDeleting = false }
+
+        do {
+            _ = try await GDPRDataDeletionService.deleteAllUserData()
+            logger.info("GDPR data deletion completed")
+            return true
+        } catch {
+            lastError = error as? ComplianceError
+            return false
+        }
+    }
+
     // MARK: - Audit Trail Export
 
     /// Exports a verified audit trail for the given date range.

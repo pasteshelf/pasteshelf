@@ -103,24 +103,41 @@ struct MDMPolicyEnforcer {
                 settings.appearance.theme = theme
             }
 
-        // MARK: Security (stored in privacy for now)
+        // MARK: Security
         case .clearOnQuit:
-            // Note: clearOnQuit is not yet in AppSettings — will be a no-op
-            // until the setting is added in a future iteration
-            logger.debug("MDM key 'ClearOnQuit' received but not yet mapped to settings")
+            if case .bool(let enabled) = value {
+                settings.security.clearOnQuit = enabled
+            }
 
         case .requireBiometricAuth:
-            // Note: biometric auth is not yet in AppSettings — will be a no-op
-            logger.debug("MDM key 'RequireBiometricAuth' received but not yet mapped to settings")
+            if case .bool(let enabled) = value {
+                settings.security.requireBiometricAuth = enabled
+            }
 
         case .autoLockTimeout:
-            // Note: auto-lock timeout is not yet in AppSettings — will be a no-op
-            logger.debug("MDM key 'AutoLockTimeout' received but not yet mapped to settings")
+            if case .int(let seconds) = value, seconds >= 0 {
+                settings.security.autoLockTimeout = seconds
+            }
 
-        // MARK: Enterprise / SSO / DLP / Sync / Plugins
-        // These keys are handled by their respective managers and enforced
-        // via AppDelegate.applyMDMEnterpriseKeys(). They do not map to
-        // AppSettings fields directly, but we log that they were received.
+        // MARK: Enterprise — sync, storage, plugins
+        case .cloudSyncEnabled:
+            if case .bool(let enabled) = value {
+                settings.enterprise.cloudSyncEnabled = enabled
+            }
+
+        case .localStorageOnly:
+            if case .bool(let enabled) = value {
+                settings.enterprise.localStorageOnly = enabled
+            }
+
+        case .pluginsEnabled:
+            if case .bool(let enabled) = value {
+                settings.enterprise.pluginsEnabled = enabled
+            }
+
+        // MARK: Enterprise — keys handled by their respective managers
+        // These are wired via AppDelegate.applyMDMEnterpriseKeys() and
+        // do not map to AppSettings fields directly.
         case .organizationID:
             if case .string(let id) = value {
                 logger.debug("MDM organizationID received: \(id)")
@@ -144,21 +161,6 @@ struct MDMPolicyEnforcer {
         case .ssoDomain:
             if case .string(let domain) = value {
                 logger.info("MDM SSO domain: \(domain)")
-            }
-
-        case .cloudSyncEnabled:
-            if case .bool(let enabled) = value {
-                logger.info("MDM cloud sync enabled: \(enabled)")
-            }
-
-        case .localStorageOnly:
-            if case .bool(let enabled) = value {
-                logger.info("MDM local storage only: \(enabled)")
-            }
-
-        case .pluginsEnabled:
-            if case .bool(let enabled) = value {
-                logger.info("MDM plugins enabled: \(enabled)")
             }
 
         case .dlpEnabled:

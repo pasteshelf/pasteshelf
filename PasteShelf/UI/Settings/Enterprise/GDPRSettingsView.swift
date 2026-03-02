@@ -15,10 +15,7 @@ struct GDPRSettingsView: View {
     @ObservedObject var viewModel: ComplianceSettingsViewModel
     @ObservedObject private var consentManager = GDPRConsentManager.shared
 
-    @State private var isExporting = false
-    @State private var isDeleting = false
     @State private var showDeleteConfirmation = false
-    @State private var exportProgress: Double = 0
     @State private var showPrivacyDashboard = false
 
     var body: some View {
@@ -78,14 +75,14 @@ struct GDPRSettingsView: View {
                             Button {
                                 Task { await exportData() }
                             } label: {
-                                if isExporting {
+                                if viewModel.isGDPRExporting {
                                     ProgressView()
                                         .controlSize(.small)
                                 } else {
                                     Label("Export", systemImage: "square.and.arrow.up")
                                 }
                             }
-                            .disabled(isExporting)
+                            .disabled(viewModel.isGDPRExporting)
                         }
 
                         Divider()
@@ -103,14 +100,14 @@ struct GDPRSettingsView: View {
                             Button(role: .destructive) {
                                 showDeleteConfirmation = true
                             } label: {
-                                if isDeleting {
+                                if viewModel.isGDPRDeleting {
                                     ProgressView()
                                         .controlSize(.small)
                                 } else {
                                     Label("Delete All", systemImage: "trash")
                                 }
                             }
-                            .disabled(isDeleting)
+                            .disabled(viewModel.isGDPRDeleting)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -141,7 +138,7 @@ struct GDPRSettingsView: View {
         .alert("Delete All Data?", isPresented: $showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete Everything", role: .destructive) {
-                Task { await deleteAllData() }
+                Task { await viewModel.deleteAllGDPRData() }
             }
         } message: {
             Text("This will permanently delete all clipboard items, tags, folders, collections, audit logs, and encryption keys. This action cannot be undone.")
@@ -155,28 +152,8 @@ struct GDPRSettingsView: View {
     // MARK: - Actions
 
     private func exportData() async {
-        isExporting = true
-        defer { isExporting = false }
-
-        do {
-            let url = try await GDPRDataExportService.exportUserData { progress in
-                exportProgress = progress
-            }
-            // Open the export directory in Finder
+        if let url = await viewModel.exportGDPRData() {
             NSWorkspace.shared.open(url)
-        } catch {
-            viewModel.lastError = error as? ComplianceError
-        }
-    }
-
-    private func deleteAllData() async {
-        isDeleting = true
-        defer { isDeleting = false }
-
-        do {
-            _ = try await GDPRDataDeletionService.deleteAllUserData()
-        } catch {
-            viewModel.lastError = error as? ComplianceError
         }
     }
 }

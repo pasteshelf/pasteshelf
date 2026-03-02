@@ -97,6 +97,24 @@ final class SettingsManager: ObservableObject {
         }
     }
 
+    /// Enterprise settings (sync, storage, plugins)
+    var enterprise: EnterpriseSettings {
+        get { settings.enterprise }
+        set {
+            settings.enterprise = newValue
+            logger.debug("Enterprise settings updated")
+        }
+    }
+
+    /// Security settings (biometric auth, auto-lock, clear on quit)
+    var security: SecuritySettings {
+        get { settings.security }
+        set {
+            settings.security = newValue
+            logger.debug("Security settings updated")
+        }
+    }
+
     // MARK: - Methods
 
     /// Updates a specific setting using a closure
