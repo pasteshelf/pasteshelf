@@ -133,27 +133,35 @@ final class PolicySyncService: PolicySyncing {
 
     /// Applies sync settings sub-policy to settings.
     ///
-    /// Controls whether cloud sync is enabled. When `localStorageOnly` is true,
-    /// sync is implicitly disabled.
+    /// Controls whether cloud sync is enabled via `EnterpriseSettings`. When
+    /// `localStorageOnly` is `true`, sync is implicitly disabled.
     private func applySyncSettings(_ policy: SyncSettingsPolicy?, to settings: inout AppSettings) {
         guard let policy, policy.enforced else { return }
 
-        // Sync settings are not yet directly in AppSettings — log for future mapping.
-        // When SyncSettings is added to AppSettings, map here:
-        // if let syncEnabled = policy.syncEnabled { settings.sync.isEnabled = syncEnabled }
-        // if let localOnly = policy.localStorageOnly, localOnly { settings.sync.isEnabled = false }
-        logger.debug("Sync policy received (syncEnabled: \(String(describing: policy.syncEnabled)), localOnly: \(String(describing: policy.localStorageOnly))) — will be enforced when sync settings are added to AppSettings")
+        if let syncEnabled = policy.syncEnabled {
+            settings.enterprise.cloudSyncEnabled = syncEnabled
+        }
+        if let localOnly = policy.localStorageOnly {
+            settings.enterprise.localStorageOnly = localOnly
+        }
+
+        let syncEnabled = settings.enterprise.cloudSyncEnabled
+        let localOnly = settings.enterprise.localStorageOnly
+        logger.debug("Sync policy applied (cloudSyncEnabled: \(syncEnabled), localStorageOnly: \(localOnly))")
     }
 
     /// Applies encryption requirements sub-policy to settings.
     ///
-    /// When biometric authentication is required, maps to the security settings.
+    /// When biometric authentication is required, maps to `SecuritySettings.requireBiometricAuth`.
     private func applyEncryptionRequirements(_ policy: EncryptionPolicy?, to settings: inout AppSettings) {
         guard let policy, policy.enforced else { return }
 
-        // Encryption and biometric settings are not yet in AppSettings — log for future mapping.
-        // When SecuritySettings is added: settings.security.requireBiometricAuth = policy.requireBiometricAuth ?? false
-        logger.debug("Encryption policy received (requireEncryption: \(policy.requireEncryption), biometric: \(String(describing: policy.requireBiometricAuth))) — will be enforced when security settings are added to AppSettings")
+        if let requireBiometric = policy.requireBiometricAuth {
+            settings.security.requireBiometricAuth = requireBiometric
+        }
+
+        let biometric = settings.security.requireBiometricAuth
+        logger.debug("Encryption policy applied (requireBiometricAuth: \(biometric))")
     }
 
     // MARK: - History Limit Mapping

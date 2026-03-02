@@ -69,6 +69,9 @@ enum AuditAction: String, Codable, Sendable {
     /// A clipboard item was blocked by DLP and removed before storage.
     case copyBlocked = "copy_blocked"
 
+    /// A clipboard item's content was redacted by DLP before downstream processing.
+    case copyRedacted = "copy_redacted"
+
     /// The user pasted a clipboard item into another application.
     case pastePerformed = "paste_performed"
 
@@ -77,6 +80,9 @@ enum AuditAction: String, Codable, Sendable {
 
     /// A clipboard item was deleted from the local history.
     case itemDeleted = "item_deleted"
+
+    /// A clipboard item was deleted by an automation rule action.
+    case automationDeleted = "automation_deleted"
 
     /// The user performed a search query in the clipboard history.
     case searchPerformed = "search_performed"

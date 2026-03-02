@@ -5,6 +5,7 @@
 //  SOC 2 compliance settings: report generation, evidence export, audit trail.
 //
 
+import AppKit
 import SwiftUI
 
 // MARK: - SOC2SettingsView

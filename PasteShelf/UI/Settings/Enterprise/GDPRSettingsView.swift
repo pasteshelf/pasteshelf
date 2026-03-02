@@ -5,6 +5,7 @@
 //  GDPR settings: consent management, data export, data deletion.
 //
 
+import AppKit
 import SwiftUI
 
 // MARK: - GDPRSettingsView

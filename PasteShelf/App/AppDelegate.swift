@@ -43,6 +43,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Cancellables for Combine subscriptions
     private var cancellables = Set<AnyCancellable>()
 
+    /// Retained reference to plugin context factory for re-initialization on re-enable.
+    private var pluginContextFactory: PluginContextFactoryImpl?
+
     // MARK: - NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -105,6 +108,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Start background OCR processing for image items
         startBackgroundOCRProcessing()
+
+        // Configure general security lock (biometric auth, auto-lock timeout)
+        SecurityLockService.shared.configure()
 
         // Initialize enterprise services (DLP, compliance, MDM monitoring)
         initializeEnterpriseServices()
@@ -406,6 +412,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Re-configure security lock service when security settings change
+        SecurityLockService.shared.configure()
+
+        // Propagate sync settings changes (for all users, not just MDM-managed)
+        let syncShouldRun = settings.enterprise.cloudSyncEnabled && !settings.enterprise.localStorageOnly
+        if syncShouldRun {
+            _ = SyncManager.shared // Ensure initialized
+        } else {
+            SyncManager.shared.stop()
+        }
+
         // Re-apply MDM enterprise key overrides on settings change
         applyMDMEnterpriseKeys()
 
@@ -550,6 +567,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !settings.enterprise.pluginsEnabled, PluginManager.shared.isInitialized {
             Task { await PluginManager.shared.shutdown() }
             logger.info("MDM: plugin system disabled")
+        } else if settings.enterprise.pluginsEnabled, !PluginManager.shared.isInitialized {
+            // Re-enable: re-initialize with stored context factory
+            if let factory = pluginContextFactory {
+                Task {
+                    await PluginManager.shared.initialize(contextFactory: factory)
+                    logger.info("Plugin system re-initialized after re-enable")
+                }
+            } else {
+                initializePluginSystem()
+                logger.info("Plugin system initialized on first enable")
+            }
         }
 
         // --- Security: clear on quit ---
@@ -651,10 +679,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Initializes the plugin system
     private func initializePluginSystem() {
+        let factory = PluginContextFactoryImpl()
+        pluginContextFactory = factory
         Task {
-            await PluginManager.shared.initialize(
-                contextFactory: PluginContextFactoryImpl()
-            )
+            await PluginManager.shared.initialize(contextFactory: factory)
             logger.debug("Plugin system initialized")
         }
     }
@@ -699,32 +727,33 @@ extension AppDelegate: ClipboardMonitorDelegate {
             if dlpResult.blocked { return }
             let pipelineContent = dlpResult.content
 
-            // Stage 2: Run automation rules — may delete the item
-            let automationDeleted = await processAutomation(for: pipelineContent, sourceApp: sourceApp)
-            if automationDeleted { return }
+            // Stage 2: Run automation rules — may delete the item or transform content
+            let automationResult = await processAutomation(for: pipelineContent, sourceApp: sourceApp)
+            if automationResult.deleted { return }
+            let finalContent = automationResult.content
 
-            // Stage 3: Post notification for plugin system
+            // Stage 3: Post notification for plugin system (with automation-transformed content)
             NotificationCenter.default.post(
                 name: .clipboardContentCaptured,
                 object: nil,
-                userInfo: ["content": pipelineContent]
+                userInfo: ["content": finalContent]
             )
 
             // Stage 4: Log clipboard capture as audit event
             await AuditManager.shared.logClipboardEvent(
                 action: .copyCaptured,
-                resourceId: pipelineContent.id.uuidString,
-                detail: ["contentType": pipelineContent.primaryType.displayName]
+                resourceId: finalContent.id.uuidString,
+                detail: ["contentType": finalContent.primaryType.displayName]
             )
 
-            // Stage 5: Fire webhook events for clipboard capture
-            await WebhookManager.shared.sendClipboardCreated(content: pipelineContent)
+            // Stage 5: Fire webhook events for clipboard capture (with transformed content)
+            await WebhookManager.shared.sendClipboardCreated(content: finalContent)
 
             // Stage 6: Generate embedding for semantic search
-            generateEmbeddingForNewItem(id: pipelineContent.id)
+            generateEmbeddingForNewItem(id: finalContent.id)
 
             // Stage 7: Generate OCR for image content
-            generateOCRForNewItem(id: pipelineContent.id, contentType: pipelineContent.primaryType)
+            generateOCRForNewItem(id: finalContent.id, contentType: finalContent.primaryType)
         }
 
         logger.debug("Captured: \(content.primaryType.displayName)")
@@ -777,6 +806,16 @@ extension AppDelegate: ClipboardMonitorDelegate {
             await storageManager.updatePlainText(itemId: content.id, text: redactedText)
             logger.info("DLP: redacted content for item \(content.id)")
 
+            // Audit: log that clipboard content was redacted by DLP
+            await AuditManager.shared.logClipboardEvent(
+                action: .copyRedacted,
+                resourceId: content.id.uuidString,
+                detail: [
+                    "contentType": content.primaryType.displayName,
+                    "reason": "dlp_redacted",
+                ]
+            )
+
             // Create a copy with redacted text so downstream stages don't see sensitive data
             var redactedContent = content
             redactedContent.plainText = redactedText
@@ -786,15 +825,21 @@ extension AppDelegate: ClipboardMonitorDelegate {
         return DLPPipelineResult(blocked: false, content: content)
     }
 
+    /// Result of automation processing indicating whether content was deleted and providing
+    /// the (possibly transformed) content for downstream pipeline stages.
+    private struct AutomationPipelineResult {
+        let deleted: Bool
+        let content: ClipboardContent
+    }
+
     /// Processes automation rules for captured content.
     ///
-    /// Returns `true` if automation deleted the item, signaling the caller
-    /// to skip all downstream pipeline stages.
-    @discardableResult
+    /// Returns an `AutomationPipelineResult` with the (possibly transformed) content
+    /// for downstream stages, or `deleted: true` if the item was removed.
     private func processAutomation(
         for content: ClipboardContent,
         sourceApp: SourceApp?
-    ) async -> Bool {
+    ) async -> AutomationPipelineResult {
         let result = await AutomationEngine.shared.evaluateRules(
             for: content,
             trigger: .onCapture,
@@ -818,8 +863,19 @@ extension AppDelegate: ClipboardMonitorDelegate {
             let deleted = await storageManager.deleteItem(byId: content.id)
             if deleted {
                 logger.info("Automation: deleted item \(content.id) per rule action")
+
+                // Audit: log that automation deleted the item
+                let ruleNames = result.matchedRules.map(\.name).joined(separator: ", ")
+                await AuditManager.shared.logClipboardEvent(
+                    action: .automationDeleted,
+                    resourceId: content.id.uuidString,
+                    detail: [
+                        "contentType": content.primaryType.displayName,
+                        "matchedRules": ruleNames,
+                    ]
+                )
             }
-            return true
+            return AutomationPipelineResult(deleted: true, content: content)
         }
 
         // Persist transformed content if text was changed by automation rules
@@ -829,7 +885,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
             logger.info("Automation: persisted transformed text for item \(content.id)")
         }
 
-        return false
+        return AutomationPipelineResult(deleted: false, content: transformed)
     }
 
     func clipboardMonitor(
