@@ -169,9 +169,31 @@ final class FloatingPanelController: NSObject {
 
     // MARK: - Visibility
 
-    /// Shows the floating panel
+    /// Shows the floating panel, gated by security and HIPAA lock checks.
     func show() {
         Task {
+            // Gate 1: General security lock (biometric auth from SecuritySettings)
+            if SecurityLockService.shared.isLocked {
+                let unlocked = await SecurityLockService.shared.unlock()
+                guard unlocked else {
+                    logger.debug("Panel show blocked by security lock")
+                    return
+                }
+            }
+
+            // Gate 2: HIPAA access control lock (if HIPAA compliance is active)
+            if HIPAAAccessControlService.shared.isLocked {
+                let unlocked = await HIPAAAccessControlService.shared.unlock()
+                guard unlocked else {
+                    logger.debug("Panel show blocked by HIPAA lock")
+                    return
+                }
+            }
+
+            // Record activity for inactivity timeout tracking
+            SecurityLockService.shared.recordActivity()
+            HIPAAAccessControlService.shared.recordActivity()
+
             await viewModel.show()
         }
     }
@@ -267,6 +289,10 @@ final class FloatingPanelController: NSObject {
     /// Handles key events from the panel
     func handleKeyEvent(_ event: NSEvent) -> Bool {
         guard event.type == .keyDown else { return false }
+
+        // Record activity for inactivity timeout tracking
+        SecurityLockService.shared.recordActivity()
+        HIPAAAccessControlService.shared.recordActivity()
 
         switch event.keyCode {
         case 125: // Down arrow
