@@ -87,15 +87,48 @@ final class SSOManager: ObservableObject {
             currentSession = session
 
             logger.info("SSO authentication successful for user: \(session.userId)")
+
+            // Audit: log successful SSO login
+            await AuditManager.shared.logAuthEvent(
+                action: .ssoLogin,
+                detail: [
+                    "provider": provider.name,
+                    "providerType": provider.type.rawValue,
+                    "userId": session.userId,
+                ]
+            )
+
             return session
         } catch let error as SSOError {
             lastError = error
             logger.error("SSO authentication failed: \(error.localizedDescription)")
+
+            // Audit: log failed SSO login
+            await AuditManager.shared.logAuthEvent(
+                action: .loginFailure,
+                severity: .warning,
+                detail: [
+                    "provider": provider.name,
+                    "error": error.localizedDescription,
+                ]
+            )
+
             throw error
         } catch {
             let ssoError = SSOError.authenticationFailed(error.localizedDescription)
             lastError = ssoError
             logger.error("SSO authentication failed: \(error.localizedDescription)")
+
+            // Audit: log failed SSO login
+            await AuditManager.shared.logAuthEvent(
+                action: .loginFailure,
+                severity: .warning,
+                detail: [
+                    "provider": provider.name,
+                    "error": error.localizedDescription,
+                ]
+            )
+
             throw ssoError
         }
     }
@@ -153,6 +186,17 @@ final class SSOManager: ObservableObject {
         } catch {
             logger.error("Token refresh failed: \(error.localizedDescription)")
             // Don't clear session — it may still be valid, just can't refresh
+
+            // Audit: log token refresh failure
+            await AuditManager.shared.logAuthEvent(
+                action: .loginFailure,
+                severity: .warning,
+                detail: [
+                    "reason": "token_refresh_failed",
+                    "sessionId": session.id.uuidString,
+                    "error": error.localizedDescription,
+                ]
+            )
         }
     }
 
@@ -198,6 +242,15 @@ final class SSOManager: ObservableObject {
         currentSession = nil
 
         logger.info("SSO logout completed")
+
+        // Audit: log successful SSO logout
+        await AuditManager.shared.logAuthEvent(
+            action: .ssoLogout,
+            detail: [
+                "userId": session.userId,
+                "sessionId": session.id.uuidString,
+            ]
+        )
     }
 
     /// Signs out from all SSO sessions

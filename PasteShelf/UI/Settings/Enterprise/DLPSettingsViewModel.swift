@@ -46,12 +46,21 @@ final class DLPSettingsViewModel: ObservableObject {
     // MARK: - Private Properties
 
     private let logger = Logger.security
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Initialization
 
     /// Creates the view model and triggers the initial data load.
     init() {
         Task { await loadData() }
+
+        // Refresh data when a DLP violation is detected
+        NotificationCenter.default.publisher(for: .dlpViolationDetected)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                Task { await self?.loadData() }
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Public Actions

@@ -109,6 +109,15 @@ final class DLPManager: ObservableObject {
         }
     }
 
+    /// Disables the DLP subsystem and tears down the rule engine.
+    ///
+    /// Call this when the MDM profile sets `dlpEnabled` to `false` mid-session.
+    func disable() {
+        isEnabled = false
+        ruleEngine = nil
+        logger.info("DLPManager disabled")
+    }
+
     // MARK: - Evaluation
 
     /// Evaluates clipboard content against the active DLP rules.

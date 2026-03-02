@@ -96,7 +96,14 @@ final class AuditManager: ObservableObject {
         let sync = AuditLogSyncService(apiClient: apiClient, storage: storage)
         self.syncService = sync
 
-        let retention = AuditRetentionService(storage: storage, configuration: retentionConfiguration)
+        // Enforce HIPAA minimum retention when HIPAA compliance mode is active
+        var activeRetention = retentionConfiguration
+        if HIPAAComplianceMode.load().isEnabled {
+            activeRetention = HIPAARetentionPolicy.validate(activeRetention)
+            retentionConfiguration = activeRetention
+        }
+
+        let retention = AuditRetentionService(storage: storage, configuration: activeRetention)
         self.retentionService = retention
 
         isEnabled = true
@@ -221,12 +228,19 @@ final class AuditManager: ObservableObject {
     ///
     /// - Parameter days: The new retention window in days.
     func updateRetentionDays(_ days: Int) {
-        retentionConfiguration = AuditRetentionConfiguration(
+        var newConfig = AuditRetentionConfiguration(
             retentionDays: days,
             isImmutable: retentionConfiguration.isImmutable
         )
+
+        // Enforce HIPAA minimum retention when HIPAA compliance mode is active
+        if HIPAAComplianceMode.load().isEnabled {
+            newConfig = HIPAARetentionPolicy.validate(newConfig)
+        }
+
+        retentionConfiguration = newConfig
         retentionService?.updateConfiguration(retentionConfiguration)
-        logger.info("Audit retention policy updated to \(days) days")
+        logger.info("Audit retention policy updated to \(newConfig.retentionDays) days")
     }
 
     // MARK: - Storage Access

@@ -47,6 +47,28 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
         await delegate.logBatch(enriched)
     }
 
+    // MARK: - HIPAA Mode Cache
+
+    /// Cached HIPAA compliance mode to avoid JSON-decoding from UserDefaults on every audit event.
+    private static var _cachedMode: HIPAAComplianceMode?
+    private static var _cacheTimestamp: Date = .distantPast
+    private static let cacheTTL: TimeInterval = 60
+
+    /// Returns the cached HIPAA compliance mode, refreshing from UserDefaults at most every 60 seconds.
+    static var cachedMode: HIPAAComplianceMode {
+        if _cachedMode == nil || Date().timeIntervalSince(_cacheTimestamp) > cacheTTL {
+            _cachedMode = HIPAAComplianceMode.load()
+            _cacheTimestamp = Date()
+        }
+        return _cachedMode!
+    }
+
+    /// Invalidates the cached mode, forcing a reload on next access.
+    static func invalidateCache() {
+        _cachedMode = nil
+        _cacheTimestamp = .distantPast
+    }
+
     // MARK: - HIPAA Enrichment
 
     /// Static entry point for HIPAA enrichment, callable without an instance.
@@ -57,7 +79,7 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
     /// - Parameter event: The original audit event.
     /// - Returns: The event with HIPAA fields injected, or the original event if HIPAA mode is disabled.
     static func enrichIfNeeded(_ event: AuditEvent) -> AuditEvent {
-        let config = HIPAAComplianceMode.load()
+        let config = cachedMode
         guard config.isEnabled else { return event }
 
         var enrichedDetail = event.detail

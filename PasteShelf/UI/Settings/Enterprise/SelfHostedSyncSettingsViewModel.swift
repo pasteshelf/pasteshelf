@@ -75,6 +75,26 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         } else {
             saveApiKeyToKeychain(apiKey)
         }
+
+        // Propagate to SyncManager so it picks up the new configuration
+        let syncConfig = SelfHostedSyncConfiguration(
+            serverURL: URL(string: serverURLString),
+            organizationID: organizationID,
+            apiKey: apiKey.isEmpty ? nil : apiKey,
+            isEnabled: isEnabled,
+            certificatePinningEnabled: certificatePinningEnabled,
+            pinnedCertificateData: nil
+        )
+        SyncManager.shared.selfHostedConfiguration = syncConfig
+
+        // Restart sync if the new configuration is valid and enabled
+        if syncConfig.isEnabled && syncConfig.isConfigured {
+            Task {
+                try? await SyncManager.shared.stop()
+                try? await SyncManager.shared.start()
+            }
+        }
+
         logger.info("Self-hosted sync configuration saved")
     }
 
