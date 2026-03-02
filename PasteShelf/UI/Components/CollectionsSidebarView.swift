@@ -5,6 +5,7 @@
 //  Sidebar view displaying smart collections list.
 //
 
+import AppKit
 import SwiftUI
 
 /// Sidebar view showing all collections

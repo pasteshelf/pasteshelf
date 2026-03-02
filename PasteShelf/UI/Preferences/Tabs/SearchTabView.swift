@@ -92,9 +92,13 @@ struct SearchTabView: View {
 
     @ViewBuilder
     private var searchSettingsSection: some View {
-        // Fuzzy matching toggle (available to all)
-        Toggle("Enable Fuzzy Matching", isOn: .constant(true))
-            .disabled(true) // Always enabled for now
+        // Fuzzy matching toggle
+        Toggle("Enable Fuzzy Matching", isOn: Binding(
+            get: { settingsManager.search.fuzzyMatchEnabled },
+            set: { newValue in
+                settingsManager.update { $0.search.fuzzyMatchEnabled = newValue }
+            }
+        ))
 
         Text("Fuzzy matching finds approximate matches even with typos or partial words.")
             .font(.caption)
@@ -110,11 +114,7 @@ struct SearchTabView: View {
             get: { settingsManager.search.semanticSearchEnabled },
             set: { newValue in
                 settingsManager.update { $0.search.semanticSearchEnabled = newValue }
-                if newValue {
-                    Task {
-                        await startIndexing()
-                    }
-                }
+                // AppDelegate.handleSettingsChange handles starting/cancelling indexing
             }
         ))
 
@@ -165,11 +165,7 @@ struct SearchTabView: View {
             get: { settingsManager.search.ocrSearchEnabled },
             set: { newValue in
                 settingsManager.update { $0.search.ocrSearchEnabled = newValue }
-                if newValue {
-                    Task {
-                        await startOCRProcessing()
-                    }
-                }
+                // AppDelegate.handleSettingsChange handles starting/cancelling OCR processing
             }
         ))
 

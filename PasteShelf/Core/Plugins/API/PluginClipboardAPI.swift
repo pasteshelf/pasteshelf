@@ -279,8 +279,4 @@ final class PluginClipboardAPI {
 }
 
 // MARK: - Notifications
-
-extension Notification.Name {
-    /// Posted when new clipboard content is captured (for plugin subscription)
-    static let clipboardContentCaptured = Notification.Name("com.pasteshelf.clipboardContentCaptured")
-}
+// Note: .clipboardContentCaptured is defined in MenuBarController.swift (shared notification names)

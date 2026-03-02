@@ -9,6 +9,11 @@ import Foundation
 
 /// Search-related settings
 struct SearchSettings: Codable, Equatable {
+    // MARK: - General Search
+
+    /// Whether fuzzy matching is enabled
+    var fuzzyMatchEnabled: Bool
+
     // MARK: - Semantic Search
 
     /// Whether semantic search is enabled
@@ -28,11 +33,13 @@ struct SearchSettings: Codable, Equatable {
     // MARK: - Initialization
 
     init(
+        fuzzyMatchEnabled: Bool = true,
         semanticSearchEnabled: Bool = false,
         semanticThreshold: Double = 0.5,
         ocrSearchEnabled: Bool = false,
         ocrConfidenceThreshold: Double = 0.5
     ) {
+        self.fuzzyMatchEnabled = fuzzyMatchEnabled
         self.semanticSearchEnabled = semanticSearchEnabled
         self.semanticThreshold = semanticThreshold
         self.ocrSearchEnabled = ocrSearchEnabled

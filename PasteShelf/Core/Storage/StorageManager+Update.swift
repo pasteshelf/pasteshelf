@@ -302,6 +302,30 @@ extension StorageManager {
 
     // MARK: - Access Count
 
+    /// Updates the plain text content of a clipboard item (used by automation transforms)
+    /// - Parameters:
+    ///   - itemId: The UUID of the item to update
+    ///   - text: The new plain text content
+    /// - Returns: True if update succeeded
+    @discardableResult
+    func updatePlainText(itemId: UUID, text: String) async -> Bool {
+        do {
+            try await performBackgroundTask { context in
+                let request = ClipboardItem.fetchRequest()
+                request.predicate = NSPredicate(format: "id == %@", itemId as CVarArg)
+                request.fetchLimit = 1
+
+                if let item = try context.fetch(request).first {
+                    item.plainTextPreview = String(text.prefix(500))
+                    item.content?.plainTextData = text
+                }
+            }
+            return true
+        } catch {
+            return false
+        }
+    }
+
     /// Increments the access count of a clipboard item
     /// - Parameter item: The item to update
     /// - Returns: True if update succeeded

@@ -50,7 +50,7 @@ final class ActionExecutor {
             return try await executeRemoveTag(tagName: tagName, content: content)
 
         case .setFavorite(_, let isFavorite):
-            return try executeSetFavorite(isFavorite: isFavorite, content: content)
+            return try await executeSetFavorite(isFavorite: isFavorite, content: content)
 
         case .moveToFolder(_, let folderName):
             return try await executeMoveToFolder(folderName: folderName, content: content)
@@ -105,12 +105,24 @@ final class ActionExecutor {
         tagName: String,
         content: ClipboardContent
     ) async throws -> ActionExecutionResult {
-        // Tags are applied after the item is saved to CoreData
-        // Store the tag name in metadata for later application
-        logger.debug("Tag to add: \(tagName) (applied after save)")
+        // Find or create the tag, then add it to the item
+        var tag = await storageManager.fetchTag(byName: tagName)
+        if tag == nil {
+            tag = await storageManager.saveTag(name: tagName, color: "#007AFF")
+        }
 
-        // Return content unchanged - tag will be applied by storage manager
-        // The caller should pass the tag info along
+        guard let resolvedTag = tag else {
+            logger.warning("Failed to find or create tag: \(tagName)")
+            return ActionExecutionResult(content: content)
+        }
+
+        if let item = await storageManager.fetchItem(byId: content.id) {
+            let success = await storageManager.addTags([resolvedTag], to: item)
+            if success {
+                logger.debug("Added tag '\(tagName)' to item \(content.id)")
+            }
+        }
+
         return ActionExecutionResult(content: content)
     }
 
@@ -127,9 +139,13 @@ final class ActionExecutor {
     private func executeSetFavorite(
         isFavorite: Bool,
         content: ClipboardContent
-    ) throws -> ActionExecutionResult {
-        // Favorite is set after the item is saved
-        logger.debug("Set favorite: \(isFavorite) (applied after save)")
+    ) async throws -> ActionExecutionResult {
+        if let item = await storageManager.fetchItem(byId: content.id) {
+            let success = await storageManager.setFavorite(item: item, isFavorite: isFavorite)
+            if success {
+                logger.debug("Set favorite=\(isFavorite) for item \(content.id)")
+            }
+        }
         return ActionExecutionResult(content: content)
     }
 
@@ -139,8 +155,22 @@ final class ActionExecutor {
         folderName: String,
         content: ClipboardContent
     ) async throws -> ActionExecutionResult {
-        // Folder assignment is applied after save
-        logger.debug("Move to folder: \(folderName) (applied after save)")
+        // Find the folder by iterating through existing folders
+        let folders = await storageManager.fetchFolders()
+        let folder = folders.first { $0.name == folderName }
+
+        guard let targetFolder = folder else {
+            logger.warning("Folder not found: \(folderName)")
+            return ActionExecutionResult(content: content)
+        }
+
+        if let item = await storageManager.fetchItem(byId: content.id) {
+            let success = await storageManager.moveItem(item, to: targetFolder)
+            if success {
+                logger.debug("Moved item \(content.id) to folder '\(folderName)'")
+            }
+        }
+
         return ActionExecutionResult(content: content)
     }
 
@@ -242,12 +272,15 @@ final class ActionExecutor {
 
     // MARK: - Run Script Action
 
+    /// Script execution timeout in seconds
+    private static let scriptTimeout: UInt64 = 30_000_000_000 // 30s in nanoseconds
+
     private func executeRunScript(
         scriptPath: String,
         content: ClipboardContent
     ) async throws -> ActionExecutionResult {
         let expandedPath = expandTemplate(scriptPath, content: content, rule: nil)
-        let url = URL(fileURLWithPath: expandedPath)
+        let scriptURL = URL(fileURLWithPath: expandedPath)
 
         guard FileManager.default.fileExists(atPath: expandedPath) else {
             throw AutomationError.scriptExecutionFailed(
@@ -256,24 +289,46 @@ final class ActionExecutor {
             )
         }
 
-        // Execute AppleScript
-        var errorInfo: NSDictionary?
-        guard let script = NSAppleScript(contentsOf: url, error: &errorInfo) else {
-            let errorMessage = errorInfo?.description ?? "Unknown error"
-            throw AutomationError.scriptExecutionFailed(
-                path: expandedPath,
-                reason: errorMessage
-            )
-        }
+        // Execute AppleScript on a background thread with timeout to avoid
+        // blocking the main thread (NSAppleScript.executeAndReturnError is synchronous)
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            group.addTask { @Sendable in
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        var errorInfo: NSDictionary?
+                        guard let script = NSAppleScript(contentsOf: scriptURL, error: &errorInfo) else {
+                            let errorMessage = errorInfo?.description ?? "Unknown error"
+                            continuation.resume(throwing: AutomationError.scriptExecutionFailed(
+                                path: expandedPath, reason: errorMessage
+                            ))
+                            return
+                        }
 
-        var executeError: NSDictionary?
-        script.executeAndReturnError(&executeError)
+                        var executeError: NSDictionary?
+                        script.executeAndReturnError(&executeError)
 
-        if let error = executeError {
-            throw AutomationError.scriptExecutionFailed(
-                path: expandedPath,
-                reason: error.description
-            )
+                        if let error = executeError {
+                            continuation.resume(throwing: AutomationError.scriptExecutionFailed(
+                                path: expandedPath, reason: error.description
+                            ))
+                        } else {
+                            continuation.resume()
+                        }
+                    }
+                }
+            }
+
+            group.addTask { @Sendable in
+                try await Task.sleep(nanoseconds: Self.scriptTimeout)
+                throw AutomationError.scriptExecutionFailed(
+                    path: expandedPath,
+                    reason: "Script execution timed out after 30 seconds"
+                )
+            }
+
+            // Wait for the first task to complete (either script finishes or timeout fires)
+            _ = try await group.next()
+            group.cancelAll()
         }
 
         logger.debug("Executed script: \(expandedPath)")
@@ -310,9 +365,26 @@ final class ActionExecutor {
     }
 
     private func fetchWebhookEndpoint(id: UUID) async -> WebhookEndpointConfig? {
-        // This would fetch from CoreData
-        // For now, return nil - will be implemented with webhook entity
-        return nil
+        let context = PersistenceController.shared.container.viewContext
+        return await context.perform {
+            let request = WebhookEndpoint.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@ AND isEnabled == YES", id as CVarArg)
+            request.fetchLimit = 1
+
+            guard let endpoint = try? context.fetch(request).first,
+                  let url = endpoint.url
+            else {
+                return nil
+            }
+
+            return WebhookEndpointConfig(
+                id: endpoint.id ?? id,
+                url: url,
+                secretKey: endpoint.secretKey,
+                headers: endpoint.customHeaders,
+                isEnabled: endpoint.isEnabled
+            )
+        }
     }
 
     private func sendWebhook(

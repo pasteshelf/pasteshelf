@@ -8,7 +8,6 @@
 //
 
 import Foundation
-import NaturalLanguage
 
 /// Parsed query containing extracted filters and the semantic search text
 struct ParsedQuery: Sendable, Equatable {

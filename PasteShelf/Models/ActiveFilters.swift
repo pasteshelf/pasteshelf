@@ -157,7 +157,7 @@ struct ActiveFilters: Equatable, Sendable {
             favoritesOnly: favoritesOnly,
             tagIds: selectedTagIds.isEmpty ? nil : Array(selectedTagIds),
             dateRange: dateRange,
-            fuzzyMatching: true,
+            fuzzyMatching: SettingsManager.shared.search.fuzzyMatchEnabled,
             fuzzyThreshold: 0.6,
             includeSensitive: true
         )

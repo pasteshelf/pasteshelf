@@ -226,17 +226,16 @@ extension WebhookEndpoint {
         return filters.isEmpty || filters.contains(contentType)
     }
 
-    /// Record a successful delivery
-    func recordSuccess(context: NSManagedObjectContext) {
+    /// Record a successful delivery (caller must save context)
+    func recordSuccess() {
         lastSuccessAt = Date()
         failureCount = 0
         lastFailureMessage = nil
         modifiedAt = Date()
-        try? context.save()
     }
 
-    /// Record a failed delivery
-    func recordFailure(message: String, context: NSManagedObjectContext) {
+    /// Record a failed delivery (caller must save context)
+    func recordFailure(message: String) {
         lastFailureAt = Date()
         failureCount += 1
         lastFailureMessage = message
@@ -246,8 +245,6 @@ extension WebhookEndpoint {
         if failureCount >= 10 {
             isEnabled = false
         }
-
-        try? context.save()
     }
 }
 
@@ -268,8 +265,8 @@ extension WebhookEndpoint {
         )
     }
 
-    /// Update entity from configuration
-    func update(from config: WebhookConfiguration, context: NSManagedObjectContext) {
+    /// Update entity from configuration (caller must save context)
+    func update(from config: WebhookConfiguration) {
         name = config.name
         url = config.url
         secretKey = config.secretKey
@@ -278,7 +275,6 @@ extension WebhookEndpoint {
         contentTypeFilters = config.contentTypeFilters
         customHeaders = config.customHeaders
         modifiedAt = Date()
-        try? context.save()
     }
 }
 

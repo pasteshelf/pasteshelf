@@ -21,7 +21,7 @@ final class StorageManager: ObservableObject {
     // MARK: - Properties
 
     private let persistenceController: PersistenceController
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf", category: "storage")
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf", category: "storage")
 
     /// Main context for UI reads (main queue only)
     var viewContext: NSManagedObjectContext {

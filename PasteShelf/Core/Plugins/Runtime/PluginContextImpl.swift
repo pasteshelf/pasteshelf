@@ -190,11 +190,58 @@ final class PluginContextFactoryImpl: PluginContextFactory {
     private let canRead: Bool
     private let canWrite: Bool
 
+    /// Subscription to clipboard capture notifications
+    private var clipboardObserver: NSObjectProtocol?
+
+    /// Callback for clipboard changes (set by plugin via onChange handler)
+    var onClipboardChange: ((PluginClipboardContent) -> Void)?
+
     init(pluginId: String, canRead: Bool, canWrite: Bool) {
         self.pluginId = pluginId
         self.canRead = canRead
         self.canWrite = canWrite
         super.init()
+
+        if canRead {
+            subscribeToClipboardChanges()
+        }
+    }
+
+    deinit {
+        if let observer = clipboardObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+
+    private func subscribeToClipboardChanges() {
+        clipboardObserver = NotificationCenter.default.addObserver(
+            forName: .clipboardContentCaptured,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self,
+                  let content = notification.userInfo?["content"] as? ClipboardContent,
+                  let handler = self.onClipboardChange
+            else { return }
+
+            let pluginContent = self.convertClipboardToPluginContent(content)
+            handler(pluginContent)
+        }
+    }
+
+    private func convertClipboardToPluginContent(_ content: ClipboardContent) -> PluginClipboardContent {
+        let pluginContent = PluginClipboardContent()
+        pluginContent.text = content.plainText
+        pluginContent.contentTypeIdentifier = content.primaryType.rawValue
+        pluginContent.sourceAppBundleId = content.sourceApp?.bundleId
+        if let imageData = content.imageData {
+            pluginContent.imageData = imageData
+            pluginContent.image = NSImage(data: imageData)
+        }
+        if let url = content.url {
+            pluginContent.url = url
+        }
+        return pluginContent
     }
 
     public func recentItems(limit: Int) async -> [PluginClipboardContent] {

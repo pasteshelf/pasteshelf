@@ -216,20 +216,24 @@ final class ChangeTracker: ChangeTracking, @unchecked Sendable {
                 continue
             }
 
-            // Fetch the item and create encrypted payload
-            let encryptedData = try await context.perform {
-                try self.createEncryptedPayload(for: change, in: context)
+            // Build payload data inside context.perform (CoreData access)
+            let payloadData: Data? = try await context.perform {
+                try self.buildPayloadData(for: change, in: context)
             }
 
-            change.encryptedData = encryptedData
+            // Encrypt outside context.perform (async-safe, no semaphore needed)
+            if let data = payloadData {
+                change.encryptedData = try await encryptionManager.encrypt(data)
+            }
+
             preparedChanges.append(change)
         }
 
         return preparedChanges
     }
 
-    /// Create encrypted payload for a change
-    private func createEncryptedPayload(
+    /// Build JSON payload data for a change (synchronous, safe inside context.perform)
+    private func buildPayloadData(
         for change: SyncChange,
         in context: NSManagedObjectContext
     ) throws -> Data? {
@@ -261,30 +265,6 @@ final class ChangeTracker: ChangeTracking, @unchecked Sendable {
 
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
-        let payloadData = try encoder.encode(payload)
-
-        // Encrypt (this is async, but we're on background context)
-        // Use a semaphore to bridge async/sync
-        var encryptedData: Data?
-        var encryptError: Error?
-
-        let semaphore = DispatchSemaphore(value: 0)
-
-        Task {
-            do {
-                encryptedData = try await self.encryptionManager.encrypt(payloadData)
-            } catch {
-                encryptError = error
-            }
-            semaphore.signal()
-        }
-
-        semaphore.wait()
-
-        if let error = encryptError {
-            throw error
-        }
-
-        return encryptedData
+        return try encoder.encode(payload)
     }
 }

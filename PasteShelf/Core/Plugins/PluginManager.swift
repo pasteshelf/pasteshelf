@@ -113,6 +113,9 @@ final class PluginManager: ObservableObject {
             plugins[bundle.manifest.identifier] = plugin
         }
 
+        // Register and load built-in plugins
+        await registerBuiltInPlugins()
+
         // Load enabled plugins
         loadingStatus = .loading
         await loadEnabledPlugins()
@@ -123,6 +126,56 @@ final class PluginManager: ObservableObject {
         isInitialized = true
         loadingStatus = .ready
         logger.info("Plugin system initialized with \(self.activePlugins.count) active plugins")
+    }
+
+    // MARK: - Built-In Plugin Registration
+
+    /// Definitions of built-in plugins compiled into the app
+    private static let builtInPluginDefinitions: [(id: String, name: String, pluginClass: String, description: String, categories: [PluginCategory])] = [
+        ("com.pasteshelf.plugins.jsonbeautifier", "JSON Beautifier", "JSONBeautifier", "Formats, minifies, and validates JSON content", [.formatting, .developer]),
+        ("com.pasteshelf.plugins.markdownformatter", "Markdown Formatter", "MarkdownFormatter", "Formats and cleans up Markdown text", [.formatting]),
+        ("com.pasteshelf.plugins.urlshortener", "URL Shortener", "URLShortener", "Shortens URLs using popular services", [.utility]),
+        ("com.pasteshelf.plugins.githubgist", "GitHub Gist", "GitHubGist", "Create GitHub Gists from clipboard content", [.integration, .developer]),
+        ("com.pasteshelf.plugins.notion", "Notion", "Notion", "Send clipboard content to Notion", [.integration, .productivity]),
+    ]
+
+    /// Registers built-in plugins that are compiled into the app binary
+    private func registerBuiltInPlugins() async {
+        guard let factory = contextFactory else { return }
+
+        for def in Self.builtInPluginDefinitions {
+            let manifest = PluginManifest(
+                identifier: def.id,
+                name: def.name,
+                version: "1.0.0",
+                shortVersion: "1.0.0",
+                pluginClass: def.pluginClass,
+                pluginDescription: def.description,
+                author: "PasteShelf",
+                categories: def.categories
+            )
+
+            let bundle = PluginBundle(builtIn: manifest)
+
+            // Try to instantiate the plugin class from the main bundle
+            guard let pluginClass = Bundle.main.classNamed(def.pluginClass) as? NSObject.Type,
+                  let instance = pluginClass.init() as? any PasteShelfPlugin
+            else {
+                logger.warning("Built-in plugin class '\(def.pluginClass)' not found or invalid")
+                plugins[def.id] = LoadedPlugin(bundle: bundle, state: .failed)
+                continue
+            }
+
+            // Create context and initialize
+            let context = factory.createContext(for: bundle)
+            instance.didLoad(with: context)
+
+            // Register as active
+            activePlugins[def.id] = instance
+            plugins[def.id] = LoadedPlugin(bundle: bundle, instance: instance, state: .active)
+
+            logger.info("Registered built-in plugin: \(def.name)")
+        }
     }
 
     // MARK: - Plugin Loading

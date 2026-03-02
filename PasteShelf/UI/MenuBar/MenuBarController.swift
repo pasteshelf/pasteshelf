@@ -328,4 +328,7 @@ extension Notification.Name {
 
     /// Posted to show the main window with a search query
     static let showMainWindowWithSearch = Notification.Name("ShowMainWindowWithSearch")
+
+    /// Posted when new clipboard content is captured (for plugin subscription)
+    static let clipboardContentCaptured = Notification.Name("com.pasteshelf.clipboardContentCaptured")
 }

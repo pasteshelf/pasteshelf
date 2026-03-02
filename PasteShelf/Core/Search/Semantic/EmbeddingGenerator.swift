@@ -94,9 +94,9 @@ final class EmbeddingGenerator: ObservableObject {
             return false
         }
 
-        // Fetch the item's text content
+        // Fetch the item's full text content (fall back to preview if unavailable)
         guard let item = await storageManager.fetchItem(byId: itemId),
-              let text = item.plainTextPreview,
+              let text = item.content?.textContent ?? item.plainTextPreview,
               embeddingManager.canEmbed(text)
         else {
             return false

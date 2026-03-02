@@ -181,7 +181,8 @@ final class WebhookManager {
                 throw WebhookError.endpointNotFound
             }
 
-            endpoint.update(from: config, context: context)
+            endpoint.update(from: config)
+            try context.save()
         }
     }
 
@@ -359,10 +360,11 @@ final class WebhookManager {
 
             do {
                 if let endpoint = try context.fetch(request).first {
-                    endpoint.recordSuccess(context: context)
+                    endpoint.recordSuccess()
+                    try context.save()
                 }
             } catch {
-                // Ignore recording errors
+                self.logger.error("Failed to record webhook success: \(error.localizedDescription)")
             }
         }
     }
@@ -378,10 +380,11 @@ final class WebhookManager {
 
             do {
                 if let endpoint = try context.fetch(request).first {
-                    endpoint.recordFailure(message: message, context: context)
+                    endpoint.recordFailure(message: message)
+                    try context.save()
                 }
             } catch {
-                // Ignore recording errors
+                self.logger.error("Failed to record webhook failure: \(error.localizedDescription)")
             }
         }
     }
