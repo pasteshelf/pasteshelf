@@ -33,7 +33,7 @@ final class AuditRetentionService {
     // MARK: - Dependencies
 
     private let storage: AuditLogStoring
-    private let configuration: AuditRetentionConfiguration
+    private var configuration: AuditRetentionConfiguration
 
     // MARK: - Timer State
 
@@ -95,6 +95,17 @@ final class AuditRetentionService {
         cleanupTimer?.invalidate()
         cleanupTimer = nil
         logger.debug("Audit retention service stopped")
+    }
+
+    /// Updates the retention configuration used for future pruning passes.
+    ///
+    /// The change takes effect on the next scheduled or manual pruning pass. Call `runNow()`
+    /// after this method if an immediate pruning pass with the new window is required.
+    ///
+    /// - Parameter newConfiguration: The replacement retention policy.
+    func updateConfiguration(_ newConfiguration: AuditRetentionConfiguration) {
+        configuration = newConfiguration
+        logger.info("Audit retention configuration updated to \(newConfiguration.retentionDays) days (immutable: \(newConfiguration.isImmutable))")
     }
 
     /// Immediately prunes expired audit log entries, regardless of the regular schedule.

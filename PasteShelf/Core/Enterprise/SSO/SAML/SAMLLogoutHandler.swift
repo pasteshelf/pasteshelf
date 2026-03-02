@@ -7,6 +7,7 @@
 //  in a browser session, and parses any LogoutResponse received on callback.
 //
 
+import AppKit
 import AuthenticationServices
 import Foundation
 import os.log

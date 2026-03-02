@@ -100,6 +100,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Start background OCR processing for image items
         startBackgroundOCRProcessing()
 
+        // Initialize enterprise services (DLP, compliance, MDM monitoring)
+        initializeEnterpriseServices()
+
         // Show onboarding if needed
         #if DEBUG
         let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
@@ -130,6 +133,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Stop auto-cleanup
         AutoCleanupManager.shared.stop()
+
+        // Stop enterprise monitoring
+        MDMManager.shared.stopMonitoring()
 
         // Shut down plugin system (calls willUnload on active plugins)
         Task {
@@ -271,6 +277,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func pasteItem(id: UUID) {
         Task {
             await floatingPanelController?.viewModel.paste(itemId: id)
+
+            // Log paste as audit event
+            await AuditManager.shared.logClipboardEvent(
+                action: .pastePerformed,
+                resourceId: id.uuidString
+            )
         }
     }
 
@@ -374,6 +386,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Re-apply MDM enterprise key overrides on settings change
+        applyMDMEnterpriseKeys()
+
         logger.debug("Settings change handled")
     }
 
@@ -437,6 +452,109 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    // MARK: - Enterprise Services
+
+    /// Initializes enterprise services: DLP, compliance, MDM monitoring, and admin console.
+    ///
+    /// AdminManager/AuditManager require an `AdminConsoleConfiguration` with a server URL
+    /// to activate — they are configured lazily when the admin console URL is set (via MDM
+    /// or user configuration). DLPManager and ComplianceManager are self-contained.
+    private func initializeEnterpriseServices() {
+        // Configure SSO with storage backends
+        SSOManager.shared.configure(
+            sessionStore: KeychainSSOSessionStore(),
+            providerStore: UserDefaultsIdentityProviderStore()
+        )
+
+        // Configure DLP (self-contained, loads rules from CoreData)
+        DLPManager.shared.configure()
+
+        // Configure compliance (enables HIPAA/GDPR/SOC2 subsystem)
+        ComplianceManager.shared.configure()
+
+        // Load MDM configuration and start monitoring for profile changes
+        MDMManager.shared.loadConfiguration()
+        MDMManager.shared.startMonitoring()
+
+        // Apply MDM enterprise key overrides that affect enterprise services
+        applyMDMEnterpriseKeys()
+
+        // Configure admin console if URL is available (from MDM or prior setup)
+        configureAdminConsoleIfNeeded()
+
+        logger.debug("Enterprise services initialized")
+    }
+
+    /// Applies MDM enterprise keys that affect services outside of AppSettings.
+    private func applyMDMEnterpriseKeys() {
+        let config = MDMManager.shared.configuration
+        guard config.isManaged else { return }
+
+        // DLP enable/disable via MDM
+        if let value = config.effectiveValue(for: .dlpEnabled), case .bool(let enabled) = value {
+            if enabled {
+                DLPManager.shared.configure()
+                Task { await DLPManager.shared.installDefaultRulesIfNeeded() }
+            }
+        }
+
+        // DLP: block credit card patterns via MDM
+        if let value = config.effectiveValue(for: .blockCreditCards), case .bool(let enabled) = value, enabled {
+            Task { await enableDLPDefaultRule(named: "Credit Card") }
+        }
+
+        // DLP: block API key patterns via MDM
+        if let value = config.effectiveValue(for: .blockAPIKeys), case .bool(let enabled) = value, enabled {
+            Task { await enableDLPDefaultRule(named: "API Key") }
+        }
+    }
+
+    /// Enables a default DLP rule by partial name match (used for MDM key enforcement).
+    private func enableDLPDefaultRule(named partialName: String) async {
+        // Ensure default rules are installed first
+        await DLPManager.shared.installDefaultRulesIfNeeded()
+
+        for rule in DLPManager.shared.rules where rule.name.localizedCaseInsensitiveContains(partialName) {
+            if !rule.isEnabled {
+                var updated = rule
+                updated.isEnabled = true
+                try? await DLPManager.shared.updateRule(updated)
+            }
+        }
+    }
+
+    /// Configures AdminManager (and by extension AuditManager) if an admin console URL is available.
+    private func configureAdminConsoleIfNeeded() {
+        // Check MDM for admin console URL
+        var serverURL: URL?
+        if let mdmURL = MDMManager.shared.adminConsoleURL, let url = URL(string: mdmURL) {
+            serverURL = url
+        }
+
+        // Also check if admin console was previously configured by the user
+        if serverURL == nil, let storedURL = UserDefaults.standard.string(forKey: "com.pasteshelf.admin.serverURL"),
+           let url = URL(string: storedURL) {
+            serverURL = url
+        }
+
+        guard let url = serverURL else {
+            logger.debug("Admin console not configured — AuditManager will remain dormant")
+            return
+        }
+
+        let orgID = MDMManager.shared.organizationID ?? ""
+        let config = AdminConsoleConfiguration(
+            serverURL: url,
+            organizationID: orgID,
+            apiKey: nil,
+            isEnabled: true,
+            pollingInterval: 300
+        )
+
+        AdminManager.shared.configure(with: config)
+        logger.info("Admin console configured via MDM/stored URL")
+    }
+
     // MARK: - Automation
 
     /// Initializes the plugin system
@@ -474,17 +592,21 @@ extension AppDelegate: ClipboardMonitorDelegate {
         // Flash menu bar icon
         menuBarController?.flashActive()
 
+        // Evaluate DLP rules and enforce block/redact (post-save enforcement)
+        Task {
+            let dlpHandled = await processDLPEvaluation(for: content)
+            if dlpHandled { return }
+
+            // Run automation rules
+            await processAutomation(for: content, sourceApp: sourceApp)
+        }
+
         // Post notification for plugin system
         NotificationCenter.default.post(
             name: .clipboardContentCaptured,
             object: nil,
             userInfo: ["content": content]
         )
-
-        // Run automation rules
-        Task {
-            await processAutomation(for: content, sourceApp: sourceApp)
-        }
 
         // Reload floating panel if visible
         if floatingPanelController?.isVisible == true {
@@ -504,7 +626,45 @@ extension AppDelegate: ClipboardMonitorDelegate {
             await WebhookManager.shared.sendClipboardCreated(content: content)
         }
 
+        // Log clipboard capture as audit event
+        Task {
+            await AuditManager.shared.logClipboardEvent(
+                action: .copyCaptured,
+                resourceId: content.id.uuidString,
+                detail: ["contentType": content.primaryType.displayName]
+            )
+        }
+
         logger.debug("Captured: \(content.primaryType.displayName)")
+    }
+
+    /// Evaluates DLP rules against captured content and enforces block/redact actions.
+    ///
+    /// Returns `true` if the content was blocked (deleted), meaning further processing
+    /// should be skipped.
+    private func processDLPEvaluation(for content: ClipboardContent) async -> Bool {
+        guard DLPManager.shared.isEnabled else { return false }
+
+        let result = await DLPManager.shared.evaluate(content)
+
+        guard result.hasViolations else { return false }
+
+        // Block: delete the already-saved item
+        if result.shouldBlock {
+            let deleted = await storageManager.deleteItem(byId: content.id)
+            if deleted {
+                logger.info("DLP: blocked and deleted item \(content.id)")
+            }
+            return true
+        }
+
+        // Redact: update the stored text with redacted version
+        if result.shouldRedact, let redactedText = result.redactedContent {
+            await storageManager.updatePlainText(itemId: content.id, text: redactedText)
+            logger.info("DLP: redacted content for item \(content.id)")
+        }
+
+        return false
     }
 
     /// Processes automation rules for captured content

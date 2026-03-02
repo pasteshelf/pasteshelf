@@ -118,20 +118,63 @@ struct MDMPolicyEnforcer {
             logger.debug("MDM key 'AutoLockTimeout' received but not yet mapped to settings")
 
         // MARK: Enterprise / SSO / DLP / Sync / Plugins
-        // These keys are handled by their respective managers (SSOManager,
-        // DLPManager, etc.) and do not map directly to AppSettings fields.
-        case .organizationID,
-             .adminConsoleURL,
-             .ssoEnabled,
-             .ssoProvider,
-             .ssoDomain,
-             .cloudSyncEnabled,
-             .localStorageOnly,
-             .pluginsEnabled,
-             .dlpEnabled,
-             .blockCreditCards,
-             .blockAPIKeys:
-            break
+        // These keys are handled by their respective managers and enforced
+        // via AppDelegate.applyMDMEnterpriseKeys(). They do not map to
+        // AppSettings fields directly, but we log that they were received.
+        case .organizationID:
+            if case .string(let id) = value {
+                logger.debug("MDM organizationID received: \(id)")
+            }
+
+        case .adminConsoleURL:
+            if case .string(let url) = value {
+                logger.debug("MDM adminConsoleURL received: \(url)")
+            }
+
+        case .ssoEnabled:
+            if case .bool(let enabled) = value {
+                logger.info("MDM SSO enabled: \(enabled)")
+            }
+
+        case .ssoProvider:
+            if case .string(let provider) = value {
+                logger.info("MDM SSO provider: \(provider)")
+            }
+
+        case .ssoDomain:
+            if case .string(let domain) = value {
+                logger.info("MDM SSO domain: \(domain)")
+            }
+
+        case .cloudSyncEnabled:
+            if case .bool(let enabled) = value {
+                logger.info("MDM cloud sync enabled: \(enabled)")
+            }
+
+        case .localStorageOnly:
+            if case .bool(let enabled) = value {
+                logger.info("MDM local storage only: \(enabled)")
+            }
+
+        case .pluginsEnabled:
+            if case .bool(let enabled) = value {
+                logger.info("MDM plugins enabled: \(enabled)")
+            }
+
+        case .dlpEnabled:
+            if case .bool(let enabled) = value {
+                logger.info("MDM DLP enabled: \(enabled)")
+            }
+
+        case .blockCreditCards:
+            if case .bool(let enabled) = value {
+                logger.info("MDM block credit cards: \(enabled)")
+            }
+
+        case .blockAPIKeys:
+            if case .bool(let enabled) = value {
+                logger.info("MDM block API keys: \(enabled)")
+            }
         }
     }
 

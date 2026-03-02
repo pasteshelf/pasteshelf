@@ -101,29 +101,7 @@ final class AuditManager: ObservableObject {
 
         isEnabled = true
 
-        // Observe DLP violations to create audit trail entries
-        setupDLPViolationObserver()
-
         logger.info("AuditManager configured and enabled")
-    }
-
-    /// Observes DLP violation notifications and logs them as audit events
-    private func setupDLPViolationObserver() {
-        NotificationCenter.default.addObserver(
-            forName: .dlpViolationDetected,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let self, self.isEnabled else { return }
-            let violation = notification.userInfo?["violation"]
-            let violationDesc = violation.map { String(describing: $0) } ?? "unknown"
-            Task {
-                await self.logUserAction(
-                    action: .policyViolation,
-                    detail: ["violation": violationDesc]
-                )
-            }
-        }
     }
 
     // MARK: - Monitoring
@@ -231,6 +209,24 @@ final class AuditManager: ObservableObject {
             detail: detail
         )
         try? await storageService?.save(event)
+    }
+
+    // MARK: - Retention Configuration
+
+    /// Updates the active retention policy and propagates the change to the retention service.
+    ///
+    /// Setting `retentionDays` to a value not in `AuditRetentionConfiguration.options` is
+    /// accepted but may produce unexpected pruning behaviour; callers should prefer values
+    /// from that list.
+    ///
+    /// - Parameter days: The new retention window in days.
+    func updateRetentionDays(_ days: Int) {
+        retentionConfiguration = AuditRetentionConfiguration(
+            retentionDays: days,
+            isImmutable: retentionConfiguration.isImmutable
+        )
+        retentionService?.updateConfiguration(retentionConfiguration)
+        logger.info("Audit retention policy updated to \(days) days")
     }
 
     // MARK: - Storage Access

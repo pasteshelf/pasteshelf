@@ -7,6 +7,7 @@
 //  processes the SAML response to create an SSOSession.
 //
 
+import AppKit
 import AuthenticationServices
 import Foundation
 import os.log

@@ -8,6 +8,7 @@
 import CoreData
 import Foundation
 import os.log
+import Security
 
 // MARK: - GDPRDataDeletionService
 

@@ -12,6 +12,7 @@ import CoreData
 import Foundation
 import Network
 import os.log
+import Security
 
 /// Main sync coordinator implementing SyncManaging protocol.
 ///
@@ -97,6 +98,8 @@ public final class SyncManager: ObservableObject, SyncManaging {
     private static let backendSyncTokenKey = "com.pasteshelf.sync.backendSyncToken"
     private static let backendTypeKey = "com.pasteshelf.sync.backendType"
     private static let selfHostedConfigKey = "com.pasteshelf.sync.selfHostedConfiguration"
+    private static let selfHostedApiKeyService = "com.pasteshelf.sync.selfHostedApiKey"
+    private static let selfHostedApiKeyAccount = "selfHostedSync"
 
     // MARK: - Logger
 
@@ -556,23 +559,80 @@ public final class SyncManager: ObservableObject, SyncManaging {
         UserDefaults.standard.set(type.rawValue, forKey: Self.backendTypeKey)
     }
 
-    /// Persist the self-hosted sync configuration to UserDefaults.
+    /// Persist the self-hosted sync configuration to UserDefaults (API key stored in Keychain).
     private func saveSelfHostedConfiguration() {
         guard let config = selfHostedConfiguration else {
             UserDefaults.standard.removeObject(forKey: Self.selfHostedConfigKey)
+            Self.deleteSelfHostedApiKeyFromKeychain()
             return
         }
-        if let data = try? JSONEncoder().encode(config) {
+        // Strip API key from UserDefaults — store it in Keychain instead
+        var sanitized = config
+        sanitized.apiKey = nil
+        if let data = try? JSONEncoder().encode(sanitized) {
             UserDefaults.standard.set(data, forKey: Self.selfHostedConfigKey)
+        }
+        if let apiKey = config.apiKey {
+            Self.saveSelfHostedApiKeyToKeychain(apiKey)
+        } else {
+            Self.deleteSelfHostedApiKeyFromKeychain()
         }
     }
 
-    /// Load persisted self-hosted sync configuration from UserDefaults.
+    /// Load persisted self-hosted sync configuration from UserDefaults + Keychain.
     private func loadSelfHostedConfiguration() -> SelfHostedSyncConfiguration? {
         guard let data = UserDefaults.standard.data(forKey: Self.selfHostedConfigKey) else {
             return nil
         }
-        return try? JSONDecoder().decode(SelfHostedSyncConfiguration.self, from: data)
+        guard var config = try? JSONDecoder().decode(SelfHostedSyncConfiguration.self, from: data) else {
+            return nil
+        }
+        config.apiKey = Self.loadSelfHostedApiKeyFromKeychain()
+        return config
+    }
+
+    // MARK: - Self-Hosted API Key Keychain Helpers
+
+    private static func saveSelfHostedApiKeyToKeychain(_ apiKey: String) {
+        guard let data = apiKey.data(using: .utf8) else { return }
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: selfHostedApiKeyService,
+            kSecAttrAccount as String: selfHostedApiKeyAccount
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: selfHostedApiKeyService,
+            kSecAttrAccount as String: selfHostedApiKeyAccount,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+        ]
+        SecItemAdd(addQuery as CFDictionary, nil)
+    }
+
+    private static func loadSelfHostedApiKeyFromKeychain() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: selfHostedApiKeyService,
+            kSecAttrAccount as String: selfHostedApiKeyAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private static func deleteSelfHostedApiKeyFromKeychain() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: selfHostedApiKeyService,
+            kSecAttrAccount as String: selfHostedApiKeyAccount
+        ]
+        SecItemDelete(query as CFDictionary)
     }
 
     private func handleEnabledStateChange() {
