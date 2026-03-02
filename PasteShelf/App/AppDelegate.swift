@@ -83,7 +83,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         // Eagerly bootstrap SyncManager so sync starts if previously enabled
-        _ = SyncManager.shared
+        // (gated by enterprise settings — local-only mode disables sync)
+        let enterpriseSettings = SettingsManager.shared.enterprise
+        if enterpriseSettings.cloudSyncEnabled && !enterpriseSettings.localStorageOnly {
+            _ = SyncManager.shared
+        }
 
         // Start auto-cleanup manager
         AutoCleanupManager.shared.start()
@@ -91,8 +95,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize automation engine
         initializeAutomation()
 
-        // Initialize plugin system
-        initializePluginSystem()
+        // Initialize plugin system (gated by enterprise settings)
+        if SettingsManager.shared.enterprise.pluginsEnabled {
+            initializePluginSystem()
+        }
 
         // Start background embedding generation for semantic search
         startBackgroundEmbeddingGeneration()
@@ -125,6 +131,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         logger.info("PasteShelf terminating")
 
+        // Clear clipboard history on quit if security setting is enabled
+        if SettingsManager.shared.security.clearOnQuit {
+            Task {
+                await storageManager.deleteAllItems(keepFavorites: false)
+            }
+            logger.info("Clipboard history cleared on quit (security policy)")
+        }
+
         // Stop clipboard monitoring
         clipboardMonitor?.stopMonitoring()
 
@@ -139,6 +153,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Stop enterprise monitoring
         MDMManager.shared.stopMonitoring()
+
+        // Stop sync engine (cancels auto-sync task, network monitor, WebSocket)
+        SyncManager.shared.stop()
 
         // Shut down plugin system (calls willUnload on active plugins)
         Task {
@@ -492,11 +509,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Applies MDM enterprise keys that affect services outside of AppSettings.
+    ///
+    /// Handles keys that control runtime services (DLP, SSO, sync, plugins) rather
+    /// than simple preference values already mapped by `MDMPolicyEnforcer`.
     private func applyMDMEnterpriseKeys() {
         let config = MDMManager.shared.configuration
         guard config.isManaged else { return }
 
-        // DLP enable/disable via MDM
+        // --- DLP enable/disable via MDM ---
         if let value = config.effectiveValue(for: .dlpEnabled), case .bool(let enabled) = value {
             if enabled {
                 DLPManager.shared.configure()
@@ -506,26 +526,89 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        // DLP: block credit card patterns via MDM
-        if let value = config.effectiveValue(for: .blockCreditCards), case .bool(let enabled) = value, enabled {
-            Task { await enableDLPDefaultRule(named: "Credit Card") }
+        // DLP: block/unblock credit card patterns via MDM
+        if let value = config.effectiveValue(for: .blockCreditCards), case .bool(let enabled) = value {
+            Task { await setDLPDefaultRule(named: "Credit Card", enabled: enabled) }
         }
 
-        // DLP: block API key patterns via MDM
-        if let value = config.effectiveValue(for: .blockAPIKeys), case .bool(let enabled) = value, enabled {
-            Task { await enableDLPDefaultRule(named: "API Key") }
+        // DLP: block/unblock API key patterns via MDM
+        if let value = config.effectiveValue(for: .blockAPIKeys), case .bool(let enabled) = value {
+            Task { await setDLPDefaultRule(named: "API Key", enabled: enabled) }
+        }
+
+        // --- SSO configuration via MDM ---
+        applySSOConfiguration(from: config)
+
+        // --- Sync / storage gating via MDM ---
+        let settings = SettingsManager.shared.settings
+        if settings.enterprise.localStorageOnly || !settings.enterprise.cloudSyncEnabled {
+            SyncManager.shared.stop()
+            logger.info("MDM: sync disabled (localStorageOnly=\(settings.enterprise.localStorageOnly), cloudSyncEnabled=\(settings.enterprise.cloudSyncEnabled))")
+        }
+
+        // --- Plugin gating via MDM ---
+        if !settings.enterprise.pluginsEnabled, PluginManager.shared.isInitialized {
+            Task { await PluginManager.shared.shutdown() }
+            logger.info("MDM: plugin system disabled")
+        }
+
+        // --- Security: clear on quit ---
+        // clearOnQuit, requireBiometricAuth, autoLockTimeout are now persisted
+        // in AppSettings.security via MDMPolicyEnforcer and consumed at runtime
+        // (clearOnQuit is handled in applicationWillTerminate)
+    }
+
+    /// Configures SSO from MDM-pushed provider configuration.
+    private func applySSOConfiguration(from config: MDMConfiguration) {
+        guard let ssoValue = config.effectiveValue(for: .ssoEnabled),
+              case .bool(let ssoEnabled) = ssoValue, ssoEnabled else { return }
+
+        // Read provider type and domain from MDM
+        let providerType: IdentityProviderType
+        if let provValue = config.effectiveValue(for: .ssoProvider),
+           case .string(let provString) = provValue {
+            providerType = IdentityProviderType(rawValue: provString)
+        } else {
+            providerType = .oidc // Default to OIDC
+        }
+
+        let domain: String
+        if let domValue = config.effectiveValue(for: .ssoDomain),
+           case .string(let domString) = domValue {
+            domain = domString
+        } else {
+            return // SSO enabled but no domain — cannot configure
+        }
+
+        // Check if a provider with this domain already exists in the store
+        Task {
+            guard let providerStore = SSOManager.shared.providerStore else { return }
+            let existing = try? await providerStore.loadAll()
+            let alreadyConfigured = existing?.contains { $0.entityId == domain } ?? false
+
+            if !alreadyConfigured {
+                // Create a minimal MDM-provisioned provider entry
+                let provider = IdentityProvider(
+                    name: "MDM SSO (\(domain))",
+                    type: providerType,
+                    entityId: domain,
+                    isEnabled: true
+                )
+                try? await providerStore.save(provider)
+                logger.info("MDM: SSO provider created for domain '\(domain)' (type: \(providerType.rawValue))")
+            }
         }
     }
 
-    /// Enables a default DLP rule by partial name match (used for MDM key enforcement).
-    private func enableDLPDefaultRule(named partialName: String) async {
+    /// Sets a default DLP rule to enabled or disabled by partial name match (MDM enforcement).
+    private func setDLPDefaultRule(named partialName: String, enabled: Bool) async {
         // Ensure default rules are installed first
         await DLPManager.shared.installDefaultRulesIfNeeded()
 
         for rule in DLPManager.shared.rules where rule.name.localizedCaseInsensitiveContains(partialName) {
-            if !rule.isEnabled {
+            if rule.isEnabled != enabled {
                 var updated = rule
-                updated.isEnabled = true
+                updated.isEnabled = enabled
                 try? await DLPManager.shared.updateRule(updated)
             }
         }
@@ -610,74 +693,108 @@ extension AppDelegate: ClipboardMonitorDelegate {
 
         // Sequential pipeline: DLP → automation → plugins → audit → webhooks → embeddings/OCR
         Task {
-            // Stage 1: DLP evaluation — if blocked, skip everything else
-            let dlpBlocked = await processDLPEvaluation(for: content)
-            if dlpBlocked { return }
+            // Stage 1: DLP evaluation — may block, redact, or pass through.
+            // Returns the (possibly redacted) content for downstream stages.
+            let dlpResult = await processDLPEvaluation(for: content)
+            if dlpResult.blocked { return }
+            let pipelineContent = dlpResult.content
 
-            // Stage 2: Run automation rules
-            await processAutomation(for: content, sourceApp: sourceApp)
+            // Stage 2: Run automation rules — may delete the item
+            let automationDeleted = await processAutomation(for: pipelineContent, sourceApp: sourceApp)
+            if automationDeleted { return }
 
             // Stage 3: Post notification for plugin system
             NotificationCenter.default.post(
                 name: .clipboardContentCaptured,
                 object: nil,
-                userInfo: ["content": content]
+                userInfo: ["content": pipelineContent]
             )
 
             // Stage 4: Log clipboard capture as audit event
             await AuditManager.shared.logClipboardEvent(
                 action: .copyCaptured,
-                resourceId: content.id.uuidString,
-                detail: ["contentType": content.primaryType.displayName]
+                resourceId: pipelineContent.id.uuidString,
+                detail: ["contentType": pipelineContent.primaryType.displayName]
             )
 
             // Stage 5: Fire webhook events for clipboard capture
-            await WebhookManager.shared.sendClipboardCreated(content: content)
+            await WebhookManager.shared.sendClipboardCreated(content: pipelineContent)
 
             // Stage 6: Generate embedding for semantic search
-            generateEmbeddingForNewItem(id: content.id)
+            generateEmbeddingForNewItem(id: pipelineContent.id)
 
             // Stage 7: Generate OCR for image content
-            generateOCRForNewItem(id: content.id, contentType: content.primaryType)
+            generateOCRForNewItem(id: pipelineContent.id, contentType: pipelineContent.primaryType)
         }
 
         logger.debug("Captured: \(content.primaryType.displayName)")
     }
 
+    /// Result of DLP evaluation indicating whether content was blocked and providing
+    /// the (possibly redacted) content for downstream pipeline stages.
+    private struct DLPPipelineResult {
+        let blocked: Bool
+        let content: ClipboardContent
+    }
+
     /// Evaluates DLP rules against captured content and enforces block/redact actions.
     ///
-    /// Returns `true` if the content was blocked (deleted), meaning further processing
-    /// should be skipped.
-    private func processDLPEvaluation(for content: ClipboardContent) async -> Bool {
-        guard DLPManager.shared.isEnabled else { return false }
+    /// Returns a `DLPPipelineResult` indicating whether the item was blocked and
+    /// providing the (possibly redacted) content for downstream stages.
+    private func processDLPEvaluation(for content: ClipboardContent) async -> DLPPipelineResult {
+        guard DLPManager.shared.isEnabled else {
+            return DLPPipelineResult(blocked: false, content: content)
+        }
 
         let result = await DLPManager.shared.evaluate(content)
 
-        guard result.hasViolations else { return false }
+        guard result.hasViolations else {
+            return DLPPipelineResult(blocked: false, content: content)
+        }
 
-        // Block: delete the already-saved item
+        // Block: delete the already-saved item and log audit event
         if result.shouldBlock {
             let deleted = await storageManager.deleteItem(byId: content.id)
             if deleted {
                 logger.info("DLP: blocked and deleted item \(content.id)")
             }
-            return true
+
+            // Audit: log that clipboard content was blocked by DLP
+            await AuditManager.shared.logClipboardEvent(
+                action: .copyBlocked,
+                resourceId: content.id.uuidString,
+                detail: [
+                    "contentType": content.primaryType.displayName,
+                    "reason": "dlp_blocked",
+                ]
+            )
+
+            return DLPPipelineResult(blocked: true, content: content)
         }
 
-        // Redact: update the stored text with redacted version
+        // Redact: update the stored text and propagate redacted content downstream
         if result.shouldRedact, let redactedText = result.redactedContent {
             await storageManager.updatePlainText(itemId: content.id, text: redactedText)
             logger.info("DLP: redacted content for item \(content.id)")
+
+            // Create a copy with redacted text so downstream stages don't see sensitive data
+            var redactedContent = content
+            redactedContent.plainText = redactedText
+            return DLPPipelineResult(blocked: false, content: redactedContent)
         }
 
-        return false
+        return DLPPipelineResult(blocked: false, content: content)
     }
 
-    /// Processes automation rules for captured content
+    /// Processes automation rules for captured content.
+    ///
+    /// Returns `true` if automation deleted the item, signaling the caller
+    /// to skip all downstream pipeline stages.
+    @discardableResult
     private func processAutomation(
         for content: ClipboardContent,
         sourceApp: SourceApp?
-    ) async {
+    ) async -> Bool {
         let result = await AutomationEngine.shared.evaluateRules(
             for: content,
             trigger: .onCapture,
@@ -702,7 +819,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
             if deleted {
                 logger.info("Automation: deleted item \(content.id) per rule action")
             }
-            return
+            return true
         }
 
         // Persist transformed content if text was changed by automation rules
@@ -711,6 +828,8 @@ extension AppDelegate: ClipboardMonitorDelegate {
             await storageManager.updatePlainText(itemId: content.id, text: newText)
             logger.info("Automation: persisted transformed text for item \(content.id)")
         }
+
+        return false
     }
 
     func clipboardMonitor(

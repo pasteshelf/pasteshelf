@@ -27,6 +27,12 @@ struct AppSettings: Codable, Equatable {
     /// Search settings (semantic search, OCR)
     var search: SearchSettings
 
+    /// Enterprise settings (sync, storage, plugins) — typically MDM-managed
+    var enterprise: EnterpriseSettings
+
+    /// Security settings (biometric auth, auto-lock, clear on quit) — typically MDM-managed
+    var security: SecuritySettings
+
     // MARK: - Initialization
 
     init(
@@ -34,13 +40,17 @@ struct AppSettings: Codable, Equatable {
         privacy: PrivacySettings = .default,
         appearance: AppearanceSettings = .default,
         shortcuts: ShortcutsSettings = .default,
-        search: SearchSettings = .default
+        search: SearchSettings = .default,
+        enterprise: EnterpriseSettings = .default,
+        security: SecuritySettings = .default
     ) {
         self.general = general
         self.privacy = privacy
         self.appearance = appearance
         self.shortcuts = shortcuts
         self.search = search
+        self.enterprise = enterprise
+        self.security = security
     }
 
     // MARK: - Codable Migration
@@ -53,6 +63,8 @@ struct AppSettings: Codable, Equatable {
         appearance = try container.decode(AppearanceSettings.self, forKey: .appearance)
         shortcuts = try container.decode(ShortcutsSettings.self, forKey: .shortcuts)
         search = try container.decodeIfPresent(SearchSettings.self, forKey: .search) ?? .default
+        enterprise = try container.decodeIfPresent(EnterpriseSettings.self, forKey: .enterprise) ?? .default
+        security = try container.decodeIfPresent(SecuritySettings.self, forKey: .security) ?? .default
     }
 
     // MARK: - Default Configuration

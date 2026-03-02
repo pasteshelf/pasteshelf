@@ -66,6 +66,9 @@ enum AuditAction: String, Codable, Sendable {
     /// A new clipboard item was captured from the system clipboard.
     case copyCaptured = "copy_captured"
 
+    /// A clipboard item was blocked by DLP and removed before storage.
+    case copyBlocked = "copy_blocked"
+
     /// The user pasted a clipboard item into another application.
     case pastePerformed = "paste_performed"
 

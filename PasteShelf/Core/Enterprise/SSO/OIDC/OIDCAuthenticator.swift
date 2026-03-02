@@ -10,6 +10,7 @@ import AppKit
 import AuthenticationServices
 import CryptoKit
 import Foundation
+import Security
 import os.log
 
 /// OIDC SSO provider implementing authorization code flow with PKCE

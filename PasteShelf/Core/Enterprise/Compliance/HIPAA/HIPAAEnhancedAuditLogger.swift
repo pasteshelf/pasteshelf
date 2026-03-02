@@ -118,7 +118,7 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
     /// Derives a default access reason from the event's action.
     private static func accessReason(for event: AuditEvent) -> String {
         switch event.action {
-        case .copyCaptured:
+        case .copyCaptured, .copyBlocked:
             return "clipboard_capture"
         case .pastePerformed:
             return "paste_operation"
@@ -143,7 +143,7 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
         }
         // Clipboard capture and paste may involve PHI
         switch event.action {
-        case .copyCaptured, .pastePerformed:
+        case .copyCaptured, .copyBlocked, .pastePerformed:
             return "possible"
         default:
             return "false"

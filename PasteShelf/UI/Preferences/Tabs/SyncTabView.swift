@@ -16,11 +16,6 @@ struct SyncTabView: View {
     @State private var showingResetConfirmation = false
     @State private var errorMessage: String?
 
-    // Self-hosted config editing state
-    @State private var selfHostedServerURL: String = ""
-    @State private var selfHostedOrgID: String = ""
-    @State private var selfHostedAPIKey: String = ""
-
     // MARK: - Body
 
     var body: some View {
@@ -56,9 +51,7 @@ struct SyncTabView: View {
             }
         }
         .formStyle(.grouped)
-        .onAppear {
-            loadSelfHostedFields()
-        }
+        .onAppear {}
         .alert("Reset Sync", isPresented: $showingResetConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Reset", role: .destructive) {
@@ -188,7 +181,6 @@ struct SyncTabView: View {
                     var config = syncManager.selfHostedConfiguration ?? .empty
                     config.isEnabled = true
                     syncManager.selfHostedConfiguration = config
-                    loadSelfHostedFields()
                 }
                 // Restart sync with new backend if sync is enabled
                 if syncManager.isEnabled {
@@ -225,54 +217,21 @@ struct SyncTabView: View {
 
     @ViewBuilder
     private var selfHostedSection: some View {
-        TextField("Server URL", text: $selfHostedServerURL, prompt: Text("https://sync.company.internal"))
-            .textFieldStyle(.roundedBorder)
-            .onChange(of: selfHostedServerURL) { _ in
-                saveSelfHostedFields()
-            }
-
-        TextField("Organization ID", text: $selfHostedOrgID, prompt: Text("my-organization"))
-            .textFieldStyle(.roundedBorder)
-            .onChange(of: selfHostedOrgID) { _ in
-                saveSelfHostedFields()
-            }
-
-        SecureField("API Key", text: $selfHostedAPIKey, prompt: Text("Optional — leave empty for SSO"))
-            .textFieldStyle(.roundedBorder)
-            .onChange(of: selfHostedAPIKey) { _ in
-                saveSelfHostedFields()
-            }
-
-        // Connection status hint
+        // Connection status
         if let config = syncManager.selfHostedConfiguration, config.isConfigured {
             Label("Server configured", systemImage: "checkmark.circle")
                 .font(.caption)
                 .foregroundStyle(.green)
         } else {
-            Label("Server URL and Organization ID are required", systemImage: "exclamationmark.triangle")
+            Label("Server not configured", systemImage: "exclamationmark.triangle")
                 .font(.caption)
                 .foregroundStyle(.orange)
         }
-    }
 
-    // MARK: - Self-Hosted Field Helpers
-
-    private func loadSelfHostedFields() {
-        guard let config = syncManager.selfHostedConfiguration else { return }
-        selfHostedServerURL = config.serverURL?.absoluteString ?? ""
-        selfHostedOrgID = config.organizationID
-        selfHostedAPIKey = config.apiKey ?? ""
-    }
-
-    private func saveSelfHostedFields() {
-        let serverURL = URL(string: selfHostedServerURL)
-        let wasEnabled = syncManager.selfHostedConfiguration?.isEnabled ?? false
-        syncManager.selfHostedConfiguration = SelfHostedSyncConfiguration(
-            serverURL: serverURL,
-            organizationID: selfHostedOrgID,
-            apiKey: selfHostedAPIKey.isEmpty ? nil : selfHostedAPIKey,
-            isEnabled: wasEnabled
-        )
+        // Direct users to the Enterprise tab for full configuration
+        Text("Configure your self-hosted sync server in the Enterprise tab under Self-Hosted Sync.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
     }
 
     // MARK: - Actions Section
