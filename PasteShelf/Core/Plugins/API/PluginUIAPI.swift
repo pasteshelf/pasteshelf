@@ -176,48 +176,6 @@ struct PluginContextMenuItem: Identifiable, Sendable {
     }
 }
 
-// MARK: - Plugin Menu View
-
-/// SwiftUI view for displaying plugin menu items
-struct PluginMenuView: View {
-    let content: PluginClipboardContent
-    let onAction: (PluginClipboardContent?) -> Void
-
-    @ObservedObject private var pluginManager = PluginManager.shared
-
-    var body: some View {
-        ForEach(PluginUIAPI.shared.allMenuItems, id: \.pluginId) { pluginId, pluginName, items in
-            Section(pluginName) {
-                ForEach(items, id: \.actionId) { item in
-                    Button {
-                        Task {
-                            do {
-                                let result = try await PluginUIAPI.shared.executeMenuItem(
-                                    item,
-                                    content: content,
-                                    pluginId: pluginId
-                                )
-                                onAction(result)
-                            } catch {
-                                Logger.plugins.error("Menu action failed: \(error.localizedDescription)")
-                            }
-                        }
-                    } label: {
-                        Label {
-                            Text(item.title)
-                        } icon: {
-                            if let iconName = item.iconName {
-                                Image(systemName: iconName)
-                            }
-                        }
-                    }
-                    .disabled(!item.isEnabled)
-                }
-            }
-        }
-    }
-}
-
 // MARK: - Notifications
 
 extension Notification.Name {
