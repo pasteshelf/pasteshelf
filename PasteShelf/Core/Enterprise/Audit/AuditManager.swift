@@ -205,7 +205,8 @@ final class AuditManager: ObservableObject {
         resourceId: String? = nil,
         detail: [String: String] = [:]
     ) async {
-        let event = AuditEvent(
+        // Route through AuditLogger so compliance events receive HIPAA enrichment
+        await auditLogger?.log(AuditEvent(
             category: .compliance,
             action: action,
             severity: severity,
@@ -214,8 +215,7 @@ final class AuditManager: ObservableObject {
             resourceType: resourceType,
             resourceId: resourceId,
             detail: detail
-        )
-        try? await storageService?.save(event)
+        ))
     }
 
     // MARK: - Retention Configuration

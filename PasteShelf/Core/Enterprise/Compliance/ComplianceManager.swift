@@ -38,7 +38,10 @@ final class ComplianceManager: ObservableObject {
     @Published private(set) var isHIPAAActive: Bool = false
 
     /// Whether GDPR consent management is active.
-    @Published private(set) var isGDPRActive: Bool = true
+    @Published private(set) var isGDPRActive: Bool = false
+
+    /// Whether SOC 2 compliance features are active.
+    @Published private(set) var isSOC2Active: Bool = false
 
     /// The most recent error encountered by the compliance subsystem, if any.
     @Published var lastError: ComplianceError?
@@ -67,17 +70,29 @@ final class ComplianceManager: ObservableObject {
             HIPAAAccessControlService.shared.configure()
         }
 
-        // GDPR consent manager is always available (opt-in consent model)
-        isGDPRActive = true
+        // GDPR and SOC2 are gated by enterprise settings
+        let enterpriseSettings = SettingsManager.shared.enterprise
+        isGDPRActive = enterpriseSettings.gdprEnabled
+        isSOC2Active = enterpriseSettings.soc2Enabled
 
-        logger.info("ComplianceManager configured (HIPAA=\(hipaaMode.isEnabled), GDPR=active)")
+        logger.info("ComplianceManager configured (HIPAA=\(hipaaMode.isEnabled), GDPR=\(self.isGDPRActive), SOC2=\(self.isSOC2Active))")
     }
 
     /// Disables the compliance subsystem.
     func disable() {
         isEnabled = false
         isHIPAAActive = false
+        isGDPRActive = false
+        isSOC2Active = false
         logger.info("ComplianceManager disabled")
+    }
+
+    /// Refreshes GDPR and SOC2 state from current enterprise settings.
+    func refreshComplianceSettings() {
+        let enterpriseSettings = SettingsManager.shared.enterprise
+        isGDPRActive = enterpriseSettings.gdprEnabled
+        isSOC2Active = enterpriseSettings.soc2Enabled
+        logger.debug("Compliance settings refreshed: GDPR=\(self.isGDPRActive), SOC2=\(self.isSOC2Active)")
     }
 
     /// Refreshes HIPAA state after configuration changes.

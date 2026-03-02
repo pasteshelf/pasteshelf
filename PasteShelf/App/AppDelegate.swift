@@ -415,12 +415,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Re-configure security lock service when security settings change
         SecurityLockService.shared.configure()
 
+        // Refresh HIPAA and GDPR/SOC2 compliance state on settings change
+        ComplianceManager.shared.refreshHIPAAState()
+        ComplianceManager.shared.refreshComplianceSettings()
+
         // Propagate sync settings changes (for all users, not just MDM-managed)
         let syncShouldRun = settings.enterprise.cloudSyncEnabled && !settings.enterprise.localStorageOnly
         if syncShouldRun {
-            _ = SyncManager.shared // Ensure initialized
+            let syncManager = SyncManager.shared
+            if !syncManager.isEnabled {
+                syncManager.isEnabled = true
+            }
+            Task { try? await syncManager.start() }
         } else {
             SyncManager.shared.stop()
+        }
+
+        // Propagate plugin enable/disable for all devices (not just MDM-managed)
+        if settings.enterprise.pluginsEnabled, !PluginManager.shared.isInitialized {
+            if let factory = pluginContextFactory {
+                Task {
+                    await PluginManager.shared.initialize(contextFactory: factory)
+                    logger.info("Plugin system re-initialized after settings re-enable")
+                }
+            } else {
+                initializePluginSystem()
+            }
+        } else if !settings.enterprise.pluginsEnabled, PluginManager.shared.isInitialized {
+            Task { await PluginManager.shared.shutdown() }
+            logger.info("Plugin system disabled via settings")
         }
 
         // Re-apply MDM enterprise key overrides on settings change
@@ -721,9 +744,16 @@ extension AppDelegate: ClipboardMonitorDelegate {
 
         // Sequential pipeline: DLP → automation → plugins → audit → webhooks → embeddings/OCR
         Task {
+            // GDPR consent gate: skip entire pipeline if clipboard monitoring consent revoked
+            if ComplianceManager.shared.isGDPRActive,
+               !GDPRConsentManager.shared.isConsentGranted(for: .clipboardMonitoring) {
+                logger.info("Pipeline skipped: GDPR clipboardMonitoring consent not granted")
+                return
+            }
+
             // Stage 1: DLP evaluation — may block, redact, or pass through.
             // Returns the (possibly redacted) content for downstream stages.
-            let dlpResult = await processDLPEvaluation(for: content)
+            let dlpResult = await processDLPEvaluation(for: content, sourceApp: sourceApp)
             if dlpResult.blocked { return }
             let pipelineContent = dlpResult.content
 
@@ -732,19 +762,25 @@ extension AppDelegate: ClipboardMonitorDelegate {
             if automationResult.deleted { return }
             let finalContent = automationResult.content
 
-            // Stage 3: Post notification for plugin system (with automation-transformed content)
-            NotificationCenter.default.post(
-                name: .clipboardContentCaptured,
-                object: nil,
-                userInfo: ["content": finalContent]
-            )
+            // Stage 3: Post notification for plugin system (gated by GDPR thirdPartyPlugins consent)
+            if !ComplianceManager.shared.isGDPRActive
+                || GDPRConsentManager.shared.isConsentGranted(for: .thirdPartyPlugins) {
+                NotificationCenter.default.post(
+                    name: .clipboardContentCaptured,
+                    object: nil,
+                    userInfo: ["content": finalContent]
+                )
+            }
 
-            // Stage 4: Log clipboard capture as audit event
-            await AuditManager.shared.logClipboardEvent(
-                action: .copyCaptured,
-                resourceId: finalContent.id.uuidString,
-                detail: ["contentType": finalContent.primaryType.displayName]
-            )
+            // Stage 4: Log clipboard capture as audit event (gated by GDPR auditLogging consent)
+            if !ComplianceManager.shared.isGDPRActive
+                || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
+                await AuditManager.shared.logClipboardEvent(
+                    action: .copyCaptured,
+                    resourceId: finalContent.id.uuidString,
+                    detail: ["contentType": finalContent.primaryType.displayName]
+                )
+            }
 
             // Stage 5: Fire webhook events for clipboard capture (with transformed content)
             await WebhookManager.shared.sendClipboardCreated(content: finalContent)
@@ -770,12 +806,12 @@ extension AppDelegate: ClipboardMonitorDelegate {
     ///
     /// Returns a `DLPPipelineResult` indicating whether the item was blocked and
     /// providing the (possibly redacted) content for downstream stages.
-    private func processDLPEvaluation(for content: ClipboardContent) async -> DLPPipelineResult {
+    private func processDLPEvaluation(for content: ClipboardContent, sourceApp: SourceApp? = nil) async -> DLPPipelineResult {
         guard DLPManager.shared.isEnabled else {
             return DLPPipelineResult(blocked: false, content: content)
         }
 
-        let result = await DLPManager.shared.evaluate(content)
+        let result = await DLPManager.shared.evaluate(content, sourceApp: sourceApp)
 
         guard result.hasViolations else {
             return DLPPipelineResult(blocked: false, content: content)
