@@ -82,14 +82,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             logger.info("Clipboard monitoring started in paused state (user preference)")
         }
 
+        // Eagerly bootstrap SyncManager so sync starts if previously enabled
+        _ = SyncManager.shared
+
         // Start auto-cleanup manager
         AutoCleanupManager.shared.start()
 
         // Initialize automation engine
         initializeAutomation()
 
+        // Initialize plugin system
+        initializePluginSystem()
+
         // Start background embedding generation for semantic search
         startBackgroundEmbeddingGeneration()
+
+        // Start background OCR processing for image items
+        startBackgroundOCRProcessing()
 
         // Show onboarding if needed
         #if DEBUG
@@ -121,6 +130,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Stop auto-cleanup
         AutoCleanupManager.shared.stop()
+
+        // Shut down plugin system (calls willUnload on active plugins)
+        Task {
+            await PluginManager.shared.shutdown()
+        }
 
         // Tear down menu bar
         menuBarController?.teardown()
@@ -170,7 +184,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.floatingPanelController?.toggle()
         }
         // Register the hotkey from SettingsManager (HotkeyManager.init loads from SettingsManager)
-        hotkeyManager?.register(configuration: hotkeyManager?.configuration ?? .default)
+        hotkeyManager?.register(configuration: .load())
     }
 
     private func setupNotificationObservers() {
@@ -288,6 +302,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Apply theme setting
         applyTheme(settings.appearance.theme)
 
+        // Apply OCR confidence threshold
+        OCRManager.shared.setConfidenceThreshold(Float(settings.search.ocrConfidenceThreshold))
+
         // Refresh launch at login status (to ensure UI matches actual state)
         LaunchAtLoginManager.shared.refreshStatus()
 
@@ -333,6 +350,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Apply monitoring pause state explicitly to prevent drift
         setMonitoringPaused(settings.privacy.isMonitoringPaused)
 
+        // Apply OCR confidence threshold
+        OCRManager.shared.setConfidenceThreshold(Float(settings.search.ocrConfidenceThreshold))
+
+        // Handle semantic search toggle: start or cancel background indexing
+        if settings.search.semanticSearchEnabled {
+            startBackgroundEmbeddingGeneration()
+        } else {
+            EmbeddingGenerator.shared.cancelIndexing()
+        }
+
+        // Handle OCR search toggle: start or cancel background processing
+        if settings.search.ocrSearchEnabled {
+            startBackgroundOCRProcessing()
+        } else {
+            OCRGenerator.shared.cancelProcessing()
+        }
+
         // Apply history limit by triggering cleanup if needed
         if let limit = settings.general.historyLimit.limit {
             Task {
@@ -366,6 +400,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    // MARK: - OCR
+
+    /// Starts background OCR processing for existing image items
+    private func startBackgroundOCRProcessing() {
+        guard SettingsManager.shared.search.ocrSearchEnabled else {
+            logger.debug("OCR search disabled, skipping background OCR processing")
+            return
+        }
+
+        Task.detached(priority: .background) { [logger] in
+            let processed = await OCRGenerator.shared.processAllMissingOCR()
+            if processed > 0 {
+                logger.info("Background OCR processing completed: \(processed) items processed")
+            }
+        }
+    }
+
+    /// Generates OCR text for a newly captured clipboard item (if it's an image)
+    private func generateOCRForNewItem(id: UUID) {
+        guard SettingsManager.shared.search.ocrSearchEnabled else { return }
+
+        Task.detached(priority: .background) {
+            await OCRGenerator.shared.generateOCR(for: id)
+        }
+    }
+
     /// Generates embedding for a newly captured clipboard item
     private func generateEmbeddingForNewItem(id: UUID) {
         // Check if semantic search is enabled
@@ -378,8 +438,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Automation
 
+    /// Initializes the plugin system
+    private func initializePluginSystem() {
+        Task {
+            await PluginManager.shared.initialize(
+                contextFactory: PluginContextFactoryImpl()
+            )
+            logger.debug("Plugin system initialized")
+        }
+    }
+
     /// Initializes the automation engine and seeds default rules
     private func initializeAutomation() {
+        // Eagerly initialize the automation engine to avoid lazy-init timing window
+        _ = AutomationEngine.shared
+
         // Seed default rules if this is first launch
         Task {
             await AutomationRuleStorage.shared.seedDefaultRulesIfNeeded()
@@ -422,6 +495,14 @@ extension AppDelegate: ClipboardMonitorDelegate {
         // Generate embedding for semantic search
         generateEmbeddingForNewItem(id: content.id)
 
+        // Generate OCR for image content
+        generateOCRForNewItem(id: content.id)
+
+        // Fire webhook events for clipboard capture
+        Task.detached(priority: .utility) {
+            await WebhookManager.shared.sendClipboardCreated(content: content)
+        }
+
         logger.debug("Captured: \(content.primaryType.displayName)")
     }
 
@@ -454,6 +535,14 @@ extension AppDelegate: ClipboardMonitorDelegate {
             if deleted {
                 logger.info("Automation: deleted item \(content.id) per rule action")
             }
+            return
+        }
+
+        // Persist transformed content if text was changed by automation rules
+        let transformed = result.transformedContent
+        if transformed.plainText != content.plainText, let newText = transformed.plainText {
+            await storageManager.updatePlainText(itemId: content.id, text: newText)
+            logger.info("Automation: persisted transformed text for item \(content.id)")
         }
     }
 

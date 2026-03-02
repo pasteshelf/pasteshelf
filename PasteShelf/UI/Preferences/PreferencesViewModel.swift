@@ -94,6 +94,7 @@ final class PreferencesViewModel: ObservableObject {
     // MARK: - Private Properties
 
     private let settingsManager: SettingsManager
+    private let storageManager: StorageManager
     private var cancellables = Set<AnyCancellable>()
     private var isUpdating = false
 
@@ -104,8 +105,9 @@ final class PreferencesViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(settingsManager: SettingsManager = .shared) {
+    init(settingsManager: SettingsManager = .shared, storageManager: StorageManager = .shared) {
         self.settingsManager = settingsManager
+        self.storageManager = storageManager
 
         // Initialize from current settings
         let settings = settingsManager.settings
@@ -177,12 +179,8 @@ final class PreferencesViewModel: ObservableObject {
     private func updatePrivacy() {
         guard !isUpdating else { return }
 
-        // Post notification for monitoring pause state
-        let previousPaused = settingsManager.privacy.isMonitoringPaused
-        if isMonitoringPaused != previousPaused {
-            NotificationCenter.default.post(name: .toggleClipboardMonitoring, object: nil)
-        }
-
+        // Write to SettingsManager; AppDelegate.handleSettingsChange() drives monitor
+        // state via setMonitoringPaused() when it receives .settingsDidChange.
         settingsManager.privacy = PrivacySettings(
             autoDeleteEnabled: autoDeleteEnabled,
             autoDeleteDays: autoDeleteDays,
@@ -286,6 +284,13 @@ final class PreferencesViewModel: ObservableObject {
     func removeExcludedApp(_ bundleId: String) {
         excludedAppBundleIds.removeAll { $0 == bundleId }
     }
+
+    /// Clears clipboard history (keeps favorites)
+    func clearHistory() {
+        Task {
+            await storageManager.deleteAllItems(keepFavorites: true)
+        }
+    }
 }
 
 // MARK: - Preferences Tab
@@ -299,6 +304,7 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
     case search
     case sync
     case automation
+    case plugins
     case enterprise
     case about
 
@@ -314,6 +320,7 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
         case .search: return "Search"
         case .sync: return "Sync"
         case .automation: return "Automation"
+        case .plugins: return "Plugins"
         case .enterprise: return "Enterprise"
         case .about: return "About"
         }
@@ -329,6 +336,7 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
         case .search: return "magnifyingglass"
         case .sync: return "icloud"
         case .automation: return "wand.and.stars"
+        case .plugins: return "puzzlepiece.extension"
         case .enterprise: return "building.2"
         case .about: return "info.circle"
         }

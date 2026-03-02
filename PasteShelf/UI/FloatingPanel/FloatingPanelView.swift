@@ -26,30 +26,73 @@ struct FloatingPanelView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header with title
-            headerView
+        HStack(spacing: 0) {
+            // Collections sidebar (togglable)
+            if viewModel.showCollectionsSidebar {
+                CollectionsSidebarView(
+                    collections: viewModel.collections,
+                    selectedCollectionId: $viewModel.selectedCollectionId,
+                    onEdit: { collection in
+                        viewModel.editingCollection = collection
+                        viewModel.showCollectionEditor = true
+                    },
+                    onDelete: { collection in
+                        Task { await viewModel.deleteCollection(collection) }
+                    },
+                    onCreate: {
+                        viewModel.editingCollection = nil
+                        viewModel.showCollectionEditor = true
+                    }
+                )
+                .frame(width: 180)
 
-            // Search field
-            searchFieldView
-
-            // Filter chips
-            filterChipsView
-
-            Divider()
-
-            // Content with animations
-            Group {
-                if viewModel.isLoading {
-                    loadingView
-                } else if viewModel.items.isEmpty {
-                    emptyStateView
-                } else {
-                    itemListView
-                }
+                Divider()
             }
-            .animation(.easeInOut(duration: 0.2), value: viewModel.isLoading)
-            .animation(.easeInOut(duration: 0.2), value: viewModel.items.count)
+
+            // Main content
+            VStack(spacing: 0) {
+                // Header with title
+                headerView
+
+                // Search field
+                searchFieldView
+
+                // Filter chips
+                filterChipsView
+
+                Divider()
+
+                // Content with animations
+                Group {
+                    if viewModel.isLoading {
+                        loadingView
+                    } else if viewModel.items.isEmpty {
+                        emptyStateView
+                    } else {
+                        itemListView
+                    }
+                }
+                .animation(.easeInOut(duration: 0.2), value: viewModel.isLoading)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.items.count)
+            }
+        }
+        .sheet(isPresented: $viewModel.showCollectionEditor) {
+            CollectionEditorView(
+                collection: viewModel.editingCollection,
+                onSave: { model in
+                    Task {
+                        if viewModel.editingCollection != nil {
+                            await viewModel.updateCollection(model)
+                        } else {
+                            await viewModel.createCollection(model)
+                        }
+                    }
+                    viewModel.showCollectionEditor = false
+                },
+                onCancel: {
+                    viewModel.showCollectionEditor = false
+                }
+            )
         }
         .frame(width: settingsManager.appearance.panelWidth.width, height: 520)
         .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))

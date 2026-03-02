@@ -6,6 +6,7 @@
 //  Shows plugin list, enable/disable toggles, and per-plugin settings.
 //
 
+import AppKit
 import Combine
 import os.log
 import SwiftUI

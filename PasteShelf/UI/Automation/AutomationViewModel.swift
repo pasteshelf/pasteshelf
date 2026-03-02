@@ -63,6 +63,7 @@ final class AutomationViewModel: ObservableObject {
     // MARK: - Private Properties
 
     private let storage: AutomationRuleStorage
+    private let engine: AutomationEngine
     private var cancellables = Set<AnyCancellable>()
 
     private let logger = Logger(
@@ -72,8 +73,9 @@ final class AutomationViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(storage: AutomationRuleStorage = .shared) {
+    init(storage: AutomationRuleStorage = .shared, engine: AutomationEngine = .shared) {
         self.storage = storage
+        self.engine = engine
         Task {
             await loadRules()
         }
@@ -99,6 +101,7 @@ final class AutomationViewModel: ObservableObject {
     func createRule(_ rule: AutomationRule) async {
         do {
             try await storage.createRule(rule)
+            engine.invalidateRuleCache()
             await loadRules()
             logger.info("Created rule: \(rule.name)")
         } catch {
@@ -111,6 +114,7 @@ final class AutomationViewModel: ObservableObject {
     func updateRule(_ rule: AutomationRule) async {
         do {
             try await storage.updateRule(rule)
+            engine.invalidateRuleCache()
             await loadRules()
             logger.info("Updated rule: \(rule.name)")
         } catch {
@@ -123,6 +127,7 @@ final class AutomationViewModel: ObservableObject {
     func deleteRule(_ rule: AutomationRule) async {
         do {
             try await storage.deleteRule(id: rule.id)
+            engine.invalidateRuleCache()
             await loadRules()
             logger.info("Deleted rule: \(rule.name)")
         } catch {
@@ -142,6 +147,7 @@ final class AutomationViewModel: ObservableObject {
     func toggleRule(_ rule: AutomationRule) async {
         do {
             try await storage.toggleRule(id: rule.id)
+            engine.invalidateRuleCache()
             await loadRules()
             logger.info("Toggled rule: \(rule.name) -> \(!rule.isEnabled)")
         } catch {

@@ -39,6 +39,14 @@ final class PluginBundle: Sendable {
 
     // MARK: - Initialization
 
+    /// Creates a PluginBundle for built-in plugins compiled into the main app
+    /// - Parameter manifest: Pre-built manifest for the built-in plugin
+    init(builtIn manifest: PluginManifest) {
+        self.bundleURL = Bundle.main.bundleURL
+        self.manifest = manifest
+        self.bundle = Bundle.main
+    }
+
     /// Creates a PluginBundle from a bundle URL
     /// - Parameter url: URL to the .pasteshelfplugin bundle
     /// - Throws: PluginLoadError if the bundle is invalid

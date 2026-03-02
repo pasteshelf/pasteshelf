@@ -58,13 +58,21 @@ public final class SyncManager: ObservableObject, SyncManaging {
     private var syncBackend: (any SyncBackend)?
 
     /// Configuration for the self-hosted sync server.
-    public var selfHostedConfiguration: SelfHostedSyncConfiguration?
+    @Published public var selfHostedConfiguration: SelfHostedSyncConfiguration? {
+        didSet { saveSelfHostedConfiguration() }
+    }
 
     // MARK: - Network Monitoring
 
     private let networkMonitor = NWPathMonitor()
     private let networkQueue = DispatchQueue(label: "com.pasteshelf.sync.network")
     private var isNetworkAvailable = true
+
+    /// Wrapper that posts .networkRestored / .networkLost notifications and queues offline changes
+    private let networkMonitorWrapper = NetworkMonitor()
+
+    /// Handles iCloud account switches and posts .iCloudAccountSwitched
+    private let accountChangeHandler = AccountChangeHandler()
 
     // MARK: - Sync State
 
@@ -88,6 +96,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
     private static let changeTokenKey = "com.pasteshelf.sync.changeToken"
     private static let backendSyncTokenKey = "com.pasteshelf.sync.backendSyncToken"
     private static let backendTypeKey = "com.pasteshelf.sync.backendType"
+    private static let selfHostedConfigKey = "com.pasteshelf.sync.selfHostedConfiguration"
 
     // MARK: - Logger
 
@@ -419,9 +428,21 @@ public final class SyncManager: ObservableObject, SyncManaging {
 
         let context = persistenceController.newBackgroundContext()
 
+        // Pre-decrypt all payloads outside context.perform to avoid blocking
+        // the context queue with async operations (no DispatchSemaphore needed)
+        var decryptedPayloads: [UUID: Data] = [:]
+        for change in changes {
+            if (change.changeType == .remoteInsert || change.changeType == .remoteUpdate),
+               change.entityType == .clipboardItem,
+               let encryptedData = change.encryptedData
+            {
+                decryptedPayloads[change.entityID] = try await encryptionManager.decrypt(encryptedData)
+            }
+        }
+
         try await context.perform {
             for change in changes {
-                try self.applyChange(change, in: context)
+                try self.applyChange(change, decryptedPayloads: decryptedPayloads, in: context)
             }
 
             if context.hasChanges {
@@ -430,10 +451,14 @@ public final class SyncManager: ObservableObject, SyncManaging {
         }
     }
 
-    private func applyChange(_ change: SyncChange, in context: NSManagedObjectContext) throws {
+    private func applyChange(
+        _ change: SyncChange,
+        decryptedPayloads: [UUID: Data],
+        in context: NSManagedObjectContext
+    ) throws {
         switch change.changeType {
         case .remoteInsert, .remoteUpdate:
-            try applyInsertOrUpdate(change, in: context)
+            try applyInsertOrUpdate(change, decryptedPayloads: decryptedPayloads, in: context)
         case .remoteDelete:
             try applyDelete(change, in: context)
         default:
@@ -441,31 +466,14 @@ public final class SyncManager: ObservableObject, SyncManaging {
         }
     }
 
-    private func applyInsertOrUpdate(_ change: SyncChange, in context: NSManagedObjectContext) throws {
-        guard change.entityType == .clipboardItem,
-              let encryptedData = change.encryptedData
-        else { return }
+    private func applyInsertOrUpdate(
+        _ change: SyncChange,
+        decryptedPayloads: [UUID: Data],
+        in context: NSManagedObjectContext
+    ) throws {
+        guard change.entityType == .clipboardItem else { return }
 
-        // Decrypt payload
-        var decryptedData: Data?
-        var decryptError: Error?
-
-        let semaphore = DispatchSemaphore(value: 0)
-        Task {
-            do {
-                decryptedData = try await self.encryptionManager.decrypt(encryptedData)
-            } catch {
-                decryptError = error
-            }
-            semaphore.signal()
-        }
-        semaphore.wait()
-
-        if let error = decryptError {
-            throw error
-        }
-
-        guard let data = decryptedData else { return }
+        guard let data = decryptedPayloads[change.entityID] else { return }
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -513,6 +521,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
         lastSyncDate = UserDefaults.standard.object(forKey: Self.lastSyncKey) as? Date
         changeToken = loadChangeToken()
         backendSyncToken = UserDefaults.standard.data(forKey: Self.backendSyncTokenKey)
+        selfHostedConfiguration = loadSelfHostedConfiguration()
 
         if let typeString = UserDefaults.standard.string(forKey: Self.backendTypeKey) {
             activeBackendType = SyncBackendType(rawValue: typeString)
@@ -545,6 +554,25 @@ public final class SyncManager: ObservableObject, SyncManaging {
     /// Persist the active backend type so we can restore it on next launch.
     private func saveBackendType(_ type: SyncBackendType) {
         UserDefaults.standard.set(type.rawValue, forKey: Self.backendTypeKey)
+    }
+
+    /// Persist the self-hosted sync configuration to UserDefaults.
+    private func saveSelfHostedConfiguration() {
+        guard let config = selfHostedConfiguration else {
+            UserDefaults.standard.removeObject(forKey: Self.selfHostedConfigKey)
+            return
+        }
+        if let data = try? JSONEncoder().encode(config) {
+            UserDefaults.standard.set(data, forKey: Self.selfHostedConfigKey)
+        }
+    }
+
+    /// Load persisted self-hosted sync configuration from UserDefaults.
+    private func loadSelfHostedConfiguration() -> SelfHostedSyncConfiguration? {
+        guard let data = UserDefaults.standard.data(forKey: Self.selfHostedConfigKey) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(SelfHostedSyncConfiguration.self, from: data)
     }
 
     private func handleEnabledStateChange() {

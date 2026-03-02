@@ -7,12 +7,11 @@
 
 import CoreData
 import Foundation
-import os.log
 
 extension StorageManager {
     // MARK: - Clipboard Item Deletion
 
-    /// Deletes a single clipboard item
+    /// Deletes a single clipboard item and its associated caches
     /// - Parameter item: The item to delete
     /// - Returns: True if deletion succeeded
     func delete(item: ClipboardItem) async -> Bool {
@@ -27,6 +26,9 @@ extension StorageManager {
                 if let itemInContext = try context.fetch(request).first {
                     context.delete(itemInContext)
                 }
+
+                // Clean up orphaned cache entries
+                Self.deleteCacheEntries(for: [itemId], in: context)
             }
             return true
         } catch {
@@ -34,7 +36,7 @@ extension StorageManager {
         }
     }
 
-    /// Deletes a clipboard item by ID
+    /// Deletes a clipboard item by ID and its associated caches
     /// - Parameter id: The UUID of the item to delete
     /// - Returns: True if deletion succeeded
     func deleteItem(byId id: UUID) async -> Bool {
@@ -47,6 +49,9 @@ extension StorageManager {
                 if let item = try context.fetch(request).first {
                     context.delete(item)
                 }
+
+                // Clean up orphaned cache entries
+                Self.deleteCacheEntries(for: [id], in: context)
             }
             return true
         } catch {
@@ -78,10 +83,14 @@ extension StorageManager {
             do {
                 let items = try context.fetch(request)
                 let count = items.count
+                let itemIds = items.compactMap(\.id)
 
                 for item in items {
                     context.delete(item)
                 }
+
+                // Clean up orphaned cache entries
+                Self.deleteCacheEntries(for: itemIds, in: context)
 
                 try context.save()
                 return count
@@ -107,10 +116,14 @@ extension StorageManager {
             do {
                 let items = try context.fetch(request)
                 let count = items.count
+                let itemIds = items.compactMap(\.id)
 
                 for item in items {
                     context.delete(item)
                 }
+
+                // Clean up orphaned cache entries
+                Self.deleteCacheEntries(for: itemIds, in: context)
 
                 try context.save()
                 return count
@@ -145,10 +158,14 @@ extension StorageManager {
 
                 let itemsToDelete = Array(items.dropFirst(limit))
                 let count = itemsToDelete.count
+                let itemIds = itemsToDelete.compactMap(\.id)
 
                 for item in itemsToDelete {
                     context.delete(item)
                 }
+
+                // Clean up orphaned cache entries
+                Self.deleteCacheEntries(for: itemIds, in: context)
 
                 try context.save()
                 return count
@@ -217,6 +234,36 @@ extension StorageManager {
             return true
         } catch {
             return false
+        }
+    }
+
+    // MARK: - Application Deletion
+
+    // MARK: - Cache Cleanup
+
+    /// Deletes EmbeddingCache and OCRCache entries for the given item IDs
+    /// - Parameters:
+    ///   - itemIds: The clipboard item IDs whose caches should be removed
+    ///   - context: The managed object context to use
+    static func deleteCacheEntries(for itemIds: [UUID], in context: NSManagedObjectContext) {
+        guard !itemIds.isEmpty else { return }
+
+        // Delete embedding cache entries
+        let embeddingRequest = EmbeddingCache.fetchRequest()
+        embeddingRequest.predicate = NSPredicate(format: "clipboardItemId IN %@", itemIds)
+        if let embeddings = try? context.fetch(embeddingRequest) {
+            for embedding in embeddings {
+                context.delete(embedding)
+            }
+        }
+
+        // Delete OCR cache entries
+        let ocrRequest = OCRCache.fetchRequest()
+        ocrRequest.predicate = NSPredicate(format: "clipboardItemId IN %@", itemIds)
+        if let ocrEntries = try? context.fetch(ocrRequest) {
+            for entry in ocrEntries {
+                context.delete(entry)
+            }
         }
     }
 

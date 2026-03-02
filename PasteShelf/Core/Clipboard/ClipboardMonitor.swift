@@ -108,10 +108,9 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
 
             // Start polling timer after hashes are loaded
             self.startPollingTimer()
+            self.isMonitoring = true
+            Logger.clipboard.info("Clipboard monitoring started (interval: \(self.pollInterval)s)")
         }
-
-        isMonitoring = true
-        Logger.clipboard.info("Clipboard monitoring started (interval: \(self.pollInterval)s)")
     }
 
     /// Starts the polling timer (called after hash cache is loaded)
@@ -201,7 +200,7 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         var mutableContent = content
         let sensitiveResult = sensitiveDetector.analyze(content)
         mutableContent.isSensitive = sensitiveResult.isSensitive
-        mutableContent.sensitiveTypes = sensitiveResult.detectedTypes
+        mutableContent.sensitiveTypes = Array(sensitiveResult.uniqueTypes)
 
         if sensitiveResult.isSensitive {
             Logger.security.info(
@@ -217,25 +216,27 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
 
     private func finalizeCapture(_ content: ClipboardContent, sourceApp: SourceApp?, startTime: CFAbsoluteTime) {
         let captureTime = CFAbsoluteTimeGetCurrent() - startTime
-        metrics.updateAverageCaptureTime(captureTime)
-        metrics.lastCaptureTime = Date()
+
+        let timeMs = String(format: "%.2fms", captureTime * 1_000)
+        Logger.clipboard.info("Captured: \(content.primaryType.displayName), sensitive=\(content.isSensitive), time=\(timeMs)")
 
         // Save first, then update metrics and hash cache only after successful persistence.
         // This prevents orphaned hashes from permanently deduplicating content that was never stored.
         Task {
             let saved = await saveToStorageAsync(content, sourceApp: sourceApp)
             if saved {
+                metrics.updateAverageCaptureTime(captureTime)
+                metrics.lastCaptureTime = Date()
                 metrics.captureCount += 1
                 updateRecentHashes(with: content.contentHash)
                 delegate?.clipboardMonitor(self, didCapture: content, from: sourceApp)
             } else {
                 metrics.errorCount += 1
+                metrics.lastError = ClipboardMonitorError.storageFailed
                 Logger.clipboard.error("Failed to save clipboard content to storage")
+                delegate?.clipboardMonitor(self, didEncounterError: ClipboardMonitorError.storageFailed)
             }
         }
-
-        let timeMs = String(format: "%.2fms", captureTime * 1_000)
-        Logger.clipboard.info("Captured: \(content.primaryType.displayName), sensitive=\(content.isSensitive), time=\(timeMs)")
     }
 
     private func updateRecentHashes(with hash: String?) {
@@ -281,6 +282,20 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     func reloadHashCache() async {
         guard let storage = storage else { return }
         recentHashes = await storage.fetchRecentHashes(limit: duplicateCheckLimit)
+    }
+}
+
+// MARK: - Errors
+
+/// Errors that can occur during clipboard monitoring
+enum ClipboardMonitorError: LocalizedError {
+    case storageFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .storageFailed:
+            return "Failed to save clipboard content to storage"
+        }
     }
 }
 

@@ -273,6 +273,9 @@ final class FloatingPanelViewModel: ObservableObject {
         options.enableSemanticSearch = searchSettings.semanticSearchEnabled && isSemanticSearchAvailable
         options.semanticThreshold = searchSettings.semanticThreshold
 
+        // Enable OCR search if user has enabled it
+        options.enableOCRSearch = searchSettings.ocrSearchEnabled
+
         // Execute search
         let results = await searchEngine.search(query: trimmedQuery, options: options)
 

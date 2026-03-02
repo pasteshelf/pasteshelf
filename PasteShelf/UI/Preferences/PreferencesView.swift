@@ -50,6 +50,8 @@ struct PreferencesView: View {
             SyncTabView()
         case .automation:
             AutomationTabView()
+        case .plugins:
+            PluginSettingsView()
         case .enterprise:
             EnterpriseTabView()
         case .about:

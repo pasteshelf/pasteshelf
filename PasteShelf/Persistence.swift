@@ -28,6 +28,16 @@ struct PersistenceController {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }
 
+        // Enable lightweight migration
+        container.persistentStoreDescriptions.first?.setOption(
+            true as NSNumber,
+            forKey: NSMigratePersistentStoresAutomaticallyOption
+        )
+        container.persistentStoreDescriptions.first?.setOption(
+            true as NSNumber,
+            forKey: NSInferMappingModelAutomaticallyOption
+        )
+
         // Configure for better CloudKit compatibility
         container.persistentStoreDescriptions.first?.setOption(
             true as NSNumber,

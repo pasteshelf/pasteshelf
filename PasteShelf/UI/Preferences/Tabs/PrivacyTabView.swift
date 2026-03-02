@@ -141,9 +141,7 @@ struct PrivacyTabView: View {
     }
 
     private func clearHistory() {
-        Task {
-            await StorageManager.shared.deleteAllItems(keepFavorites: true)
-        }
+        viewModel.clearHistory()
     }
 }
 

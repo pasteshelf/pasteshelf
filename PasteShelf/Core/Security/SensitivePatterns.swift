@@ -268,6 +268,7 @@ enum SensitivePatterns {
     static let allPatterns: [Pattern] = [
         // API Keys & Tokens
         awsAccessKey,
+        awsSecretKey,
         githubToken,
         githubFineGrainedToken,
         stripeLiveKey,
@@ -287,13 +288,20 @@ enum SensitivePatterns {
         // Financial
         creditCard,
         creditCardFormatted,
+        bankAccount,
         iban,
         // Personal Identification
         ssn,
         ssnNoDash,
+        driversLicense,
+        passport,
+        // Health Information
+        medicalRecordNumber,
+        healthInsuranceId,
         // Contact (low severity - optional)
         email,
-        phoneUS
+        phoneUS,
+        phoneInternational
     ]
 
     /// High-priority patterns only (for performance-sensitive contexts)
