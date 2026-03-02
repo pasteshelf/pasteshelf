@@ -140,6 +140,7 @@ final class MDMManager: ObservableObject {
     /// Handles a configuration change from the observer.
     private func handleConfigurationChange(_ config: MDMConfiguration) {
         updateState(with: config)
+        SettingsManager.shared.applyMDMOverridesIfNeeded()
         logger.info("MDM configuration updated: \(self.forcedKeys.count) forced keys")
     }
 }

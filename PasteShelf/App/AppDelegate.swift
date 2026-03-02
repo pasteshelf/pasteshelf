@@ -134,6 +134,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Stop auto-cleanup
         AutoCleanupManager.shared.stop()
 
+        // Stop admin monitoring (health reporting, policy sync, analytics, audit)
+        AdminManager.shared.stopMonitoring()
+
         // Stop enterprise monitoring
         MDMManager.shared.stopMonitoring()
 
@@ -389,6 +392,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Re-apply MDM enterprise key overrides on settings change
         applyMDMEnterpriseKeys()
 
+        // Re-check admin console configuration (MDM URL may have changed mid-session)
+        configureAdminConsoleIfNeeded()
+
         logger.debug("Settings change handled")
     }
 
@@ -495,6 +501,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if enabled {
                 DLPManager.shared.configure()
                 Task { await DLPManager.shared.installDefaultRulesIfNeeded() }
+            } else {
+                DLPManager.shared.disable()
             }
         }
 
@@ -527,7 +535,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func configureAdminConsoleIfNeeded() {
         // Check MDM for admin console URL
         var serverURL: URL?
-        if let mdmURL = MDMManager.shared.adminConsoleURL, let url = URL(string: mdmURL) {
+        if case .string(let mdmURL) = MDMManager.shared.configuration.effectiveValue(for: .adminConsoleURL),
+           let url = URL(string: mdmURL) {
             serverURL = url
         }
 
@@ -589,50 +598,47 @@ extension AppDelegate: ClipboardMonitorDelegate {
         didCapture content: ClipboardContent,
         from sourceApp: SourceApp?
     ) {
-        // Flash menu bar icon
+        // Flash menu bar icon (UI — always runs immediately)
         menuBarController?.flashActive()
 
-        // Evaluate DLP rules and enforce block/redact (post-save enforcement)
-        Task {
-            let dlpHandled = await processDLPEvaluation(for: content)
-            if dlpHandled { return }
-
-            // Run automation rules
-            await processAutomation(for: content, sourceApp: sourceApp)
-        }
-
-        // Post notification for plugin system
-        NotificationCenter.default.post(
-            name: .clipboardContentCaptured,
-            object: nil,
-            userInfo: ["content": content]
-        )
-
-        // Reload floating panel if visible
+        // Reload floating panel if visible (UI — always runs immediately)
         if floatingPanelController?.isVisible == true {
             Task {
                 await floatingPanelController?.viewModel.loadItems()
             }
         }
 
-        // Generate embedding for semantic search
-        generateEmbeddingForNewItem(id: content.id)
-
-        // Generate OCR for image content
-        generateOCRForNewItem(id: content.id, contentType: content.primaryType)
-
-        // Fire webhook events for clipboard capture
-        Task.detached(priority: .utility) {
-            await WebhookManager.shared.sendClipboardCreated(content: content)
-        }
-
-        // Log clipboard capture as audit event
+        // Sequential pipeline: DLP → automation → plugins → audit → webhooks → embeddings/OCR
         Task {
+            // Stage 1: DLP evaluation — if blocked, skip everything else
+            let dlpBlocked = await processDLPEvaluation(for: content)
+            if dlpBlocked { return }
+
+            // Stage 2: Run automation rules
+            await processAutomation(for: content, sourceApp: sourceApp)
+
+            // Stage 3: Post notification for plugin system
+            NotificationCenter.default.post(
+                name: .clipboardContentCaptured,
+                object: nil,
+                userInfo: ["content": content]
+            )
+
+            // Stage 4: Log clipboard capture as audit event
             await AuditManager.shared.logClipboardEvent(
                 action: .copyCaptured,
                 resourceId: content.id.uuidString,
                 detail: ["contentType": content.primaryType.displayName]
             )
+
+            // Stage 5: Fire webhook events for clipboard capture
+            await WebhookManager.shared.sendClipboardCreated(content: content)
+
+            // Stage 6: Generate embedding for semantic search
+            generateEmbeddingForNewItem(id: content.id)
+
+            // Stage 7: Generate OCR for image content
+            generateOCRForNewItem(id: content.id, contentType: content.primaryType)
         }
 
         logger.debug("Captured: \(content.primaryType.displayName)")

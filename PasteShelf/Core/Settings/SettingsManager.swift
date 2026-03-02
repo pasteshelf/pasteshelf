@@ -121,8 +121,10 @@ final class SettingsManager: ObservableObject {
 
     // MARK: - MDM Integration
 
-    /// Applies MDM overrides on top of loaded settings (called once during init).
-    private func applyMDMOverridesIfNeeded() {
+    /// Applies MDM overrides on top of loaded settings.
+    ///
+    /// Called during init and whenever the MDM profile changes mid-session.
+    func applyMDMOverridesIfNeeded() {
         let mdm = MDMManager.shared
         mdm.loadConfiguration()
         guard mdm.isManaged else { return }
