@@ -102,9 +102,10 @@ final class DLPManager: ObservableObject {
         isEnabled = true
         logger.info("DLPManager configured and enabled")
 
-        // Load rules asynchronously
+        // Load rules asynchronously and install defaults if this is a fresh launch
         Task {
             await loadRules()
+            await installDefaultRulesIfNeeded()
             await loadRecentViolations()
         }
     }
@@ -130,7 +131,7 @@ final class DLPManager: ObservableObject {
     ///
     /// - Parameter content: The clipboard content to evaluate.
     /// - Returns: A `DLPEvaluationResult` with violations and outcome flags.
-    func evaluate(_ content: ClipboardContent) async -> DLPEvaluationResult {
+    func evaluate(_ content: ClipboardContent, sourceApp: SourceApp? = nil) async -> DLPEvaluationResult {
         guard isEnabled, let engine = ruleEngine else {
             return .clean
         }
@@ -140,7 +141,15 @@ final class DLPManager: ObservableObject {
             return .clean
         }
 
-        let result = await engine.evaluate(content, against: activeRules)
+        var result = await engine.evaluate(content, against: activeRules)
+
+        // Enrich violations with source app context for audit trails
+        if let sourceApp, result.hasViolations {
+            result = result.withSourceApp(
+                bundleId: sourceApp.bundleId,
+                name: sourceApp.name
+            )
+        }
 
         if result.hasViolations {
             // Persist violations and log audit events

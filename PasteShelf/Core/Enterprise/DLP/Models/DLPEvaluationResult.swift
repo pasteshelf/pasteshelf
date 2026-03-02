@@ -58,6 +58,30 @@ struct DLPEvaluationResult: Sendable {
 
     // MARK: - Clean Sentinel
 
+    /// Returns a copy with source app context injected into all violations.
+    func withSourceApp(bundleId: String, name: String) -> DLPEvaluationResult {
+        let enriched = violations.map { violation in
+            DLPViolation(
+                id: violation.id,
+                ruleId: violation.ruleId,
+                ruleName: violation.ruleName,
+                timestamp: violation.timestamp,
+                contentPreview: violation.contentPreview,
+                matchedPattern: violation.matchedPattern,
+                actionTaken: violation.actionTaken,
+                sourceAppBundleId: bundleId,
+                sourceAppName: name,
+                wasBlocked: violation.wasBlocked
+            )
+        }
+        return DLPEvaluationResult(
+            violations: enriched,
+            shouldBlock: shouldBlock,
+            shouldRedact: shouldRedact,
+            redactedContent: redactedContent
+        )
+    }
+
     /// A result representing content that passed all DLP checks without any violations.
     ///
     /// Use this as the result value when no active rules matched the content, or

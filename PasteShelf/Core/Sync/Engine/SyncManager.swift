@@ -227,7 +227,13 @@ public final class SyncManager: ObservableObject, SyncManaging {
         syncTask = nil
         isCurrentlySyncing = false
         pendingSync = false
+
+        // Tear down backend (close WebSocket, unregister device) before releasing
+        let backend = syncBackend
         syncBackend = nil
+        if let backend {
+            Task { try? await backend.teardown() }
+        }
 
         status = .disabled
     }
