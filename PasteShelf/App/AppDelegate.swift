@@ -179,12 +179,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupHotkey() {
-        hotkeyManager = HotkeyManager()
+        let config = HotkeyConfiguration.load()
+        hotkeyManager = HotkeyManager(configuration: config)
         hotkeyManager?.onHotkeyPressed = { [weak self] in
             self?.floatingPanelController?.toggle()
         }
-        // Register the hotkey from SettingsManager (HotkeyManager.init loads from SettingsManager)
-        hotkeyManager?.register(configuration: .load())
+        hotkeyManager?.register(configuration: config)
     }
 
     private func setupNotificationObservers() {
@@ -418,8 +418,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Generates OCR text for a newly captured clipboard item (if it's an image)
-    private func generateOCRForNewItem(id: UUID) {
-        guard SettingsManager.shared.search.ocrSearchEnabled else { return }
+    private func generateOCRForNewItem(id: UUID, contentType: ContentType) {
+        guard SettingsManager.shared.search.ocrSearchEnabled,
+              contentType.isImageType else { return }
 
         Task.detached(priority: .background) {
             await OCRGenerator.shared.generateOCR(for: id)
@@ -496,7 +497,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
         generateEmbeddingForNewItem(id: content.id)
 
         // Generate OCR for image content
-        generateOCRForNewItem(id: content.id)
+        generateOCRForNewItem(id: content.id, contentType: content.primaryType)
 
         // Fire webhook events for clipboard capture
         Task.detached(priority: .utility) {

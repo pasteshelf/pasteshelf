@@ -57,7 +57,6 @@ final class AutomationEngine {
         category: "automation"
     )
 
-    private let ruleEvaluator = RuleEvaluator.shared
     private let storageManager = StorageManager.shared
 
     /// Cache of enabled rules (refreshed on rule changes)

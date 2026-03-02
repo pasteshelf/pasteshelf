@@ -78,13 +78,6 @@
         <relationship name="parentFolder" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Folder" inverseName="subfolders" inverseEntity="Folder"/>
         <relationship name="subfolders" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Folder" inverseName="parentFolder" inverseEntity="Folder"/>
     </entity>
-    <entity name="SyncMetadata" representedClassName="SyncMetadata" syncable="YES">
-        <attribute name="changeToken" optional="YES" attributeType="Binary"/>
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="lastFullSyncAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="lastSyncAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="zoneID" optional="YES" attributeType="String"/>
-    </entity>
     <entity name="Tag" representedClassName="Tag" syncable="YES">
         <attribute name="color" optional="YES" attributeType="String"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
