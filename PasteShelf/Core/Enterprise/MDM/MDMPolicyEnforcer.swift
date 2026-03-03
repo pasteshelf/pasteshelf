@@ -188,6 +188,11 @@ struct MDMPolicyEnforcer {
             if case .bool(let enabled) = value {
                 settings.enterprise.soc2Enabled = enabled
             }
+
+        case .hipaaEnabled:
+            if case .bool(let enabled) = value {
+                settings.enterprise.hipaaEnabled = enabled
+            }
         }
     }
 

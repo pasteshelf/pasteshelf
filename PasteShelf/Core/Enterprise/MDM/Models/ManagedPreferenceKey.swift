@@ -93,6 +93,9 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
     /// Whether SOC 2 reporting and evidence collection are active
     case soc2Enabled = "SOC2Enabled"
 
+    /// Whether HIPAA compliance mode is active
+    case hipaaEnabled = "HIPAAEnabled"
+
     // MARK: Appearance
 
     /// UI theme override ("light", "dark", or "system")
@@ -122,6 +125,7 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
         case .blockAPIKeys:         return "Block API Keys"
         case .gdprEnabled:          return "GDPR Enabled"
         case .soc2Enabled:          return "SOC 2 Enabled"
+        case .hipaaEnabled:         return "HIPAA Enabled"
         case .theme:                return "Theme"
         }
     }
@@ -143,7 +147,7 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
             return .privacy
         case .excludePrivateBrowsing, .dlpEnabled, .blockCreditCards, .blockAPIKeys:
             return .privacy
-        case .gdprEnabled, .soc2Enabled:
+        case .gdprEnabled, .soc2Enabled, .hipaaEnabled:
             return .enterprise
         case .theme:
             return .appearance

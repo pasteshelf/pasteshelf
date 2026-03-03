@@ -72,34 +72,3 @@ struct ComplianceReport: Codable, Sendable, Identifiable {
         self.summary = summary
     }
 }
-
-// MARK: - HIPAAEncryptionReport
-
-/// Report summarising the encryption posture for HIPAA compliance.
-struct HIPAAEncryptionReport: Codable, Sendable, Identifiable {
-    let id: UUID
-    let findings: [ComplianceFinding]
-    let auditEncryptionActive: Bool
-    let syncEncryptionActive: Bool
-    let localDiskEncrypted: Bool
-    let keyRotationStatus: ComplianceFindingStatus
-    let overallCompliant: Bool
-
-    init(
-        id: UUID = UUID(),
-        findings: [ComplianceFinding],
-        auditEncryptionActive: Bool,
-        syncEncryptionActive: Bool,
-        localDiskEncrypted: Bool,
-        keyRotationStatus: ComplianceFindingStatus,
-        overallCompliant: Bool
-    ) {
-        self.id = id
-        self.findings = findings
-        self.auditEncryptionActive = auditEncryptionActive
-        self.syncEncryptionActive = syncEncryptionActive
-        self.localDiskEncrypted = localDiskEncrypted
-        self.keyRotationStatus = keyRotationStatus
-        self.overallCompliant = overallCompliant
-    }
-}

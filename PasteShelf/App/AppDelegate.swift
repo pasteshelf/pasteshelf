@@ -628,7 +628,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
            case .string(let domString) = domValue {
             domain = domString
         } else {
-            return // SSO enabled but no domain — cannot configure
+            logger.warning("MDM: SSO enabled but no SSODomain configured — skipping SSO setup")
+            return
         }
 
         // Check if a provider with this domain already exists in the store
@@ -744,52 +745,59 @@ extension AppDelegate: ClipboardMonitorDelegate {
 
         // Sequential pipeline: DLP → automation → plugins → audit → webhooks → embeddings/OCR
         Task {
-            // GDPR consent gate: skip entire pipeline if clipboard monitoring consent revoked
-            if ComplianceManager.shared.isGDPRActive,
-               !GDPRConsentManager.shared.isConsentGranted(for: .clipboardMonitoring) {
-                logger.info("Pipeline skipped: GDPR clipboardMonitoring consent not granted")
-                return
+            do {
+                // GDPR consent gate: skip entire pipeline if clipboard monitoring consent revoked
+                if ComplianceManager.shared.isGDPRActive,
+                   !GDPRConsentManager.shared.isConsentGranted(for: .clipboardMonitoring) {
+                    logger.info("Pipeline skipped: GDPR clipboardMonitoring consent not granted")
+                    return
+                }
+
+                // Stage 1: DLP evaluation — may block, redact, or pass through.
+                // Returns the (possibly redacted) content for downstream stages.
+                let dlpResult = await processDLPEvaluation(for: content, sourceApp: sourceApp)
+                if dlpResult.blocked { return }
+                let pipelineContent = dlpResult.content
+
+                // Stage 2: Run automation rules — may delete the item or transform content
+                let automationResult = await processAutomation(for: pipelineContent, sourceApp: sourceApp)
+                if automationResult.deleted { return }
+                let finalContent = automationResult.content
+
+                // Stage 3: Post notification for plugin system (gated by GDPR thirdPartyPlugins consent)
+                if !ComplianceManager.shared.isGDPRActive
+                    || GDPRConsentManager.shared.isConsentGranted(for: .thirdPartyPlugins) {
+                    NotificationCenter.default.post(
+                        name: .clipboardContentCaptured,
+                        object: nil,
+                        userInfo: ["content": finalContent]
+                    )
+                }
+
+                // Stage 4: Log clipboard capture as audit event (gated by GDPR auditLogging consent)
+                if !ComplianceManager.shared.isGDPRActive
+                    || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
+                    await AuditManager.shared.logClipboardEvent(
+                        action: .copyCaptured,
+                        resourceId: finalContent.id.uuidString,
+                        detail: ["contentType": finalContent.primaryType.displayName]
+                    )
+                }
+
+                // Stage 5: Fire webhook events for clipboard capture (gated by GDPR thirdPartyPlugins consent)
+                if !ComplianceManager.shared.isGDPRActive
+                    || GDPRConsentManager.shared.isConsentGranted(for: .thirdPartyPlugins) {
+                    await WebhookManager.shared.sendClipboardCreated(content: finalContent)
+                }
+
+                // Stage 6: Generate embedding for semantic search
+                generateEmbeddingForNewItem(id: finalContent.id)
+
+                // Stage 7: Generate OCR for image content
+                generateOCRForNewItem(id: finalContent.id, contentType: finalContent.primaryType)
+            } catch {
+                logger.error("Pipeline error for item \(content.id): \(error.localizedDescription)")
             }
-
-            // Stage 1: DLP evaluation — may block, redact, or pass through.
-            // Returns the (possibly redacted) content for downstream stages.
-            let dlpResult = await processDLPEvaluation(for: content, sourceApp: sourceApp)
-            if dlpResult.blocked { return }
-            let pipelineContent = dlpResult.content
-
-            // Stage 2: Run automation rules — may delete the item or transform content
-            let automationResult = await processAutomation(for: pipelineContent, sourceApp: sourceApp)
-            if automationResult.deleted { return }
-            let finalContent = automationResult.content
-
-            // Stage 3: Post notification for plugin system (gated by GDPR thirdPartyPlugins consent)
-            if !ComplianceManager.shared.isGDPRActive
-                || GDPRConsentManager.shared.isConsentGranted(for: .thirdPartyPlugins) {
-                NotificationCenter.default.post(
-                    name: .clipboardContentCaptured,
-                    object: nil,
-                    userInfo: ["content": finalContent]
-                )
-            }
-
-            // Stage 4: Log clipboard capture as audit event (gated by GDPR auditLogging consent)
-            if !ComplianceManager.shared.isGDPRActive
-                || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
-                await AuditManager.shared.logClipboardEvent(
-                    action: .copyCaptured,
-                    resourceId: finalContent.id.uuidString,
-                    detail: ["contentType": finalContent.primaryType.displayName]
-                )
-            }
-
-            // Stage 5: Fire webhook events for clipboard capture (with transformed content)
-            await WebhookManager.shared.sendClipboardCreated(content: finalContent)
-
-            // Stage 6: Generate embedding for semantic search
-            generateEmbeddingForNewItem(id: finalContent.id)
-
-            // Stage 7: Generate OCR for image content
-            generateOCRForNewItem(id: finalContent.id, contentType: finalContent.primaryType)
         }
 
         logger.debug("Captured: \(content.primaryType.displayName)")
@@ -839,7 +847,12 @@ extension AppDelegate: ClipboardMonitorDelegate {
 
         // Redact: update the stored text and propagate redacted content downstream
         if result.shouldRedact, let redactedText = result.redactedContent {
-            await storageManager.updatePlainText(itemId: content.id, text: redactedText, stripOtherRepresentations: true)
+            let redactSuccess = await storageManager.updatePlainText(itemId: content.id, text: redactedText, stripOtherRepresentations: true)
+            if !redactSuccess {
+                logger.error("DLP: failed to persist redacted content for item \(content.id) — deleting to prevent sensitive data leak")
+                _ = await storageManager.deleteItem(byId: content.id)
+                return DLPPipelineResult(blocked: true, content: content)
+            }
             logger.info("DLP: redacted content for item \(content.id)")
 
             // Audit: log that clipboard content was redacted by DLP

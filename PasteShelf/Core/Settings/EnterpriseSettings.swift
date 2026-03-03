@@ -30,6 +30,10 @@ struct EnterpriseSettings: Codable, Equatable {
     /// When `false`, SOC 2 reporting and evidence collection are inactive.
     var soc2Enabled: Bool
 
+    /// Whether HIPAA compliance mode is enabled via MDM.
+    /// When `false`, HIPAA mode can still be enabled locally via `HIPAAComplianceMode`.
+    var hipaaEnabled: Bool
+
     // MARK: - Initialization
 
     init(
@@ -37,13 +41,15 @@ struct EnterpriseSettings: Codable, Equatable {
         localStorageOnly: Bool = false,
         pluginsEnabled: Bool = true,
         gdprEnabled: Bool = false,
-        soc2Enabled: Bool = false
+        soc2Enabled: Bool = false,
+        hipaaEnabled: Bool = false
     ) {
         self.cloudSyncEnabled = cloudSyncEnabled
         self.localStorageOnly = localStorageOnly
         self.pluginsEnabled = pluginsEnabled
         self.gdprEnabled = gdprEnabled
         self.soc2Enabled = soc2Enabled
+        self.hipaaEnabled = hipaaEnabled
     }
 
     // MARK: - Codable (backward compatibility)
@@ -55,6 +61,7 @@ struct EnterpriseSettings: Codable, Equatable {
         pluginsEnabled = try container.decode(Bool.self, forKey: .pluginsEnabled)
         gdprEnabled = try container.decodeIfPresent(Bool.self, forKey: .gdprEnabled) ?? false
         soc2Enabled = try container.decodeIfPresent(Bool.self, forKey: .soc2Enabled) ?? false
+        hipaaEnabled = try container.decodeIfPresent(Bool.self, forKey: .hipaaEnabled) ?? false
     }
 
     // MARK: - Defaults
@@ -64,6 +71,7 @@ struct EnterpriseSettings: Codable, Equatable {
         localStorageOnly: false,
         pluginsEnabled: true,
         gdprEnabled: false,
-        soc2Enabled: false
+        soc2Enabled: false,
+        hipaaEnabled: false
     )
 }
