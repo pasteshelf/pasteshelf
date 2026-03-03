@@ -837,8 +837,8 @@ extension SAMLNameIDFormat: CaseIterable {
                 onSave: { _ in },
                 onCancel: {},
                 onTestConnection: { _ in },
-                testResult: nil,
-                isTestingConnection: false
+                testResult: .constant(nil),
+                isTestingConnection: .constant(false)
             )
             .frame(width: 560, height: 560)
         }
