@@ -405,8 +405,8 @@ struct SSOSettingsView: View {
             onTestConnection: { provider in
                 Task { await viewModel.testConnection(provider) }
             },
-            testResult: viewModel.testResult,
-            isTestingConnection: viewModel.isTestingConnection
+            testResult: $viewModel.testResult,
+            isTestingConnection: $viewModel.isTestingConnection
         )
         .frame(minWidth: 560, minHeight: 500)
     }

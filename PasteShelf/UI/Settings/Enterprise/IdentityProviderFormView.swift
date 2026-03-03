@@ -24,8 +24,8 @@ struct IdentityProviderFormView: View {
     let onSave: (IdentityProvider) -> Void
     let onCancel: () -> Void
     let onTestConnection: (IdentityProvider) -> Void
-    let testResult: SSOSettingsViewModel.TestConnectionResult?
-    let isTestingConnection: Bool
+    @Binding var testResult: SSOSettingsViewModel.TestConnectionResult?
+    @Binding var isTestingConnection: Bool
 
     // MARK: - Shared fields
 

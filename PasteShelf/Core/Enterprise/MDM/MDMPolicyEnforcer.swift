@@ -177,6 +177,17 @@ struct MDMPolicyEnforcer {
             if case .bool(let enabled) = value {
                 logger.info("MDM block API keys: \(enabled)")
             }
+
+        // MARK: Compliance
+        case .gdprEnabled:
+            if case .bool(let enabled) = value {
+                settings.enterprise.gdprEnabled = enabled
+            }
+
+        case .soc2Enabled:
+            if case .bool(let enabled) = value {
+                settings.enterprise.soc2Enabled = enabled
+            }
         }
     }
 

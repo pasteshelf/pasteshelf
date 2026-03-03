@@ -5,6 +5,7 @@
 //  Protocol definitions for the DLP subsystem, following the AuditProtocols pattern.
 //
 
+import CoreData
 import Foundation
 
 // MARK: - DLPRuleEvaluating

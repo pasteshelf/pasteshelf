@@ -6,6 +6,7 @@
 //  Mirrors the AnalyticsReporter pattern, operating against CoreData instead of an in-memory queue.
 //
 
+import CoreData
 import Foundation
 import os.log
 

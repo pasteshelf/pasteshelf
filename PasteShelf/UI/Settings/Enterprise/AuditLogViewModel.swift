@@ -45,6 +45,9 @@ final class AuditLogViewModel: ObservableObject {
     /// A human-readable error message from the most recent failed operation, if any.
     @Published var errorMessage: String?
 
+    /// The current retention window in days, surfaced for the Picker.
+    @Published var retentionDays: Int = AuditManager.shared.retentionConfiguration.retentionDays
+
     // MARK: - Private Properties
 
     private let logger = Logger.audit
@@ -113,6 +116,12 @@ final class AuditLogViewModel: ObservableObject {
         selectedCategory = nil
         dateRangeStart = nil
         dateRangeEnd = nil
+    }
+
+    /// Persists a new retention window via AuditManager.
+    func updateRetentionDays(_ days: Int) {
+        AuditManager.shared.updateRetentionDays(days)
+        retentionDays = days
     }
 
     /// Exports the currently displayed events as a CSV file.
