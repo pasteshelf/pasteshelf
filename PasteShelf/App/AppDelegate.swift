@@ -822,24 +822,24 @@ extension AppDelegate: ClipboardMonitorDelegate {
             let deleted = await storageManager.deleteItem(byId: content.id)
             if deleted {
                 logger.info("DLP: blocked and deleted item \(content.id)")
-            }
 
-            // Audit: log that clipboard content was blocked by DLP
-            await AuditManager.shared.logClipboardEvent(
-                action: .copyBlocked,
-                resourceId: content.id.uuidString,
-                detail: [
-                    "contentType": content.primaryType.displayName,
-                    "reason": "dlp_blocked",
-                ]
-            )
+                // Audit: log that clipboard content was blocked by DLP
+                await AuditManager.shared.logClipboardEvent(
+                    action: .copyBlocked,
+                    resourceId: content.id.uuidString,
+                    detail: [
+                        "contentType": content.primaryType.displayName,
+                        "reason": "dlp_blocked",
+                    ]
+                )
+            }
 
             return DLPPipelineResult(blocked: true, content: content)
         }
 
         // Redact: update the stored text and propagate redacted content downstream
         if result.shouldRedact, let redactedText = result.redactedContent {
-            await storageManager.updatePlainText(itemId: content.id, text: redactedText)
+            await storageManager.updatePlainText(itemId: content.id, text: redactedText, stripOtherRepresentations: true)
             logger.info("DLP: redacted content for item \(content.id)")
 
             // Audit: log that clipboard content was redacted by DLP
@@ -855,6 +855,9 @@ extension AppDelegate: ClipboardMonitorDelegate {
             // Create a copy with redacted text so downstream stages don't see sensitive data
             var redactedContent = content
             redactedContent.plainText = redactedText
+            redactedContent.html = nil
+            redactedContent.url = nil
+            redactedContent.rtfData = nil
             return DLPPipelineResult(blocked: false, content: redactedContent)
         }
 

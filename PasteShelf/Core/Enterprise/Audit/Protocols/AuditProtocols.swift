@@ -5,6 +5,7 @@
 //  Protocols defining the Enterprise audit logging layer.
 //
 
+import CoreData
 import Foundation
 
 // MARK: - AuditLogging

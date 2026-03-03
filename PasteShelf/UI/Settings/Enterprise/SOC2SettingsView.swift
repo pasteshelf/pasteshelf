@@ -17,7 +17,6 @@ struct SOC2SettingsView: View {
 
     @State private var trailStartDate = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
     @State private var trailEndDate = Date()
-    @State private var isExportingTrail = false
 
     var body: some View {
         ScrollView {
@@ -85,16 +84,20 @@ struct SOC2SettingsView: View {
                         }
 
                         Button {
-                            Task { await exportAuditTrail() }
+                            Task {
+                                if let url = await viewModel.exportAuditTrail(dateRange: trailStartDate...trailEndDate) {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }
                         } label: {
-                            if isExportingTrail {
+                            if viewModel.isExporting {
                                 ProgressView()
                                     .controlSize(.small)
                             } else {
                                 Label("Export Verified Audit Trail", systemImage: "link.badge.plus")
                             }
                         }
-                        .disabled(isExportingTrail)
+                        .disabled(viewModel.isExporting)
 
                         Text("Exports a cryptographically chained audit trail with SHA-256 integrity verification.")
                             .font(.caption)
@@ -127,12 +130,4 @@ struct SOC2SettingsView: View {
         }
     }
 
-    private func exportAuditTrail() async {
-        isExportingTrail = true
-        defer { isExportingTrail = false }
-
-        if let url = await viewModel.exportAuditTrail(dateRange: trailStartDate...trailEndDate) {
-            NSWorkspace.shared.open(url)
-        }
-    }
 }

@@ -152,7 +152,8 @@ final class SettingsManager: ObservableObject {
 
         mdm.applyOverrides(to: &settings)
         settings.save()
-        logger.info("MDM overrides applied during initialization")
+        notifySettingsChanged()
+        logger.info("MDM overrides applied")
     }
 
     /// Re-applies forced MDM values after a user change to prevent overriding locked settings.

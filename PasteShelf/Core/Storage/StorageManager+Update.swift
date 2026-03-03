@@ -302,13 +302,16 @@ extension StorageManager {
 
     // MARK: - Access Count
 
-    /// Updates the plain text content of a clipboard item (used by automation transforms)
+    /// Updates the plain text content of a clipboard item and optionally strips
+    /// other text representations (used by DLP redaction and automation transforms).
     /// - Parameters:
     ///   - itemId: The UUID of the item to update
     ///   - text: The new plain text content
+    ///   - stripOtherRepresentations: When `true`, clears HTML, URL, and RTF fields
+    ///     so that sensitive data does not remain in alternate representations.
     /// - Returns: True if update succeeded
     @discardableResult
-    func updatePlainText(itemId: UUID, text: String) async -> Bool {
+    func updatePlainText(itemId: UUID, text: String, stripOtherRepresentations: Bool = false) async -> Bool {
         do {
             try await performBackgroundTask { context in
                 let request = ClipboardItem.fetchRequest()
@@ -318,6 +321,12 @@ extension StorageManager {
                 if let item = try context.fetch(request).first {
                     item.plainTextPreview = String(text.prefix(500))
                     item.content?.plainTextData = text
+
+                    if stripOtherRepresentations {
+                        item.content?.htmlContent = nil
+                        item.content?.urlString = nil
+                        item.content?.rtfData = nil
+                    }
                 }
             }
             return true

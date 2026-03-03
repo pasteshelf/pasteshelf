@@ -5,6 +5,7 @@
 //  Exports a verified audit trail with cryptographic integrity hash chain for SOC 2 compliance.
 //
 
+import CoreData
 import CryptoKit
 import Foundation
 import os.log

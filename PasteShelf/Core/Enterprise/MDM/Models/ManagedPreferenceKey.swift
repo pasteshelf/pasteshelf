@@ -85,6 +85,14 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
     /// Whether API keys and secrets are blocked from being stored
     case blockAPIKeys = "BlockAPIKeys"
 
+    // MARK: Compliance
+
+    /// Whether GDPR consent management and data export/deletion are active
+    case gdprEnabled = "GDPREnabled"
+
+    /// Whether SOC 2 reporting and evidence collection are active
+    case soc2Enabled = "SOC2Enabled"
+
     // MARK: Appearance
 
     /// UI theme override ("light", "dark", or "system")
@@ -112,6 +120,8 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
         case .dlpEnabled:           return "DLP Enabled"
         case .blockCreditCards:     return "Block Credit Cards"
         case .blockAPIKeys:         return "Block API Keys"
+        case .gdprEnabled:          return "GDPR Enabled"
+        case .soc2Enabled:          return "SOC 2 Enabled"
         case .theme:                return "Theme"
         }
     }
@@ -133,6 +143,8 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
             return .privacy
         case .excludePrivateBrowsing, .dlpEnabled, .blockCreditCards, .blockAPIKeys:
             return .privacy
+        case .gdprEnabled, .soc2Enabled:
+            return .enterprise
         case .theme:
             return .appearance
         }

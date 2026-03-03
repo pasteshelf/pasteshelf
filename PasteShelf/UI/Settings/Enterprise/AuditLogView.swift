@@ -169,16 +169,16 @@ struct AuditLogView: View {
     private var retentionSection: some View {
         Section("Retention Policy") {
             LabeledContent("Keep events for") {
-                Picker("Retention", selection: Binding(
-                    get: { AuditManager.shared.retentionConfiguration.retentionDays },
-                    set: { AuditManager.shared.updateRetentionDays($0) }
-                )) {
+                Picker("Retention", selection: $viewModel.retentionDays) {
                     ForEach(AuditRetentionConfiguration.options, id: \.self) { days in
                         Text(retentionLabel(days: days)).tag(days)
                     }
                 }
                 .labelsHidden()
                 .frame(width: 160)
+                .onChange(of: viewModel.retentionDays) { _, newValue in
+                    viewModel.updateRetentionDays(newValue)
+                }
             }
 
             Text("Events older than the retention window are automatically deleted during the next scheduled pruning pass.")

@@ -6,6 +6,7 @@
 //  for SOC 2 access control audits.
 //
 
+import CoreData
 import Foundation
 import os.log
 

@@ -21,7 +21,7 @@ struct HIPAASettingsView: View {
                 GroupBox {
                     VStack(alignment: .leading, spacing: 12) {
                         Toggle("Enable HIPAA Compliance Mode", isOn: $viewModel.hipaaConfig.isEnabled)
-                            .onChange(of: viewModel.hipaaConfig.isEnabled) { _ in
+                            .onChange(of: viewModel.hipaaConfig.isEnabled) { _, _ in
                                 viewModel.saveHIPAAConfig()
                             }
 
@@ -34,17 +34,17 @@ struct HIPAASettingsView: View {
                                 Text("15 minutes").tag(15)
                                 Text("30 minutes").tag(30)
                             }
-                            .onChange(of: viewModel.hipaaConfig.sessionTimeoutMinutes) { _ in
+                            .onChange(of: viewModel.hipaaConfig.sessionTimeoutMinutes) { _, _ in
                                 viewModel.saveHIPAAConfig()
                             }
 
                             Toggle("Require Biometric Authentication", isOn: $viewModel.hipaaConfig.requireBiometric)
-                                .onChange(of: viewModel.hipaaConfig.requireBiometric) { _ in
+                                .onChange(of: viewModel.hipaaConfig.requireBiometric) { _, _ in
                                     viewModel.saveHIPAAConfig()
                                 }
 
                             Toggle("Require SSO Authentication", isOn: $viewModel.hipaaConfig.requireSSO)
-                                .onChange(of: viewModel.hipaaConfig.requireSSO) { _ in
+                                .onChange(of: viewModel.hipaaConfig.requireSSO) { _, _ in
                                     viewModel.saveHIPAAConfig()
                                 }
                         }
