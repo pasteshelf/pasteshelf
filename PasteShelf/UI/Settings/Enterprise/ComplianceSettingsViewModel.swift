@@ -71,6 +71,11 @@ final class ComplianceSettingsViewModel: ObservableObject {
 
     /// Generates a SOC 2 security controls report.
     func generateSOC2Report() {
+        guard ComplianceManager.shared.isSOC2Active else {
+            logger.info("SOC 2 report generation skipped — SOC 2 not active")
+            return
+        }
+
         isGenerating = true
         defer { isGenerating = false }
 
@@ -80,6 +85,11 @@ final class ComplianceSettingsViewModel: ObservableObject {
 
     /// Runs SOC 2 encryption verification across all data-protection layers.
     func verifySOC2Encryption() async {
+        guard ComplianceManager.shared.isSOC2Active else {
+            logger.info("SOC 2 encryption verification skipped — SOC 2 not active")
+            return
+        }
+
         isVerifying = true
         defer { isVerifying = false }
 
@@ -92,6 +102,11 @@ final class ComplianceSettingsViewModel: ObservableObject {
     /// - Parameter dateRange: The date range to export evidence for.
     /// - Returns: The URL of the evidence directory, or nil on failure.
     func exportAccessControlEvidence(dateRange: ClosedRange<Date>) async -> URL? {
+        guard ComplianceManager.shared.isSOC2Active else {
+            logger.info("SOC 2 access control evidence export skipped — SOC 2 not active")
+            return nil
+        }
+
         isExporting = true
         defer { isExporting = false }
 
@@ -160,6 +175,11 @@ final class ComplianceSettingsViewModel: ObservableObject {
     /// - Parameter dateRange: The date range to export.
     /// - Returns: The URL of the export directory, or nil on failure.
     func exportAuditTrail(dateRange: ClosedRange<Date>) async -> URL? {
+        guard ComplianceManager.shared.isSOC2Active else {
+            logger.info("Audit trail export skipped — SOC 2 not active")
+            return nil
+        }
+
         isExporting = true
         defer { isExporting = false }
 

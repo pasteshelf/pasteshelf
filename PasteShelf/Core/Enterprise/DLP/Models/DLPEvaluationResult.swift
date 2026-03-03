@@ -51,6 +51,13 @@ struct DLPEvaluationResult: Sendable {
     /// `nil` when `shouldRedact` is `false`.
     let redactedContent: String?
 
+    /// Per-field redacted content for accurate field-level redaction.
+    ///
+    /// When `shouldRedact` is `true`, each field that contained sensitive matches
+    /// has its redacted version here. Fields without matches retain their original values.
+    /// The pipeline should prefer this over `redactedContent` for storage updates.
+    let redactedFields: DLPRedactedFields?
+
     // MARK: - Convenience
 
     /// Whether any violations were found during evaluation.
@@ -78,7 +85,8 @@ struct DLPEvaluationResult: Sendable {
             violations: enriched,
             shouldBlock: shouldBlock,
             shouldRedact: shouldRedact,
-            redactedContent: redactedContent
+            redactedContent: redactedContent,
+            redactedFields: redactedFields
         )
     }
 
@@ -90,6 +98,20 @@ struct DLPEvaluationResult: Sendable {
         violations: [],
         shouldBlock: false,
         shouldRedact: false,
-        redactedContent: nil
+        redactedContent: nil,
+        redactedFields: nil
     )
+}
+
+// MARK: - DLPRedactedFields
+
+/// Per-field redacted content produced by DLP evaluation.
+///
+/// Each non-nil field contains the redacted version of the corresponding
+/// `ClipboardContent` property. Fields that had no sensitive matches retain
+/// their original value.
+struct DLPRedactedFields: Sendable {
+    let plainText: String?
+    let html: String?
+    let url: String?
 }

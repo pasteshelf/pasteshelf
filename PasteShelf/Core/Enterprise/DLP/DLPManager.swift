@@ -375,30 +375,19 @@ final class DLPManager: ObservableObject {
 
     // MARK: - Private Helpers
 
-    /// Persists violations and logs them as audit events.
+    /// Persists violations to CoreData storage.
+    ///
+    /// Audit logging for DLP events is handled at the pipeline level in AppDelegate
+    /// (with GDPR consent gating) to avoid double-logging.
     private func recordViolations(_ violations: [DLPViolation]) async {
         guard let storage = storageService else { return }
 
         for violation in violations {
-            // Persist to CoreData
             do {
                 try await storage.save(violation)
             } catch {
                 logger.error("Failed to save DLP violation: \(error.localizedDescription)")
             }
-
-            // Log as audit event
-            let severity: AuditEventSeverity = violation.wasBlocked ? .critical : .warning
-            await AuditManager.shared.logPolicyEvent(
-                action: .policyViolation,
-                policyId: violation.ruleId.uuidString,
-                detail: [
-                    "ruleName": violation.ruleName,
-                    "actionTaken": violation.actionTaken.rawValue,
-                    "wasBlocked": "\(violation.wasBlocked)",
-                    "dlpViolation": "true"
-                ]
-            )
         }
 
         // Refresh the in-memory list

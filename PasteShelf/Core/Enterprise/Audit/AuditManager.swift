@@ -97,8 +97,9 @@ final class AuditManager: ObservableObject {
         self.syncService = sync
 
         // Enforce HIPAA minimum retention when HIPAA compliance mode is active
+        // Uses ComplianceManager.isHIPAAActive to respect MDM-pushed HIPAA enablement
         var activeRetention = retentionConfiguration
-        if HIPAAComplianceMode.load().isEnabled {
+        if ComplianceManager.shared.isHIPAAActive {
             activeRetention = HIPAARetentionPolicy.validate(activeRetention)
             retentionConfiguration = activeRetention
         }
@@ -234,7 +235,8 @@ final class AuditManager: ObservableObject {
         )
 
         // Enforce HIPAA minimum retention when HIPAA compliance mode is active
-        if HIPAAComplianceMode.load().isEnabled {
+        // Uses ComplianceManager.isHIPAAActive to respect MDM-pushed HIPAA enablement
+        if ComplianceManager.shared.isHIPAAActive {
             newConfig = HIPAARetentionPolicy.validate(newConfig)
         }
 

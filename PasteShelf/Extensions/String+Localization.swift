@@ -103,8 +103,6 @@ enum LocalizedString {
         static let launchAtLoginDescription = "Start PasteShelf when you log in"
         static let showInDock = "Show in Dock"
         static let showInDockDescription = "Display PasteShelf icon in the Dock"
-        static let checkForUpdates = "Check for Updates"
-        static let checkForUpdatesDescription = "Automatically check for updates"
         static let historyLimit = "History Limit"
         static let historyLimitDescription = "Maximum number of items to keep"
         static let unlimited = "Unlimited"

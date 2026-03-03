@@ -46,8 +46,6 @@ struct GeneralTabView: View {
                     .foregroundColor(.secondary)
             }
 
-            // Auto-update: will be enabled when an update framework (e.g. Sparkle) is integrated.
-            // The checkForUpdates setting exists in GeneralSettings but has no effect until then.
         }
         .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
