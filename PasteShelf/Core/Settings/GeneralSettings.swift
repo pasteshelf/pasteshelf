@@ -18,9 +18,6 @@ struct GeneralSettings: Codable, Equatable {
     /// Whether to show the app in the Dock
     var showInDock: Bool
 
-    /// Whether to check for updates automatically
-    var checkForUpdates: Bool
-
     /// Maximum number of clipboard items to keep in history
     var historyLimit: HistoryLimit
 
@@ -29,12 +26,10 @@ struct GeneralSettings: Codable, Equatable {
     init(
         launchAtLogin: Bool = false,
         showInDock: Bool = false,
-        checkForUpdates: Bool = true,
         historyLimit: HistoryLimit = .medium
     ) {
         self.launchAtLogin = launchAtLogin
         self.showInDock = showInDock
-        self.checkForUpdates = checkForUpdates
         self.historyLimit = historyLimit
     }
 

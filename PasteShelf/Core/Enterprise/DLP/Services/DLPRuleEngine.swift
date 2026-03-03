@@ -52,7 +52,9 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
             return .clean
         }
 
-        let textToScan = extractText(from: content)
+        // Collect individual text fields for per-field scanning
+        let fields = extractFields(from: content)
+        let textToScan = fields.values.joined(separator: "\n")
         guard !textToScan.isEmpty else {
             return .clean
         }
@@ -60,7 +62,11 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
         var violations: [DLPViolation] = []
         var shouldBlock = false
         var shouldRedact = false
-        var redactedText = textToScan
+
+        // Per-field redacted content, starting with originals
+        var redactedPlainText = content.plainText
+        var redactedHTML = content.html
+        var redactedURL = content.url?.absoluteString
 
         for rule in enabledRules {
             guard let regex = compiledRegex(for: rule.pattern) else {
@@ -68,43 +74,47 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
                 continue
             }
 
-            let nsRange = NSRange(textToScan.startIndex..., in: textToScan)
-            let matches = regex.matches(in: textToScan, options: [], range: nsRange)
+            // Scan each field individually to track which fields matched
+            for (fieldName, fieldText) in fields {
+                let nsRange = NSRange(fieldText.startIndex..., in: fieldText)
+                let matches = regex.matches(in: fieldText, options: [], range: nsRange)
 
-            for match in matches {
-                guard let range = Range(match.range, in: textToScan) else { continue }
+                for match in matches {
+                    guard let range = Range(match.range, in: fieldText) else { continue }
 
-                let matchedText = String(textToScan[range])
+                    let matchedText = String(fieldText[range])
+                    let primaryAction = rule.actions.first ?? .logOnly
+                    let redactedPreview = redact(matchedText)
 
-                // Determine the primary action for this violation
-                let primaryAction = rule.actions.first ?? .logOnly
-
-                // Create a redacted preview of the matched text
-                let redactedPreview = redact(matchedText)
-
-                let violation = DLPViolation(
-                    ruleId: rule.id,
-                    ruleName: rule.name,
-                    contentPreview: redactedPreview,
-                    matchedPattern: redactedPreview,
-                    actionTaken: primaryAction,
-                    sourceAppBundleId: nil,
-                    sourceAppName: nil,
-                    wasBlocked: rule.actions.contains(.block)
-                )
-                violations.append(violation)
-
-                // Determine outcome flags from rule actions
-                if rule.actions.contains(.block) {
-                    shouldBlock = true
-                }
-                if rule.actions.contains(.redact) {
-                    shouldRedact = true
-                    // Apply redaction to the text
-                    redactedText = redactedText.replacingOccurrences(
-                        of: matchedText,
-                        with: redactedPreview
+                    let violation = DLPViolation(
+                        ruleId: rule.id,
+                        ruleName: rule.name,
+                        contentPreview: redactedPreview,
+                        matchedPattern: redactedPreview,
+                        actionTaken: primaryAction,
+                        sourceAppBundleId: nil,
+                        sourceAppName: nil,
+                        wasBlocked: rule.actions.contains(.block)
                     )
+                    violations.append(violation)
+
+                    if rule.actions.contains(.block) {
+                        shouldBlock = true
+                    }
+                    if rule.actions.contains(.redact) {
+                        shouldRedact = true
+                        // Apply redaction to the specific field that matched
+                        switch fieldName {
+                        case "plainText":
+                            redactedPlainText = redactedPlainText?.replacingOccurrences(of: matchedText, with: redactedPreview)
+                        case "html":
+                            redactedHTML = redactedHTML?.replacingOccurrences(of: matchedText, with: redactedPreview)
+                        case "url":
+                            redactedURL = redactedURL?.replacingOccurrences(of: matchedText, with: redactedPreview)
+                        default:
+                            break
+                        }
+                    }
                 }
             }
         }
@@ -116,34 +126,45 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
             logger.info("DLP: \(uniqueViolations.count) violation(s) found, block=\(shouldBlock), redact=\(shouldRedact)")
         }
 
+        // Build per-field redacted content
+        let perFieldRedaction: DLPRedactedFields? = shouldRedact ? DLPRedactedFields(
+            plainText: redactedPlainText,
+            html: redactedHTML,
+            url: redactedURL
+        ) : nil
+
+        // Legacy composite redacted content for backward compatibility
+        let compositeRedacted: String? = shouldRedact ? [redactedPlainText, redactedHTML, redactedURL].compactMap { $0 }.joined(separator: "\n") : nil
+
         return DLPEvaluationResult(
             violations: uniqueViolations,
             shouldBlock: shouldBlock,
             shouldRedact: shouldRedact,
-            redactedContent: shouldRedact ? redactedText : nil
+            redactedContent: compositeRedacted,
+            redactedFields: perFieldRedaction
         )
     }
 
     // MARK: - Text Extraction
 
-    /// Extracts all text content from a `ClipboardContent` value for DLP scanning.
+    /// Extracts text fields individually for per-field DLP scanning and redaction.
     ///
-    /// Follows the same approach as `SensitiveDataDetector.analyze(_:)`: collects
-    /// plain text, HTML, and URL string representations.
-    private func extractText(from content: ClipboardContent) -> String {
-        var parts: [String] = []
+    /// Returns a dictionary keyed by field name ("plainText", "html", "url") with
+    /// each non-nil text representation for separate scanning.
+    private func extractFields(from content: ClipboardContent) -> [(key: String, value: String)] {
+        var fields: [(key: String, value: String)] = []
 
         if let plainText = content.plainText {
-            parts.append(plainText)
+            fields.append((key: "plainText", value: plainText))
         }
         if let html = content.html {
-            parts.append(html)
+            fields.append((key: "html", value: html))
         }
         if let url = content.url {
-            parts.append(url.absoluteString)
+            fields.append((key: "url", value: url.absoluteString))
         }
 
-        return parts.joined(separator: "\n")
+        return fields
     }
 
     // MARK: - Regex Compilation

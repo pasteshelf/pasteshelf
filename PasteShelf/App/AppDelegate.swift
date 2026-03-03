@@ -160,8 +160,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Stop enterprise monitoring
         MDMManager.shared.stopMonitoring()
 
-        // Stop sync engine (cancels auto-sync task, network monitor, WebSocket)
-        SyncManager.shared.stop()
+        // Stop sync engine if it was started (avoids lazy singleton creation when sync was never used)
+        let enterprise = SettingsManager.shared.enterprise
+        if enterprise.cloudSyncEnabled && !enterprise.localStorageOnly {
+            SyncManager.shared.stop()
+        }
 
         // Shut down plugin system (calls willUnload on active plugins)
         Task {
@@ -830,14 +833,20 @@ extension AppDelegate: ClipboardMonitorDelegate {
             let deleted = await storageManager.deleteItem(byId: content.id)
             if deleted {
                 logger.info("DLP: blocked and deleted item \(content.id)")
+            } else {
+                logger.error("DLP: failed to delete blocked item \(content.id) — sensitive data may remain in storage")
+            }
 
-                // Audit: log that clipboard content was blocked by DLP
+            // Audit: always log the block attempt regardless of deletion success (gated by GDPR)
+            if !ComplianceManager.shared.isGDPRActive
+                || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
                 await AuditManager.shared.logClipboardEvent(
                     action: .copyBlocked,
                     resourceId: content.id.uuidString,
                     detail: [
                         "contentType": content.primaryType.displayName,
                         "reason": "dlp_blocked",
+                        "deletionSucceeded": "\(deleted)",
                     ]
                 )
             }
@@ -845,9 +854,11 @@ extension AppDelegate: ClipboardMonitorDelegate {
             return DLPPipelineResult(blocked: true, content: content)
         }
 
-        // Redact: update the stored text and propagate redacted content downstream
-        if result.shouldRedact, let redactedText = result.redactedContent {
-            let redactSuccess = await storageManager.updatePlainText(itemId: content.id, text: redactedText, stripOtherRepresentations: true)
+        // Redact: update the stored text and propagate redacted content downstream.
+        // Uses per-field redacted content to avoid composite string contamination.
+        if result.shouldRedact, let fields = result.redactedFields {
+            let redactedPlainText = fields.plainText ?? content.plainText ?? ""
+            let redactSuccess = await storageManager.updatePlainText(itemId: content.id, text: redactedPlainText, stripOtherRepresentations: true)
             if !redactSuccess {
                 logger.error("DLP: failed to persist redacted content for item \(content.id) — deleting to prevent sensitive data leak")
                 _ = await storageManager.deleteItem(byId: content.id)
@@ -855,19 +866,22 @@ extension AppDelegate: ClipboardMonitorDelegate {
             }
             logger.info("DLP: redacted content for item \(content.id)")
 
-            // Audit: log that clipboard content was redacted by DLP
-            await AuditManager.shared.logClipboardEvent(
-                action: .copyRedacted,
-                resourceId: content.id.uuidString,
-                detail: [
-                    "contentType": content.primaryType.displayName,
-                    "reason": "dlp_redacted",
-                ]
-            )
+            // Audit: log that clipboard content was redacted by DLP (gated by GDPR auditLogging consent)
+            if !ComplianceManager.shared.isGDPRActive
+                || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
+                await AuditManager.shared.logClipboardEvent(
+                    action: .copyRedacted,
+                    resourceId: content.id.uuidString,
+                    detail: [
+                        "contentType": content.primaryType.displayName,
+                        "reason": "dlp_redacted",
+                    ]
+                )
+            }
 
-            // Create a copy with redacted text so downstream stages don't see sensitive data
+            // Create a copy with per-field redacted text so downstream stages don't see sensitive data
             var redactedContent = content
-            redactedContent.plainText = redactedText
+            redactedContent.plainText = fields.plainText
             redactedContent.html = nil
             redactedContent.url = nil
             redactedContent.rtfData = nil
@@ -916,16 +930,19 @@ extension AppDelegate: ClipboardMonitorDelegate {
             if deleted {
                 logger.info("Automation: deleted item \(content.id) per rule action")
 
-                // Audit: log that automation deleted the item
-                let ruleNames = result.matchedRules.map(\.name).joined(separator: ", ")
-                await AuditManager.shared.logClipboardEvent(
-                    action: .automationDeleted,
-                    resourceId: content.id.uuidString,
-                    detail: [
-                        "contentType": content.primaryType.displayName,
-                        "matchedRules": ruleNames,
-                    ]
-                )
+                // Audit: log that automation deleted the item (gated by GDPR auditLogging consent)
+                if !ComplianceManager.shared.isGDPRActive
+                    || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
+                    let ruleNames = result.matchedRules.map(\.name).joined(separator: ", ")
+                    await AuditManager.shared.logClipboardEvent(
+                        action: .automationDeleted,
+                        resourceId: content.id.uuidString,
+                        detail: [
+                            "contentType": content.primaryType.displayName,
+                            "matchedRules": ruleNames,
+                        ]
+                    )
+                }
             }
             return AutomationPipelineResult(deleted: true, content: content)
         }

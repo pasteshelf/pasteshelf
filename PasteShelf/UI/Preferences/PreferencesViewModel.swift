@@ -29,10 +29,6 @@ final class PreferencesViewModel: ObservableObject {
         didSet { updateGeneral() }
     }
 
-    @Published var checkForUpdates: Bool {
-        didSet { updateGeneral() }
-    }
-
     @Published var historyLimit: HistoryLimit {
         didSet { updateGeneral() }
     }
@@ -115,7 +111,6 @@ final class PreferencesViewModel: ObservableObject {
         // General
         launchAtLogin = settings.general.launchAtLogin
         showInDock = settings.general.showInDock
-        checkForUpdates = settings.general.checkForUpdates
         historyLimit = settings.general.historyLimit
 
         // Privacy
@@ -171,7 +166,6 @@ final class PreferencesViewModel: ObservableObject {
         settingsManager.general = GeneralSettings(
             launchAtLogin: launchAtLogin,
             showInDock: showInDock,
-            checkForUpdates: checkForUpdates,
             historyLimit: historyLimit
         )
     }
@@ -244,7 +238,6 @@ final class PreferencesViewModel: ObservableObject {
         // General
         launchAtLogin = settings.general.launchAtLogin
         showInDock = settings.general.showInDock
-        checkForUpdates = settings.general.checkForUpdates
         historyLimit = settings.general.historyLimit
 
         // Privacy

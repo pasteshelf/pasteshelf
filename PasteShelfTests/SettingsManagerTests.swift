@@ -18,7 +18,6 @@ struct SettingsManagerTests {
 
         #expect(settings.launchAtLogin == false)
         #expect(settings.showInDock == false)
-        #expect(settings.checkForUpdates == true)
         #expect(settings.historyLimit == .medium)
     }
 
