@@ -54,7 +54,7 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
 
         // Collect individual text fields for per-field scanning
         let fields = extractFields(from: content)
-        let textToScan = fields.values.joined(separator: "\n")
+        let textToScan = fields.map(\.value).joined(separator: "\n")
         guard !textToScan.isEmpty else {
             return .clean
         }

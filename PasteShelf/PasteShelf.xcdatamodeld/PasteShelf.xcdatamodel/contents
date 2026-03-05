@@ -4,11 +4,6 @@
         <attribute name="bundleId" optional="YES" attributeType="String"/>
         <attribute name="isExcluded" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
-        <uniquenessConstraints>
-            <uniquenessConstraint>
-                <constraint value="bundleId"/>
-            </uniquenessConstraint>
-        </uniquenessConstraints>
     </entity>
     <entity name="ClipboardContentData" representedClassName="ClipboardContentData" syncable="YES">
         <attribute name="availableTypesJSON" optional="YES" attributeType="String"/>
