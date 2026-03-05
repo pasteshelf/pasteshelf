@@ -2,200 +2,360 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
-  workflow_dispatch:
-    inputs:
-      skip_notarization:
-        description: 'Skip notarization step'
-        required: false
-        default: 'true'
-        type: boolean
+    tags: ["v*"]
 
-permissions:
-  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
-  XCODE_VERSION: '16.0'
+  XCODE_VERSION: "16.2"
+  APP_NAME: "PasteShelf"
+  SCHEME: "PasteShelf"
+  TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
 jobs:
-  build-release:
-    name: Build Release
-    runs-on: macos-14
+  release:
+    name: Build, Sign & Release
+    runs-on: macos-15
+    permissions:
+      contents: write
+
     steps:
+      # ------------------------------------------------------------------
+      # 1. Checkout & Environment
+      # ------------------------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Release version: $TAG"
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+        run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
 
-      - name: Get Version
-        id: version
+      # ------------------------------------------------------------------
+      # 2. Code Signing Setup
+      # ------------------------------------------------------------------
+      - name: Install Developer ID certificate
         env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          EVENT_NAME: ${{ github.event_name }}
+          CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          if [ "$EVENT_NAME" = "push" ]; then
-            # Extract version from tag (e.g., v1.0.0 -> 1.0.0)
-            VERSION="${GITHUB_REF_NAME#v}"
-            echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
-          else
-            echo "VERSION=dev-$(date +%Y%m%d%H%M%S)" >> "$GITHUB_OUTPUT"
-          fi
+          # Decode certificate
+          CERT_PATH="$RUNNER_TEMP/certificate.p12"
+          printf '%s' "$CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+
+          # Create and configure temporary keychain
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Import certificate
+          security import "$CERT_PATH" \
+            -P "$CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          # Allow codesign to access keychain
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Add to keychain search list
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+
+          echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+
+      # ------------------------------------------------------------------
+      # 3. Build & Archive
+      # ------------------------------------------------------------------
+      - name: Build Release archive
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -destination 'platform=macOS,arch=arm64' \
+            -archivePath build/${APP_NAME}.xcarchive \
+            ONLY_ACTIVE_ARCH=YES \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM="${TEAM_ID}" \
+            MARKETING_VERSION="${RELEASE_VERSION}" \
+            CURRENT_PROJECT_VERSION="${BUILD_NUMBER}" \
+            2>&1 | tail -30
 
       - name: Inject Team ID into ExportOptions
-        if: env.APPLE_TEAM_ID != ''
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          sed -i '' "s/TEAM_ID_PLACEHOLDER/$APPLE_TEAM_ID/g" ExportOptions.plist
-          sed -i '' "s/TEAM_ID_PLACEHOLDER/$APPLE_TEAM_ID/g" ExportOptions-AppStore.plist
+        run: sed -i '' "s/__TEAM_ID__/${TEAM_ID}/" ExportOptions.plist
 
-      - name: Build Release Archive
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Export signed app
         run: |
-          TEAM_FLAG=""
-          SIGNING_FLAG="CODE_SIGNING_ALLOWED=NO"
-          if [ -n "$APPLE_TEAM_ID" ]; then
-            TEAM_FLAG="DEVELOPMENT_TEAM=$APPLE_TEAM_ID"
-            SIGNING_FLAG=""
-          fi
-          xcodebuild archive \
-            -scheme PasteShelf \
-            -configuration Release \
-            -archivePath build/PasteShelf.xcarchive \
-            $SIGNING_FLAG $TEAM_FLAG
-
-      - name: Export App
-        run: |
+          set -o pipefail
           xcodebuild -exportArchive \
-            -archivePath build/PasteShelf.xcarchive \
+            -archivePath build/${APP_NAME}.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
             -exportPath build/export \
-            -exportOptionsPlist ExportOptions.plist || {
-              # Fallback: Copy app from archive if export fails
-              mkdir -p build/export
-              cp -R build/PasteShelf.xcarchive/Products/Applications/PasteShelf.app build/export/
-            }
+            2>&1 | tail -20
 
-      # Code Signing step - Enable when Apple Developer credentials are configured
-      # Required secrets: APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD, APPLE_KEYCHAIN_PASSWORD
-      # - name: Import Code Signing Certificate
-      #   env:
-      #     CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
-      #     CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      #     KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
-      #   run: |
-      #     # Create temporary keychain
-      #     security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-      #     security set-keychain-settings -lut 21600 build.keychain
-      #     security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-      #
-      #     # Import certificate
-      #     echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
-      #     security import certificate.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-      #     security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-      #
-      #     # Add to search list
-      #     security list-keychains -d user -s build.keychain login.keychain
-      #
-      # - name: Sign App
-      #   env:
-      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      #   run: |
-      #     codesign --force --deep --sign "Developer ID Application: PasteShelf ($APPLE_TEAM_ID)" \
-      #       --options runtime \
-      #       build/export/PasteShelf.app
+      - name: Verify code signature
+        run: |
+          APP_PATH="build/export/${APP_NAME}.app"
+          echo "=== Code signature verification ==="
+          codesign --verify --deep --strict "$APP_PATH"
+          echo ""
+          echo "=== Signing identity ==="
+          codesign -dvv "$APP_PATH" 2>&1 | grep "Authority"
+          echo ""
+          echo "=== Hardened runtime ==="
+          codesign -dvv "$APP_PATH" 2>&1 | grep -i "runtime" || true
 
-      # Notarization step - Enable when Apple credentials are configured
-      # Required secrets: APPLE_ID, APPLE_APP_PASSWORD, APPLE_TEAM_ID
-      # - name: Notarize App
-      #   if: ${{ inputs.skip_notarization != 'true' }}
-      #   env:
-      #     APPLE_ID: ${{ secrets.APPLE_ID }}
-      #     APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      #   run: |
-      #     # Create zip for notarization
-      #     ditto -c -k --keepParent build/export/PasteShelf.app build/PasteShelf-notarize.zip
-      #
-      #     # Submit for notarization
-      #     xcrun notarytool submit build/PasteShelf-notarize.zip \
-      #       --apple-id "$APPLE_ID" \
-      #       --password "$APPLE_APP_PASSWORD" \
-      #       --team-id "$APPLE_TEAM_ID" \
-      #       --wait
-      #
-      #     # Staple the notarization ticket
-      #     xcrun stapler staple build/export/PasteShelf.app
+      # ------------------------------------------------------------------
+      # 4. Notarize
+      # ------------------------------------------------------------------
+      - name: Notarize app
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          APP_PATH="build/export/${APP_NAME}.app"
+
+          # Create a zip for notarization
+          ditto -c -k --keepParent "$APP_PATH" build/${APP_NAME}-notarize.zip
+
+          echo "Submitting for notarization..."
+          xcrun notarytool submit build/${APP_NAME}-notarize.zip \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --wait \
+            --timeout 30m
+
+          echo "Stapling notarization ticket..."
+          xcrun stapler staple "$APP_PATH"
+
+          echo "Verifying notarization..."
+          spctl --assess --type execute -v "$APP_PATH"
+
+      # ------------------------------------------------------------------
+      # 5. Create DMG
+      # ------------------------------------------------------------------
+      - name: Install create-dmg
+        run: brew install create-dmg
 
       - name: Create DMG
         env:
-          APP_VERSION: ${{ steps.version.outputs.VERSION }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          if [ -d "build/export/PasteShelf.app" ]; then
-            # Create a nice DMG with Applications symlink
-            mkdir -p build/dmg-contents
-            cp -R build/export/PasteShelf.app build/dmg-contents/
-            ln -s /Applications build/dmg-contents/Applications
+          APP_PATH="build/export/${APP_NAME}.app"
+          ./scripts/create-dmg.sh "$RELEASE_VERSION" "$APP_PATH"
 
-            hdiutil create -volname "PasteShelf $APP_VERSION" \
-              -srcfolder build/dmg-contents \
-              -ov -format UDZO \
-              "build/PasteShelf-$APP_VERSION.dmg"
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          DMG_PATH="build/${APP_NAME}-${RELEASE_VERSION}.dmg"
 
-            echo "DMG created: PasteShelf-$APP_VERSION.dmg"
-          else
-            echo "Warning: App not found, skipping DMG creation"
+          echo "Submitting DMG for notarization..."
+          xcrun notarytool submit "$DMG_PATH" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --wait \
+            --timeout 30m
+
+          echo "Stapling DMG..."
+          xcrun stapler staple "$DMG_PATH"
+
+      # ------------------------------------------------------------------
+      # 6. Compute Signatures
+      # ------------------------------------------------------------------
+      - name: Compute checksums and Sparkle signature
+        id: signatures
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          DMG_PATH="build/${APP_NAME}-${RELEASE_VERSION}.dmg"
+
+          # SHA256
+          SHA256=$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+          echo "SHA256: $SHA256"
+
+          # DMG file size
+          DMG_SIZE=$(stat -f%z "$DMG_PATH")
+          echo "dmg_size=$DMG_SIZE" >> "$GITHUB_OUTPUT"
+
+          # Sparkle EdDSA signature using sign_update from resolved SPM package
+          SPARKLE_BIN=$(find ~/Library/Developer/Xcode/DerivedData/PasteShelf-*/SourcePackages \
+            -name 'sign_update' -type f 2>/dev/null | head -1 || true)
+          if [ -z "$SPARKLE_BIN" ]; then
+            SPARKLE_BIN=$(find ~/Library/Developer/Xcode/DerivedData \
+              -name 'sign_update' -type f 2>/dev/null | head -1 || true)
+          fi
+          if [ -z "$SPARKLE_BIN" ]; then
+            SPARKLE_BIN=$(find build -name 'sign_update' -type f 2>/dev/null | head -1 || true)
           fi
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-artifacts
-          path: |
-            build/*.dmg
-            build/PasteShelf.xcarchive
-          retention-days: 30
+          if [ -z "$SPARKLE_ED_PRIVATE_KEY" ]; then
+            echo "::error::SPARKLE_ED_PRIVATE_KEY secret is not set — cannot sign release for Sparkle auto-update"
+            exit 1
+          fi
 
+          if [ -z "$SPARKLE_BIN" ]; then
+            echo "::error::Sparkle sign_update binary not found in DerivedData or build directory"
+            exit 1
+          fi
+
+          chmod +x "$SPARKLE_BIN"
+          ED_SIGNATURE=$(echo "$SPARKLE_ED_PRIVATE_KEY" | "$SPARKLE_BIN" "$DMG_PATH" -f -)
+          if [ -z "$ED_SIGNATURE" ]; then
+            echo "::error::Sparkle sign_update produced empty signature"
+            exit 1
+          fi
+          echo "ed_signature=$ED_SIGNATURE" >> "$GITHUB_OUTPUT"
+          echo "Sparkle EdDSA signature computed"
+
+      # ------------------------------------------------------------------
+      # 7. Create GitHub Release
+      # ------------------------------------------------------------------
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          generate_release_notes: true
-          files: |
-            build/*.dmg
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          SHA256: ${{ steps.signatures.outputs.sha256 }}
+        run: |
+          DMG_PATH="build/${APP_NAME}-${RELEASE_VERSION}.dmg"
 
-  # App Store submission job - Enable when ready
-  # submit-app-store:
-  #   name: Submit to App Store
-  #   runs-on: macos-14
-  #   needs: build-release
-  #   if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, 'release')
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Download Archive
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: release-artifacts
-  #
-  #     - name: Submit to App Store Connect
-  #       env:
-  #         APPLE_ID: ${{ secrets.APPLE_ID }}
-  #         APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-  #       run: |
-  #         xcodebuild -exportArchive \
-  #           -archivePath PasteShelf.xcarchive \
-  #           -exportPath app-store-export \
-  #           -exportOptionsPlist ExportOptions-AppStore.plist
-  #
-  #         xcrun altool --upload-app \
-  #           --type macos \
-  #           --file "app-store-export/PasteShelf.pkg" \
-  #           --username "$APPLE_ID" \
-  #           --password "$APPLE_APP_PASSWORD"
+          gh release create "v${RELEASE_VERSION}" \
+            --title "PasteShelf v${RELEASE_VERSION}" \
+            --generate-notes \
+            "$DMG_PATH#PasteShelf-${RELEASE_VERSION}.dmg"
+
+          echo ""
+          echo "Release created: v${RELEASE_VERSION}"
+          echo "SHA256: ${SHA256}"
+
+      # ------------------------------------------------------------------
+      # 8. Update Homebrew Cask
+      # ------------------------------------------------------------------
+      - name: Update Homebrew cask
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          SHA256: ${{ steps.signatures.outputs.sha256 }}
+        run: |
+          if [ -z "$HOMEBREW_TAP_TOKEN" ]; then
+            echo "Warning: HOMEBREW_TAP_TOKEN not set, skipping Homebrew cask update"
+            exit 0
+          fi
+
+          CASK_CONTENT=$(cat <<'CASK'
+          cask "pasteshelf" do
+            version "VERSION_PLACEHOLDER"
+            sha256 "SHA256_PLACEHOLDER"
+
+            url "https://github.com/pasteshelf/PasteShelf/releases/download/v#{version}/PasteShelf-#{version}.dmg"
+            name "PasteShelf"
+            desc "Privacy-first clipboard manager for macOS"
+            homepage "https://github.com/pasteshelf/PasteShelf"
+
+            depends_on macos: ">= :sonoma"
+
+            app "PasteShelf.app"
+
+            zap trash: [
+              "~/Library/Application Support/PasteShelf",
+              "~/Library/Caches/com.pasteshelf.PasteShelf",
+              "~/Library/Preferences/com.pasteshelf.PasteShelf.plist",
+            ]
+          end
+          CASK
+          )
+
+          CASK_CONTENT="${CASK_CONTENT//VERSION_PLACEHOLDER/$RELEASE_VERSION}"
+          CASK_CONTENT="${CASK_CONTENT//SHA256_PLACEHOLDER/$SHA256}"
+
+          # Get current file SHA for update
+          FILE_SHA=$(curl -s \
+            -H "Authorization: token $HOMEBREW_TAP_TOKEN" \
+            "https://api.github.com/repos/pasteshelf/homebrew-pasteshelf/contents/Casks/pasteshelf.rb" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin).get('sha',''))")
+
+          # Update the cask file
+          ENCODED=$(echo "$CASK_CONTENT" | base64)
+          curl -s -X PUT \
+            -H "Authorization: token $HOMEBREW_TAP_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://api.github.com/repos/pasteshelf/homebrew-pasteshelf/contents/Casks/pasteshelf.rb" \
+            -d "{
+              \"message\": \"chore: bump pasteshelf to v${RELEASE_VERSION}\",
+              \"content\": \"${ENCODED}\",
+              \"sha\": \"${FILE_SHA}\"
+            }"
+
+          echo "Homebrew cask updated to v${RELEASE_VERSION}"
+
+      # ------------------------------------------------------------------
+      # 9. Update Appcast
+      # ------------------------------------------------------------------
+      - name: Update appcast.xml
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          ED_SIGNATURE: ${{ steps.signatures.outputs.ed_signature }}
+        run: |
+          DMG_PATH="build/${APP_NAME}-${RELEASE_VERSION}.dmg"
+          ./scripts/update-appcast.sh "$RELEASE_VERSION" "$DMG_PATH" "$ED_SIGNATURE"
+
+      - name: Prepare appcast for deployment
+        run: |
+          mkdir -p build/gh-pages
+          cp appcast.xml build/gh-pages/
+
+      - name: Deploy appcast to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/gh-pages
+          publish_branch: gh-pages
+          keep_files: true
+
+      # ------------------------------------------------------------------
+      # 10. Cleanup
+      # ------------------------------------------------------------------
+      - name: Cleanup keychain
+        if: always()
+        run: |
+          if [ -n "${keychain_path:-}" ]; then
+            security delete-keychain "$keychain_path" 2>/dev/null || true
+          fi
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        with:
+          name: release-${{ steps.version.outputs.version }}
+          path: |
+            build/${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.dmg
+          if-no-files-found: warn
+          retention-days: 30
