@@ -22,8 +22,7 @@ struct PasteShelfApp: App {
     // MARK: - Body
 
     var body: some Scene {
-        // Empty Settings scene for menu bar only app
-        // The app runs entirely from the menu bar via AppDelegate
+        // Empty Settings scene — preferences managed by PreferencesWindowController
         Settings {
             EmptyView()
         }

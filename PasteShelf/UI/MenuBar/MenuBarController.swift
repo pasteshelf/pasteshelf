@@ -116,19 +116,7 @@ final class MenuBarController: NSObject, ObservableObject {
     // MARK: - Click Handling
 
     @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
-        guard let event = NSApp.currentEvent else { return }
-
-        if event.type == .rightMouseUp {
-            showContextMenu()
-        } else {
-            togglePanel()
-        }
-    }
-
-    /// Toggles the floating panel visibility
-    private func togglePanel() {
-        logger.debug("Toggle panel requested")
-        panelController?.toggle()
+        showContextMenu()
     }
 
     /// Shows the context menu with options
@@ -195,15 +183,6 @@ final class MenuBarController: NSObject, ObservableObject {
         )
         prefsItem.target = self
         menu.addItem(prefsItem)
-
-        // About
-        let aboutItem = NSMenuItem(
-            title: "About PasteShelf",
-            action: #selector(showAboutAction),
-            keyEquivalent: ""
-        )
-        aboutItem.target = self
-        menu.addItem(aboutItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -289,11 +268,6 @@ final class MenuBarController: NSObject, ObservableObject {
             name: .showPreferences,
             object: nil
         )
-    }
-
-    @objc private func showAboutAction() {
-        NSApp.orderFrontStandardAboutPanel(nil)
-        NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc private func quitAction() {
