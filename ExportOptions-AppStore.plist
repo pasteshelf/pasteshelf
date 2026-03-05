@@ -2,37 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Export method for Mac App Store -->
 	<key>method</key>
-	<string>app-store</string>
-
-	<!-- Team ID - Replace with actual Apple Developer Team ID -->
+	<string>app-store-connect</string>
 	<key>teamID</key>
-	<string>TEAM_ID_PLACEHOLDER</string>
-
-	<!-- Signing style: automatic lets Xcode manage signing -->
+	<string>__TEAM_ID__</string>
 	<key>signingStyle</key>
 	<string>automatic</string>
-
-	<!-- Destination: upload to App Store Connect -->
 	<key>destination</key>
 	<string>upload</string>
-
-	<!-- Strip Swift symbols for smaller binary size -->
-	<key>stripSwiftSymbols</key>
-	<true/>
-
-	<!-- Upload symbols for crash reporting in App Store Connect -->
 	<key>uploadSymbols</key>
 	<true/>
-
-	<!-- Auto manage version and build number in App Store Connect -->
-	<key>manageAppVersionAndBuildNumber</key>
-	<true/>
-
-	<!-- Generate App Store Information property list -->
-	<key>generateAppStoreInformation</key>
-	<true/>
-
 </dict>
 </plist>

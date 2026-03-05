@@ -104,5 +104,6 @@ docs/reference/COST_ESTIMATION.md
 # App Store metadata (internal)
 docs/appstore/
 
-# Internal development scripts
-scripts/
+# Internal development scripts (keep distribution scripts tracked)
+scripts/*.local
+scripts/*.private

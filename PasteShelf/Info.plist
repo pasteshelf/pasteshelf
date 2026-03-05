@@ -8,7 +8,15 @@
 	<key>OSAScriptingDefinition</key>
 	<string>PasteShelf.sdef</string>
 
-	<!-- URL Scheme Support (for Phase 2.6.4) -->
+	<!-- Sparkle Auto-Update -->
+	<key>SUFeedURL</key>
+	<string>https://pasteshelf.github.io/PasteShelf/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>y8EmCLgANDXNmgrjUNNVlmKo0hH3X/g6OBaf3Pa/N/g=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+
+	<!-- URL Scheme Support -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

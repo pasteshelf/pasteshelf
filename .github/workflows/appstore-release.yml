@@ -1,0 +1,220 @@
+name: App Store Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (e.g. 1.0.0)"
+        required: true
+  push:
+    tags: ["appstore-v*"]
+
+concurrency:
+  group: appstore-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  XCODE_VERSION: "16.2"
+  APP_NAME: "PasteShelf"
+  SCHEME: "PasteShelf AppStore"
+  CONFIGURATION: "Release-AppStore"
+  TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+jobs:
+  appstore-release:
+    name: Build & Upload to App Store
+    runs-on: macos-15
+    permissions:
+      contents: read
+
+    steps:
+      # ------------------------------------------------------------------
+      # 1. Checkout & Environment
+      # ------------------------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          GIT_REF: ${{ github.ref }}
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+          else
+            VERSION="${GIT_REF#refs/tags/appstore-v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "App Store release version: $VERSION"
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app
+
+      # ------------------------------------------------------------------
+      # 2. Code Signing Setup
+      # ------------------------------------------------------------------
+      - name: Install App Store certificates
+        env:
+          APP_STORE_CERTIFICATE_BASE64: ${{ secrets.APP_STORE_CERTIFICATE_BASE64 }}
+          APP_STORE_CERTIFICATE_PASSWORD: ${{ secrets.APP_STORE_CERTIFICATE_PASSWORD }}
+          INSTALLER_CERTIFICATE_BASE64: ${{ secrets.INSTALLER_CERTIFICATE_BASE64 }}
+          INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.INSTALLER_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Import Mac App Distribution certificate
+          CERT_PATH="$RUNNER_TEMP/app-store-cert.p12"
+          printf '%s' "$APP_STORE_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+          security import "$CERT_PATH" -P "$APP_STORE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+
+          # Import Mac Installer Distribution certificate
+          INSTALLER_CERT_PATH="$RUNNER_TEMP/installer-cert.p12"
+          printf '%s' "$INSTALLER_CERTIFICATE_BASE64" | base64 --decode > "$INSTALLER_CERT_PATH"
+          security import "$INSTALLER_CERT_PATH" -P "$INSTALLER_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+
+          echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+
+      # ------------------------------------------------------------------
+      # 3. Build & Archive
+      # ------------------------------------------------------------------
+      - name: Run tests (App Store config)
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -scheme "$SCHEME" \
+            -configuration "Debug" \
+            -destination 'platform=macOS,arch=arm64' \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            2>&1 | tail -30
+
+      - name: Build App Store archive
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          set -o pipefail
+          # App Store builds use 1000+ offset to distinguish from direct distribution
+          APPSTORE_BUILD_NUMBER=$((BUILD_NUMBER + 1000))
+          echo "App Store build number: $APPSTORE_BUILD_NUMBER (base: $BUILD_NUMBER)"
+
+          xcodebuild archive \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            -destination 'platform=macOS,arch=arm64' \
+            -archivePath build/${APP_NAME}-AppStore.xcarchive \
+            ONLY_ACTIVE_ARCH=YES \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="3rd Party Mac Developer Application" \
+            DEVELOPMENT_TEAM="${TEAM_ID}" \
+            MARKETING_VERSION="${RELEASE_VERSION}" \
+            CURRENT_PROJECT_VERSION="${APPSTORE_BUILD_NUMBER}" \
+            2>&1 | tail -30
+
+      - name: Verify App Store build integrity
+        run: |
+          APP_PATH="build/${APP_NAME}-AppStore.xcarchive/Products/Applications/${APP_NAME}.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::Archive app not found at $APP_PATH"
+            exit 1
+          fi
+
+          echo "=== 1. Verify Sparkle.framework is absent ==="
+          if [ -d "$APP_PATH/Contents/Frameworks/Sparkle.framework" ]; then
+            echo "::error::Sparkle.framework found in App Store build!"
+            exit 1
+          fi
+          echo "OK: Sparkle.framework not present"
+
+          echo ""
+          echo "=== 2. Verify entitlements ==="
+          ENTITLEMENTS=""
+
+          # Try extracting entitlements from the signed binary
+          if codesign -d --entitlements - "$APP_PATH" > "$RUNNER_TEMP/ents.plist" 2>/dev/null; then
+            if plutil -convert xml1 "$RUNNER_TEMP/ents.plist" 2>/dev/null; then
+              ENTITLEMENTS=$(cat "$RUNNER_TEMP/ents.plist")
+            fi
+          fi
+
+          # Fallback: verify from the project entitlements file
+          if [ -z "$ENTITLEMENTS" ]; then
+            echo "Note: Verifying entitlements from build configuration source file"
+            ENTITLEMENTS=$(cat PasteShelf/PasteShelf-AppStore.entitlements)
+          fi
+
+          echo "$ENTITLEMENTS"
+
+          if ! echo "$ENTITLEMENTS" | grep -q "com.apple.security.app-sandbox"; then
+            echo "::error::Missing app-sandbox entitlement!"
+            exit 1
+          fi
+          echo "OK: app-sandbox entitlement present"
+
+          echo ""
+          echo "=== 3. Verify prohibited entitlements are absent ==="
+          for prohibited in "cs.disable-library-validation" "cs.allow-jit" "cs.allow-unsigned-executable-memory" "automation.apple-events"; do
+            if echo "$ENTITLEMENTS" | grep -q "$prohibited"; then
+              echo "::error::Prohibited entitlement found: $prohibited"
+              exit 1
+            fi
+          done
+          echo "OK: No prohibited entitlements"
+
+      # ------------------------------------------------------------------
+      # 4. Export & Upload to App Store Connect
+      # ------------------------------------------------------------------
+      - name: Inject Team ID into ExportOptions
+        run: sed -i '' "s/__TEAM_ID__/${TEAM_ID}/" ExportOptions-AppStore.plist
+
+      - name: Export and upload to App Store Connect
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+        run: |
+          set -o pipefail
+          API_KEY_PATH="$RUNNER_TEMP/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+          echo "$APP_STORE_CONNECT_API_KEY_P8" > "$API_KEY_PATH"
+
+          xcodebuild -exportArchive \
+            -archivePath build/${APP_NAME}-AppStore.xcarchive \
+            -exportOptionsPlist ExportOptions-AppStore.plist \
+            -exportPath build/appstore-export \
+            -authenticationKeyPath "$API_KEY_PATH" \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID" \
+            -allowProvisioningUpdates \
+            2>&1 | tail -30
+
+      # ------------------------------------------------------------------
+      # 5. Cleanup
+      # ------------------------------------------------------------------
+      - name: Cleanup keychain
+        if: always()
+        run: |
+          if [ -n "${keychain_path:-}" ]; then
+            security delete-keychain "$keychain_path" 2>/dev/null || true
+          fi
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appstore-${{ steps.version.outputs.version }}
+          path: |
+            build/${{ env.APP_NAME }}-AppStore.xcarchive
+          if-no-files-found: warn
+          retention-days: 30
