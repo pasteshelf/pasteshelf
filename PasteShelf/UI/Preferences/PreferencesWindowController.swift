@@ -3,7 +3,7 @@
 //  PasteShelf
 //
 //  Controller for the preferences window.
-//  Manages window lifecycle and SwiftUI hosting.
+//  Uses NSTabViewController for native macOS toolbar-style tabs.
 //
 
 import AppKit
@@ -28,14 +28,6 @@ final class PreferencesWindowController: NSObject {
         subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
         category: "preferences"
     )
-
-    // MARK: - Configuration
-
-    /// Window width
-    private let windowWidth: CGFloat = 700
-
-    /// Window height
-    private let windowHeight: CGFloat = 450
 
     // MARK: - Initialization
 
@@ -74,38 +66,69 @@ final class PreferencesWindowController: NSObject {
     // MARK: - Private Methods
 
     private func createWindow() {
-        let contentRect = NSRect(
-            x: 0,
-            y: 0,
-            width: windowWidth,
-            height: windowHeight
-        )
-
-        let window = NSWindow(
-            contentRect: contentRect,
-            styleMask: [.titled, .closable, .miniaturizable],
-            backing: .buffered,
-            defer: false
-        )
-
-        window.title = "Preferences"
-        window.minSize = NSSize(width: windowWidth, height: windowHeight)
-        window.isReleasedWhenClosed = false
-        window.center()
-
-        // Create SwiftUI content
         let viewModel = PreferencesViewModel()
-        let contentView = PreferencesView(viewModel: viewModel)
-            .environmentObject(SettingsManager.shared)
-        let hostingView = NSHostingView(rootView: contentView)
-        hostingView.frame = contentRect
 
-        window.contentView = hostingView
+        // Build the tab view controller with native toolbar tabs
+        let tabViewController = NSTabViewController()
+        tabViewController.tabStyle = .toolbar
+        tabViewController.title = "Preferences"
+
+        for tab in PreferencesTab.allCases {
+            let tabViewItem = NSTabViewItem(viewController: makeHostingController(for: tab, viewModel: viewModel))
+            tabViewItem.label = tab.displayName
+            tabViewItem.image = NSImage(systemSymbolName: tab.iconName, accessibilityDescription: tab.displayName)
+            tabViewController.addTabViewItem(tabViewItem)
+        }
+
+        let window = NSWindow(contentViewController: tabViewController)
+        window.title = "Preferences"
+        window.styleMask = [.titled, .closable, .miniaturizable]
+        window.isReleasedWhenClosed = false
         window.delegate = self
+
+        // Wide enough to fit all 10 toolbar tabs without overflow chevron
+        let width: CGFloat = 950
+        let height: CGFloat = 600
+        window.setContentSize(NSSize(width: width, height: height))
+        window.minSize = NSSize(width: width, height: 500)
+        window.center()
 
         self.window = window
 
         logger.info("Preferences window created")
+    }
+
+    private func makeHostingController(for tab: PreferencesTab, viewModel: PreferencesViewModel) -> NSViewController {
+        let view: AnyView
+        switch tab {
+        case .general:
+            view = AnyView(GeneralTabView(viewModel: viewModel))
+        case .privacy:
+            view = AnyView(PrivacyTabView(viewModel: viewModel))
+        case .appearance:
+            view = AnyView(AppearanceTabView(viewModel: viewModel))
+        case .shortcuts:
+            view = AnyView(ShortcutsTabView(viewModel: viewModel))
+        case .search:
+            view = AnyView(SearchTabView())
+        case .sync:
+            view = AnyView(SyncTabView())
+        case .automation:
+            view = AnyView(AutomationTabView())
+        case .plugins:
+            view = AnyView(PluginSettingsView())
+        case .enterprise:
+            view = AnyView(EnterpriseTabView())
+        case .about:
+            view = AnyView(AboutTabView())
+        }
+
+        let wrapped = view
+            .formStyle(.grouped)
+            .environmentObject(SettingsManager.shared)
+            .frame(minWidth: 500, minHeight: 500)
+
+        return NSHostingController(rootView: wrapped)
     }
 }
 
@@ -114,9 +137,5 @@ final class PreferencesWindowController: NSObject {
 extension PreferencesWindowController: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
         logger.debug("Preferences window will close")
-    }
-
-    func windowDidBecomeKey(_ notification: Notification) {
-        logger.debug("Preferences window became key")
     }
 }

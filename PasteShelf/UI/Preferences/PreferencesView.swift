@@ -16,47 +16,49 @@ struct PreferencesView: View {
     // MARK: - Body
 
     var body: some View {
-        NavigationSplitView {
-            List(PreferencesTab.allCases, selection: $viewModel.selectedTab) { tab in
-                Label(tab.displayName, systemImage: tab.iconName)
-                    .tag(tab)
-            }
-            .listStyle(.sidebar)
-            .navigationSplitViewColumnWidth(min: 150, ideal: 180, max: 220)
-        } detail: {
-            tabContent
-                .padding()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        }
-        .frame(minWidth: 600, minHeight: 400)
-    }
-
-    // MARK: - Tab Content
-
-    @ViewBuilder
-    private var tabContent: some View {
-        switch viewModel.selectedTab {
-        case .general:
+        TabView(selection: $viewModel.selectedTab) {
             GeneralTabView(viewModel: viewModel)
-        case .privacy:
+                .tabItem { Label(PreferencesTab.general.displayName, systemImage: PreferencesTab.general.iconName) }
+                .tag(PreferencesTab.general)
+
             PrivacyTabView(viewModel: viewModel)
-        case .appearance:
+                .tabItem { Label(PreferencesTab.privacy.displayName, systemImage: PreferencesTab.privacy.iconName) }
+                .tag(PreferencesTab.privacy)
+
             AppearanceTabView(viewModel: viewModel)
-        case .shortcuts:
+                .tabItem { Label(PreferencesTab.appearance.displayName, systemImage: PreferencesTab.appearance.iconName) }
+                .tag(PreferencesTab.appearance)
+
             ShortcutsTabView(viewModel: viewModel)
-        case .search:
+                .tabItem { Label(PreferencesTab.shortcuts.displayName, systemImage: PreferencesTab.shortcuts.iconName) }
+                .tag(PreferencesTab.shortcuts)
+
             SearchTabView()
-        case .sync:
+                .tabItem { Label(PreferencesTab.search.displayName, systemImage: PreferencesTab.search.iconName) }
+                .tag(PreferencesTab.search)
+
             SyncTabView()
-        case .automation:
+                .tabItem { Label(PreferencesTab.sync.displayName, systemImage: PreferencesTab.sync.iconName) }
+                .tag(PreferencesTab.sync)
+
             AutomationTabView()
-        case .plugins:
+                .tabItem { Label(PreferencesTab.automation.displayName, systemImage: PreferencesTab.automation.iconName) }
+                .tag(PreferencesTab.automation)
+
             PluginSettingsView()
-        case .enterprise:
+                .tabItem { Label(PreferencesTab.plugins.displayName, systemImage: PreferencesTab.plugins.iconName) }
+                .tag(PreferencesTab.plugins)
+
             EnterpriseTabView()
-        case .about:
+                .tabItem { Label(PreferencesTab.enterprise.displayName, systemImage: PreferencesTab.enterprise.iconName) }
+                .tag(PreferencesTab.enterprise)
+
             AboutTabView()
+                .tabItem { Label(PreferencesTab.about.displayName, systemImage: PreferencesTab.about.iconName) }
+                .tag(PreferencesTab.about)
         }
+        .frame(minWidth: 500, minHeight: 700)
+        .formStyle(.grouped)
     }
 }
 
