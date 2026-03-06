@@ -84,11 +84,17 @@ jobs:
           PROFILE_PATH="$RUNNER_TEMP/pasteshelf.provisionprofile"
           printf '%s' "$PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
 
+          # Extract profile UUID and name
+          PROFILE_PLIST=$(security cms -D -i "$PROFILE_PATH")
+          UUID=$(echo "$PROFILE_PLIST" | /usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin)
+          PROFILE_NAME=$(echo "$PROFILE_PLIST" | /usr/libexec/PlistBuddy -c "Print Name" /dev/stdin)
+
           # Install to the standard location
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< "$(security cms -D -i "$PROFILE_PATH")")
           cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$UUID".provisionprofile
-          echo "Installed provisioning profile: $UUID"
+
+          echo "Installed provisioning profile: $PROFILE_NAME ($UUID)"
+          echo "PROVISIONING_PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
 
       # ------------------------------------------------------------------
       # 3. Build & Archive
@@ -108,6 +114,7 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Developer ID Application" \
             DEVELOPMENT_TEAM="${TEAM_ID}" \
+            PROVISIONING_PROFILE_SPECIFIER="${PROVISIONING_PROFILE_NAME}" \
             MARKETING_VERSION="${RELEASE_VERSION}" \
             CURRENT_PROJECT_VERSION="${BUILD_NUMBER}" \
             2>&1 | tail -30
