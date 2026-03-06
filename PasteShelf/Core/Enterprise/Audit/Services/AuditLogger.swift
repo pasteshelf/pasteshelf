@@ -26,10 +26,10 @@ final class AuditLogger: AuditLogging, @unchecked Sendable {
     private let storage: AuditLogStoring
 
     /// Returns the current device ID from the `DeviceRegistration`, or `nil` if not enrolled.
-    private let deviceIdProvider: @Sendable () -> String?
+    private let deviceIdProvider: @MainActor @Sendable () -> String?
 
     /// Returns the current SSO user ID, or `nil` if no session is active.
-    private let userIdProvider: @Sendable () -> String?
+    private let userIdProvider: @MainActor @Sendable () -> String?
 
     private let logger = Logger.audit
 
@@ -43,8 +43,8 @@ final class AuditLogger: AuditLogging, @unchecked Sendable {
     ///   - userIdProvider: A closure returning the current SSO user ID, or `nil`.
     init(
         storage: AuditLogStoring,
-        deviceIdProvider: @escaping @Sendable () -> String?,
-        userIdProvider: @escaping @Sendable () -> String?
+        deviceIdProvider: @escaping @MainActor @Sendable () -> String?,
+        userIdProvider: @escaping @MainActor @Sendable () -> String?
     ) {
         self.storage = storage
         self.deviceIdProvider = deviceIdProvider

@@ -13,7 +13,7 @@ import Foundation
 // MARK: - URL Scheme Handler
 
 /// Handles pasteshelf:// URL scheme
-final class URLSchemeHandler {
+@MainActor final class URLSchemeHandler {
     // MARK: - Singleton
 
     static let shared = URLSchemeHandler()

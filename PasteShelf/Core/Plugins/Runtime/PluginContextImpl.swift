@@ -11,7 +11,7 @@ import Foundation
 import os.log
 
 /// Concrete implementation of PluginContext for running plugins
-@objc public final class PluginContextImpl: NSObject, PluginContext, @unchecked Sendable {
+@MainActor @objc public final class PluginContextImpl: NSObject, PluginContext, @unchecked Sendable {
     // MARK: - Properties
 
     private let pluginId: String
@@ -144,7 +144,7 @@ import os.log
 // MARK: - Plugin Context Factory Implementation
 
 /// Factory for creating plugin contexts
-final class PluginContextFactoryImpl: PluginContextFactory {
+@MainActor final class PluginContextFactoryImpl: PluginContextFactory {
     func createContext(for bundle: PluginBundle) -> any PluginContext {
         PluginHost.shared.createEnvironment(for: bundle)
     }
@@ -185,7 +185,7 @@ final class PluginContextFactoryImpl: PluginContextFactory {
 // MARK: - Plugin Clipboard Access Implementation
 
 /// Implementation of PluginClipboardAccess
-@objc public final class PluginClipboardAccessImpl: NSObject, PluginClipboardAccess, @unchecked Sendable {
+@MainActor @objc public final class PluginClipboardAccessImpl: NSObject, PluginClipboardAccess, @unchecked Sendable {
     private let pluginId: String
     private let canRead: Bool
     private let canWrite: Bool
