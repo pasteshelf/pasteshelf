@@ -10,5 +10,10 @@
 	<string>manual</string>
 	<key>destination</key>
 	<string>export</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>com.pasteshelf.PasteShelf</key>
+		<string>__PROVISIONING_PROFILE_NAME__</string>
+	</dict>
 </dict>
 </plist>

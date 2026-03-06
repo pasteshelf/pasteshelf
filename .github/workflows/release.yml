@@ -117,8 +117,10 @@ jobs:
             MARKETING_VERSION="${RELEASE_VERSION}" \
             CURRENT_PROJECT_VERSION="${BUILD_NUMBER}"
 
-      - name: Inject Team ID into ExportOptions
-        run: sed -i '' "s/__TEAM_ID__/${TEAM_ID}/" ExportOptions.plist
+      - name: Inject Team ID and profile into ExportOptions
+        run: |
+          sed -i '' "s/__TEAM_ID__/${TEAM_ID}/" ExportOptions.plist
+          sed -i '' "s/__PROVISIONING_PROFILE_NAME__/${PROVISIONING_PROFILE_NAME}/" ExportOptions.plist
 
       - name: Export signed app
         run: |
