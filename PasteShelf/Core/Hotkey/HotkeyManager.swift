@@ -11,7 +11,7 @@ import Foundation
 import os.log
 
 /// Manages global hotkey registration and handling
-final class HotkeyManager {
+@MainActor final class HotkeyManager {
     // MARK: - Properties
 
     /// Current hotkey configuration
@@ -42,15 +42,17 @@ final class HotkeyManager {
 
     // MARK: - Initialization
 
-    init(configuration: HotkeyConfiguration = .load()) {
-        self.configuration = configuration
+    init(configuration: HotkeyConfiguration? = nil) {
+        self.configuration = configuration ?? HotkeyConfiguration.load()
         Self.shared = self
     }
 
     deinit {
-        unregisterHotkey()
-        if Self.shared === self {
-            Self.shared = nil
+        MainActor.assumeIsolated {
+            unregisterHotkey()
+            if Self.shared === self {
+                Self.shared = nil
+            }
         }
     }
 

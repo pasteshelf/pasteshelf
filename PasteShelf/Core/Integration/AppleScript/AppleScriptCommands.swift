@@ -13,7 +13,7 @@ import Foundation
 // MARK: - Get Clipboard History Command
 
 /// Handles the "get clipboard history" AppleScript command
-@objc(GetClipboardHistoryCommand)
+@MainActor @objc(GetClipboardHistoryCommand)
 class GetClipboardHistoryCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         // Get parameters
@@ -53,7 +53,7 @@ class GetClipboardHistoryCommand: NSScriptCommand {
 // MARK: - Search Clipboard Command
 
 /// Handles the "search clipboard" AppleScript command
-@objc(SearchClipboardCommand)
+@MainActor @objc(SearchClipboardCommand)
 class SearchClipboardCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         // Get search query from direct parameter
@@ -96,7 +96,7 @@ class SearchClipboardCommand: NSScriptCommand {
 // MARK: - Copy Item Command
 
 /// Handles the "copy item" AppleScript command
-@objc(CopyItemCommand)
+@MainActor @objc(CopyItemCommand)
 class CopyItemCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         // Get the item from direct parameter
@@ -261,7 +261,7 @@ class TransformTextCommand: NSScriptCommand {
 // MARK: - Delete Item Command
 
 /// Handles the "delete item" AppleScript command
-@objc(DeleteItemCommand)
+@MainActor @objc(DeleteItemCommand)
 class DeleteItemCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         // Get the item from direct parameter
@@ -303,7 +303,7 @@ class DeleteItemCommand: NSScriptCommand {
 // MARK: - Clear History Command
 
 /// Handles the "clear history" AppleScript command
-@objc(ClearHistoryCommand)
+@MainActor @objc(ClearHistoryCommand)
 class ClearHistoryCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         let keepFavorites = (evaluatedArguments?["keepFavorites"] as? Bool) ?? true

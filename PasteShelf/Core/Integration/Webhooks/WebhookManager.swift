@@ -14,7 +14,7 @@ import os.log
 // MARK: - Webhook Manager
 
 /// Manages webhook endpoint configuration and delivery
-final class WebhookManager {
+@MainActor final class WebhookManager {
     // MARK: - Singleton
 
     static let shared = WebhookManager()

@@ -11,7 +11,7 @@ import CoreData
 import Foundation
 
 /// Scriptable wrapper for ClipboardItem that provides AppleScript access
-@objc(ClipboardItemScriptable)
+@MainActor @objc(ClipboardItemScriptable)
 class ClipboardItemScriptable: NSObject {
     // MARK: - Properties
 
