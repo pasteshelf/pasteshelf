@@ -110,14 +110,12 @@ jobs:
             -configuration Release \
             -destination 'platform=macOS,arch=arm64' \
             -archivePath build/${APP_NAME}.xcarchive \
-            ONLY_ACTIVE_ARCH=YES \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Developer ID Application" \
             DEVELOPMENT_TEAM="${TEAM_ID}" \
             PROVISIONING_PROFILE_SPECIFIER="${PROVISIONING_PROFILE_NAME}" \
             MARKETING_VERSION="${RELEASE_VERSION}" \
-            CURRENT_PROJECT_VERSION="${BUILD_NUMBER}" \
-            2>&1 | tail -30
+            CURRENT_PROJECT_VERSION="${BUILD_NUMBER}"
 
       - name: Inject Team ID into ExportOptions
         run: sed -i '' "s/__TEAM_ID__/${TEAM_ID}/" ExportOptions.plist
@@ -128,8 +126,7 @@ jobs:
           xcodebuild -exportArchive \
             -archivePath build/${APP_NAME}.xcarchive \
             -exportOptionsPlist ExportOptions.plist \
-            -exportPath build/export \
-            2>&1 | tail -20
+            -exportPath build/export
 
       - name: Verify code signature
         run: |
