@@ -19,7 +19,7 @@ import os.log
 ///
 /// Both `deviceIdProvider` and `userIdProvider` are closure-based to allow late binding
 /// from the `AdminManager` and `SSOManager` singletons without introducing a retain cycle.
-final class AuditLogger: AuditLogging, @unchecked Sendable {
+@MainActor final class AuditLogger: AuditLogging, @unchecked Sendable {
 
     // MARK: - Dependencies
 
