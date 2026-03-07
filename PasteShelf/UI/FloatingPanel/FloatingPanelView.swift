@@ -129,14 +129,22 @@ struct FloatingPanelView: View {
             return .handled
         }
         .onKeyPress(keys: [.delete]) { _ in
+            guard !isSearchFocused else { return .ignored }
+            Task {
+                await viewModel.deleteSelected()
+            }
+            return .handled
+        }
+        .onKeyPress(characters: CharacterSet(charactersIn: "\u{08}\u{7F}"), phases: .down) { _ in
+            guard !isSearchFocused else { return .ignored }
             Task {
                 await viewModel.deleteSelected()
             }
             return .handled
         }
         .onKeyPress(characters: .decimalDigits, phases: .down) { press in
+            guard !isSearchFocused else { return .ignored }
             guard settingsManager.shortcuts.quickPasteEnabled,
-                  press.modifiers.contains(.command),
                   let digit = press.characters.first?.wholeNumberValue,
                   digit >= 1, digit <= 9 else {
                 return .ignored
@@ -144,12 +152,25 @@ struct FloatingPanelView: View {
             let index = digit - 1
             guard index < viewModel.items.count else { return .ignored }
             viewModel.select(at: index)
-            Task {
-                await viewModel.pasteSelected()
+            if press.modifiers.contains(.command) {
+                Task {
+                    await viewModel.pasteSelected()
+                }
             }
             return .handled
         }
-        // Note: Cmd+S and Cmd+F shortcuts are handled via keyboardShortcut on buttons in the menu bar
+        .onKeyPress(characters: CharacterSet(charactersIn: "s"), phases: .down) { press in
+            guard press.modifiers.contains(.command) else { return .ignored }
+            Task {
+                await viewModel.toggleFavorite()
+            }
+            return .handled
+        }
+        .onKeyPress(characters: CharacterSet(charactersIn: "f"), phases: .down) { press in
+            guard press.modifiers.contains(.command) else { return .ignored }
+            isSearchFocused = true
+            return .handled
+        }
     }
 
     // MARK: - Header
