@@ -281,14 +281,6 @@ struct SOC2SecurityControlsReport: Sendable {
             evidence: "Background cleanup task with configurable schedule, preserves favorites"
         ))
 
-        // Private browsing detection
-        controls.append(SecurityControl(
-            name: "Private Browsing Detection",
-            description: "Content from private/incognito browser windows is automatically excluded",
-            status: .pass,
-            evidence: "ExclusionManager detects private browsing window titles"
-        ))
-
         return ControlCategory(
             name: "Data Protection Controls",
             description: "Mechanisms to protect sensitive data from unauthorized exposure",

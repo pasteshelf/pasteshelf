@@ -25,10 +25,6 @@ struct PrivacyTabView: View {
                     .accessibilityLabel("Pause clipboard monitoring")
                     .accessibilityHint("When enabled, clipboard contents will not be captured")
 
-                Toggle("Exclude private/incognito browsing", isOn: $viewModel.excludePrivateBrowsing)
-                    .accessibilityLabel("Exclude private browsing")
-                    .accessibilityHint("When enabled, content from private browser windows will not be captured")
-                    .managedSetting(.excludePrivateBrowsing)
             } header: {
                 Text("Monitoring")
             }

@@ -63,7 +63,6 @@ protocol ClipboardMonitorDelegate: AnyObject {
 /// Reasons why clipboard content may be excluded
 enum ExclusionReason: Sendable {
     case excludedApp(bundleId: String)
-    case privateBrowsing
     case ownPasteOperation
     case emptyContent
     case duplicate
@@ -238,10 +237,6 @@ protocol AppExcluding {
     /// Get the list of default excluded bundle identifiers (password managers, etc.)
     var defaultExcludedBundleIds: [String] { get }
 
-    /// Check if private browsing is active in the current window
-    /// - Returns: True if a private browsing window is detected
-    @MainActor
-    func isPrivateBrowsingActive() -> Bool
 }
 
 // MARK: - Clipboard Item Storage (Bridge to Phase 1.3)

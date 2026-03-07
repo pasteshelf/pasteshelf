@@ -58,7 +58,7 @@ struct ManagedPreferencesReaderTests {
 
         #expect(reader.isKeyForced(.theme) == false)
         #expect(reader.isKeyForced(.maxHistoryItems) == false)
-        #expect(reader.isKeyForced(.excludePrivateBrowsing) == false)
+
     }
 
     // MARK: - Nested ManagedPreferences Dictionary
@@ -124,14 +124,14 @@ struct ManagedPreferencesReaderTests {
     @Test("readConfiguration reads boolean value from nested DefaultPreferences dict")
     func readsNestedDefaultPreferencesBoolValue() {
         let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["ExcludePrivateBrowsing": true], forKey: "DefaultPreferences")
+            d.set(["DLPEnabled": true], forKey: "DefaultPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
         let config = reader.readConfiguration()
 
         #expect(config.isManaged == true)
-        #expect(config.defaultPreferences[.excludePrivateBrowsing] == .bool(true))
+        #expect(config.defaultPreferences[.dlpEnabled] == .bool(true))
     }
 
     // MARK: - Forced vs Default Priority
@@ -186,12 +186,12 @@ struct ManagedPreferencesReaderTests {
     @Test("readConfiguration reads boolean true from ManagedPreferences dict")
     func readsBooleanTrueFromManagedPreferences() {
         let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["ExcludePrivateBrowsing": true], forKey: "ManagedPreferences")
+            d.set(["BlockCreditCards": true], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
         let config = reader.readConfiguration()
-        #expect(config.forcedPreferences[.excludePrivateBrowsing] == .bool(true))
+        #expect(config.forcedPreferences[.blockCreditCards] == .bool(true))
     }
 
     @Test("readConfiguration reads boolean false from ManagedPreferences dict")
@@ -209,14 +209,14 @@ struct ManagedPreferencesReaderTests {
     func readsMultipleBooleanPreferences() {
         let (reader, defaults, suiteName) = makeReader { d in
             d.set(
-                ["ExcludePrivateBrowsing": true, "DLPEnabled": false],
+                ["BlockCreditCards": true, "DLPEnabled": false],
                 forKey: "ManagedPreferences"
             )
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
         let config = reader.readConfiguration()
-        #expect(config.forcedPreferences[.excludePrivateBrowsing] == .bool(true))
+        #expect(config.forcedPreferences[.blockCreditCards] == .bool(true))
         #expect(config.forcedPreferences[.dlpEnabled] == .bool(false))
     }
 
@@ -337,7 +337,7 @@ struct ManagedPreferencesReaderTests {
     func readConfigurationReturnsBothForcedAndDefault() {
         let (reader, defaults, suiteName) = makeReader { d in
             d.set(["Theme": "dark"], forKey: "ManagedPreferences")
-            d.set(["ExcludePrivateBrowsing": true], forKey: "DefaultPreferences")
+            d.set(["DLPEnabled": true], forKey: "DefaultPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -345,6 +345,6 @@ struct ManagedPreferencesReaderTests {
 
         #expect(config.isManaged == true)
         #expect(config.forcedPreferences[.theme] == .string("dark"))
-        #expect(config.defaultPreferences[.excludePrivateBrowsing] == .bool(true))
+        #expect(config.defaultPreferences[.dlpEnabled] == .bool(true))
     }
 }

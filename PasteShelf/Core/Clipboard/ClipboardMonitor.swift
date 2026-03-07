@@ -230,6 +230,9 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
                 metrics.captureCount += 1
                 updateRecentHashes(with: content.contentHash)
                 delegate?.clipboardMonitor(self, didCapture: content, from: sourceApp)
+
+                // Enforce history limit asynchronously after successful save
+                await self.enforceHistoryLimit()
             } else {
                 metrics.errorCount += 1
                 metrics.lastError = ClipboardMonitorError.storageFailed
@@ -250,6 +253,14 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     private func saveToStorageAsync(_ content: ClipboardContent, sourceApp: SourceApp?) async -> Bool {
         guard let storage = storage else { return false }
         return await storage.save(content: content, from: sourceApp)
+    }
+
+    private func enforceHistoryLimit() async {
+        guard let limit = SettingsManager.shared.general.historyLimit.limit else { return }
+        let deleted = await StorageManager.shared.deleteItemsExceedingLimit(limit, keepFavorites: true)
+        if deleted > 0 {
+            Logger.clipboard.debug("History limit enforced: \(deleted) items trimmed")
+        }
     }
 
     // MARK: - Control Methods

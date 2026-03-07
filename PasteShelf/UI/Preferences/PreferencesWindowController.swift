@@ -44,7 +44,8 @@ final class PreferencesWindowController: NSObject {
         }
 
         window?.center()
-        window?.makeKeyAndOrderFront(nil)
+        window?.orderFrontRegardless()
+        window?.makeKey()
         NSApp.activate(ignoringOtherApps: true)
 
         logger.debug("Preferences window shown")

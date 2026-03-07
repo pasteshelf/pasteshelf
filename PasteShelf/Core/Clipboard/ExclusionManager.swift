@@ -3,11 +3,10 @@
 //  PasteShelf
 //
 //  Manages app exclusions for clipboard capture including
-//  default password manager exclusions and private browsing detection.
+//  default password manager exclusions.
 //
 
 import AppKit
-import ApplicationServices
 import Foundation
 import os.log
 
@@ -46,26 +45,6 @@ final class ExclusionManager: AppExcluding {
         "com.apple.Terminal"
     ]
 
-    /// Browser bundle IDs for private browsing detection
-    private let browserBundleIds: [String: BrowserType] = [
-        "com.apple.Safari": .safari,
-        "com.google.Chrome": .chrome,
-        "com.google.Chrome.canary": .chrome,
-        "org.chromium.Chromium": .chrome,
-        "com.brave.Browser": .chrome,
-        "com.microsoft.edgemac": .chrome,
-        "com.vivaldi.Vivaldi": .chrome,
-        "org.mozilla.firefox": .firefox,
-        "org.mozilla.firefoxdeveloperedition": .firefox,
-        "com.operasoftware.Opera": .chrome
-    ]
-
-    private enum BrowserType {
-        case safari
-        case chrome
-        case firefox
-    }
-
     // MARK: - Properties
 
     /// User-customized excluded bundle IDs (delegates to SettingsManager)
@@ -76,7 +55,6 @@ final class ExclusionManager: AppExcluding {
                 autoDeleteEnabled: SettingsManager.shared.privacy.autoDeleteEnabled,
                 autoDeleteDays: SettingsManager.shared.privacy.autoDeleteDays,
                 isMonitoringPaused: SettingsManager.shared.privacy.isMonitoringPaused,
-                excludePrivateBrowsing: SettingsManager.shared.privacy.excludePrivateBrowsing,
                 excludedAppBundleIds: Array(newValue)
             )
         }
@@ -182,82 +160,6 @@ final class ExclusionManager: AppExcluding {
         Logger.clipboard.info("Removed \(bundleId) from exclusion list")
     }
 
-    func isPrivateBrowsingActive() -> Bool {
-        guard let frontApp = NSWorkspace.shared.frontmostApplication,
-              let bundleId = frontApp.bundleIdentifier,
-              let browserType = browserBundleIds[bundleId] else {
-            return false
-        }
-
-        // Get the frontmost window title
-        guard let windowTitle = getActiveWindowTitle() else {
-            return false
-        }
-
-        return isPrivateBrowsingWindow(title: windowTitle, browser: browserType)
-    }
-
-    // MARK: - Private Browsing Detection
-
-    /// Detects if a window title indicates private browsing
-    private func isPrivateBrowsingWindow(title: String, browser: BrowserType) -> Bool {
-        let lowercased = title.lowercased()
-
-        switch browser {
-        case .safari:
-            // Safari uses "Private" in window title
-            return lowercased.contains("private")
-
-        case .chrome:
-            // Chrome/Edge/Brave use "Incognito" or "InPrivate"
-            return lowercased.contains("incognito") || lowercased.contains("inprivate")
-
-        case .firefox:
-            // Firefox uses "Private Browsing"
-            return lowercased.contains("private browsing")
-        }
-    }
-
-    /// Gets the title of the active window using Accessibility API
-    private func getActiveWindowTitle() -> String? {
-        guard let frontApp = NSWorkspace.shared.frontmostApplication else {
-            return nil
-        }
-
-        let pid = frontApp.processIdentifier
-        let appElement = AXUIElementCreateApplication(pid)
-
-        var focusedWindow: CFTypeRef?
-        let result = AXUIElementCopyAttributeValue(
-            appElement,
-            kAXFocusedWindowAttribute as CFString,
-            &focusedWindow
-        )
-
-        guard result == .success,
-              let windowElement = focusedWindow else {
-            return nil
-        }
-
-        // windowElement from kAXFocusedWindowAttribute is always an AXUIElement
-        // swiftlint:disable:next force_cast
-        let axWindow = windowElement as! AXUIElement
-
-        var titleValue: CFTypeRef?
-        let titleResult = AXUIElementCopyAttributeValue(
-            axWindow,
-            kAXTitleAttribute as CFString,
-            &titleValue
-        )
-
-        guard titleResult == .success,
-              let title = titleValue as? String else {
-            return nil
-        }
-
-        return title
-    }
-
     // MARK: - Utility Methods
 
     /// Check if current capture should be excluded based on frontmost app
@@ -270,11 +172,6 @@ final class ExclusionManager: AppExcluding {
         // Check app exclusion
         if isExcluded(bundleId: bundleId) {
             return (true, .excludedApp(bundleId: bundleId))
-        }
-
-        // Check private browsing (only if the setting is enabled)
-        if SettingsManager.shared.privacy.excludePrivateBrowsing, isPrivateBrowsingActive() {
-            return (true, .privateBrowsing)
         }
 
         return (false, nil)
