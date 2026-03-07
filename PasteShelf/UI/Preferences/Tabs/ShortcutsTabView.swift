@@ -60,6 +60,7 @@ struct ShortcutsTabView: View {
                     ShortcutRow(shortcut: "\u{2318}S", description: "Toggle favorite")
                     ShortcutRow(shortcut: "\u{2318}F", description: "Focus search")
                     ShortcutRow(shortcut: "1-9", description: "Select item by number")
+                    ShortcutRow(shortcut: "\u{2318}1-9", description: "Quick paste item by number")
                 }
             } header: {
                 Text("Keyboard Navigation")

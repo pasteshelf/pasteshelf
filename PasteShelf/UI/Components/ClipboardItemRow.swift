@@ -48,8 +48,9 @@ struct ClipboardItemRow: View {
             .onHover { hovering in
                 isHovered = hovering
             }
-            .overlay(alignment: .trailing) {
+            .overlay(alignment: .topTrailing) {
                 quickActionOverlay
+                    .padding(.top, settingsManager.appearance.compactMode ? 25 : 30)
             }
             .contextMenu {
                 contextMenuContent
