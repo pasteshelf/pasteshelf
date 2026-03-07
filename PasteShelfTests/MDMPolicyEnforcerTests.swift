@@ -177,44 +177,6 @@ struct MDMPolicyEnforcerTests {
         #expect(settings.general.historyLimit == .unlimited)
     }
 
-    // MARK: - excludePrivateBrowsing
-
-    @Test("applyForcedPreferences sets excludePrivateBrowsing to true")
-    func applyForcedExcludePrivateBrowsingTrue() {
-        var settings = AppSettings.default
-        settings.privacy.excludePrivateBrowsing = false
-        let config = MDMConfiguration(forcedPreferences: [.excludePrivateBrowsing: .bool(true)])
-        let enforcer = MDMPolicyEnforcer()
-
-        enforcer.applyForcedPreferences(to: &settings, from: config)
-
-        #expect(settings.privacy.excludePrivateBrowsing == true)
-    }
-
-    @Test("applyForcedPreferences sets excludePrivateBrowsing to false")
-    func applyForcedExcludePrivateBrowsingFalse() {
-        var settings = AppSettings.default
-        settings.privacy.excludePrivateBrowsing = true
-        let config = MDMConfiguration(forcedPreferences: [.excludePrivateBrowsing: .bool(false)])
-        let enforcer = MDMPolicyEnforcer()
-
-        enforcer.applyForcedPreferences(to: &settings, from: config)
-
-        #expect(settings.privacy.excludePrivateBrowsing == false)
-    }
-
-    @Test("applyForcedPreferences ignores excludePrivateBrowsing with wrong type")
-    func applyForcedExcludePrivateBrowsingWrongType() {
-        var settings = AppSettings.default
-        settings.privacy.excludePrivateBrowsing = false
-        let config = MDMConfiguration(forcedPreferences: [.excludePrivateBrowsing: .string("true")])
-        let enforcer = MDMPolicyEnforcer()
-
-        enforcer.applyForcedPreferences(to: &settings, from: config)
-
-        #expect(settings.privacy.excludePrivateBrowsing == false)
-    }
-
     // MARK: - Theme
 
     @Test("applyForcedPreferences sets theme to dark")
@@ -294,7 +256,6 @@ struct MDMPolicyEnforcerTests {
         var settings = AppSettings.default
         let config = MDMConfiguration(forcedPreferences: [
             .theme: .string("dark"),
-            .excludePrivateBrowsing: .bool(true),
             .maxHistoryDays: .int(90)
         ])
         let enforcer = MDMPolicyEnforcer()
@@ -302,7 +263,6 @@ struct MDMPolicyEnforcerTests {
         enforcer.applyForcedPreferences(to: &settings, from: config)
 
         #expect(settings.appearance.theme == .dark)
-        #expect(settings.privacy.excludePrivateBrowsing == true)
         #expect(settings.privacy.autoDeleteEnabled == true)
         #expect(settings.privacy.autoDeleteDays == 90)
     }
@@ -323,49 +283,46 @@ struct MDMPolicyEnforcerTests {
     @Test("applyDefaults applies value when key is not user-customized")
     func applyDefaultsWhenNotCustomized() {
         var settings = AppSettings.default
-        settings.privacy.excludePrivateBrowsing = false
-        let config = MDMConfiguration(defaultPreferences: [.excludePrivateBrowsing: .bool(true)])
+        let config = MDMConfiguration(defaultPreferences: [.theme: .string("dark")])
         let enforcer = MDMPolicyEnforcer()
 
         enforcer.applyDefaults(to: &settings, from: config, userCustomizedKeys: [])
 
-        #expect(settings.privacy.excludePrivateBrowsing == true)
+        #expect(settings.appearance.theme == .dark)
     }
 
     @Test("applyDefaults skips value when key is user-customized")
     func applyDefaultsDoesNotOverrideUserCustomizedKey() {
         var settings = AppSettings.default
-        settings.privacy.excludePrivateBrowsing = false
-        let config = MDMConfiguration(defaultPreferences: [.excludePrivateBrowsing: .bool(true)])
+        let config = MDMConfiguration(defaultPreferences: [.theme: .string("dark")])
         let enforcer = MDMPolicyEnforcer()
 
         enforcer.applyDefaults(
             to: &settings,
             from: config,
-            userCustomizedKeys: [.excludePrivateBrowsing]
+            userCustomizedKeys: [.theme]
         )
 
-        #expect(settings.privacy.excludePrivateBrowsing == false)
+        #expect(settings.appearance.theme == .system)
     }
 
     @Test("applyDefaults applies non-customized keys and skips customized keys")
     func applyDefaultsMixedCustomization() {
         var settings = AppSettings.default
-        settings.privacy.excludePrivateBrowsing = false
         let config = MDMConfiguration(defaultPreferences: [
-            .excludePrivateBrowsing: .bool(true),
+            .maxHistoryDays: .int(90),
             .theme: .string("dark")
         ])
         let enforcer = MDMPolicyEnforcer()
 
-        // Only excludePrivateBrowsing is user-customized; theme is not
+        // Only maxHistoryDays is user-customized; theme is not
         enforcer.applyDefaults(
             to: &settings,
             from: config,
-            userCustomizedKeys: [.excludePrivateBrowsing]
+            userCustomizedKeys: [.maxHistoryDays]
         )
 
-        #expect(settings.privacy.excludePrivateBrowsing == false)
+        #expect(settings.privacy.autoDeleteDays == 30)
         #expect(settings.appearance.theme == .dark)
     }
 
@@ -398,7 +355,7 @@ struct MDMPolicyEnforcerTests {
     func lockedSettingsReturnsForcedKeys() {
         let config = MDMConfiguration(
             forcedPreferences: [.theme: .string("dark"), .maxHistoryItems: .int(100)],
-            defaultPreferences: [.excludePrivateBrowsing: .bool(true)]
+            defaultPreferences: [.maxHistoryDays: .int(90)]
         )
         let enforcer = MDMPolicyEnforcer()
 
@@ -413,13 +370,13 @@ struct MDMPolicyEnforcerTests {
     func lockedSettingsExcludesDefaultKeys() {
         let config = MDMConfiguration(
             forcedPreferences: [.theme: .string("dark")],
-            defaultPreferences: [.excludePrivateBrowsing: .bool(true)]
+            defaultPreferences: [.maxHistoryDays: .int(90)]
         )
         let enforcer = MDMPolicyEnforcer()
 
         let locked = enforcer.lockedSettings(from: config)
 
-        #expect(!locked.contains(.excludePrivateBrowsing))
+        #expect(!locked.contains(.maxHistoryDays))
     }
 
     @Test("lockedSettings returns empty set for empty config")

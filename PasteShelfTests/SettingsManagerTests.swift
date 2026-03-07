@@ -43,7 +43,6 @@ struct SettingsManagerTests {
     func privacySettingsDefaultValues() {
         let settings = PrivacySettings.default
 
-        #expect(settings.excludePrivateBrowsing == true)
         #expect(settings.autoDeleteEnabled == false)
         #expect(settings.autoDeleteDays == 30)
         #expect(settings.isMonitoringPaused == false)
@@ -159,7 +158,6 @@ struct SettingsManagerTests {
         let decoded = try decoder.decode(AppSettings.self, from: data)
 
         #expect(decoded.general.launchAtLogin == original.general.launchAtLogin)
-        #expect(decoded.privacy.excludePrivateBrowsing == original.privacy.excludePrivateBrowsing)
         #expect(decoded.appearance.theme == original.appearance.theme)
         #expect(decoded.shortcuts.quickPasteEnabled == original.shortcuts.quickPasteEnabled)
     }

@@ -198,10 +198,10 @@ struct MDMConfigurationTests {
     @Test("effectiveValue forced takes priority over default for same key")
     func effectiveValueForcedPriorityOverDefault() {
         let config = MDMConfiguration(
-            forcedPreferences: [.excludePrivateBrowsing: .bool(true)],
-            defaultPreferences: [.excludePrivateBrowsing: .bool(false)]
+            forcedPreferences: [.dlpEnabled: .bool(true)],
+            defaultPreferences: [.dlpEnabled: .bool(false)]
         )
-        #expect(config.effectiveValue(for: .excludePrivateBrowsing) == .bool(true))
+        #expect(config.effectiveValue(for: .dlpEnabled) == .bool(true))
     }
 
     // MARK: Equality
@@ -275,7 +275,6 @@ struct ManagedPreferenceKeyTests {
 
     @Test("Privacy keys belong to privacy group")
     func privacyKeysBelongToPrivacyGroup() {
-        #expect(ManagedPreferenceKey.excludePrivateBrowsing.settingsGroup == .privacy)
         #expect(ManagedPreferenceKey.maxHistoryDays.settingsGroup == .privacy)
         #expect(ManagedPreferenceKey.maxHistoryItems.settingsGroup == .privacy)
         #expect(ManagedPreferenceKey.dlpEnabled.settingsGroup == .privacy)
@@ -293,7 +292,6 @@ struct ManagedPreferenceKeyTests {
         #expect(ManagedPreferenceKey.theme.rawValue == "Theme")
         #expect(ManagedPreferenceKey.maxHistoryItems.rawValue == "MaxHistoryItems")
         #expect(ManagedPreferenceKey.maxHistoryDays.rawValue == "MaxHistoryDays")
-        #expect(ManagedPreferenceKey.excludePrivateBrowsing.rawValue == "ExcludePrivateBrowsing")
         #expect(ManagedPreferenceKey.ssoEnabled.rawValue == "SSOEnabled")
         #expect(ManagedPreferenceKey.organizationID.rawValue == "OrganizationID")
         #expect(ManagedPreferenceKey.dlpEnabled.rawValue == "DLPEnabled")

@@ -130,13 +130,12 @@ struct ExclusionReasonTests {
     func exclusionReasonCasesExist() {
         let reasons: [ExclusionReason] = [
             .excludedApp(bundleId: "test"),
-            .privateBrowsing,
             .ownPasteOperation,
             .emptyContent,
             .duplicate,
             .userPaused
         ]
 
-        #expect(reasons.count == 6)
+        #expect(reasons.count == 5)
     }
 }

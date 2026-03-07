@@ -69,11 +69,6 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
     /// Maximum number of items to retain in clipboard history
     case maxHistoryItems = "MaxHistoryItems"
 
-    // MARK: Privacy
-
-    /// Whether clipboard content from private-browsing windows is excluded
-    case excludePrivateBrowsing = "ExcludePrivateBrowsing"
-
     // MARK: DLP (Data Loss Prevention)
 
     /// Whether Data Loss Prevention scanning is enabled
@@ -119,7 +114,6 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
         case .clearOnQuit:          return "Clear on Quit"
         case .maxHistoryDays:       return "Max History Days"
         case .maxHistoryItems:      return "Max History Items"
-        case .excludePrivateBrowsing: return "Exclude Private Browsing"
         case .dlpEnabled:           return "DLP Enabled"
         case .blockCreditCards:     return "Block Credit Cards"
         case .blockAPIKeys:         return "Block API Keys"
@@ -145,7 +139,7 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
             return .security
         case .maxHistoryDays, .maxHistoryItems:
             return .privacy
-        case .excludePrivateBrowsing, .dlpEnabled, .blockCreditCards, .blockAPIKeys:
+        case .dlpEnabled, .blockCreditCards, .blockAPIKeys:
             return .privacy
         case .gdprEnabled, .soc2Enabled, .hipaaEnabled:
             return .enterprise

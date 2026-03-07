@@ -91,11 +91,6 @@ struct MDMPolicyEnforcer {
                 settings.general.historyLimit = closestHistoryLimit(to: items)
             }
 
-        case .excludePrivateBrowsing:
-            if case .bool(let enabled) = value {
-                settings.privacy.excludePrivateBrowsing = enabled
-            }
-
         // MARK: Appearance
         case .theme:
             if case .string(let themeName) = value,

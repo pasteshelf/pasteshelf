@@ -120,8 +120,6 @@ enum LocalizedString {
         static let autoDeleteDescription = "Automatically delete items older than specified days"
         static let pauseMonitoring = "Pause Monitoring"
         static let pauseMonitoringDescription = "Temporarily stop capturing clipboard content"
-        static let excludePrivateBrowsing = "Exclude Private Browsing"
-        static let excludePrivateBrowsingDescription = "Don't capture content from private browser windows"
         static let days = "days"
         static let never = "Never"
     }

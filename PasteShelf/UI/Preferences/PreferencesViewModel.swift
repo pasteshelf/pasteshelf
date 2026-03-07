@@ -47,10 +47,6 @@ final class PreferencesViewModel: ObservableObject {
         didSet { updatePrivacy() }
     }
 
-    @Published var excludePrivateBrowsing: Bool {
-        didSet { updatePrivacy() }
-    }
-
     @Published var excludedAppBundleIds: [String] {
         didSet { updatePrivacy() }
     }
@@ -117,7 +113,7 @@ final class PreferencesViewModel: ObservableObject {
         autoDeleteEnabled = settings.privacy.autoDeleteEnabled
         autoDeleteDays = settings.privacy.autoDeleteDays
         isMonitoringPaused = settings.privacy.isMonitoringPaused
-        excludePrivateBrowsing = settings.privacy.excludePrivateBrowsing
+
         excludedAppBundleIds = settings.privacy.excludedAppBundleIds
 
         // Appearance
@@ -179,7 +175,6 @@ final class PreferencesViewModel: ObservableObject {
             autoDeleteEnabled: autoDeleteEnabled,
             autoDeleteDays: autoDeleteDays,
             isMonitoringPaused: isMonitoringPaused,
-            excludePrivateBrowsing: excludePrivateBrowsing,
             excludedAppBundleIds: excludedAppBundleIds
         )
     }
@@ -244,7 +239,7 @@ final class PreferencesViewModel: ObservableObject {
         autoDeleteEnabled = settings.privacy.autoDeleteEnabled
         autoDeleteDays = settings.privacy.autoDeleteDays
         isMonitoringPaused = settings.privacy.isMonitoringPaused
-        excludePrivateBrowsing = settings.privacy.excludePrivateBrowsing
+
         excludedAppBundleIds = settings.privacy.excludedAppBundleIds
 
         // Appearance
