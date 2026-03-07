@@ -141,15 +141,13 @@ final class Deduplicator: Deduplicating, Sendable {
     }
 
     /// Normalizes text for consistent comparison
-    /// - Trims whitespace
     /// - Normalizes line endings to \n
     /// - Applies Unicode normalization (NFC)
     private func normalizeText(_ text: String) -> String {
-        let trimmed = text
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = text
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
-        return trimmed.precomposedStringWithCanonicalMapping
+        return normalized.precomposedStringWithCanonicalMapping
     }
 
     /// Normalizes URL for consistent hashing
