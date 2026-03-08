@@ -31,7 +31,7 @@ final class EmbeddingManager: @unchecked Sendable {
     private let lock = NSLock()
 
     /// Minimum text length for meaningful embeddings
-    private let minimumTextLength = 10
+    private let minimumTextLength = 3
 
     /// Current embedding version (increment to invalidate cache)
     static let embeddingVersion: Int16 = 1
