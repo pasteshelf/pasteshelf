@@ -196,8 +196,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Setup Methods
 
     private func setupClipboardMonitor() {
-        clipboardMonitor = ClipboardMonitor(storage: storageManager)
+        let detector = buildSensitiveDetector(from: SettingsManager.shared.privacy)
+        clipboardMonitor = ClipboardMonitor(sensitiveDetector: detector, storage: storageManager)
         clipboardMonitor?.delegate = self
+    }
+
+    private func buildSensitiveDetector(from privacy: PrivacySettings) -> SensitiveDataDetector {
+        if privacy.sensitiveDetectionEnabled {
+            let patterns = SensitivePatterns.patterns(for: privacy.enabledSensitiveCategories)
+            return SensitiveDataDetector(patterns: patterns, includeLowSeverity: false)
+        } else {
+            return SensitiveDataDetector(patterns: [], includeLowSeverity: false)
+        }
     }
 
     private func setupMenuBar() {
@@ -390,6 +400,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Apply monitoring pause state explicitly to prevent drift
         setMonitoringPaused(settings.privacy.isMonitoringPaused)
+
+        // Rebuild sensitive data detector when detection settings change
+        let detector = buildSensitiveDetector(from: settings.privacy)
+        clipboardMonitor?.updateSensitiveDetector(detector)
 
         // Apply OCR confidence threshold
         OCRManager.shared.setConfidenceThreshold(Float(settings.search.ocrConfidenceThreshold))
@@ -833,6 +847,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
             let deleted = await storageManager.deleteItem(byId: content.id)
             if deleted {
                 logger.info("DLP: blocked and deleted item \(content.id)")
+                NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
             } else {
                 logger.error("DLP: failed to delete blocked item \(content.id) — sensitive data may remain in storage")
             }

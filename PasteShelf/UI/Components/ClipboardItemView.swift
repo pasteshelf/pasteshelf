@@ -269,16 +269,18 @@ struct ClipboardItemView: View {
 
     private var indicators: some View {
         VStack(spacing: 4) {
-            if item.isFavorite {
-                Image(systemName: "star.fill")
-                    .font(.caption)
-                    .foregroundColor(.yellow)
-            }
+            HStack(spacing: 4) {
+                if item.isSensitive {
+                    Image(systemName: "lock.fill")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                }
 
-            if item.isSensitive {
-                Image(systemName: "lock.fill")
-                    .font(.caption)
-                    .foregroundColor(.orange)
+                if item.isFavorite {
+                    Image(systemName: "star.fill")
+                        .font(.caption)
+                        .foregroundColor(.yellow)
+                }
             }
 
             if item.hasOCRText {

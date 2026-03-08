@@ -24,18 +24,43 @@ struct PrivacySettings: Codable, Equatable {
     /// Bundle IDs of excluded applications
     var excludedAppBundleIds: [String]
 
+    /// Whether sensitive data detection is enabled
+    var sensitiveDetectionEnabled: Bool
+
+    /// Which categories of sensitive data to detect
+    var enabledSensitiveCategories: Set<SensitivePatterns.SensitiveCategory>
+
     // MARK: - Initialization
 
     init(
         autoDeleteEnabled: Bool = false,
         autoDeleteDays: Int = 30,
         isMonitoringPaused: Bool = false,
-        excludedAppBundleIds: [String] = []
+        excludedAppBundleIds: [String] = [],
+        sensitiveDetectionEnabled: Bool = true,
+        enabledSensitiveCategories: Set<SensitivePatterns.SensitiveCategory> = Set(SensitivePatterns.SensitiveCategory.allCases)
     ) {
         self.autoDeleteEnabled = autoDeleteEnabled
         self.autoDeleteDays = autoDeleteDays
         self.isMonitoringPaused = isMonitoringPaused
         self.excludedAppBundleIds = excludedAppBundleIds
+        self.sensitiveDetectionEnabled = sensitiveDetectionEnabled
+        self.enabledSensitiveCategories = enabledSensitiveCategories
+    }
+
+    // MARK: - Codable (backwards compatibility)
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        autoDeleteEnabled = try container.decode(Bool.self, forKey: .autoDeleteEnabled)
+        autoDeleteDays = try container.decode(Int.self, forKey: .autoDeleteDays)
+        isMonitoringPaused = try container.decode(Bool.self, forKey: .isMonitoringPaused)
+        excludedAppBundleIds = try container.decode([String].self, forKey: .excludedAppBundleIds)
+        sensitiveDetectionEnabled = try container.decodeIfPresent(Bool.self, forKey: .sensitiveDetectionEnabled) ?? true
+        enabledSensitiveCategories = try container.decodeIfPresent(
+            Set<SensitivePatterns.SensitiveCategory>.self,
+            forKey: .enabledSensitiveCategories
+        ) ?? Set(SensitivePatterns.SensitiveCategory.allCases)
     }
 
     // MARK: - Default Configuration

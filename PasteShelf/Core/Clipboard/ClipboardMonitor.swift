@@ -34,7 +34,7 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     private let contentParser: ContentParsing
 
     /// Sensitive data detector
-    private let sensitiveDetector: SensitiveDataDetecting
+    private var sensitiveDetector: SensitiveDataDetecting
 
     /// Exclusion manager
     private let exclusionManager: ExclusionManager
@@ -98,6 +98,8 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     }
 
     @objc private func handleHistoryChanged() {
+        // Clear immediately so the timer doesn't see stale hashes before reload completes
+        recentHashes.removeAll()
         Task { await reloadHashCache() }
     }
 
@@ -294,6 +296,11 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     /// Triggers a manual capture (for testing)
     func captureNow() {
         captureCurrentContent()
+    }
+
+    /// Updates the sensitive data detector (called when settings change)
+    func updateSensitiveDetector(_ detector: SensitiveDataDetecting) {
+        self.sensitiveDetector = detector
     }
 
     /// Clears the recent hashes cache

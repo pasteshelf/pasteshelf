@@ -10,6 +10,33 @@ import Foundation
 
 /// Collection of regex patterns for detecting sensitive data
 enum SensitivePatterns {
+    // MARK: - Category Definition
+
+    /// Categories of sensitive data patterns
+    enum SensitiveCategory: String, CaseIterable, Codable, Sendable {
+        case apiKeys = "API Keys & Tokens"
+        case passwords = "Passwords"
+        case sshCerts = "SSH & Certificates"
+        case financial = "Financial"
+        case personalId = "Personal Identification"
+        case health = "Health Information"
+        case contact = "Contact Information"
+
+        var displayName: String { rawValue }
+
+        var iconName: String {
+            switch self {
+            case .apiKeys: return "key"
+            case .passwords: return "lock"
+            case .sshCerts: return "lock.shield"
+            case .financial: return "creditcard"
+            case .personalId: return "person.text.rectangle"
+            case .health: return "heart.text.square"
+            case .contact: return "person.crop.circle"
+            }
+        }
+    }
+
     // MARK: - Pattern Definition
 
     /// A sensitive data pattern with its metadata
@@ -17,12 +44,14 @@ enum SensitivePatterns {
         let name: String
         let regex: NSRegularExpression
         let severity: SensitiveSeverity
+        let category: SensitiveCategory
         let validator: (@Sendable (String) -> Bool)?
 
         init(
             name: String,
             pattern: String,
             severity: SensitiveSeverity,
+            category: SensitiveCategory,
             options: NSRegularExpression.Options = [],
             validator: (@Sendable (String) -> Bool)? = nil
         ) {
@@ -30,6 +59,7 @@ enum SensitivePatterns {
             // swiftlint:disable:next force_try
             self.regex = try! NSRegularExpression(pattern: pattern, options: options)
             self.severity = severity
+            self.category = category
             self.validator = validator
         }
     }
@@ -40,70 +70,80 @@ enum SensitivePatterns {
     static let awsAccessKey = Pattern(
         name: "AWS Access Key",
         pattern: "AKIA[0-9A-Z]{16}",
-        severity: .high
+        severity: .high,
+        category: .apiKeys
     )
 
     /// AWS Secret Access Key pattern (following AKIA key)
     static let awsSecretKey = Pattern(
         name: "AWS Secret Key",
         pattern: "[A-Za-z0-9/+=]{40}",
-        severity: .critical
+        severity: .critical,
+        category: .apiKeys
     )
 
     /// GitHub Personal Access Token (classic)
     static let githubToken = Pattern(
         name: "GitHub Token",
         pattern: "ghp_[a-zA-Z0-9]{36}",
-        severity: .high
+        severity: .high,
+        category: .apiKeys
     )
 
     /// GitHub Fine-grained Personal Access Token
     static let githubFineGrainedToken = Pattern(
         name: "GitHub Fine-grained Token",
         pattern: "github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}",
-        severity: .high
+        severity: .high,
+        category: .apiKeys
     )
 
     /// Stripe Live API Key
     static let stripeLiveKey = Pattern(
         name: "Stripe Live Key",
         pattern: "sk_live_[a-zA-Z0-9]{24,}",
-        severity: .critical
+        severity: .critical,
+        category: .apiKeys
     )
 
     /// Stripe Test API Key
     static let stripeTestKey = Pattern(
         name: "Stripe Test Key",
         pattern: "sk_test_[a-zA-Z0-9]{24,}",
-        severity: .medium
+        severity: .medium,
+        category: .apiKeys
     )
 
     /// Google API Key
     static let googleApiKey = Pattern(
         name: "Google API Key",
         pattern: "AIza[0-9A-Za-z_-]{35}",
-        severity: .high
+        severity: .high,
+        category: .apiKeys
     )
 
     /// Slack Bot Token
     static let slackBotToken = Pattern(
         name: "Slack Bot Token",
         pattern: "xoxb-[0-9]{11}-[0-9]{11}-[a-zA-Z0-9]{24}",
-        severity: .high
+        severity: .high,
+        category: .apiKeys
     )
 
     /// Slack User Token
     static let slackUserToken = Pattern(
         name: "Slack User Token",
         pattern: "xoxp-[0-9]{11}-[0-9]{11}-[0-9]{11}-[a-z0-9]{32}",
-        severity: .high
+        severity: .high,
+        category: .apiKeys
     )
 
     /// OpenAI API Key
     static let openAiKey = Pattern(
         name: "OpenAI API Key",
         pattern: "sk-[a-zA-Z0-9]{48}",
-        severity: .high
+        severity: .high,
+        category: .apiKeys
     )
 
     /// Generic API Key in assignment
@@ -111,6 +151,7 @@ enum SensitivePatterns {
         name: "Generic API Key",
         pattern: "['\"]?(?:api[_-]?key|apikey|api[_-]?secret|secret[_-]?key)['\"]?\\s*[:=]\\s*['\"][^'\"]{16,}['\"]",
         severity: .high,
+        category: .apiKeys,
         options: .caseInsensitive
     )
 
@@ -118,7 +159,8 @@ enum SensitivePatterns {
     static let bearerToken = Pattern(
         name: "Bearer Token",
         pattern: "[Bb]earer\\s+[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+",
-        severity: .high
+        severity: .high,
+        category: .apiKeys
     )
 
     // MARK: - Passwords (High Severity)
@@ -128,6 +170,7 @@ enum SensitivePatterns {
         name: "Password",
         pattern: "['\"]?(?:password|passwd|pwd)['\"]?\\s*[:=]\\s*['\"][^'\"]+['\"]",
         severity: .high,
+        category: .passwords,
         options: .caseInsensitive
     )
 
@@ -136,6 +179,7 @@ enum SensitivePatterns {
         name: "Connection String",
         pattern: "(?:mongodb|postgres|mysql|redis)://[^:]+:[^@]+@",
         severity: .critical,
+        category: .passwords,
         options: .caseInsensitive
     )
 
@@ -145,14 +189,16 @@ enum SensitivePatterns {
     static let sshPrivateKey = Pattern(
         name: "SSH Private Key",
         pattern: "-----BEGIN (?:RSA |DSA |EC |OPENSSH )?PRIVATE KEY-----",
-        severity: .critical
+        severity: .critical,
+        category: .sshCerts
     )
 
     /// PGP Private Key header
     static let pgpPrivateKey = Pattern(
         name: "PGP Private Key",
         pattern: "-----BEGIN PGP PRIVATE KEY BLOCK-----",
-        severity: .critical
+        severity: .critical,
+        category: .sshCerts
     )
 
     // MARK: - Financial (High Severity)
@@ -161,14 +207,16 @@ enum SensitivePatterns {
     static let creditCard = Pattern(
         name: "Credit Card",
         pattern: "\\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\\b",
-        severity: .high
+        severity: .high,
+        category: .financial
     ) { Validators.isValidLuhn($0) }
 
     /// Credit card with spaces or dashes
     static let creditCardFormatted = Pattern(
         name: "Credit Card (Formatted)",
         pattern: "\\b(?:\\d{4}[- ]?){3}\\d{4}\\b",
-        severity: .high
+        severity: .high,
+        category: .financial
     ) {
         Validators.isValidLuhn($0.replacingOccurrences(of: "[- ]", with: "", options: .regularExpression))
     }
@@ -178,6 +226,7 @@ enum SensitivePatterns {
         name: "Bank Account",
         pattern: "\\b(?:account[_\\s-]?(?:number|num|no)[:\\s]+)?\\d{8,17}\\b",
         severity: .medium,
+        category: .financial,
         options: .caseInsensitive
     )
 
@@ -185,7 +234,8 @@ enum SensitivePatterns {
     static let iban = Pattern(
         name: "IBAN",
         pattern: "\\b[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}\\b",
-        severity: .high
+        severity: .high,
+        category: .financial
     )
 
     // MARK: - Personal Identification (High Severity)
@@ -194,7 +244,8 @@ enum SensitivePatterns {
     static let ssn = Pattern(
         name: "Social Security Number",
         pattern: "\\b\\d{3}-\\d{2}-\\d{4}\\b",
-        severity: .high
+        severity: .high,
+        category: .personalId
     )
 
     /// US Social Security Number (without dashes)
@@ -202,6 +253,7 @@ enum SensitivePatterns {
         name: "SSN (No Dashes)",
         pattern: "\\b(?:ssn|social[_\\s-]?security)[:\\s]+\\d{9}\\b",
         severity: .high,
+        category: .personalId,
         options: .caseInsensitive
     )
 
@@ -210,6 +262,7 @@ enum SensitivePatterns {
         name: "Driver's License",
         pattern: "\\b(?:dl|driver'?s?[_\\s-]?license)[:\\s]+[A-Z0-9]{6,12}\\b",
         severity: .high,
+        category: .personalId,
         options: .caseInsensitive
     )
 
@@ -218,6 +271,7 @@ enum SensitivePatterns {
         name: "Passport Number",
         pattern: "\\b(?:passport)[:\\s]+[A-Z0-9]{6,9}\\b",
         severity: .high,
+        category: .personalId,
         options: .caseInsensitive
     )
 
@@ -227,21 +281,24 @@ enum SensitivePatterns {
     static let email = Pattern(
         name: "Email Address",
         pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
-        severity: .low
+        severity: .low,
+        category: .contact
     )
 
     /// Phone number (US format)
     static let phoneUS = Pattern(
         name: "Phone Number",
         pattern: "\\+?1?[-.\\s]?\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}",
-        severity: .low
+        severity: .low,
+        category: .contact
     )
 
     /// International phone number
     static let phoneInternational = Pattern(
         name: "International Phone",
         pattern: "\\+[1-9]\\d{6,14}",
-        severity: .low
+        severity: .low,
+        category: .contact
     )
 
     // MARK: - Health Information (High Severity)
@@ -251,6 +308,7 @@ enum SensitivePatterns {
         name: "Medical Record Number",
         pattern: "\\b(?:mrn|medical[_\\s-]?record)[:\\s]+[A-Z0-9]{6,12}\\b",
         severity: .high,
+        category: .health,
         options: .caseInsensitive
     )
 
@@ -259,6 +317,7 @@ enum SensitivePatterns {
         name: "Health Insurance ID",
         pattern: "\\b(?:member[_\\s-]?id|insurance[_\\s-]?id)[:\\s]+[A-Z0-9]{8,15}\\b",
         severity: .high,
+        category: .health,
         options: .caseInsensitive
     )
 
@@ -307,6 +366,11 @@ enum SensitivePatterns {
     /// High-priority patterns only (for performance-sensitive contexts)
     static let highPriorityPatterns: [Pattern] = allPatterns.filter {
         $0.severity >= .high
+    }
+
+    /// Returns patterns filtered to the specified categories
+    static func patterns(for categories: Set<SensitiveCategory>) -> [Pattern] {
+        allPatterns.filter { categories.contains($0.category) }
     }
 }
 
