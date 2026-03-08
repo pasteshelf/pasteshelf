@@ -287,6 +287,40 @@ public final class SyncManager: ObservableObject, SyncManaging {
         Self.logger.info("Sync reset complete")
     }
 
+    /// Deletes all remote sync data without re-uploading. Disables sync afterwards.
+    public func deleteCloudData() async throws {
+        Self.logger.info("Deleting cloud data")
+
+        let backend = syncBackend
+        stop()
+
+        // Delete encryption keys
+        try encryptionManager.deleteKeys()
+
+        // Clear change tracker
+        changeTracker.clearHistoryToken()
+
+        // Clear stored tokens
+        UserDefaults.standard.removeObject(forKey: Self.changeTokenKey)
+        UserDefaults.standard.removeObject(forKey: Self.lastSyncKey)
+        UserDefaults.standard.removeObject(forKey: Self.backendSyncTokenKey)
+        UserDefaults.standard.removeObject(forKey: Self.backendTypeKey)
+        backendSyncToken = nil
+        activeBackendType = nil
+
+        // Tear down the backend (delete zone only, do not recreate)
+        if let backend {
+            try await backend.teardown()
+        } else {
+            try await cloudKitProvider.teardownOnly()
+        }
+
+        // Disable sync so items are NOT re-uploaded
+        isEnabled = false
+
+        Self.logger.info("Cloud data deleted, sync disabled")
+    }
+
     // MARK: - Private Sync Operations
 
     private func performSync() async throws {
@@ -645,8 +679,12 @@ public final class SyncManager: ObservableObject, SyncManaging {
         UserDefaults.standard.set(isEnabled, forKey: Self.enabledKey)
 
         if isEnabled {
-            Task {
-                try? await start()
+            // Only auto-start if a backend was previously configured.
+            // First-time enable waits for the user to pick a provider.
+            if activeBackendType != nil || UserDefaults.standard.string(forKey: Self.backendTypeKey) != nil {
+                Task {
+                    try? await start()
+                }
             }
         } else {
             stop()
