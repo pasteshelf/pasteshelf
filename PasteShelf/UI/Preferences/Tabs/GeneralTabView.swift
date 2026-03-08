@@ -46,9 +46,48 @@ struct GeneralTabView: View {
                     .foregroundColor(.secondary)
             }
 
+            Section {
+                Toggle(isOn: $viewModel.captureTextContent) {
+                    Label("Text", systemImage: "doc.text")
+                }
+                .disabled(isSoleCaptureType(\.captureTextContent))
+
+                Toggle(isOn: $viewModel.captureImageContent) {
+                    Label("Images", systemImage: "photo")
+                }
+                .disabled(isSoleCaptureType(\.captureImageContent))
+
+                Toggle(isOn: $viewModel.captureFileContent) {
+                    Label("Files & Documents", systemImage: "folder")
+                }
+                .disabled(isSoleCaptureType(\.captureFileContent))
+
+                Toggle(isOn: $viewModel.captureLinkContent) {
+                    Label("Links", systemImage: "link")
+                }
+                .disabled(isSoleCaptureType(\.captureLinkContent))
+            } header: {
+                Text("Capture")
+            } footer: {
+                Text("Unchecked types will be ignored when copied to clipboard.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
         }
         .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// Returns true if this is the only enabled capture type (prevents disabling all)
+    private func isSoleCaptureType(_ keyPath: KeyPath<PreferencesViewModel, Bool>) -> Bool {
+        let enabledCount = [
+            viewModel.captureTextContent,
+            viewModel.captureImageContent,
+            viewModel.captureFileContent,
+            viewModel.captureLinkContent
+        ].filter { $0 }.count
+        return enabledCount == 1 && viewModel[keyPath: keyPath]
     }
 }
 

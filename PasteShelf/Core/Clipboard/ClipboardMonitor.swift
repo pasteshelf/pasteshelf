@@ -200,6 +200,13 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
             return nil
         }
 
+        if !SettingsManager.shared.general.shouldCapture(content.primaryType) {
+            metrics.excludedCount += 1
+            delegate?.clipboardMonitor(self, didExcludeContentWithReason: .contentTypeDisabled)
+            Logger.clipboard.debug("Content type disabled: \(content.primaryType.displayName)")
+            return nil
+        }
+
         if let hash = content.contentHash, recentHashes.contains(hash) {
             metrics.duplicateCount += 1
             delegate?.clipboardMonitor(self, didExcludeContentWithReason: .duplicate)
@@ -273,6 +280,8 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         guard let limit = SettingsManager.shared.general.historyLimit.limit else { return }
         let deleted = await StorageManager.shared.deleteItemsExceedingLimit(limit, keepFavorites: true)
         if deleted > 0 {
+            // Reload hash cache so trimmed items can be re-copied if needed
+            await reloadHashCache()
             Logger.clipboard.debug("History limit enforced: \(deleted) items trimmed")
         }
     }
