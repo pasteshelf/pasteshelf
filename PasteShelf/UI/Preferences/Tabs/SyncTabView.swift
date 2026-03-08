@@ -14,6 +14,8 @@ struct SyncTabView: View {
     @ObservedObject private var syncManager = SyncManager.shared
 
     @State private var showingResetConfirmation = false
+    @State private var showingDeleteCloudConfirmation = false
+    @State private var showingEnableSyncConfirmation = false
     @State private var errorMessage: String?
 
     // MARK: - Body
@@ -60,6 +62,22 @@ struct SyncTabView: View {
         } message: {
             Text("This will delete all sync data and re-upload your local clipboard history. This action cannot be undone.")
         }
+        .alert("Delete iCloud Data", isPresented: $showingDeleteCloudConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                deleteCloudData()
+            }
+        } message: {
+            Text("This will permanently delete all clipboard data stored in iCloud. Your local clipboard history will not be affected. Sync will be disabled.")
+        }
+        .alert("Enable Sync", isPresented: $showingEnableSyncConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Enable") {
+                syncManager.isEnabled = true
+            }
+        } message: {
+            Text("Your clipboard history will be uploaded to iCloud and kept in sync across all your Mac devices signed in to the same iCloud account.\n\nThis uses your personal iCloud storage quota. All data is end-to-end encrypted before leaving your device.\n\nYou can disable sync or delete your iCloud data at any time from this settings tab.")
+        }
     }
 
     /// Whether the user has selected self-hosted in the provider picker
@@ -103,7 +121,7 @@ struct SyncTabView: View {
                 Text("Last synced")
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text(lastSync, style: .relative)
+                Text(lastSyncFormatted(lastSync))
                     .foregroundStyle(.secondary)
             }
         }
@@ -127,6 +145,13 @@ struct SyncTabView: View {
             }
             .padding(.vertical, 4)
         }
+    }
+
+    private func lastSyncFormatted(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        formatter.dateTimeStyle = .named
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
 
     private var statusTitle: String {
@@ -156,19 +181,27 @@ struct SyncTabView: View {
         Toggle("Enable Sync", isOn: Binding(
             get: { syncManager.isEnabled },
             set: { newValue in
-                syncManager.isEnabled = newValue
+                if newValue {
+                    showingEnableSyncConfirmation = true
+                } else {
+                    syncManager.isEnabled = false
+                }
             }
         ))
 
+        Text("Sync is disabled by default. Your clipboard history is stored locally on this device only.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
         // Provider Picker
-        Picker("Provider", selection: Binding(
+        Picker("Provider", selection: Binding<SyncBackendType?>(
             get: {
                 if syncManager.selfHostedConfiguration?.isEnabled == true {
-                    return SyncBackendType.selfHosted
+                    return .selfHosted
                 }
-                return .cloudKit
+                return syncManager.activeBackendType
             },
-            set: { newValue in
+            set: { (newValue: SyncBackendType?) in
                 switch newValue {
                 case .cloudKit:
                     // Disable self-hosted, use iCloud
@@ -176,41 +209,63 @@ struct SyncTabView: View {
                         config.isEnabled = false
                         syncManager.selfHostedConfiguration = config
                     }
+                    // Restart sync with iCloud backend
+                    if syncManager.isEnabled {
+                        syncManager.stop()
+                        Task {
+                            try? await syncManager.start()
+                        }
+                    }
                 case .selfHosted:
                     // Enable self-hosted
                     var config = syncManager.selfHostedConfiguration ?? .empty
                     config.isEnabled = true
                     syncManager.selfHostedConfiguration = config
-                }
-                // Restart sync with new backend if sync is enabled
-                if syncManager.isEnabled {
-                    syncManager.isEnabled = false
-                    syncManager.isEnabled = true
+                    // Only restart if server is configured
+                    if syncManager.isEnabled, config.isConfigured {
+                        syncManager.stop()
+                        Task {
+                            try? await syncManager.start()
+                        }
+                    }
+                case .none:
+                    // Clear self-hosted selection
+                    if var config = syncManager.selfHostedConfiguration {
+                        config.isEnabled = false
+                        syncManager.selfHostedConfiguration = config
+                    }
+                    // Stop sync when "None" selected
+                    if syncManager.activeBackendType != nil {
+                        syncManager.stop()
+                    }
                 }
             }
         )) {
-            Text("iCloud").tag(SyncBackendType.cloudKit)
-            Text("Self-Hosted Server").tag(SyncBackendType.selfHosted)
+            Text("None").tag(SyncBackendType?.none)
+            Text("iCloud").tag(SyncBackendType?.some(.cloudKit))
+            Text("Self-Hosted Server").tag(SyncBackendType?.some(.selfHosted))
         }
         .disabled(!syncManager.isEnabled)
 
         // Sync explanation
-        VStack(alignment: .leading, spacing: 4) {
-            if isSelfHostedSelected {
-                Text("Self-hosted sync connects to your organization's private sync server for data sovereignty.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("iCloud Sync keeps your clipboard history synchronized across all your Mac devices signed in to the same iCloud account.")
+        if let selectedProvider = syncManager.activeBackendType ?? (isSelfHostedSelected ? .selfHosted : nil) {
+            VStack(alignment: .leading, spacing: 4) {
+                if selectedProvider == .selfHosted {
+                    Text("Self-hosted sync connects to your organization's private sync server for data sovereignty.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("iCloud Sync keeps your clipboard history synchronized across all your Mac devices signed in to the same iCloud account.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Text("All data is end-to-end encrypted before being uploaded.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-
-            Text("All data is end-to-end encrypted before being uploaded.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            .padding(.vertical, 4)
         }
-        .padding(.vertical, 4)
     }
 
     // MARK: - Self-Hosted Section
@@ -246,7 +301,7 @@ struct SyncTabView: View {
         }) {
             Label("Sync Now", systemImage: "arrow.triangle.2.circlepath")
         }
-        .disabled(!syncManager.status.canSync)
+        .disabled(!syncManager.isEnabled || !syncManager.status.canSync)
 
         // Reset Sync Button
         Button(role: .destructive, action: {
@@ -255,6 +310,21 @@ struct SyncTabView: View {
             Label("Reset Sync...", systemImage: "arrow.counterclockwise")
         }
         .disabled(!syncManager.isEnabled)
+
+        Text("Deletes all remote sync data and re-uploads your local clipboard history. Your local data is not affected.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+        // Delete iCloud Data Button
+        Button(role: .destructive, action: {
+            showingDeleteCloudConfirmation = true
+        }) {
+            Label("Delete iCloud Data...", systemImage: "trash")
+        }
+
+        Text("Permanently removes all PasteShelf data from iCloud and disables sync. Your local clipboard history is preserved.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
     }
 
     // MARK: - Actions
@@ -263,6 +333,16 @@ struct SyncTabView: View {
         Task {
             do {
                 try await syncManager.reset()
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func deleteCloudData() {
+        Task {
+            do {
+                try await syncManager.deleteCloudData()
             } catch {
                 errorMessage = error.localizedDescription
             }

@@ -37,7 +37,7 @@ struct EnterpriseSettings: Codable, Equatable {
     // MARK: - Initialization
 
     init(
-        cloudSyncEnabled: Bool = true,
+        cloudSyncEnabled: Bool = false,
         localStorageOnly: Bool = false,
         pluginsEnabled: Bool = true,
         gdprEnabled: Bool = false,
@@ -67,7 +67,7 @@ struct EnterpriseSettings: Codable, Equatable {
     // MARK: - Defaults
 
     static let `default` = EnterpriseSettings(
-        cloudSyncEnabled: true,
+        cloudSyncEnabled: false,
         localStorageOnly: false,
         pluginsEnabled: true,
         gdprEnabled: false,

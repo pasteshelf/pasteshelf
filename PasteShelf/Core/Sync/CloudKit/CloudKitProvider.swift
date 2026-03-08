@@ -297,10 +297,15 @@ final class CloudKitProvider: SyncProviding, Sendable {
         zoneManager.zoneID
     }
 
-    /// Reset all CloudKit data
+    /// Reset all CloudKit data (teardown + recreate)
     func reset() async throws {
         try await zoneManager.teardown()
         try await zoneManager.setup()
+    }
+
+    /// Delete all CloudKit data without recreating
+    func teardownOnly() async throws {
+        try await zoneManager.teardown()
     }
 }
 
