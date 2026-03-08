@@ -30,6 +30,36 @@ struct PrivacyTabView: View {
             }
 
             Section {
+                Toggle("Detect sensitive data in clipboard", isOn: $viewModel.sensitiveDetectionEnabled)
+                    .accessibilityLabel("Detect sensitive data")
+                    .accessibilityHint("When enabled, clipboard items containing sensitive data like API keys, passwords, and credit cards are labeled as sensitive")
+
+                if viewModel.sensitiveDetectionEnabled {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Detection Categories")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                        ForEach(SensitivePatterns.SensitiveCategory.allCases, id: \.self) { category in
+                            Toggle(isOn: Binding(
+                                get: { viewModel.enabledSensitiveCategories.contains(category) },
+                                set: { _ in viewModel.toggleSensitiveCategory(category) }
+                            )) {
+                                Label(category.displayName, systemImage: category.iconName)
+                            }
+                        }
+                    }
+                    .padding(.leading, 20)
+                }
+            } header: {
+                Text("Sensitive Data Detection")
+            } footer: {
+                Text("Detected items are labeled as sensitive but still captured. This helps you identify and manage sensitive content in your clipboard history.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Section {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Excluded Applications")

@@ -51,6 +51,14 @@ final class PreferencesViewModel: ObservableObject {
         didSet { updatePrivacy() }
     }
 
+    @Published var sensitiveDetectionEnabled: Bool {
+        didSet { updatePrivacy() }
+    }
+
+    @Published var enabledSensitiveCategories: Set<SensitivePatterns.SensitiveCategory> {
+        didSet { updatePrivacy() }
+    }
+
     // MARK: - Appearance Settings
 
     @Published var theme: AppTheme {
@@ -115,6 +123,8 @@ final class PreferencesViewModel: ObservableObject {
         isMonitoringPaused = settings.privacy.isMonitoringPaused
 
         excludedAppBundleIds = settings.privacy.excludedAppBundleIds
+        sensitiveDetectionEnabled = settings.privacy.sensitiveDetectionEnabled
+        enabledSensitiveCategories = settings.privacy.enabledSensitiveCategories
 
         // Appearance
         theme = settings.appearance.theme
@@ -175,7 +185,9 @@ final class PreferencesViewModel: ObservableObject {
             autoDeleteEnabled: autoDeleteEnabled,
             autoDeleteDays: autoDeleteDays,
             isMonitoringPaused: isMonitoringPaused,
-            excludedAppBundleIds: excludedAppBundleIds
+            excludedAppBundleIds: excludedAppBundleIds,
+            sensitiveDetectionEnabled: sensitiveDetectionEnabled,
+            enabledSensitiveCategories: enabledSensitiveCategories
         )
     }
 
@@ -241,6 +253,8 @@ final class PreferencesViewModel: ObservableObject {
         isMonitoringPaused = settings.privacy.isMonitoringPaused
 
         excludedAppBundleIds = settings.privacy.excludedAppBundleIds
+        sensitiveDetectionEnabled = settings.privacy.sensitiveDetectionEnabled
+        enabledSensitiveCategories = settings.privacy.enabledSensitiveCategories
 
         // Appearance
         theme = settings.appearance.theme
@@ -271,6 +285,15 @@ final class PreferencesViewModel: ObservableObject {
     /// Removes an app from the exclusion list
     func removeExcludedApp(_ bundleId: String) {
         excludedAppBundleIds.removeAll { $0 == bundleId }
+    }
+
+    /// Toggles a sensitive data detection category on or off
+    func toggleSensitiveCategory(_ category: SensitivePatterns.SensitiveCategory) {
+        if enabledSensitiveCategories.contains(category) {
+            enabledSensitiveCategories.remove(category)
+        } else {
+            enabledSensitiveCategories.insert(category)
+        }
     }
 
     /// Clears clipboard history (keeps favorites)
