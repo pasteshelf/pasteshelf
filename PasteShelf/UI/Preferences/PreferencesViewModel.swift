@@ -33,6 +33,22 @@ final class PreferencesViewModel: ObservableObject {
         didSet { updateGeneral() }
     }
 
+    @Published var captureTextContent: Bool {
+        didSet { updateGeneral() }
+    }
+
+    @Published var captureImageContent: Bool {
+        didSet { updateGeneral() }
+    }
+
+    @Published var captureFileContent: Bool {
+        didSet { updateGeneral() }
+    }
+
+    @Published var captureLinkContent: Bool {
+        didSet { updateGeneral() }
+    }
+
     // MARK: - Privacy Settings
 
     @Published var autoDeleteEnabled: Bool {
@@ -116,6 +132,10 @@ final class PreferencesViewModel: ObservableObject {
         launchAtLogin = settings.general.launchAtLogin
         showInDock = settings.general.showInDock
         historyLimit = settings.general.historyLimit
+        captureTextContent = settings.general.captureTextContent
+        captureImageContent = settings.general.captureImageContent
+        captureFileContent = settings.general.captureFileContent
+        captureLinkContent = settings.general.captureLinkContent
 
         // Privacy
         autoDeleteEnabled = settings.privacy.autoDeleteEnabled
@@ -172,7 +192,11 @@ final class PreferencesViewModel: ObservableObject {
         settingsManager.general = GeneralSettings(
             launchAtLogin: launchAtLogin,
             showInDock: showInDock,
-            historyLimit: historyLimit
+            historyLimit: historyLimit,
+            captureTextContent: captureTextContent,
+            captureImageContent: captureImageContent,
+            captureFileContent: captureFileContent,
+            captureLinkContent: captureLinkContent
         )
     }
 
@@ -246,6 +270,10 @@ final class PreferencesViewModel: ObservableObject {
         launchAtLogin = settings.general.launchAtLogin
         showInDock = settings.general.showInDock
         historyLimit = settings.general.historyLimit
+        captureTextContent = settings.general.captureTextContent
+        captureImageContent = settings.general.captureImageContent
+        captureFileContent = settings.general.captureFileContent
+        captureLinkContent = settings.general.captureLinkContent
 
         // Privacy
         autoDeleteEnabled = settings.privacy.autoDeleteEnabled

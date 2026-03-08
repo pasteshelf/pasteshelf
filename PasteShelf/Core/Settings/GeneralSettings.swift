@@ -21,16 +21,62 @@ struct GeneralSettings: Codable, Equatable {
     /// Maximum number of clipboard items to keep in history
     var historyLimit: HistoryLimit
 
+    /// Whether to capture text content (plain text, rich text, HTML)
+    var captureTextContent: Bool
+
+    /// Whether to capture image content (PNG, JPEG, TIFF)
+    var captureImageContent: Bool
+
+    /// Whether to capture file content (file references, PDFs)
+    var captureFileContent: Bool
+
+    /// Whether to capture link content (URLs)
+    var captureLinkContent: Bool
+
     // MARK: - Initialization
 
     init(
         launchAtLogin: Bool = false,
         showInDock: Bool = false,
-        historyLimit: HistoryLimit = .medium
+        historyLimit: HistoryLimit = .medium,
+        captureTextContent: Bool = true,
+        captureImageContent: Bool = true,
+        captureFileContent: Bool = true,
+        captureLinkContent: Bool = true
     ) {
         self.launchAtLogin = launchAtLogin
         self.showInDock = showInDock
         self.historyLimit = historyLimit
+        self.captureTextContent = captureTextContent
+        self.captureImageContent = captureImageContent
+        self.captureFileContent = captureFileContent
+        self.captureLinkContent = captureLinkContent
+    }
+
+    // MARK: - Codable (backwards compatibility)
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        launchAtLogin = try container.decode(Bool.self, forKey: .launchAtLogin)
+        showInDock = try container.decode(Bool.self, forKey: .showInDock)
+        historyLimit = try container.decode(HistoryLimit.self, forKey: .historyLimit)
+        captureTextContent = try container.decodeIfPresent(Bool.self, forKey: .captureTextContent) ?? true
+        captureImageContent = try container.decodeIfPresent(Bool.self, forKey: .captureImageContent) ?? true
+        captureFileContent = try container.decodeIfPresent(Bool.self, forKey: .captureFileContent) ?? true
+        captureLinkContent = try container.decodeIfPresent(Bool.self, forKey: .captureLinkContent) ?? true
+    }
+
+    // MARK: - Capture Filtering
+
+    /// Whether a given content type should be captured based on settings
+    func shouldCapture(_ type: ContentType) -> Bool {
+        if type.isTextType { return captureTextContent }
+        if type.isImageType { return captureImageContent }
+        switch type {
+        case .pdf, .fileURL: return captureFileContent
+        case .url: return captureLinkContent
+        default: return true
+        }
     }
 
     // MARK: - Default Configuration

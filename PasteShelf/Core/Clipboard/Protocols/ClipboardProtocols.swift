@@ -67,6 +67,7 @@ enum ExclusionReason: Sendable {
     case emptyContent
     case duplicate
     case userPaused
+    case contentTypeDisabled
 }
 
 // MARK: - Content Parsing
