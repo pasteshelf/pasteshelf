@@ -45,6 +45,8 @@ struct OnboardingView: View {
                     WelcomeStepView()
                 case .permissions:
                     PermissionStepView(viewModel: viewModel)
+                case .notifications:
+                    NotificationPermissionStepView(viewModel: viewModel)
                 case .tutorial:
                     TutorialStepView()
                 case .hotkeySetup:
@@ -115,6 +117,8 @@ struct OnboardingView: View {
         switch viewModel.currentStep {
         case .permissions:
             return viewModel.hasAccessibilityPermission
+        case .notifications:
+            return viewModel.hasNotificationPermission
         default:
             return true
         }

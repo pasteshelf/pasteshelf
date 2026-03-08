@@ -321,7 +321,7 @@ final class AutomationRuleStorage {
 
         logger.info("Seeding default automation rules")
 
-        // Example rules
+        // Example rules (disabled by default, user can enable if wanted)
         let examples: [AutomationRule] = [
             AutomationRule.notifySensitive
         ]

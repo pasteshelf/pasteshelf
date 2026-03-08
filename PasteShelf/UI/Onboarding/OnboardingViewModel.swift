@@ -9,6 +9,7 @@ import AppKit
 import ApplicationServices
 import Combine
 import Foundation
+import UserNotifications
 import os.log
 
 /// View model for managing onboarding state
@@ -22,11 +23,17 @@ final class OnboardingViewModel: ObservableObject {
     /// Whether accessibility permission is granted
     @Published var hasAccessibilityPermission = false
 
+    /// Whether notification permission is granted
+    @Published var hasNotificationPermission = false
+
     /// Whether the onboarding is complete
     @Published var isComplete = false
 
     /// Timer for permission checking
     private var permissionCheckTimer: Timer?
+
+    /// Timer for notification permission checking
+    private var notificationCheckTimer: Timer?
 
     // MARK: - Private Properties
 
@@ -50,10 +57,12 @@ final class OnboardingViewModel: ObservableObject {
 
     init() {
         checkAccessibilityPermission()
+        Task { await checkNotificationPermission() }
     }
 
     deinit {
         permissionCheckTimer?.invalidate()
+        notificationCheckTimer?.invalidate()
     }
 
     // MARK: - Public Methods
@@ -75,6 +84,7 @@ final class OnboardingViewModel: ObservableObject {
         defaults.set(Self.currentOnboardingVersion, forKey: Self.onboardingVersionKey)
         isComplete = true
         stopPermissionChecking()
+        stopNotificationChecking()
         logger.info("Onboarding completed")
     }
 
@@ -86,6 +96,8 @@ final class OnboardingViewModel: ObservableObject {
 
             if next == .permissions {
                 startPermissionChecking()
+            } else if next == .notifications {
+                startNotificationChecking()
             }
         } else {
             completeOnboarding()
@@ -152,6 +164,63 @@ final class OnboardingViewModel: ObservableObject {
     func stopPermissionChecking() {
         permissionCheckTimer?.invalidate()
         permissionCheckTimer = nil
+    }
+
+    // MARK: - Notification Permission
+
+    /// Check notification permission status
+    func checkNotificationPermission() async {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        hasNotificationPermission = settings.authorizationStatus == .authorized
+        logger.debug("Notification permission: \(self.hasNotificationPermission)")
+    }
+
+    /// Request notification permission
+    func requestNotificationPermission() {
+        Task {
+            let settings = await UNUserNotificationCenter.current().notificationSettings()
+
+            if settings.authorizationStatus == .notDetermined {
+                // First time — show system prompt
+                do {
+                    let granted = try await UNUserNotificationCenter.current()
+                        .requestAuthorization(options: [.alert, .sound, .badge])
+                    hasNotificationPermission = granted
+                    logger.info("Requested notification permission, granted: \(granted)")
+                } catch {
+                    logger.error("Failed to request notification permission: \(error.localizedDescription)")
+                }
+            } else {
+                // Previously denied — open System Settings
+                openNotificationSettings()
+            }
+        }
+    }
+
+    /// Opens System Settings to the Notifications pane for PasteShelf
+    private func openNotificationSettings() {
+        if let bundleId = Bundle.main.bundleIdentifier,
+           let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(bundleId)")
+        {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    /// Start periodic notification permission checking
+    func startNotificationChecking() {
+        stopNotificationChecking()
+        notificationCheckTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
+            [weak self] _ in
+            Task { @MainActor in
+                await self?.checkNotificationPermission()
+            }
+        }
+    }
+
+    /// Stop periodic notification permission checking
+    func stopNotificationChecking() {
+        notificationCheckTimer?.invalidate()
+        notificationCheckTimer = nil
     }
 
     /// Reset onboarding (for testing)
