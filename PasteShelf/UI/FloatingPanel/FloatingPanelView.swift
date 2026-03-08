@@ -317,7 +317,7 @@ struct FloatingPanelView: View {
 
     private var itemListView: some View {
         ScrollViewReader { proxy in
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 if viewModel.shouldShowGroupedView {
                     // Grouped by date
                     groupedItemsContent
