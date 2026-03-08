@@ -676,6 +676,9 @@ final class FloatingPanelViewModel: ObservableObject {
                 }
             }
             logger.debug("Deleted item: \(item.id)")
+
+            // Reload dedup cache so deleted items can be re-copied
+            NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
         }
     }
 

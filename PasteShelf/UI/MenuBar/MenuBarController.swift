@@ -305,4 +305,7 @@ extension Notification.Name {
 
     /// Posted when new clipboard content is captured (for plugin subscription)
     static let clipboardContentCaptured = Notification.Name("com.pasteshelf.clipboardContentCaptured")
+
+    /// Posted when clipboard history items are deleted (single or bulk)
+    static let clipboardHistoryChanged = Notification.Name("com.pasteshelf.clipboardHistoryChanged")
 }
