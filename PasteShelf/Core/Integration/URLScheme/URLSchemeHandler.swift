@@ -287,6 +287,10 @@ import Foundation
             }
         }
 
+        if success {
+            NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
+        }
+
         return success
     }
 
@@ -372,6 +376,10 @@ import Foundation
             } catch {
                 success = false
             }
+        }
+
+        if success {
+            NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
         }
 
         return success

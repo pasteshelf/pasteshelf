@@ -59,6 +59,9 @@ struct GDPRDataDeletionService: Sendable {
         // 1. Clipboard items
         let itemCount = await StorageManager.shared.deleteAllItems(keepFavorites: false)
         categories.append(.init(name: "Clipboard Items", deletedCount: itemCount, success: true))
+        if itemCount > 0 {
+            NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
+        }
         logger.info("GDPR deletion: removed \(itemCount) clipboard items")
 
         // 2. Tags
