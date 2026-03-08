@@ -83,10 +83,22 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         self.pollInterval = pollInterval
         self.duplicateCheckLimit = duplicateCheckLimit
         self.pasteboard = pasteboard
+
+        // Reload hash cache when items are deleted so they can be re-copied
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleHistoryChanged),
+            name: .clipboardHistoryChanged,
+            object: nil
+        )
     }
 
     deinit {
-        // Timer cleanup handled by stopMonitoring
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func handleHistoryChanged() {
+        Task { await reloadHashCache() }
     }
 
     // MARK: - ClipboardMonitoring

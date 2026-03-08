@@ -277,6 +277,7 @@ final class PreferencesViewModel: ObservableObject {
     func clearHistory() {
         Task {
             await storageManager.deleteAllItems(keepFavorites: true)
+            NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
         }
     }
 }
