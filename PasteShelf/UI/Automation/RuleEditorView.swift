@@ -114,10 +114,24 @@ struct RuleEditorView: View {
 
     private var triggerSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Trigger")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(.secondary)
+            HStack {
+                Text("Trigger")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                Picker("", selection: $trigger) {
+                    Text("Captured").tag(AutomationTrigger.onCapture)
+                    Text("Pasted").tag(AutomationTrigger.onPaste)
+                    Text("Manual").tag(AutomationTrigger.manual)
+                    Text("Schedule").tag(AutomationTrigger.schedule(CronExpression.daily))
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(maxWidth: 320)
+            }
 
             TriggerPickerView(
                 selectedTrigger: $trigger,
@@ -260,15 +274,6 @@ struct TriggerPickerView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Trigger type picker
-            Picker("When", selection: $selectedTrigger) {
-                Text("Clipboard Captured").tag(AutomationTrigger.onCapture)
-                Text("Item Pasted").tag(AutomationTrigger.onPaste)
-                Text("Manual Trigger").tag(AutomationTrigger.manual)
-                Text("On Schedule").tag(AutomationTrigger.schedule(CronExpression.daily))
-            }
-            .pickerStyle(.segmented)
-
             // Trigger description
             Text(selectedTrigger.description)
                 .font(.caption)
