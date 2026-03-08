@@ -134,6 +134,7 @@ final class MenuBarController: NSObject, ObservableObject {
     /// Builds the context menu with recent items and options
     private func buildContextMenu() async -> NSMenu {
         let menu = NSMenu()
+        menu.minimumWidth = 200
 
         // Recent items section
         let recentItems = await storageManager.fetchRecentItems(limit: maxRecentItems)
@@ -223,9 +224,10 @@ final class MenuBarController: NSObject, ObservableObject {
         return menuItem
     }
 
-    /// Generates a truncated title for a clipboard item
+    /// Generates a truncated title for a clipboard item.
+    /// Titles are capped to keep the menu compact.
     private func menuItemTitle(for item: ClipboardItem) -> String {
-        let maxLength = 40
+        let maxLength = 10
 
         if let preview = item.plainTextPreview, !preview.isEmpty {
             // Clean up whitespace and truncate
@@ -234,10 +236,28 @@ final class MenuBarController: NSObject, ObservableObject {
                 .replacingOccurrences(of: "\t", with: " ")
                 .trimmingCharacters(in: .whitespaces)
 
+            let result: String
             if cleaned.count <= maxLength {
-                return cleaned
+                result = cleaned
+            } else {
+                result = String(cleaned.prefix(maxLength - 3)) + "..."
             }
-            return String(cleaned.prefix(maxLength - 3)) + "..."
+
+            // Also cap by rendered pixel width to handle wide glyphs (em dashes, CJK)
+            let maxWidth: CGFloat = 160
+            let font = NSFont.menuFont(ofSize: 0)
+            let attrs: [NSAttributedString.Key: Any] = [.font: font]
+            if (result as NSString).size(withAttributes: attrs).width > maxWidth {
+                var end = result.count
+                while end > 1 {
+                    end -= 1
+                    let candidate = String(result.prefix(end)) + "..."
+                    if (candidate as NSString).size(withAttributes: attrs).width <= maxWidth {
+                        return candidate
+                    }
+                }
+            }
+            return result
         }
 
         // Fallback to content type description

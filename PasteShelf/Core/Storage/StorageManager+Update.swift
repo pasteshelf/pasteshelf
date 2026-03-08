@@ -167,6 +167,56 @@ extension StorageManager {
         }
     }
 
+    /// Toggles a tag on a clipboard item (adds if absent, removes if present)
+    /// - Parameters:
+    ///   - tagId: The tag's UUID
+    ///   - itemId: The clipboard item's UUID
+    /// - Returns: True if update succeeded
+    func toggleTag(tagId: UUID, onItemId itemId: UUID) async -> Bool {
+        do {
+            try await performBackgroundTask { context in
+                let itemRequest = ClipboardItem.fetchRequest()
+                itemRequest.predicate = NSPredicate(format: "id == %@", itemId as CVarArg)
+                itemRequest.fetchLimit = 1
+
+                guard let item = try context.fetch(itemRequest).first else { return }
+
+                let tagRequest = Tag.fetchRequest()
+                tagRequest.predicate = NSPredicate(format: "id == %@", tagId as CVarArg)
+                tagRequest.fetchLimit = 1
+
+                guard let tag = try context.fetch(tagRequest).first else { return }
+
+                let currentTags = item.tags as? Set<Tag> ?? []
+                if currentTags.contains(tag) {
+                    item.removeFromTags(tag)
+                } else {
+                    item.addToTags(tag)
+                }
+            }
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    /// Fetches the tag IDs assigned to a clipboard item
+    /// - Parameter itemId: The clipboard item's UUID
+    /// - Returns: Set of tag UUIDs
+    func fetchTagIds(forItemId itemId: UUID) async -> Set<UUID> {
+        await viewContext.perform {
+            let request = ClipboardItem.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", itemId as CVarArg)
+            request.fetchLimit = 1
+
+            guard let item = try? self.viewContext.fetch(request).first,
+                  let tags = item.tags as? Set<Tag>
+            else { return [] }
+
+            return Set(tags.compactMap(\.id))
+        }
+    }
+
     // MARK: - Tag Update
 
     /// Updates the name and color of a tag

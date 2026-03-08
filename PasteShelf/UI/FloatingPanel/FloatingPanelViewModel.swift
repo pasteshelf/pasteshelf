@@ -339,32 +339,20 @@ final class FloatingPanelViewModel: ObservableObject {
         await loadItems()
     }
 
-    /// Toggles a tag filter and reloads items
+
+    /// Available tags for filtering
+    @Published private(set) var availableTags: [TagDisplayModel] = []
+
+    /// Loads available tags from storage
+    func loadAvailableTags() async {
+        let tags = await storageManager.fetchTags()
+        availableTags = TagDisplayModel.from(tags)
+    }
+
+    /// Toggles a tag filter
     func toggleTagFilter(_ tagId: UUID) async {
         activeFilters.toggleTag(tagId)
         await loadItems()
-    }
-
-    /// Loads available tags from storage
-    func loadAvailableTags() async -> [TagDisplayModel] {
-        let tags = await storageManager.fetchTags()
-        return TagDisplayModel.from(tags)
-    }
-
-    /// Creates a new tag and adds it to the active filter
-    /// - Parameters:
-    ///   - name: Tag name
-    ///   - color: Tag color hex string
-    /// - Returns: Updated list of available tags
-    func createTag(name: String, color: String) async -> [TagDisplayModel] {
-        if let tag = await storageManager.saveTag(name: name, color: color) {
-            if let tagId = tag.id {
-                activeFilters.selectedTagIds.insert(tagId)
-            }
-        }
-        let tags = await loadAvailableTags()
-        await loadItems()
-        return tags
     }
 
     /// Clears all filters
@@ -407,7 +395,7 @@ final class FloatingPanelViewModel: ObservableObject {
         if !activeFilters.selectedTagIds.isEmpty {
             predicates.append(NSPredicate(
                 format: "ANY tags.id IN %@",
-                Array(activeFilters.selectedTagIds)
+                activeFilters.selectedTagIds as CVarArg
             ))
         }
 
@@ -612,6 +600,7 @@ final class FloatingPanelViewModel: ObservableObject {
         searchQuery = ""
         searchState = .idle
         searchResults = [:]
+        await loadAvailableTags()
         await loadItems()
         if !items.isEmpty, selectedIndex < 0 {
             selectedIndex = 0

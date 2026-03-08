@@ -13,6 +13,13 @@ struct GeneralTabView: View {
 
     @ObservedObject var viewModel: PreferencesViewModel
 
+    // MARK: - Tag Management State
+
+    @State private var tags: [TagDisplayModel] = []
+    @State private var newTagName = ""
+    @State private var newTagColor = "#007AFF"
+    @State private var showTagInput = false
+
     // MARK: - Body
 
     var body: some View {
@@ -74,10 +81,81 @@ struct GeneralTabView: View {
                     .foregroundColor(.secondary)
             }
 
+            Section {
+                ForEach(tags) { tag in
+                    HStack {
+                        Circle()
+                            .fill(tag.color)
+                            .frame(width: 10, height: 10)
+
+                        Text(tag.name)
+                            .font(.system(size: 13))
+
+                        Spacer()
+
+                        Button {
+                            Task { await deleteTag(tag) }
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                if showTagInput {
+                    HStack(spacing: 8) {
+                        ColorPickerButton(selectedColor: $newTagColor)
+
+                        TextField("Tag name", text: $newTagName)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.system(size: 12))
+                            .onSubmit { createTag() }
+
+                        Button("Add") {
+                            createTag()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                        .disabled(newTagName.isEmpty)
+
+                        Button("Cancel") {
+                            showTagInput = false
+                            newTagName = ""
+                        }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                    }
+                } else {
+                    Button {
+                        showTagInput = true
+                    } label: {
+                        Label("Create Tag", systemImage: "plus.circle")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            } header: {
+                Text("Tags")
+            } footer: {
+                Text("Tags can be assigned to clipboard items for organization.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
         }
         .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task { await loadTags() }
+        .onDisappear {
+            showTagInput = false
+            newTagName = ""
+        }
     }
+
+    // MARK: - Capture Type Helper
 
     /// Returns true if this is the only enabled capture type (prevents disabling all)
     private func isSoleCaptureType(_ keyPath: KeyPath<PreferencesViewModel, Bool>) -> Bool {
@@ -88,6 +166,32 @@ struct GeneralTabView: View {
             viewModel.captureLinkContent
         ].filter { $0 }.count
         return enabledCount == 1 && viewModel[keyPath: keyPath]
+    }
+
+    // MARK: - Tag Actions
+
+    private func loadTags() async {
+        let fetched = await StorageManager.shared.fetchTags()
+        tags = TagDisplayModel.from(fetched)
+    }
+
+    private func createTag() {
+        guard !newTagName.isEmpty else { return }
+        let name = newTagName
+        let color = newTagColor
+        newTagName = ""
+        Task {
+            _ = await StorageManager.shared.saveTag(name: name, color: color)
+            await loadTags()
+        }
+    }
+
+    private func deleteTag(_ tag: TagDisplayModel) async {
+        let fetched = await StorageManager.shared.fetchTags()
+        if let coreDataTag = fetched.first(where: { $0.id == tag.id }) {
+            _ = await StorageManager.shared.delete(tag: coreDataTag)
+            await loadTags()
+        }
     }
 }
 

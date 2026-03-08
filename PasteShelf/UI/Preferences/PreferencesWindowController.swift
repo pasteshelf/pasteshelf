@@ -137,6 +137,7 @@ final class PreferencesWindowController: NSObject {
 
 extension PreferencesWindowController: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
-        logger.debug("Preferences window will close")
+        window = nil
+        logger.debug("Preferences window closed")
     }
 }

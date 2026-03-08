@@ -28,6 +28,8 @@ struct ClipboardItemRow: View {
     @EnvironmentObject var settingsManager: SettingsManager
 
     @State private var isHovered = false
+    @State private var availableTags: [TagDisplayModel] = []
+    @State private var assignedTagIds: Set<UUID> = []
 
     // MARK: - Body
 
@@ -54,6 +56,11 @@ struct ClipboardItemRow: View {
             }
             .contextMenu {
                 contextMenuContent
+            }
+            .task {
+                let tags = await StorageManager.shared.fetchTags()
+                availableTags = TagDisplayModel.from(tags)
+                assignedTagIds = await StorageManager.shared.fetchTagIds(forItemId: item.id)
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel(accessibilityLabel)
@@ -93,6 +100,31 @@ struct ClipboardItemRow: View {
                 } else {
                     Label("Add to Favorites", systemImage: "star")
                 }
+            }
+        }
+
+        // Tags submenu
+        if !availableTags.isEmpty {
+            Divider()
+
+            Menu {
+                ForEach(availableTags) { tag in
+                    Button {
+                        Task {
+                            _ = await StorageManager.shared.toggleTag(tagId: tag.id, onItemId: item.id)
+                            assignedTagIds = await StorageManager.shared.fetchTagIds(forItemId: item.id)
+                        }
+                    } label: {
+                        HStack {
+                            Text(tag.name)
+                            if assignedTagIds.contains(tag.id) {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                Label("Tags", systemImage: "tag")
             }
         }
 
