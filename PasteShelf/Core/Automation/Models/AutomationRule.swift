@@ -203,6 +203,7 @@ extension AutomationRule {
     static var notifySensitive: AutomationRule {
         AutomationRule(
             name: "Alert on Sensitive Content",
+            isEnabled: false,
             trigger: .onCapture,
             conditions: CollectionRules(
                 conditions: [

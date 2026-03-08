@@ -11,6 +11,7 @@ import Foundation
 enum OnboardingStep: Int, CaseIterable, Identifiable {
     case welcome = 0
     case permissions
+    case notifications
     case tutorial
     case hotkeySetup
 
@@ -23,6 +24,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
             return "Welcome to PasteShelf"
         case .permissions:
             return "Accessibility Permission"
+        case .notifications:
+            return "Notifications"
         case .tutorial:
             return "How It Works"
         case .hotkeySetup:
@@ -37,6 +40,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
             return "Get started"
         case .permissions:
             return "Required for paste"
+        case .notifications:
+            return "Stay informed"
         case .tutorial:
             return "Quick overview"
         case .hotkeySetup:
