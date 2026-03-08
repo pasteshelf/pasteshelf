@@ -38,10 +38,10 @@ final class OnboardingWindowController: NSObject {
     // MARK: - Configuration
 
     /// Window width
-    private let windowWidth: CGFloat = 560
+    private let windowWidth: CGFloat = 520
 
     /// Window height
-    private let windowHeight: CGFloat = 600
+    private let windowHeight: CGFloat = 560
 
     // MARK: - Initialization
 
@@ -97,13 +97,16 @@ final class OnboardingWindowController: NSObject {
 
         let window = NSWindow(
             contentRect: contentRect,
-            styleMask: [.titled, .closable],
+            styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
 
         window.title = "Welcome to PasteShelf"
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
         window.isReleasedWhenClosed = false
+        window.isMovableByWindowBackground = true
         window.center()
 
         // Create view model

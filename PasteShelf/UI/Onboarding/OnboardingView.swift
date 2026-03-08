@@ -13,159 +13,102 @@ struct OnboardingView: View {
 
     @ObservedObject var viewModel: OnboardingViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Body
 
     var body: some View {
         VStack(spacing: 0) {
-            // Progress indicator
-            progressIndicatorView
-                .padding(.top, 24)
+            // Progress indicator — simple dots
+            HStack(spacing: 8) {
+                ForEach(OnboardingStep.allCases) { step in
+                    Circle()
+                        .fill(
+                            step.rawValue <= viewModel.currentStep.rawValue
+                                ? Color.accentColor
+                                : Color.gray.opacity(0.3)
+                        )
+                        .frame(width: 8, height: 8)
+                }
+            }
+            .padding(.top, 24)
+            .padding(.bottom, 16)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(
+                "Setup progress: step \(viewModel.currentStep.rawValue + 1) of \(OnboardingStep.allCases.count)"
+            )
 
             // Step content
-            stepContentView
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Group {
+                switch viewModel.currentStep {
+                case .welcome:
+                    WelcomeStepView()
+                case .permissions:
+                    PermissionStepView(viewModel: viewModel)
+                case .tutorial:
+                    TutorialStepView()
+                case .hotkeySetup:
+                    HotkeySetupStepView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.asymmetric(
+                insertion: .move(edge: .trailing).combined(with: .opacity),
+                removal: .move(edge: .leading).combined(with: .opacity)
+            ))
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: viewModel.currentStep)
 
             // Navigation buttons
-            navigationButtonsView
-                .padding(.bottom, 24)
-        }
-        .frame(width: 560, height: 600)
-        .background(Color(nsColor: .windowBackgroundColor))
-    }
-
-    // MARK: - Progress Indicator
-
-    private var progressIndicatorView: some View {
-        HStack(spacing: 16) {
-            ForEach(OnboardingStep.allCases) { step in
-                progressStepView(step)
-            }
-        }
-        .padding(.horizontal, 40)
-    }
-
-    private func progressStepView(_ step: OnboardingStep) -> some View {
-        let isCompleted = step.rawValue < viewModel.currentStep.rawValue
-        let isCurrent = step == viewModel.currentStep
-
-        return HStack(spacing: 8) {
-            // Step indicator
-            ZStack {
-                Circle()
-                    .fill(
-                        isCompleted
-                            ? Color.accentColor
-                            : (isCurrent ? Color.accentColor.opacity(0.2) : Color.secondary.opacity(0.15))
-                    )
-                    .frame(width: 28, height: 28)
-
-                if isCompleted {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                } else {
-                    Text("\(step.rawValue + 1)")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(isCurrent ? .accentColor : .secondary)
-                }
-            }
-
-            // Step label (only show on larger widths)
-            if step.rawValue < OnboardingStep.allCases.count - 1 {
-                Rectangle()
-                    .fill(isCompleted ? Color.accentColor : Color.secondary.opacity(0.2))
-                    .frame(height: 2)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-        .animation(.easeInOut(duration: 0.2), value: viewModel.currentStep)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            "\(step.title), step \(step.rawValue + 1) of \(OnboardingStep.allCases.count), \(isCompleted ? "completed" : (isCurrent ? "current" : "upcoming"))"
-        )
-    }
-
-    // MARK: - Step Content
-
-    @ViewBuilder
-    private var stepContentView: some View {
-        Group {
-            switch viewModel.currentStep {
-            case .welcome:
-                WelcomeStepView()
-            case .permissions:
-                PermissionStepView(viewModel: viewModel)
-            case .tutorial:
-                TutorialStepView()
-            case .hotkeySetup:
-                HotkeySetupStepView()
-            }
-        }
-        .transition(.asymmetric(
-            insertion: .move(edge: .trailing).combined(with: .opacity),
-            removal: .move(edge: .leading).combined(with: .opacity)
-        ))
-        .animation(.easeInOut(duration: 0.3), value: viewModel.currentStep)
-    }
-
-    // MARK: - Navigation Buttons
-
-    private var navigationButtonsView: some View {
-        HStack {
-            // Back button
-            if viewModel.currentStep.previous != nil {
-                Button {
-                    viewModel.previousStep()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 12, weight: .semibold))
-                        Text("Back")
+            HStack {
+                if viewModel.currentStep.previous != nil {
+                    Button("Back") {
+                        if reduceMotion {
+                            viewModel.previousStep()
+                        } else {
+                            withAnimation { viewModel.previousStep() }
+                        }
                     }
+                    .accessibilityHint("Goes to the previous setup step")
                 }
-                .buttonStyle(.bordered)
-                .keyboardShortcut(.leftArrow, modifiers: [])
-            }
 
-            Spacer()
+                Spacer()
 
-            // Skip button (if allowed)
-            if viewModel.currentStep.isSkippable {
-                Button("Skip") {
-                    viewModel.skipStep()
+                // Skip button (if allowed)
+                if viewModel.currentStep.isSkippable {
+                    Button("Skip") {
+                        if reduceMotion {
+                            viewModel.skipStep()
+                        } else {
+                            withAnimation { viewModel.skipStep() }
+                        }
+                    }
+                    .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.bordered)
-            }
 
-            // Next/Finish button
-            Button {
+                // Next/Finish button
                 if viewModel.currentStep.next != nil {
-                    viewModel.nextStep()
-                } else {
-                    viewModel.completeOnboarding()
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Text(nextButtonTitle)
-                    if viewModel.currentStep.next != nil {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .semibold))
+                    Button("Continue") {
+                        if reduceMotion {
+                            viewModel.nextStep()
+                        } else {
+                            withAnimation { viewModel.nextStep() }
+                        }
                     }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!canProceed)
+                    .accessibilityHint("Proceeds to the next setup step")
+                } else {
+                    Button("Get Started") {
+                        viewModel.completeOnboarding()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityHint("Completes setup and opens PasteShelf")
                 }
             }
-            .buttonStyle(.borderedProminent)
-            .keyboardShortcut(.rightArrow, modifiers: [])
-            .disabled(!canProceed)
+            .padding(24)
         }
-        .padding(.horizontal, 40)
-    }
-
-    private var nextButtonTitle: String {
-        if viewModel.currentStep.next == nil {
-            return "Get Started"
-        }
-        return "Continue"
+        .frame(width: 520, height: 560)
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     private var canProceed: Bool {

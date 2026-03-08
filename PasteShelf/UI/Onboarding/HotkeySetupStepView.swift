@@ -17,68 +17,33 @@ struct HotkeySetupStepView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 20) {
             Spacer()
 
             // Icon
-            iconView
+            Image(systemName: "keyboard")
+                .font(.system(size: 64))
+                .foregroundStyle(Color.accentColor)
 
-            // Title and description
-            textContentView
+            // Title
+            Text("Set Your Hotkey")
+                .font(.title)
+                .fontWeight(.bold)
+
+            // Description
+            Text("Choose a keyboard shortcut to quickly open PasteShelf from anywhere.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 380)
 
             Spacer()
 
             // Hotkey recorder
-            hotkeyRecorderSection
-
-            // Quick options
-            quickOptionsView
-
-            Spacer()
-        }
-        .padding(.horizontal, 40)
-    }
-
-    // MARK: - Icon
-
-    private var iconView: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 24)
-                .fill(Color.accentColor.opacity(0.15))
-                .frame(width: 100, height: 100)
-
-            Image(systemName: "keyboard")
-                .font(.system(size: 44, weight: .light))
-                .foregroundColor(.accentColor)
-        }
-        .accessibilityHidden(true)
-    }
-
-    // MARK: - Text Content
-
-    private var textContentView: some View {
-        VStack(spacing: 12) {
-            Text("Set Your Hotkey")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(.primary)
-
-            Text("Choose a keyboard shortcut to quickly open PasteShelf from anywhere.")
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-        }
-    }
-
-    // MARK: - Hotkey Recorder Section
-
-    private var hotkeyRecorderSection: some View {
-        VStack(spacing: 16) {
-            // Current hotkey display
-            VStack(spacing: 8) {
+            VStack(spacing: 16) {
                 Text("Current Hotkey")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 HotkeyRecorderView(
                     hotkey: $hotkey,
@@ -88,50 +53,36 @@ struct HotkeySetupStepView: View {
                 .onChange(of: hotkey) { _, newValue in
                     saveHotkey(newValue)
                 }
+
+                Text(isRecording ? "Press your desired key combination..." : "Click to record a new shortcut")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.secondary.opacity(0.05))
+            )
+            .animation(.easeInOut(duration: 0.2), value: isRecording)
+
+            // Quick presets
+            VStack(spacing: 8) {
+                Text("Quick Presets")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+
+                HStack(spacing: 12) {
+                    presetButton(label: "⌘ ⇧ V", hotkey: .default, isSelected: hotkey == .default)
+                    presetButton(label: "⌘ ⌥ V", hotkey: .alternative, isSelected: hotkey == .alternative)
+                }
             }
 
-            if isRecording {
-                Text("Press your desired key combination...")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .transition(.opacity)
-            } else {
-                Text("Click to record a new shortcut")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+            Spacer()
         }
-        .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.secondary.opacity(0.05))
-        )
-        .animation(.easeInOut(duration: 0.2), value: isRecording)
+        .padding(.horizontal, 40)
     }
 
-    // MARK: - Quick Options
-
-    private var quickOptionsView: some View {
-        VStack(spacing: 12) {
-            Text("Quick Presets")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.secondary)
-
-            HStack(spacing: 12) {
-                presetButton(
-                    label: "⌘ ⇧ V",
-                    hotkey: .default,
-                    isSelected: hotkey == .default
-                )
-
-                presetButton(
-                    label: "⌘ ⌥ V",
-                    hotkey: .alternative,
-                    isSelected: hotkey == .alternative
-                )
-            }
-        }
-    }
+    // MARK: - Preset Button
 
     private func presetButton(
         label: String,
@@ -173,7 +124,7 @@ struct HotkeySetupStepView: View {
     struct HotkeySetupStepView_Previews: PreviewProvider {
         static var previews: some View {
             HotkeySetupStepView()
-                .frame(width: 500, height: 550)
+                .frame(width: 520, height: 380)
         }
     }
 #endif
