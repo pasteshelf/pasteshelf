@@ -21,7 +21,7 @@ struct ActiveFilters: Equatable, Sendable {
     /// Whether to show only favorites
     var favoritesOnly: Bool
 
-    /// Selected tag IDs for filtering (empty = no tag filter)
+    /// Selected tag IDs for filtering
     var selectedTagIds: Set<UUID>
 
     /// Date range filter (nil = no date filter)
@@ -80,7 +80,7 @@ struct ActiveFilters: Equatable, Sendable {
             parts.append("Favorites")
         }
         if !selectedTagIds.isEmpty {
-            parts.append("Tags: \(selectedTagIds.count)")
+            parts.append("\(selectedTagIds.count) tag(s)")
         }
         if dateRange != nil {
             parts.append("Date Range")
@@ -127,17 +127,7 @@ struct ActiveFilters: Equatable, Sendable {
         }
     }
 
-    /// Adds a tag to the filter
-    mutating func addTag(_ tagId: UUID) {
-        selectedTagIds.insert(tagId)
-    }
-
-    /// Removes a tag from the filter
-    mutating func removeTag(_ tagId: UUID) {
-        selectedTagIds.remove(tagId)
-    }
-
-    /// Toggles a tag in the filter
+    /// Toggles a tag filter
     mutating func toggleTag(_ tagId: UUID) {
         if selectedTagIds.contains(tagId) {
             selectedTagIds.remove(tagId)

@@ -24,47 +24,77 @@ struct FilterChipsView: View {
     /// Called when favorites filter is toggled
     var onFavoritesToggle: (() -> Void)?
 
+    /// Available tags for filtering
+    var availableTags: [TagDisplayModel] = []
+
+    /// Currently selected tag IDs
+    @Binding var selectedTagIds: Set<UUID>
+
     // MARK: - Body
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                // Favorites filter
-                FilterChip(
-                    title: "Favorites",
-                    icon: "star.fill",
-                    isSelected: favoritesOnly,
-                    selectedColor: .orange
-                ) {
-                    favoritesOnly.toggle()
-                    onFavoritesToggle?()
-                }
-
-                // Divider between favorites and content types
-                if !ContentTypeFilter.allCases.isEmpty {
-                    Divider()
-                        .frame(height: 16)
-                        .padding(.horizontal, 2)
-                }
-
-                // Content type filters
-                ForEach(ContentTypeFilter.allCases) { filter in
+        VStack(spacing: 0) {
+            // First row: Favorites + content type filters
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
                     FilterChip(
-                        title: filter.displayName,
-                        icon: filter.icon,
-                        isSelected: selectedContentType == filter
+                        title: "Favorites",
+                        icon: "star.fill",
+                        isSelected: favoritesOnly,
+                        selectedColor: .orange
                     ) {
-                        if selectedContentType == filter {
-                            selectedContentType = nil
-                        } else {
-                            selectedContentType = filter
+                        favoritesOnly.toggle()
+                        onFavoritesToggle?()
+                    }
+
+                    if !ContentTypeFilter.allCases.isEmpty {
+                        Divider()
+                            .frame(height: 16)
+                            .padding(.horizontal, 2)
+                    }
+
+                    ForEach(ContentTypeFilter.allCases) { filter in
+                        FilterChip(
+                            title: filter.displayName,
+                            icon: filter.icon,
+                            isSelected: selectedContentType == filter
+                        ) {
+                            if selectedContentType == filter {
+                                selectedContentType = nil
+                            } else {
+                                selectedContentType = filter
+                            }
+                            onContentTypeToggle?(filter)
                         }
-                        onContentTypeToggle?(filter)
                     }
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
+
+            // Second row: Tag filters (only if tags exist)
+            if !availableTags.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(availableTags) { tag in
+                            FilterChip(
+                                title: tag.name,
+                                icon: "tag",
+                                isSelected: selectedTagIds.contains(tag.id),
+                                selectedColor: tag.color
+                            ) {
+                                if selectedTagIds.contains(tag.id) {
+                                    selectedTagIds.remove(tag.id)
+                                } else {
+                                    selectedTagIds.insert(tag.id)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                }
+            }
         }
     }
 }
@@ -232,6 +262,7 @@ struct ActiveFilterSummaryView: View {
         struct PreviewWrapper: View {
             @State private var selectedType: ContentTypeFilter?
             @State private var favoritesOnly = false
+            @State private var selectedTagIds: Set<UUID> = []
 
             var body: some View {
                 VStack(alignment: .leading, spacing: 16) {
@@ -239,7 +270,8 @@ struct ActiveFilterSummaryView: View {
                         .font(.caption).foregroundStyle(.secondary)
                     FilterChipsView(
                         selectedContentType: $selectedType,
-                        favoritesOnly: $favoritesOnly
+                        favoritesOnly: $favoritesOnly,
+                        selectedTagIds: $selectedTagIds
                     )
                     .background(Color(nsColor: .controlBackgroundColor))
 
@@ -247,7 +279,8 @@ struct ActiveFilterSummaryView: View {
                         .font(.caption).foregroundStyle(.secondary)
                     FilterChipsView(
                         selectedContentType: .constant(.text),
-                        favoritesOnly: .constant(true)
+                        favoritesOnly: .constant(true),
+                        selectedTagIds: .constant([])
                     )
                     .background(Color(nsColor: .controlBackgroundColor))
 
