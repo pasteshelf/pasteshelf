@@ -46,12 +46,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 
     /// Whether this step can be skipped
     var isSkippable: Bool {
-        switch self {
-        case .welcome, .permissions:
-            return false
-        case .tutorial, .hotkeySetup:
-            return true
-        }
+        false
     }
 
     /// Next step in the sequence
