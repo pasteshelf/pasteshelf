@@ -194,6 +194,10 @@ final class AutoCleanupManager: ObservableObject {
         lastCleanupCount = totalDeleted
         saveLastCleanupDate()
 
+        if totalDeleted > 0 {
+            NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
+        }
+
         logger.info("Auto-cleanup completed: \(totalDeleted) items deleted")
     }
 

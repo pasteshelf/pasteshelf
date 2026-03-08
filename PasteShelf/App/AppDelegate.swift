@@ -425,7 +425,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Apply history limit by triggering cleanup if needed
         if let limit = settings.general.historyLimit.limit {
             Task {
-                await storageManager.deleteItemsExceedingLimit(limit, keepFavorites: true)
+                let trimmed = await storageManager.deleteItemsExceedingLimit(limit, keepFavorites: true)
+                if trimmed > 0 {
+                    NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
+                }
             }
         }
 
@@ -876,7 +879,10 @@ extension AppDelegate: ClipboardMonitorDelegate {
             let redactSuccess = await storageManager.updatePlainText(itemId: content.id, text: redactedPlainText, stripOtherRepresentations: true)
             if !redactSuccess {
                 logger.error("DLP: failed to persist redacted content for item \(content.id) — deleting to prevent sensitive data leak")
-                _ = await storageManager.deleteItem(byId: content.id)
+                let fallbackDeleted = await storageManager.deleteItem(byId: content.id)
+                if fallbackDeleted {
+                    NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
+                }
                 return DLPPipelineResult(blocked: true, content: content)
             }
             logger.info("DLP: redacted content for item \(content.id)")
@@ -944,6 +950,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
             let deleted = await storageManager.deleteItem(byId: content.id)
             if deleted {
                 logger.info("Automation: deleted item \(content.id) per rule action")
+                NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
 
                 // Audit: log that automation deleted the item (gated by GDPR auditLogging consent)
                 if !ComplianceManager.shared.isGDPRActive

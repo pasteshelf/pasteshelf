@@ -296,6 +296,10 @@ class DeleteItemCommand: NSScriptCommand {
             }
         }
 
+        if success {
+            NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
+        }
+
         return success
     }
 }
@@ -328,6 +332,10 @@ class ClearHistoryCommand: NSScriptCommand {
             } catch {
                 success = false
             }
+        }
+
+        if success {
+            NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
         }
 
         return success
