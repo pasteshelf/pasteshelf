@@ -94,11 +94,22 @@ final class EmbeddingGenerator: ObservableObject {
             return false
         }
 
-        // Fetch the item's full text content (fall back to preview if unavailable)
-        guard let item = await storageManager.fetchItem(byId: itemId),
-              let text = item.content?.textContent ?? item.plainTextPreview,
-              embeddingManager.canEmbed(text)
-        else {
+        // Fetch the item's full text content (fall back to preview, then OCR text for images)
+        guard let item = await storageManager.fetchItem(byId: itemId) else {
+            return false
+        }
+
+        var text = item.content?.textContent ?? item.plainTextPreview
+
+        // For image items without text, try OCR-extracted text
+        if text == nil || !embeddingManager.canEmbed(text!) {
+            if let ocrText = await storageManager.fetchOCRText(for: itemId),
+               embeddingManager.canEmbed(ocrText) {
+                text = ocrText
+            }
+        }
+
+        guard let text, embeddingManager.canEmbed(text) else {
             return false
         }
 
@@ -243,10 +254,20 @@ final class EmbeddingGenerator: ObservableObject {
     /// Processes a single item for embedding
     private func processItem(itemId: UUID) async -> Bool {
         // Fetch the item
-        guard let item = await storageManager.fetchItem(byId: itemId),
-              let text = item.plainTextPreview,
-              embeddingManager.canEmbed(text)
-        else {
+        guard let item = await storageManager.fetchItem(byId: itemId) else {
+            return false
+        }
+
+        // Use plain text preview, or fall back to OCR text for images
+        var text = item.plainTextPreview
+        if text == nil || !embeddingManager.canEmbed(text!) {
+            if let ocrText = await storageManager.fetchOCRText(for: itemId),
+               embeddingManager.canEmbed(ocrText) {
+                text = ocrText
+            }
+        }
+
+        guard let text, embeddingManager.canEmbed(text) else {
             return false
         }
 

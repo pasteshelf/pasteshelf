@@ -159,7 +159,10 @@ struct ActiveFilters: Equatable, Sendable {
             dateRange: dateRange,
             fuzzyMatching: SettingsManager.shared.search.fuzzyMatchEnabled,
             fuzzyThreshold: 0.6,
-            includeSensitive: true
+            includeSensitive: true,
+            enableSemanticSearch: SettingsManager.shared.search.semanticSearchEnabled,
+            semanticThreshold: SettingsManager.shared.search.semanticThreshold,
+            enableOCRSearch: SettingsManager.shared.search.ocrSearchEnabled
         )
     }
 }
