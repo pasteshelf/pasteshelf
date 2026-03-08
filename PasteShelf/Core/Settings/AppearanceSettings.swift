@@ -33,7 +33,7 @@ struct AppearanceSettings: Codable, Equatable {
     init(
         theme: AppTheme = .system,
         panelWidth: PanelWidth = .normal,
-        previewLines: Int = 3,
+        previewLines: Int = 1,
         showThumbnails: Bool = true,
         compactMode: Bool = false
     ) {
