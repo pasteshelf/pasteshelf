@@ -21,6 +21,7 @@ struct ClipboardItemRow: View {
     var onCopyOCRText: (() -> Void)?
     var onDelete: (() -> Void)?
     var onToggleFavorite: (() -> Void)?
+    var onPluginAction: ((PluginMenuItem, String) -> Void)?
 
     // MARK: - State
 
@@ -125,6 +126,40 @@ struct ClipboardItemRow: View {
                 }
             } label: {
                 Label("Tags", systemImage: "tag")
+            }
+        }
+
+        // Plugin actions — grouped under a single "Plugins" submenu
+        let pluginMenuItems = PluginManager.shared.allMenuItems
+            .sorted(by: { ($0.pluginId) < ($1.pluginId) })
+            .filter { pluginId, _ in
+                let types = PluginManager.shared.plugins[pluginId]?.bundle.manifest.supportedContentTypes ?? []
+                return types.isEmpty || types.contains(item.contentType.rawValue)
+            }
+        if !pluginMenuItems.isEmpty {
+            Divider()
+
+            Menu {
+                ForEach(pluginMenuItems, id: \.pluginId) { pluginId, items in
+                    let pluginName = PluginManager.shared.plugins[pluginId]?.bundle.manifest.name ?? pluginId
+
+                    Section(pluginName) {
+                        ForEach(items, id: \.actionId) { menuItem in
+                            Button {
+                                onPluginAction?(menuItem, pluginId)
+                            } label: {
+                                if let icon = menuItem.iconName {
+                                    Label(menuItem.title, systemImage: icon)
+                                } else {
+                                    Text(menuItem.title)
+                                }
+                            }
+                            .disabled(!menuItem.isEnabled)
+                        }
+                    }
+                }
+            } label: {
+                Label("Plugins", systemImage: "puzzlepiece.extension")
             }
         }
 

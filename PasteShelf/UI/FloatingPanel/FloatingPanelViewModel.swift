@@ -704,6 +704,114 @@ final class FloatingPanelViewModel: ObservableObject {
         logger.info("Copied OCR text for item: \(item.id)")
     }
 
+    // MARK: - Plugin Actions
+
+    /// Executes a plugin menu item action on a clipboard item
+    func executePluginAction(
+        menuItem: PluginMenuItem,
+        pluginId: String,
+        for item: ClipboardItemDisplayModel
+    ) async {
+        guard let clipboardItem = await storageManager.fetchItem(byId: item.id) else {
+            logger.error("Failed to fetch item for plugin action: \(item.id)")
+            return
+        }
+
+        let content = makePluginContent(from: clipboardItem)
+
+        logger.debug("Executing plugin action '\(menuItem.title)' for plugin \(pluginId)")
+
+        // Find the matching registered transformer and call its closure synchronously
+        // on MainActor. We cannot use the async execution paths (PluginHost.executeAction,
+        // PluginUIAPI.executeMenuItem, or menuItem.action directly) because the closures
+        // are nonisolated(unsafe) and PluginClipboardContent (NSObject) is not Sendable —
+        // crossing actor boundaries causes EXC_BAD_INSTRUCTION at runtime.
+        let transformers = PluginTransformAPI.shared.transformers(for: pluginId)
+        guard let transformer = transformers.first(where: { $0.name == menuItem.title }),
+              let transform = transformer.transform
+        else {
+            logger.warning("No transformer found for '\(menuItem.title)' in plugin \(pluginId)")
+            return
+        }
+
+        do {
+            let result = try await transform(content)
+
+            if let result {
+                // Pause monitoring to avoid re-capturing the transformed content
+                clipboardMonitor?.pause()
+
+                writePluginResultToClipboard(result)
+                logger.info("Plugin action completed: \(menuItem.title) for item \(item.id)")
+
+                // Hide panel, restore focus, and simulate paste (same as normal paste flow)
+                isVisible = false
+                restorePreviousAppFocus?()
+
+                try? await Task.sleep(for: .milliseconds(200))
+                pasteSimulator.simulatePaste()
+
+                try? await Task.sleep(for: .milliseconds(300))
+                clipboardMonitor?.resume()
+            }
+        } catch {
+            logger.error("Plugin action failed: \(menuItem.title) — \(error.localizedDescription)")
+        }
+    }
+
+    /// Writes plugin transform result to the system clipboard
+    private func writePluginResultToClipboard(_ result: PluginClipboardContent) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+
+        if let text = result.text {
+            pasteboard.setString(text, forType: .string)
+        }
+        if let html = result.html {
+            pasteboard.setString(html, forType: .html)
+        }
+        if let rtfData = result.rtfData {
+            pasteboard.setData(rtfData, forType: .rtf)
+        }
+        if let image = result.image {
+            pasteboard.writeObjects([image])
+        }
+        if let url = result.url {
+            pasteboard.writeObjects([url as NSURL])
+        }
+    }
+
+    /// Converts a CoreData ClipboardItem to PluginClipboardContent
+    private func makePluginContent(from item: ClipboardItem) -> PluginClipboardContent {
+        let content = PluginClipboardContent()
+        content.contentTypeIdentifier = item.contentType ?? ContentType.plainText.rawValue
+        content.sourceAppBundleId = item.sourceAppBundleId
+        content.timestamp = item.timestamp ?? Date()
+
+        if let contentData = item.content {
+            // Use full text content, not the truncated plainTextPreview
+            content.text = contentData.textContent ?? item.plainTextPreview
+
+            if let html = contentData.htmlContent {
+                content.html = html
+            }
+            if let rtfData = contentData.rtfData {
+                content.rtfData = rtfData
+            }
+            if let imageData = contentData.imageData {
+                content.imageData = imageData
+                content.image = NSImage(data: imageData)
+            }
+            if let urlString = contentData.urlString, let url = URL(string: urlString) {
+                content.url = url
+            }
+        } else {
+            content.text = item.plainTextPreview
+        }
+
+        return content
+    }
+
     // MARK: - Collections
 
     /// Loads all smart collections

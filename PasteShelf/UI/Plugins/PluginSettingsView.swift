@@ -15,26 +15,63 @@ import UniformTypeIdentifiers
 /// Main plugin settings view
 struct PluginSettingsView: View {
     @StateObject private var viewModel = PluginSettingsViewModel()
+    @EnvironmentObject var settingsManager: SettingsManager
     @State private var selectedPluginId: String?
     @State private var showingInstallSheet = false
 
     var body: some View {
-        HSplitView {
-            // Plugin list
-            pluginList
-                .frame(minWidth: 200, maxWidth: 300)
+        VStack(spacing: 0) {
+            // Master toggle
+            HStack {
+                Toggle("Enable Plugin System", isOn: Binding(
+                    get: { settingsManager.enterprise.pluginsEnabled },
+                    set: { newValue in
+                        settingsManager.update { $0.enterprise.pluginsEnabled = newValue }
+                    }
+                ))
+                    .toggleStyle(.switch)
+                Spacer()
+            }
+            .padding()
 
-            // Plugin detail
-            if let pluginId = selectedPluginId,
-               let plugin = viewModel.plugins.first(where: { $0.id == pluginId })
-            {
-                pluginDetail(plugin)
+            Divider()
+
+            if settingsManager.enterprise.pluginsEnabled {
+                HSplitView {
+                    // Plugin list
+                    pluginList
+                        .frame(minWidth: 200, maxWidth: 300)
+
+                    // Plugin detail
+                    if let pluginId = selectedPluginId,
+                       let plugin = viewModel.plugins.first(where: { $0.id == pluginId })
+                    {
+                        pluginDetail(plugin)
+                    } else {
+                        emptyState
+                    }
+                }
             } else {
-                emptyState
+                VStack(spacing: 12) {
+                    Spacer()
+                    Image(systemName: "puzzlepiece.extension")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.secondary)
+                    Text("Plugin system is disabled")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    Text("Enable the toggle above to use plugins.")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                    Spacer()
+                }
             }
         }
         .frame(minHeight: 400)
         .onAppear {
+            viewModel.loadPlugins()
+        }
+        .onReceive(PluginManager.shared.$isInitialized) { _ in
             viewModel.loadPlugins()
         }
         .sheet(isPresented: $showingInstallSheet) {
