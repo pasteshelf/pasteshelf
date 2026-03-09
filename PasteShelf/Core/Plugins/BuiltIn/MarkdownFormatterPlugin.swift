@@ -126,7 +126,8 @@ public final class MarkdownFormatterPlugin: NSObject, PasteShelfPlugin {
 
     // MARK: - Markdown Operations
 
-    private func htmlToMarkdown(_ content: PluginClipboardContent) async throws -> PluginClipboardContent? {
+    @MainActor
+    private func htmlToMarkdown(_ content: PluginClipboardContent) throws -> PluginClipboardContent? {
         let html = content.html ?? content.text ?? ""
         guard !html.isEmpty else { return nil }
 
@@ -137,7 +138,8 @@ public final class MarkdownFormatterPlugin: NSObject, PasteShelfPlugin {
         return result
     }
 
-    private func formatMarkdownTable(_ content: PluginClipboardContent) async throws -> PluginClipboardContent? {
+    @MainActor
+    private func formatMarkdownTable(_ content: PluginClipboardContent) throws -> PluginClipboardContent? {
         guard let text = content.text else { return nil }
 
         // Check if content contains a Markdown table
@@ -152,7 +154,8 @@ public final class MarkdownFormatterPlugin: NSObject, PasteShelfPlugin {
         return result
     }
 
-    private func stripMarkdown(_ content: PluginClipboardContent) async throws -> PluginClipboardContent? {
+    @MainActor
+    private func stripMarkdown(_ content: PluginClipboardContent) throws -> PluginClipboardContent? {
         guard let text = content.text else { return nil }
 
         let stripped = removeMarkdownFormatting(text)

@@ -28,7 +28,8 @@ public final class JSONBeautifierPlugin: NSObject, PasteShelfPlugin, PasteShelfP
     // MARK: - Settings
 
     private var indentSize: Int {
-        storage?.integer(forKey: "indentSize") ?? 2
+        let size = storage?.integer(forKey: "indentSize") ?? 4
+        return size > 0 ? size : 4
     }
 
     private var sortKeys: Bool {
@@ -131,8 +132,9 @@ public final class JSONBeautifierPlugin: NSObject, PasteShelfPlugin, PasteShelfP
     // MARK: - Internal Transform
 
     /// Transforms content (used internally by plugin system)
+    @MainActor
     func transform(content: PluginClipboardContent) async throws -> PluginClipboardContent? {
-        try await formatJSON(content)
+        try formatJSON(content)
     }
 
     /// Checks if content type is supported (used internally by plugin system)
@@ -142,11 +144,17 @@ public final class JSONBeautifierPlugin: NSObject, PasteShelfPlugin, PasteShelfP
 
     // MARK: - JSON Operations
 
-    private func formatJSON(_ content: PluginClipboardContent) async throws -> PluginClipboardContent? {
+    @MainActor
+    private func formatJSON(_ content: PluginClipboardContent) throws -> PluginClipboardContent? {
         guard let text = content.text else { return nil }
 
         let data = Data(text.utf8)
-        let json = try JSONSerialization.jsonObject(with: data)
+        let json: Any
+        do {
+            json = try JSONSerialization.jsonObject(with: data)
+        } catch {
+            return PluginClipboardContent(text: "Invalid JSON: \(error.localizedDescription)")
+        }
 
         var options: JSONSerialization.WritingOptions = [.prettyPrinted]
         if sortKeys {
@@ -169,11 +177,17 @@ public final class JSONBeautifierPlugin: NSObject, PasteShelfPlugin, PasteShelfP
         return result
     }
 
-    private func minifyJSON(_ content: PluginClipboardContent) async throws -> PluginClipboardContent? {
+    @MainActor
+    private func minifyJSON(_ content: PluginClipboardContent) throws -> PluginClipboardContent? {
         guard let text = content.text else { return nil }
 
         let data = Data(text.utf8)
-        let json = try JSONSerialization.jsonObject(with: data)
+        let json: Any
+        do {
+            json = try JSONSerialization.jsonObject(with: data)
+        } catch {
+            return PluginClipboardContent(text: "Invalid JSON: \(error.localizedDescription)")
+        }
         let minified = try JSONSerialization.data(withJSONObject: json)
 
         guard let minifiedString = String(data: minified, encoding: .utf8) else {
@@ -185,24 +199,21 @@ public final class JSONBeautifierPlugin: NSObject, PasteShelfPlugin, PasteShelfP
         return result
     }
 
-    private func validateJSON(_ content: PluginClipboardContent) async throws -> PluginClipboardContent? {
+    @MainActor
+    private func validateJSON(_ content: PluginClipboardContent) throws -> PluginClipboardContent? {
         guard let text = content.text else { return nil }
 
         let data = Data(text.utf8)
 
         do {
             _ = try JSONSerialization.jsonObject(with: data)
-            // Valid JSON - return original content with validation metadata
-            let result = PluginClipboardContent(text: text)
+            let result = PluginClipboardContent(text: "Valid JSON")
             result.metadata["jsonValid"] = true
-            result.metadata["jsonValidationMessage"] = "Valid JSON"
             return result
         } catch {
-            // Invalid JSON - return with error metadata
-            let result = PluginClipboardContent(text: text)
+            let result = PluginClipboardContent(text: "Invalid JSON: \(error.localizedDescription)")
             result.metadata["jsonValid"] = false
-            result.metadata["jsonValidationMessage"] = error.localizedDescription
-            throw JSONPluginError.invalidJSON(error.localizedDescription)
+            return result
         }
     }
 

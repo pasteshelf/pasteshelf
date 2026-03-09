@@ -409,6 +409,15 @@ struct FloatingPanelView: View {
                 Task {
                     await viewModel.toggleFavorite(for: item)
                 }
+            },
+            onPluginAction: { menuItem, pluginId in
+                Task {
+                    await viewModel.executePluginAction(
+                        menuItem: menuItem,
+                        pluginId: pluginId,
+                        for: item
+                    )
+                }
             }
         )
         .id(item.id)
