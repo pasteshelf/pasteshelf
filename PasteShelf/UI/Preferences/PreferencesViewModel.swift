@@ -344,8 +344,10 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
     case search
     case sync
     case automation
+    #if !APP_STORE
     case plugins
     case enterprise
+    #endif
     case about
 
     var id: String { rawValue }
@@ -360,8 +362,10 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
         case .search: return "Search"
         case .sync: return "Sync"
         case .automation: return "Automation"
+        #if !APP_STORE
         case .plugins: return "Plugins"
         case .enterprise: return "Enterprise"
+        #endif
         case .about: return "About"
         }
     }
@@ -376,8 +380,10 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
         case .search: return "magnifyingglass"
         case .sync: return "icloud"
         case .automation: return "wand.and.stars"
+        #if !APP_STORE
         case .plugins: return "puzzlepiece.extension"
         case .enterprise: return "building.2"
+        #endif
         case .about: return "info.circle"
         }
     }

@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginTransformAPI.swift
 //  PasteShelf
@@ -241,3 +242,5 @@ enum PluginTransformError: Error, LocalizedError, Sendable {
         }
     }
 }
+
+#endif

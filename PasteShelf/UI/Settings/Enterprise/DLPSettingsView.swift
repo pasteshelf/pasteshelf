@@ -92,9 +92,11 @@ struct DLPSettingsView: View {
                     }
                 }
                 .onDelete { indexSet in
-                    for index in indexSet {
-                        let rule = viewModel.rules[index]
-                        Task { await viewModel.deleteRule(rule) }
+                    let rulesToDelete = indexSet.map { viewModel.rules[$0] }
+                    Task {
+                        for rule in rulesToDelete {
+                            await viewModel.deleteRule(rule)
+                        }
                     }
                 }
             }

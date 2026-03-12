@@ -43,8 +43,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Cancellables for Combine subscriptions
     private var cancellables = Set<AnyCancellable>()
 
+    #if !APP_STORE
     /// Retained reference to plugin context factory for re-initialization on re-enable.
     private var pluginContextFactory: PluginContextFactoryImpl?
+    #endif
 
     // MARK: - NSApplicationDelegate
 
@@ -99,9 +101,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         initializeAutomation()
 
         // Initialize plugin system (gated by enterprise settings)
+        #if !APP_STORE
         if SettingsManager.shared.enterprise.pluginsEnabled {
             initializePluginSystem()
         }
+        #endif
 
         // Start background embedding generation for semantic search
         startBackgroundEmbeddingGeneration()
@@ -113,7 +117,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         SecurityLockService.shared.configure()
 
         // Initialize enterprise services (DLP, compliance, MDM monitoring)
+        #if !APP_STORE
         initializeEnterpriseServices()
+        #endif
 
         // Show onboarding if needed
         #if DEBUG
@@ -154,11 +160,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Stop auto-cleanup
         AutoCleanupManager.shared.stop()
 
+        #if !APP_STORE
         // Stop admin monitoring (health reporting, policy sync, analytics, audit)
         AdminManager.shared.stopMonitoring()
 
         // Stop enterprise monitoring
         MDMManager.shared.stopMonitoring()
+        #endif
 
         // Stop sync engine if it was started (avoids lazy singleton creation when sync was never used)
         let enterprise = SettingsManager.shared.enterprise
@@ -166,10 +174,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SyncManager.shared.stop()
         }
 
+        #if !APP_STORE
         // Shut down plugin system (calls willUnload on active plugins)
         Task {
             await PluginManager.shared.shutdown()
         }
+        #endif
 
         // Tear down menu bar
         menuBarController?.teardown()
@@ -317,11 +327,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             await floatingPanelController?.viewModel.paste(itemId: id)
 
+            #if !APP_STORE
             // Log paste as audit event
             await AuditManager.shared.logClipboardEvent(
                 action: .pastePerformed,
                 resourceId: id.uuidString
             )
+            #endif
         }
     }
 
@@ -435,9 +447,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Re-configure security lock service when security settings change
         SecurityLockService.shared.configure()
 
+        #if !APP_STORE
         // Refresh HIPAA and GDPR/SOC2 compliance state on settings change
         ComplianceManager.shared.refreshHIPAAState()
         ComplianceManager.shared.refreshComplianceSettings()
+        #endif
 
         // Propagate sync settings changes (for all users, not just MDM-managed)
         let syncShouldRun = settings.enterprise.cloudSyncEnabled && !settings.enterprise.localStorageOnly
@@ -451,6 +465,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SyncManager.shared.stop()
         }
 
+        #if !APP_STORE
         // Propagate plugin enable/disable for all devices (not just MDM-managed)
         if settings.enterprise.pluginsEnabled, !PluginManager.shared.isInitialized {
             if let factory = pluginContextFactory {
@@ -471,6 +486,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Re-check admin console configuration (MDM URL may have changed mid-session)
         configureAdminConsoleIfNeeded()
+        #endif
 
         logger.debug("Settings change handled")
     }
@@ -535,6 +551,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    #if !APP_STORE
     // MARK: - Enterprise Services
 
     /// Initializes enterprise services: DLP, compliance, MDM monitoring, and admin console.
@@ -719,8 +736,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         logger.info("Admin console configured via MDM/stored URL")
     }
 
-    // MARK: - Automation
-
     /// Initializes the plugin system
     private func initializePluginSystem() {
         let factory = PluginContextFactoryImpl()
@@ -730,6 +745,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             logger.debug("Plugin system initialized")
         }
     }
+    #endif
+
+    // MARK: - Automation
 
     /// Initializes the automation engine and seeds default rules
     private func initializeAutomation() {
@@ -766,6 +784,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
         // Sequential pipeline: DLP → automation → plugins → audit → webhooks → embeddings/OCR
         Task {
             do {
+                #if !APP_STORE
                 // GDPR consent gate: skip entire pipeline if clipboard monitoring consent revoked
                 if ComplianceManager.shared.isGDPRActive,
                    !GDPRConsentManager.shared.isConsentGranted(for: .clipboardMonitoring) {
@@ -778,12 +797,16 @@ extension AppDelegate: ClipboardMonitorDelegate {
                 let dlpResult = await processDLPEvaluation(for: content, sourceApp: sourceApp)
                 if dlpResult.blocked { return }
                 let pipelineContent = dlpResult.content
+                #else
+                let pipelineContent = content
+                #endif
 
                 // Stage 2: Run automation rules — may delete the item or transform content
                 let automationResult = await processAutomation(for: pipelineContent, sourceApp: sourceApp)
                 if automationResult.deleted { return }
                 let finalContent = automationResult.content
 
+                #if !APP_STORE
                 // Stage 3: Post notification for plugin system (gated by GDPR thirdPartyPlugins consent)
                 if !ComplianceManager.shared.isGDPRActive
                     || GDPRConsentManager.shared.isConsentGranted(for: .thirdPartyPlugins) {
@@ -809,6 +832,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
                     || GDPRConsentManager.shared.isConsentGranted(for: .thirdPartyPlugins) {
                     await WebhookManager.shared.sendClipboardCreated(content: finalContent)
                 }
+                #endif
 
                 // Stage 6: Generate embedding for semantic search
                 generateEmbeddingForNewItem(id: finalContent.id)
@@ -823,6 +847,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
         logger.debug("Captured: \(content.primaryType.displayName)")
     }
 
+    #if !APP_STORE
     /// Result of DLP evaluation indicating whether content was blocked and providing
     /// the (possibly redacted) content for downstream pipeline stages.
     private struct DLPPipelineResult {
@@ -911,6 +936,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
 
         return DLPPipelineResult(blocked: false, content: content)
     }
+    #endif
 
     /// Result of automation processing indicating whether content was deleted and providing
     /// the (possibly transformed) content for downstream pipeline stages.
@@ -952,6 +978,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
                 logger.info("Automation: deleted item \(content.id) per rule action")
                 NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
 
+                #if !APP_STORE
                 // Audit: log that automation deleted the item (gated by GDPR auditLogging consent)
                 if !ComplianceManager.shared.isGDPRActive
                     || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
@@ -965,6 +992,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
                         ]
                     )
                 }
+                #endif
             }
             return AutomationPipelineResult(deleted: true, content: content)
         }

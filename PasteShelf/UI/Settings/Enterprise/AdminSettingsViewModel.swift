@@ -56,6 +56,9 @@ final class AdminSettingsViewModel: ObservableObject {
     /// The most recent admin error, if any.
     @Published private(set) var lastError: AdminError?
 
+    /// Whether an enrollment or unenrollment operation is in progress.
+    @Published private(set) var isProcessing: Bool = false
+
     // MARK: - Computed Properties
 
     /// Whether the device is fully enrolled with the admin console.
@@ -94,6 +97,9 @@ final class AdminSettingsViewModel: ObservableObject {
     ///
     /// On failure, sets `lastError` with the caught `AdminError`.
     func enrollDevice() async {
+        guard !isProcessing else { return }
+        isProcessing = true
+        defer { isProcessing = false }
         do {
             try await AdminManager.shared.enrollDevice()
             loadState()
@@ -108,6 +114,9 @@ final class AdminSettingsViewModel: ObservableObject {
     ///
     /// On failure, sets `lastError` with the caught `AdminError`.
     func unenrollDevice() async {
+        guard !isProcessing else { return }
+        isProcessing = true
+        defer { isProcessing = false }
         do {
             try await AdminManager.shared.unenrollDevice()
             loadState()

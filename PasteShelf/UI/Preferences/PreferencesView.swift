@@ -45,13 +45,17 @@ struct PreferencesView: View {
                 .tabItem { Label(PreferencesTab.automation.displayName, systemImage: PreferencesTab.automation.iconName) }
                 .tag(PreferencesTab.automation)
 
+            #if !APP_STORE
             PluginSettingsView()
                 .tabItem { Label(PreferencesTab.plugins.displayName, systemImage: PreferencesTab.plugins.iconName) }
                 .tag(PreferencesTab.plugins)
+            #endif
 
+            #if !APP_STORE
             EnterpriseTabView()
                 .tabItem { Label(PreferencesTab.enterprise.displayName, systemImage: PreferencesTab.enterprise.iconName) }
                 .tag(PreferencesTab.enterprise)
+            #endif
 
             AboutTabView()
                 .tabItem { Label(PreferencesTab.about.displayName, systemImage: PreferencesTab.about.iconName) }

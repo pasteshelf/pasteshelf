@@ -9,6 +9,7 @@ import AppKit
 import Combine
 import Foundation
 import os.log
+import UniformTypeIdentifiers
 
 // MARK: - DLPSettingsViewModel
 
@@ -191,8 +192,7 @@ final class DLPSettingsViewModel: ObservableObject {
     private func presentSavePanel(sourceURL: URL, suggestedFilename: String, fileExtension: String) {
         let panel = NSSavePanel()
         panel.nameFieldStringValue = suggestedFilename
-        panel.allowedContentTypes = []
-        panel.allowsOtherFileTypes = false
+        panel.allowedContentTypes = [UTType(filenameExtension: fileExtension) ?? .data]
         panel.canCreateDirectories = true
 
         panel.begin { [weak self] response in
@@ -207,8 +207,11 @@ final class DLPSettingsViewModel: ObservableObject {
                 try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
                 self?.logger.info("DLP violations exported to \(destinationURL.path)")
             } catch {
-                self?.errorMessage = "Failed to save file: \(error.localizedDescription)"
-                self?.logger.error("Export save failed: \(error.localizedDescription)")
+                let message = error.localizedDescription
+                Task { @MainActor [weak self] in
+                    self?.errorMessage = "Failed to save file: \(message)"
+                }
+                self?.logger.error("Export save failed: \(message)")
             }
         }
     }
@@ -243,7 +246,7 @@ final class DLPSettingsViewModel: ObservableObject {
 
     /// Escapes a single CSV field value, wrapping in quotes if it contains a comma, quote, or newline.
     private func csvEscape(_ value: String) -> String {
-        let needsQuoting = value.contains(",") || value.contains("\"") || value.contains("\n")
+        let needsQuoting = value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")
         if needsQuoting {
             return "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
         }

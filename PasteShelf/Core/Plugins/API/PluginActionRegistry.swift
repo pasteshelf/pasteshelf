@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginActionRegistry.swift
 //  PasteShelf
@@ -203,3 +204,5 @@ extension PluginActionRegistry {
 extension Notification.Name {
     static let pluginActionsChanged = Notification.Name("pluginActionsChanged")
 }
+
+#endif

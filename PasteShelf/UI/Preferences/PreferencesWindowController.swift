@@ -116,10 +116,12 @@ final class PreferencesWindowController: NSObject {
             view = AnyView(SyncTabView())
         case .automation:
             view = AnyView(AutomationTabView())
+        #if !APP_STORE
         case .plugins:
             view = AnyView(PluginSettingsView())
         case .enterprise:
             view = AnyView(EnterpriseTabView())
+        #endif
         case .about:
             view = AnyView(AboutTabView())
         }

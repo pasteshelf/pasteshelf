@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginManager.swift
 //  PasteShelf
@@ -525,3 +526,5 @@ enum PluginManagerError: Error, LocalizedError, Sendable {
 protocol PluginContextFactory {
     func createContext(for bundle: PluginBundle) -> any PluginContext
 }
+
+#endif

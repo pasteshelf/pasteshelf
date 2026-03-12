@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginPermission.swift
 //  PasteShelf
@@ -172,3 +173,5 @@ struct PluginPermissionGrant: Codable, Equatable, Sendable {
         self.isPermanent = isPermanent
     }
 }
+
+#endif

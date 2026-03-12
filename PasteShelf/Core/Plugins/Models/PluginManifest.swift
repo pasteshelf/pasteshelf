@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginManifest.swift
 //  PasteShelf
@@ -238,3 +239,5 @@ enum PluginCategory: String, Codable, CaseIterable, Sendable {
         }
     }
 }
+
+#endif

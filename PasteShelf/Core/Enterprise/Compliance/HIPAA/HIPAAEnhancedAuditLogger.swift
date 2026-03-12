@@ -55,16 +55,22 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
     private static let cacheTTL: TimeInterval = 60
 
     /// Returns the cached HIPAA compliance mode, refreshing from UserDefaults at most every 60 seconds.
+    private static let cacheLock = NSLock()
+
     static var cachedMode: HIPAAComplianceMode {
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
         if _cachedMode == nil || Date().timeIntervalSince(_cacheTimestamp) > cacheTTL {
             _cachedMode = HIPAAComplianceMode.load()
             _cacheTimestamp = Date()
         }
-        return _cachedMode!
+        return _cachedMode ?? .default
     }
 
     /// Invalidates the cached mode, forcing a reload on next access.
     static func invalidateCache() {
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
         _cachedMode = nil
         _cacheTimestamp = .distantPast
     }

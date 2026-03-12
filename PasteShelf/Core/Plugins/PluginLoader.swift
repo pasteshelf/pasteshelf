@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginLoader.swift
 //  PasteShelf
@@ -330,3 +331,5 @@ enum PluginInstallError: Error, LocalizedError, Sendable {
         }
     }
 }
+
+#endif

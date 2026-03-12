@@ -207,12 +207,14 @@ public final class SyncManager: ObservableObject, SyncManaging {
 
     /// Determines the appropriate sync backend based on configuration.
     private func resolveBackend() throws -> any SyncBackend {
+        #if !APP_STORE
         // Self-hosted sync takes precedence if configured
         if let config = selfHostedConfiguration, config.isConfigured, config.isEnabled {
             activeBackendType = .selfHosted
             Self.logger.info("Using self-hosted sync backend")
             return SelfHostedSyncBackend(configuration: config)
         }
+        #endif
 
         // Fall back to CloudKit
         activeBackendType = .cloudKit

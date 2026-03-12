@@ -32,6 +32,7 @@ struct DLPRuleEditorView: View {
     @State private var severity: SensitiveSeverity
     @State private var selectedActions: Set<DLPAction>
     @State private var isEnabled: Bool
+    @State private var regexError: String?
 
     // MARK: - Initialization
 
@@ -132,6 +133,13 @@ struct DLPRuleEditorView: View {
                     .font(.system(.body, design: .monospaced))
                     .textFieldStyle(.plain)
                     .frame(maxWidth: .infinity, alignment: .trailing)
+                    .onChange(of: pattern) { _, _ in regexError = nil }
+            }
+
+            if let regexError {
+                Text(regexError)
+                    .font(.caption)
+                    .foregroundStyle(.red)
             }
 
             Toggle("Enabled", isOn: $isEnabled)
@@ -143,6 +151,7 @@ struct DLPRuleEditorView: View {
     private var severitySection: some View {
         Section("Severity") {
             Picker("Severity", selection: $severity) {
+                Text("None").tag(SensitiveSeverity.none)
                 Text("Low").tag(SensitiveSeverity.low)
                 Text("Medium").tag(SensitiveSeverity.medium)
                 Text("High").tag(SensitiveSeverity.high)
@@ -174,6 +183,15 @@ struct DLPRuleEditorView: View {
     // MARK: - Save
 
     private func saveRule() {
+        let trimmedPattern = pattern.trimmingCharacters(in: .whitespaces)
+        do {
+            _ = try NSRegularExpression(pattern: trimmedPattern)
+        } catch {
+            regexError = "Invalid regex: \(error.localizedDescription)"
+            return
+        }
+        regexError = nil
+
         let now = Date()
         let orderedActions = DLPAction.allCases.filter { selectedActions.contains($0) }
 
