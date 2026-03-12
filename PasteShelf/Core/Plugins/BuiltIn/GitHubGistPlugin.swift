@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  GitHubGistPlugin.swift
 //  PasteShelf
@@ -310,3 +311,5 @@ private struct GitHubGistSettingsView: View {
         }
     }
 }
+
+#endif

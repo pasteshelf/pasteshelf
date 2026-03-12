@@ -99,6 +99,15 @@ struct HIPAAEncryptionVerifier: Sendable {
 
     /// Verifies that the local disk is encrypted (FileVault on macOS).
     private static func verifyDiskEncryption() -> ComplianceFinding {
+        #if APP_STORE
+        // Process() is unavailable in sandboxed App Store builds; assume encrypted.
+        return ComplianceFinding(
+            category: "Disk Encryption",
+            status: .warning,
+            description: "Unable to determine FileVault status in App Store build",
+            recommendation: "Manually verify FileVault is enabled in System Settings"
+        )
+        #else
         // Check FileVault status via fdesetup
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/fdesetup")
@@ -137,6 +146,7 @@ struct HIPAAEncryptionVerifier: Sendable {
                 recommendation: "Manually verify FileVault is enabled in System Settings"
             )
         }
+        #endif
     }
 
     /// Verifies key rotation status.

@@ -22,6 +22,7 @@ struct AuditLogView: View {
     // MARK: - Properties
 
     @StateObject private var viewModel = AuditLogViewModel()
+    @State private var pendingRetentionDays: Int?
 
     // MARK: - Body
 
@@ -47,6 +48,26 @@ struct AuditLogView: View {
         } message: {
             if let message = viewModel.errorMessage {
                 Text(message)
+            }
+        }
+        .alert("Change Retention Period?", isPresented: Binding(
+            get: { pendingRetentionDays != nil },
+            set: { if !$0 { pendingRetentionDays = nil } }
+        )) {
+            Button("Apply") {
+                if let days = pendingRetentionDays {
+                    viewModel.updateRetentionDays(days)
+                }
+                pendingRetentionDays = nil
+            }
+            Button("Cancel", role: .cancel) {
+                pendingRetentionDays = nil
+                // Reset picker to current value
+                viewModel.retentionDays = viewModel.retentionDays
+            }
+        } message: {
+            if let days = pendingRetentionDays {
+                Text("Setting retention to \(days) day\(days == 1 ? "" : "s") will permanently delete older events during the next pruning pass. This cannot be undone.")
             }
         }
     }
@@ -112,6 +133,12 @@ struct AuditLogView: View {
                 }
             }
 
+            if let start = viewModel.dateRangeStart, let end = viewModel.dateRangeEnd, start > end {
+                Text("Start date is after end date")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
             // MARK: Clear All Filters
 
             Button("Clear Filters") {
@@ -126,6 +153,15 @@ struct AuditLogView: View {
 
     private var eventsSection: some View {
         Section("Events (\(viewModel.events.count))") {
+            if viewModel.decryptionFailureCount > 0 {
+                Label(
+                    "\(viewModel.decryptionFailureCount) event\(viewModel.decryptionFailureCount == 1 ? "" : "s") could not be decrypted",
+                    systemImage: "exclamationmark.triangle"
+                )
+                .font(.caption)
+                .foregroundStyle(.orange)
+            }
+
             if viewModel.isLoading {
                 HStack {
                     Spacer()
@@ -177,7 +213,7 @@ struct AuditLogView: View {
                 .labelsHidden()
                 .frame(width: 160)
                 .onChange(of: viewModel.retentionDays) { _, newValue in
-                    viewModel.updateRetentionDays(newValue)
+                    pendingRetentionDays = newValue
                 }
             }
 

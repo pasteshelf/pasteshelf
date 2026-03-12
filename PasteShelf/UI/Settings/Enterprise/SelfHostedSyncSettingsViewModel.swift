@@ -26,6 +26,7 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
     @Published var connectionStatus: ConnectionStatus = .unknown
     @Published var isTestingConnection: Bool = false
     @Published var testSteps: [ConnectionTestStep] = []
+    @Published var errorMessage: String?
 
     // MARK: - Properties
 
@@ -89,9 +90,14 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
 
         // Restart sync if the new configuration is valid and enabled
         if syncConfig.isEnabled && syncConfig.isConfigured {
-            Task {
-                try? await SyncManager.shared.stop()
-                try? await SyncManager.shared.start()
+            Task { [weak self] in
+                do {
+                    try await SyncManager.shared.stop()
+                    try await SyncManager.shared.start()
+                } catch {
+                    self?.errorMessage = "Sync failed to restart: \(error.localizedDescription)"
+                    self?.logger.error("Sync restart failed: \(error.localizedDescription)")
+                }
             }
         }
 
@@ -107,7 +113,10 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
             kSecAttrService as String: apiKeyService,
             kSecAttrAccount as String: apiKeyAccount
         ]
-        SecItemDelete(deleteQuery as CFDictionary)
+        let deleteStatus = SecItemDelete(deleteQuery as CFDictionary)
+        if deleteStatus != errSecSuccess && deleteStatus != errSecItemNotFound {
+            logger.warning("Keychain delete returned status \(deleteStatus)")
+        }
 
         let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -116,7 +125,11 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
         ]
-        SecItemAdd(addQuery as CFDictionary, nil)
+        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        if addStatus != errSecSuccess {
+            logger.error("Keychain add failed with status \(addStatus)")
+            errorMessage = "Failed to save API key to Keychain (error \(addStatus))"
+        }
     }
 
     private func loadApiKeyFromKeychain() -> String? {

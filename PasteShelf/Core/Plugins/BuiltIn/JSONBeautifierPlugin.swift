@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  JSONBeautifierPlugin.swift
 //  PasteShelf
@@ -275,3 +276,5 @@ private struct JSONBeautifierSettingsView: View {
         }
     }
 }
+
+#endif

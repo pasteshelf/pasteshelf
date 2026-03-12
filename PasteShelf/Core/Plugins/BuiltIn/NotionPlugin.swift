@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  NotionPlugin.swift
 //  PasteShelf
@@ -335,3 +336,5 @@ private struct NotionSettingsView: View {
         }
     }
 }
+
+#endif

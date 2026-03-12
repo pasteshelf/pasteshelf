@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginUIAPI.swift
 //  PasteShelf
@@ -181,3 +182,5 @@ struct PluginContextMenuItem: Identifiable, Sendable {
 extension Notification.Name {
     static let pluginMenuItemsChanged = Notification.Name("pluginMenuItemsChanged")
 }
+
+#endif

@@ -9,6 +9,7 @@ import AppKit
 import Combine
 import Foundation
 import os.log
+import UniformTypeIdentifiers
 
 // MARK: - AuditLogViewModel
 
@@ -48,10 +49,14 @@ final class AuditLogViewModel: ObservableObject {
     /// The current retention window in days, surfaced for the Picker.
     @Published var retentionDays: Int = AuditManager.shared.retentionConfiguration.retentionDays
 
+    /// Number of events that failed to decrypt in the last load.
+    @Published private(set) var decryptionFailureCount: Int = 0
+
     // MARK: - Private Properties
 
     private let logger = Logger.audit
     private var cancellables = Set<AnyCancellable>()
+    private var loadTask: Task<Void, Never>?
 
     /// Maximum number of events returned from storage in a single fetch.
     private let fetchLimit = 500
@@ -90,6 +95,7 @@ final class AuditLogViewModel: ObservableObject {
             )
 
             var displayItems: [AuditLogDisplayItem] = []
+            var failures = 0
             for entry in entries {
                 let detail: [String: String]
                 do {
@@ -97,6 +103,7 @@ final class AuditLogViewModel: ObservableObject {
                 } catch {
                     logger.warning("Could not decrypt detail for entry \(String(describing: entry.id)): \(error.localizedDescription)")
                     detail = [:]
+                    failures += 1
                 }
                 if let item = AuditLogDisplayItem.from(entry, decryptedDetail: detail) {
                     displayItems.append(item)
@@ -104,6 +111,7 @@ final class AuditLogViewModel: ObservableObject {
             }
 
             events = displayItems
+            decryptionFailureCount = failures
             logger.info("Audit log viewer loaded \(displayItems.count) events")
         } catch {
             errorMessage = error.localizedDescription
@@ -187,7 +195,8 @@ final class AuditLogViewModel: ObservableObject {
             .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
             .sink { [weak self] in
                 guard let self else { return }
-                Task { await self.loadEvents() }
+                self.loadTask?.cancel()
+                self.loadTask = Task { await self.loadEvents() }
             }
             .store(in: &cancellables)
     }
@@ -204,8 +213,7 @@ final class AuditLogViewModel: ObservableObject {
     private func presentSavePanel(sourceURL: URL, suggestedFilename: String, fileExtension: String) {
         let panel = NSSavePanel()
         panel.nameFieldStringValue = suggestedFilename
-        panel.allowedContentTypes = []
-        panel.allowsOtherFileTypes = false
+        panel.allowedContentTypes = [UTType(filenameExtension: fileExtension) ?? .data]
         panel.canCreateDirectories = true
 
         panel.begin { [weak self] response in
@@ -220,8 +228,11 @@ final class AuditLogViewModel: ObservableObject {
                 try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
                 self?.logger.info("Audit log exported to \(destinationURL.path)")
             } catch {
-                self?.errorMessage = "Failed to save file: \(error.localizedDescription)"
-                self?.logger.error("Export save failed: \(error.localizedDescription)")
+                let message = error.localizedDescription
+                Task { @MainActor [weak self] in
+                    self?.errorMessage = "Failed to save file: \(message)"
+                }
+                self?.logger.error("Export save failed: \(message)")
             }
         }
     }
@@ -266,7 +277,7 @@ final class AuditLogViewModel: ObservableObject {
 
     /// Escapes a single CSV field value, wrapping in quotes if it contains a comma, quote, or newline.
     private func csvEscape(_ value: String) -> String {
-        let needsQuoting = value.contains(",") || value.contains("\"") || value.contains("\n")
+        let needsQuoting = value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")
         if needsQuoting {
             return "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
         }

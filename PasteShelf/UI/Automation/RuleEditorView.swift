@@ -427,8 +427,10 @@ struct ActionPickerView: View {
             return .notify(title: "PasteShelf", message: "Rule executed")
         case .openURL:
             return .openURL(urlTemplate: "")
+        #if !APP_STORE
         case .runScript:
             return .runScript(scriptPath: "")
+        #endif
         case .webhook:
             return .webhook(endpointId: UUID())
         case .markSensitive:

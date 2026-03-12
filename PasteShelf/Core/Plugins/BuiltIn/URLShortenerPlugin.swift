@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  URLShortenerPlugin.swift
 //  PasteShelf
@@ -265,3 +266,5 @@ private struct URLShortenerSettingsView: View {
         }
     }
 }
+
+#endif

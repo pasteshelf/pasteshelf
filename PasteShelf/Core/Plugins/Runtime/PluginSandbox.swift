@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginSandbox.swift
 //  PasteShelf
@@ -251,3 +252,5 @@ enum PluginSandboxError: Error, LocalizedError, Sendable {
         }
     }
 }
+
+#endif

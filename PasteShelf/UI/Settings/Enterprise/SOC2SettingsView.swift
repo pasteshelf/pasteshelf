@@ -35,7 +35,7 @@ struct SOC2SettingsView: View {
                                     Label("Generate Report", systemImage: "doc.text.magnifyingglass")
                                 }
                             }
-                            .disabled(viewModel.isGenerating)
+                            .disabled(viewModel.isGenerating || !ComplianceManager.shared.isSOC2Active)
 
                             Spacer()
 
@@ -97,7 +97,7 @@ struct SOC2SettingsView: View {
                                 Label("Export Verified Audit Trail", systemImage: "link.badge.plus")
                             }
                         }
-                        .disabled(viewModel.isExporting)
+                        .disabled(viewModel.isExporting || !ComplianceManager.shared.isSOC2Active || trailStartDate > trailEndDate)
 
                         Text("Exports a cryptographically chained audit trail with SHA-256 integrity verification.")
                             .font(.caption)

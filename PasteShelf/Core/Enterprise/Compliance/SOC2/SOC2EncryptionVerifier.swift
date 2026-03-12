@@ -182,6 +182,15 @@ struct SOC2EncryptionVerifier: Sendable {
 
     /// Verifies that the local disk is encrypted using FileVault.
     private static func verifyAtRestEncryption() -> ComplianceFinding {
+        #if APP_STORE
+        // Process() is unavailable in sandboxed App Store builds; assume encrypted.
+        return ComplianceFinding(
+            category: "At-Rest Encryption",
+            status: .warning,
+            description: "Unable to determine FileVault status in App Store build",
+            recommendation: "Manually verify FileVault is enabled in System Settings"
+        )
+        #else
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/fdesetup")
         process.arguments = ["isactive"]
@@ -219,6 +228,7 @@ struct SOC2EncryptionVerifier: Sendable {
                 recommendation: "Manually verify FileVault is enabled in System Settings"
             )
         }
+        #endif
     }
 
     /// Verifies key management practices by confirming all required keys are present

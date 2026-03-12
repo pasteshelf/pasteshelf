@@ -381,6 +381,7 @@ struct FloatingPanelView: View {
         let actualIndex = index ?? viewModel.items.firstIndex(where: { $0.id == item.id }) ?? 0
         let matchRanges = viewModel.matchRanges(for: item.id)
 
+        #if !APP_STORE
         return ClipboardItemRow(
             item: item,
             index: actualIndex,
@@ -421,6 +422,39 @@ struct FloatingPanelView: View {
             }
         )
         .id(item.id)
+        #else
+        return ClipboardItemRow(
+            item: item,
+            index: actualIndex,
+            isSelected: viewModel.selectedIndex == actualIndex,
+            searchHighlights: matchRanges,
+            searchQuery: viewModel.isSearchActive ? viewModel.searchQuery : nil,
+            onSelect: {
+                viewModel.select(at: actualIndex)
+            },
+            onPaste: {
+                Task {
+                    await viewModel.paste(item: item)
+                }
+            },
+            onCopyOCRText: item.hasOCRText ? {
+                Task {
+                    await viewModel.copyOCRText(for: item)
+                }
+            } : nil,
+            onDelete: {
+                Task {
+                    await viewModel.delete(item: item)
+                }
+            },
+            onToggleFavorite: {
+                Task {
+                    await viewModel.toggleFavorite(for: item)
+                }
+            }
+        )
+        .id(item.id)
+        #endif
     }
 }
 

@@ -253,6 +253,7 @@ struct IdentityProviderFormView: View {
                         Text("Persistent").tag(SAMLNameIDFormat.persistent)
                         Text("Transient").tag(SAMLNameIDFormat.transient)
                         Text("Unspecified").tag(SAMLNameIDFormat.unspecified)
+                        Text("Entity").tag(SAMLNameIDFormat.entity)
                         Text("X.509 Subject").tag(SAMLNameIDFormat.x509SubjectName)
                         Text("Windows Domain").tag(SAMLNameIDFormat.windowsDomainQualifiedName)
                         Text("Kerberos").tag(SAMLNameIDFormat.kerberos)

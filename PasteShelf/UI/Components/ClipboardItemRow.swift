@@ -21,7 +21,9 @@ struct ClipboardItemRow: View {
     var onCopyOCRText: (() -> Void)?
     var onDelete: (() -> Void)?
     var onToggleFavorite: (() -> Void)?
+    #if !APP_STORE
     var onPluginAction: ((PluginMenuItem, String) -> Void)?
+    #endif
 
     // MARK: - State
 
@@ -129,6 +131,7 @@ struct ClipboardItemRow: View {
             }
         }
 
+        #if !APP_STORE
         // Plugin actions — grouped under a single "Plugins" submenu
         let pluginMenuItems = PluginManager.shared.allMenuItems
             .sorted(by: { ($0.pluginId) < ($1.pluginId) })
@@ -162,6 +165,7 @@ struct ClipboardItemRow: View {
                 Label("Plugins", systemImage: "puzzlepiece.extension")
             }
         }
+        #endif
 
         // Delete
         if let onDeleteAction = onDelete {

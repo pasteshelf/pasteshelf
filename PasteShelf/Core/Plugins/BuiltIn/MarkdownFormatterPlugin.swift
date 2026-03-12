@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  MarkdownFormatterPlugin.swift
 //  PasteShelf
@@ -361,3 +362,5 @@ public final class MarkdownFormatterPlugin: NSObject, PasteShelfPlugin {
         return result.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
+
+#endif

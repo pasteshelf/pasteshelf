@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginStorageImpl.swift
 //  PasteShelf
@@ -230,3 +231,5 @@ import os.log
         storageDirectory
     }
 }
+
+#endif

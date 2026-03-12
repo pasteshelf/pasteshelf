@@ -704,6 +704,7 @@ final class FloatingPanelViewModel: ObservableObject {
         logger.info("Copied OCR text for item: \(item.id)")
     }
 
+    #if !APP_STORE
     // MARK: - Plugin Actions
 
     /// Executes a plugin menu item action on a clipboard item
@@ -811,6 +812,7 @@ final class FloatingPanelViewModel: ObservableObject {
 
         return content
     }
+    #endif
 
     // MARK: - Collections
 

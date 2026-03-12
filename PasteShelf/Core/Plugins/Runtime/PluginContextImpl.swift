@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginContextImpl.swift
 //  PasteShelf
@@ -353,3 +354,5 @@ import os.log
         return pluginContent
     }
 }
+
+#endif

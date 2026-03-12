@@ -23,7 +23,9 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
         case .copyToClipboard(let id): return id
         case .notify(let id, _, _): return id
         case .openURL(let id, _): return id
+        #if !APP_STORE
         case .runScript(let id, _): return id
+        #endif
         case .webhook(let id, _): return id
         case .markSensitive(let id, _): return id
         case .delete(let id): return id
@@ -56,8 +58,10 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
     /// Open a URL (supports template variables)
     case openURL(id: UUID = UUID(), urlTemplate: String)
 
+    #if !APP_STORE
     /// Run an AppleScript
     case runScript(id: UUID = UUID(), scriptPath: String)
+    #endif
 
     /// Send a webhook request
     case webhook(id: UUID = UUID(), endpointId: UUID)
@@ -81,7 +85,9 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
         case .copyToClipboard: return .copyToClipboard
         case .notify: return .notify
         case .openURL: return .openURL
+        #if !APP_STORE
         case .runScript: return .runScript
+        #endif
         case .webhook: return .webhook
         case .markSensitive: return .markSensitive
         case .delete: return .delete
@@ -112,8 +118,10 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
             return "Show notification: \(title)"
         case .openURL(_, let urlTemplate):
             return "Open URL: \(urlTemplate)"
+        #if !APP_STORE
         case .runScript(_, let scriptPath):
             return "Run script: \(scriptPath)"
+        #endif
         case .webhook(_, _):
             return "Send webhook"
         case .markSensitive(_, let isSensitive):
@@ -183,9 +191,11 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
             let urlTemplate = try container.decode(String.self, forKey: .urlTemplate)
             self = .openURL(id: id, urlTemplate: urlTemplate)
 
+        #if !APP_STORE
         case "runScript":
             let scriptPath = try container.decode(String.self, forKey: .scriptPath)
             self = .runScript(id: id, scriptPath: scriptPath)
+        #endif
 
         case "webhook":
             let endpointId = try container.decode(UUID.self, forKey: .endpointId)
@@ -235,8 +245,10 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
         case .openURL(_, let urlTemplate):
             try container.encode(urlTemplate, forKey: .urlTemplate)
 
+        #if !APP_STORE
         case .runScript(_, let scriptPath):
             try container.encode(scriptPath, forKey: .scriptPath)
+        #endif
 
         case .webhook(_, let endpointId):
             try container.encode(endpointId, forKey: .endpointId)
@@ -262,7 +274,9 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
     case copyToClipboard
     case notify
     case openURL
+    #if !APP_STORE
     case runScript
+    #endif
     case webhook
     case markSensitive
     case delete
@@ -286,8 +300,10 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
             return String(localized: "Show Notification")
         case .openURL:
             return String(localized: "Open URL")
+        #if !APP_STORE
         case .runScript:
             return String(localized: "Run Script")
+        #endif
         case .webhook:
             return String(localized: "Send Webhook")
         case .markSensitive:
@@ -316,8 +332,10 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
             return String(localized: "Display a system notification")
         case .openURL:
             return String(localized: "Open a URL in the default browser")
+        #if !APP_STORE
         case .runScript:
             return String(localized: "Execute an AppleScript file")
+        #endif
         case .webhook:
             return String(localized: "Send an HTTP request to a webhook endpoint")
         case .markSensitive:
@@ -346,8 +364,10 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
             return "bell.fill"
         case .openURL:
             return "link"
+        #if !APP_STORE
         case .runScript:
             return "applescript"
+        #endif
         case .webhook:
             return "network"
         case .markSensitive:

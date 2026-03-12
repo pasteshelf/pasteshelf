@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginSettingsView.swift
 //  PasteShelf
@@ -611,3 +612,5 @@ final class PluginSettingsViewModel: ObservableObject {
         }
     }
 }
+
+#endif

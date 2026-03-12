@@ -140,7 +140,9 @@ final class ComplianceSettingsViewModel: ObservableObject {
 
         do {
             let url = try await GDPRDataExportService.exportUserData { [weak self] progress in
-                self?.gdprExportProgress = progress
+                Task { @MainActor [weak self] in
+                    self?.gdprExportProgress = progress
+                }
             }
             logger.info("GDPR data exported to \(url.lastPathComponent)")
             return url

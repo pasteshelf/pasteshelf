@@ -1,3 +1,4 @@
+#if !APP_STORE
 //
 //  PluginProtocols.swift
 //  PasteShelf
@@ -485,3 +486,5 @@ struct LoadedPlugin: Identifiable, Sendable {
         self.state = state
     }
 }
+
+#endif

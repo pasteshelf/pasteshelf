@@ -66,6 +66,7 @@ final class MenuBarController: NSObject, ObservableObject {
         button.action = #selector(statusItemClicked(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
 
+        #if !APP_STORE
         // Observe plugin changes to refresh menu when plugin items change
         NotificationCenter.default.publisher(for: .pluginMenuItemsChanged)
             .receive(on: DispatchQueue.main)
@@ -80,6 +81,7 @@ final class MenuBarController: NSObject, ObservableObject {
                 self?.logger.debug("Plugin actions changed, menu will refresh on next open")
             }
             .store(in: &cancellables)
+        #endif
 
         logger.info("Menu bar status item configured")
     }

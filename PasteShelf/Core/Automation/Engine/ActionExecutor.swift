@@ -64,8 +64,10 @@ final class ActionExecutor {
         case .openURL(_, let urlTemplate):
             return try executeOpenURL(urlTemplate: urlTemplate, content: content)
 
+        #if !APP_STORE
         case .runScript(_, let scriptPath):
             return try await executeRunScript(scriptPath: scriptPath, content: content)
+        #endif
 
         case .webhook(_, let endpointId):
             return try await executeWebhook(endpointId: endpointId, content: content, rule: rule)
@@ -270,6 +272,7 @@ final class ActionExecutor {
         return ActionExecutionResult(content: content)
     }
 
+    #if !APP_STORE
     // MARK: - Run Script Action
 
     /// Script execution timeout in seconds
@@ -334,6 +337,7 @@ final class ActionExecutor {
         logger.debug("Executed script: \(expandedPath)")
         return ActionExecutionResult(content: content)
     }
+    #endif
 
     // MARK: - Webhook Action
 
