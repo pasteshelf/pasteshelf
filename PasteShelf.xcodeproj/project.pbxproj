@@ -109,24 +109,6 @@
 		};
 /* End PBXGroup section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		CC300001DDDD000100000001 /* Strip Sparkle for App Store */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Strip Sparkle for App Store";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if [ \"${CONFIGURATION}\" = \"Release-AppStore\" ]; then\n  SPARKLE_PATH=\"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/Sparkle.framework\"\n  if [ -d \"${SPARKLE_PATH}\" ]; then\n    echo \"Stripping Sparkle.framework from App Store build\"\n    rm -rf \"${SPARKLE_PATH}\"\n  fi\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXNativeTarget section */
 		68632E082F32682C00DA156E /* PasteShelf */ = {
 			isa = PBXNativeTarget;
@@ -268,6 +250,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		CC300001DDDD000100000001 /* Strip Sparkle for App Store */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Sparkle for App Store";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"${CONFIGURATION}\" = \"Release-AppStore\" ]; then\n  SPARKLE_PATH=\"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/Sparkle.framework\"\n  if [ -d \"${SPARKLE_PATH}\" ]; then\n    echo \"Stripping Sparkle.framework from App Store build\"\n    rm -rf \"${SPARKLE_PATH}\"\n  fi\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		68632E052F32682C00DA156E /* Sources */ = {

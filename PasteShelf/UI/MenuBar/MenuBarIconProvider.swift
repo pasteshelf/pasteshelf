@@ -42,8 +42,14 @@ enum MenuBarIconProvider {
     }
 
     /// Returns the idle state icon as NSImage
+    /// Uses the custom menu bar icon from assets, falls back to SF Symbol
     static var idleImage: NSImage? {
-        image(for: idleIcon)
+        if let customIcon = NSImage(named: "MenuBarIcon") {
+            customIcon.size = NSSize(width: 18, height: 18)
+            customIcon.isTemplate = true
+            return customIcon
+        }
+        return image(for: idleIcon)
     }
 }
 
@@ -78,6 +84,11 @@ enum MenuBarState {
 
     /// Returns the NSImage for this state
     var image: NSImage? {
-        MenuBarIconProvider.image(for: iconName)
+        switch self {
+        case .idle, .active:
+            return MenuBarIconProvider.idleImage
+        default:
+            return MenuBarIconProvider.image(for: iconName)
+        }
     }
 }
