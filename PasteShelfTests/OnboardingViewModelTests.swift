@@ -5,7 +5,9 @@
 //  Unit tests for OnboardingViewModel.
 //
 
+#if !APP_STORE
 import ApplicationServices
+#endif
 import Foundation
 import Testing
 @testable import PasteShelf
@@ -13,39 +15,44 @@ import Testing
 struct OnboardingViewModelTests {
     // MARK: - OnboardingStep Tests
 
-    @Test("OnboardingStep has correct order")
+    @Test("OnboardingStep has correct raw values")
     func onboardingStepHasCorrectOrder() {
         #expect(OnboardingStep.welcome.rawValue == 0)
         #expect(OnboardingStep.permissions.rawValue == 1)
-        #expect(OnboardingStep.tutorial.rawValue == 2)
-        #expect(OnboardingStep.hotkeySetup.rawValue == 3)
+        #expect(OnboardingStep.notifications.rawValue == 2)
+        #expect(OnboardingStep.tutorial.rawValue == 3)
+        #expect(OnboardingStep.hotkeySetup.rawValue == 4)
     }
 
-    @Test("OnboardingStep.next returns correct step")
+    @Test("OnboardingStep.next returns correct step for active steps")
     func onboardingStepNextReturnsCorrectStep() {
-        #expect(OnboardingStep.welcome.next == .permissions)
-        #expect(OnboardingStep.permissions.next == .tutorial)
-        #expect(OnboardingStep.tutorial.next == .hotkeySetup)
-        #expect(OnboardingStep.hotkeySetup.next == nil)
+        let steps = OnboardingStep.activeSteps
+        for (index, step) in steps.enumerated() {
+            if index + 1 < steps.count {
+                #expect(step.next == steps[index + 1])
+            } else {
+                #expect(step.next == nil)
+            }
+        }
     }
 
-    @Test("OnboardingStep.previous returns correct step")
+    @Test("OnboardingStep.previous returns correct step for active steps")
     func onboardingStepPreviousReturnsCorrectStep() {
-        #expect(OnboardingStep.welcome.previous == nil)
-        #expect(OnboardingStep.permissions.previous == .welcome)
-        #expect(OnboardingStep.tutorial.previous == .permissions)
-        #expect(OnboardingStep.hotkeySetup.previous == .tutorial)
+        let steps = OnboardingStep.activeSteps
+        for (index, step) in steps.enumerated() {
+            if index > 0 {
+                #expect(step.previous == steps[index - 1])
+            } else {
+                #expect(step.previous == nil)
+            }
+        }
     }
 
     @Test("OnboardingStep skippable status is correct")
     func onboardingStepSkippableStatusIsCorrect() {
-        // Welcome and permissions are required
         #expect(OnboardingStep.welcome.isSkippable == false)
         #expect(OnboardingStep.permissions.isSkippable == false)
-
-        // Tutorial and hotkey setup are optional
-        #expect(OnboardingStep.tutorial.isSkippable == true)
-        #expect(OnboardingStep.hotkeySetup.isSkippable == true)
+        #expect(OnboardingStep.notifications.isSkippable == false)
     }
 
     @Test("All steps have titles")
@@ -90,23 +97,34 @@ struct OnboardingViewModelTests {
 
     // MARK: - Step Count Tests
 
-    @Test("Total steps count is 4")
-    func totalStepsCountIs4() {
-        #expect(OnboardingStep.allCases.count == 4)
+    @Test("Total steps count is 5")
+    func totalStepsCountIs5() {
+        #expect(OnboardingStep.allCases.count == 5)
     }
 
-    @Test("Steps are iterable in order")
+    @Test("Active steps count matches build configuration")
+    func activeStepsCountMatchesBuild() {
+        #if APP_STORE
+        #expect(OnboardingStep.activeSteps.count == 4)
+        #else
+        #expect(OnboardingStep.activeSteps.count == 5)
+        #endif
+    }
+
+    @Test("All cases are iterable in order")
     func stepsAreIterableInOrder() {
         let steps = OnboardingStep.allCases
         #expect(steps[0] == .welcome)
         #expect(steps[1] == .permissions)
-        #expect(steps[2] == .tutorial)
-        #expect(steps[3] == .hotkeySetup)
+        #expect(steps[2] == .notifications)
+        #expect(steps[3] == .tutorial)
+        #expect(steps[4] == .hotkeySetup)
     }
 }
 
 // MARK: - Accessibility Permission Tests
 
+#if !APP_STORE
 struct AccessibilityPermissionTests {
     @Test("AXIsProcessTrusted returns a boolean")
     func axIsProcessTrustedReturnsBool() {
@@ -115,3 +133,4 @@ struct AccessibilityPermissionTests {
         #expect(result == true || result == false)
     }
 }
+#endif

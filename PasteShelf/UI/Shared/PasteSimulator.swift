@@ -4,7 +4,10 @@
 //
 //  Simulates Cmd+V paste keystroke using CGEvent API.
 //  Requires Accessibility permissions to work properly.
+//  Excluded from App Store builds (Guideline 2.4.5).
 //
+
+#if !APP_STORE
 
 import AppKit
 import Carbon.HIToolbox
@@ -156,3 +159,5 @@ extension PasteSimulator {
         NSWorkspace.shared.open(url)
     }
 }
+
+#endif

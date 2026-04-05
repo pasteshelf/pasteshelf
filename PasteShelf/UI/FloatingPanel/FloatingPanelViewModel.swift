@@ -123,7 +123,9 @@ final class FloatingPanelViewModel: ObservableObject {
     weak var clipboardMonitor: ClipboardMonitor?
 
     /// Paste simulator for Cmd+V simulation
+    #if !APP_STORE
     private let pasteSimulator = PasteSimulator()
+    #endif
 
     /// Callback to restore focus to the previous app (set by FloatingPanelController)
     var restorePreviousAppFocus: (@MainActor () -> Void)?
@@ -514,7 +516,14 @@ final class FloatingPanelViewModel: ObservableObject {
         // Step 3.5: Restore focus to the previous app
         restorePreviousAppFocus?()
 
-        // Step 4: Simulate paste after a short delay (200ms for focus transfer)
+        #if APP_STORE
+        // App Store: show "Copied" toast — user presses Cmd+V themselves.
+        // Pause monitoring for 2s to avoid re-capturing the user's manual Cmd+V paste.
+        CopiedConfirmationWindow.show()
+        try? await Task.sleep(for: .milliseconds(2000))
+        clipboardMonitor?.resume()
+        #else
+        // Direct distribution: simulate Cmd+V paste via Accessibility
         try? await Task.sleep(for: .milliseconds(200))
         let pasted = pasteSimulator.simulatePaste()
 
@@ -522,9 +531,10 @@ final class FloatingPanelViewModel: ObservableObject {
             errorMessage = "Item copied to clipboard. Grant Accessibility permission in System Settings to enable auto-paste."
         }
 
-        // Step 5: Resume monitoring after paste completes
+        // Resume monitoring after paste completes
         try? await Task.sleep(for: .milliseconds(300))
         clipboardMonitor?.resume()
+        #endif
 
         logger.info("Paste completed for item: \(item.id)")
     }

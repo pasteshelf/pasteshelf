@@ -44,6 +44,7 @@ final class OnboardingUITests: XCTestCase {
         XCTAssertTrue(window.buttons["Continue"].exists)
     }
 
+    #if !APP_STORE
     @MainActor
     func testContinueFromWelcomeToPermissions() throws {
         let window = app.windows["Welcome to PasteShelf"]
@@ -89,6 +90,18 @@ final class OnboardingUITests: XCTestCase {
         // Should be back at welcome
         XCTAssertTrue(window.staticTexts["Welcome to PasteShelf"].waitForExistence(timeout: 2))
     }
+    #else
+    @MainActor
+    func testContinueFromWelcomeToNotifications() throws {
+        let window = app.windows["Welcome to PasteShelf"]
+
+        // Click Continue — App Store skips Permissions, goes to Notifications
+        window.buttons["Continue"].click()
+
+        let notificationsText = window.staticTexts["Notifications"]
+        XCTAssertTrue(notificationsText.waitForExistence(timeout: 2))
+    }
+    #endif
 
     // MARK: - Tutorial Step Tests
 
@@ -171,14 +184,16 @@ final class OnboardingUITests: XCTestCase {
     func testProgressIndicatorUpdates() throws {
         let window = app.windows["Welcome to PasteShelf"]
 
-        // Step 1 should be highlighted initially
-        // (Implementation-specific check)
-
         // Move to step 2
         window.buttons["Continue"].click()
 
-        // Step 2 should now be highlighted
+        #if APP_STORE
+        // App Store: Welcome -> Notifications (skips Permissions)
+        XCTAssertTrue(window.staticTexts["Notifications"].waitForExistence(timeout: 2))
+        #else
+        // Direct: Welcome -> Permissions
         XCTAssertTrue(window.staticTexts["Accessibility Permission"].waitForExistence(timeout: 2))
+        #endif
     }
 
     // MARK: - Helper Methods
@@ -186,17 +201,20 @@ final class OnboardingUITests: XCTestCase {
     private func navigateToTutorial() {
         let window = app.windows["Welcome to PasteShelf"]
 
-        // Click through to tutorial (assumes permission is granted)
-        window.buttons["Continue"].click()  // Welcome -> Permissions
+        window.buttons["Continue"].click()  // Welcome -> next step
 
-        // Wait for permissions screen
+        #if !APP_STORE
+        // Direct distribution: Welcome -> Permissions -> Notifications -> Tutorial
         _ = window.staticTexts["Accessibility Permission"].waitForExistence(timeout: 2)
-
-        // Try to continue (only works if permission granted)
         let continueButton = window.buttons["Continue"]
         if continueButton.isEnabled {
-            continueButton.click()  // Permissions -> Tutorial
+            continueButton.click()  // Permissions -> Notifications
         }
+        #endif
+
+        // Both builds: now on Notifications
+        _ = window.staticTexts["Notifications"].waitForExistence(timeout: 2)
+        window.buttons["Continue"].click()  // Notifications -> Tutorial
     }
 
     private func navigateToHotkeySetup() {

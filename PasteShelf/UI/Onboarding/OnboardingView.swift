@@ -21,10 +21,12 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             // Progress indicator — simple dots
             HStack(spacing: 8) {
-                ForEach(OnboardingStep.allCases) { step in
+                let steps = OnboardingStep.activeSteps
+                let currentIndex = steps.firstIndex(of: viewModel.currentStep) ?? 0
+                ForEach(Array(steps.enumerated()), id: \.element.id) { index, _ in
                     Circle()
                         .fill(
-                            step.rawValue <= viewModel.currentStep.rawValue
+                            index <= currentIndex
                                 ? Color.accentColor
                                 : Color.gray.opacity(0.3)
                         )
@@ -35,7 +37,7 @@ struct OnboardingView: View {
             .padding(.bottom, 16)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(
-                "Setup progress: step \(viewModel.currentStep.rawValue + 1) of \(OnboardingStep.allCases.count)"
+                "Setup progress: step \(Self.currentStepNumber(for: viewModel.currentStep)) of \(OnboardingStep.activeSteps.count)"
             )
 
             // Step content
@@ -44,7 +46,11 @@ struct OnboardingView: View {
                 case .welcome:
                     WelcomeStepView()
                 case .permissions:
+                    #if APP_STORE
+                    EmptyView()
+                    #else
                     PermissionStepView(viewModel: viewModel)
+                    #endif
                 case .notifications:
                     NotificationPermissionStepView(viewModel: viewModel)
                 case .tutorial:
@@ -113,10 +119,18 @@ struct OnboardingView: View {
         .background(Color(nsColor: .windowBackgroundColor))
     }
 
+    private static func currentStepNumber(for step: OnboardingStep) -> Int {
+        (OnboardingStep.activeSteps.firstIndex(of: step) ?? 0) + 1
+    }
+
     private var canProceed: Bool {
         switch viewModel.currentStep {
         case .permissions:
+            #if APP_STORE
+            return true
+            #else
             return viewModel.hasAccessibilityPermission
+            #endif
         case .notifications:
             return viewModel.hasNotificationPermission
         default:

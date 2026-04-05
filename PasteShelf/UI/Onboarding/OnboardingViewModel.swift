@@ -6,7 +6,9 @@
 //
 
 import AppKit
+#if !APP_STORE
 import ApplicationServices
+#endif
 import Combine
 import Foundation
 import UserNotifications
@@ -56,7 +58,9 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - Initialization
 
     init() {
+        #if !APP_STORE
         checkAccessibilityPermission()
+        #endif
         Task { await checkNotificationPermission() }
     }
 
@@ -94,9 +98,12 @@ final class OnboardingViewModel: ObservableObject {
             currentStep = next
             logger.debug("Moved to step: \(next.title)")
 
+            #if !APP_STORE
             if next == .permissions {
                 startPermissionChecking()
-            } else if next == .notifications {
+            }
+            #endif
+            if next == .notifications {
                 startNotificationChecking()
             }
         } else {
@@ -120,6 +127,7 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Check accessibility permission status
     func checkAccessibilityPermission() {
+        #if !APP_STORE
         #if DEBUG
         if CommandLine.arguments.contains("--bypass-permissions") {
             hasAccessibilityPermission = true
@@ -128,10 +136,12 @@ final class OnboardingViewModel: ObservableObject {
         #endif
         hasAccessibilityPermission = AXIsProcessTrusted()
         logger.debug("Accessibility permission: \(self.hasAccessibilityPermission)")
+        #endif
     }
 
     /// Request accessibility permission by opening System Settings
     func requestAccessibilityPermission() {
+        #if !APP_STORE
         // Create prompt options to trigger the system permission dialog
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
         let trusted = AXIsProcessTrustedWithOptions(options as CFDictionary)
@@ -147,10 +157,12 @@ final class OnboardingViewModel: ObservableObject {
 
         hasAccessibilityPermission = trusted
         logger.info("Requested accessibility permission, trusted: \(trusted)")
+        #endif
     }
 
     /// Start periodic permission checking
     func startPermissionChecking() {
+        #if !APP_STORE
         stopPermissionChecking()
         permissionCheckTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
             [weak self] _ in
@@ -158,6 +170,7 @@ final class OnboardingViewModel: ObservableObject {
                 self?.checkAccessibilityPermission()
             }
         }
+        #endif
     }
 
     /// Stop periodic permission checking
