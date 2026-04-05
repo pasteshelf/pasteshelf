@@ -1,28 +1,29 @@
-# PasteShelf
+<p align="center">
+  <img src="assets/icon-rounded.png" width="128" alt="PasteShelf Icon">
+</p>
 
-[![Build](https://github.com/pasteshelf/pasteshelf/actions/workflows/ci.yml/badge.svg)](https://github.com/pasteshelf/pasteshelf/actions/workflows/ci.yml)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![macOS](https://img.shields.io/badge/macOS-14.0%2B-brightgreen)](https://www.apple.com/macos/)
-[![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/contributing/CONTRIBUTING.md)
+<h1 align="center">PasteShelf</h1>
 
-**Privacy-first clipboard manager for macOS.** Fully open-source under AGPL-3.0 — all features free.
+<p align="center">
+  <strong>Privacy-first clipboard manager for macOS.</strong>
+  <br>
+  Fully open-source under AGPL-3.0 — all features free.
+</p>
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Your clipboard history, your data, your control.           │
-│                                                             │
-│  • Local-first: Data stays on your device                   │
-│  • Open source: Audit the code yourself                     │
-│  • Extensible: Plugins, automation, integrations            │
-└─────────────────────────────────────────────────────────────┘
-```
+<p align="center">
+  <a href="https://github.com/pasteshelf/pasteshelf/actions/workflows/ci.yml"><img src="https://github.com/pasteshelf/pasteshelf/actions/workflows/ci.yml/badge.svg" alt="Build"></a>
+  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" alt="License: AGPL-3.0"></a>
+  <a href="https://www.apple.com/macos/"><img src="https://img.shields.io/badge/macOS-14.0%2B-brightgreen" alt="macOS"></a>
+  <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift"></a>
+  <a href="docs/contributing/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"></a>
+</p>
 
 ---
 
 ## Table of Contents
 
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Documentation](#documentation)
@@ -75,16 +76,34 @@ All features are free and open-source.
 
 ---
 
+## Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/01_general.png" width="270" alt="Your Clipboard, Supercharged">
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/02_privacy.png" width="270" alt="Privacy First">
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/03_search.png" width="270" alt="Find Anything, Instantly">
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/04_shortcuts.png" width="270" alt="Keyboard-First Workflow">
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/08_menubar.png" width="270" alt="Always Within Reach">
+</p>
+
+---
+
 ## Installation
 
 ### Direct Download
 
 Download the latest release from [GitHub Releases](https://github.com/pasteshelf/pasteshelf/releases).
 
-### Homebrew (Coming Soon)
+### Install via Homebrew (recommended)
 
 ```bash
-brew install --cask pasteshelf
+brew install --cask pasteshelf/pasteshelf/pasteshelf
 ```
 
 ### Mac App Store (Coming Soon)
