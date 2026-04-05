@@ -36,6 +36,7 @@ struct SyncTabView: View {
                 Text("Sync Provider")
             }
 
+            #if !APP_STORE
             // Self-Hosted Configuration (shown only when self-hosted is selected)
             if syncManager.activeBackendType == .selfHosted || isSelfHostedSelected {
                 Section {
@@ -44,6 +45,7 @@ struct SyncTabView: View {
                     Text("Self-Hosted Server")
                 }
             }
+            #endif
 
             // Sync Actions Section
             Section {
@@ -196,6 +198,7 @@ struct SyncTabView: View {
         // Provider Picker
         Picker("Provider", selection: Binding<SyncBackendType?>(
             get: {
+                guard syncManager.isEnabled else { return nil }
                 if syncManager.selfHostedConfiguration?.isEnabled == true {
                     return .selfHosted
                 }
@@ -234,16 +237,17 @@ struct SyncTabView: View {
                         config.isEnabled = false
                         syncManager.selfHostedConfiguration = config
                     }
-                    // Stop sync when "None" selected
-                    if syncManager.activeBackendType != nil {
-                        syncManager.stop()
-                    }
+                    // Disable sync and clear backend so re-enabling doesn't auto-start
+                    syncManager.isEnabled = false
+                    syncManager.clearBackendSelection()
                 }
             }
         )) {
             Text("None").tag(SyncBackendType?.none)
             Text("iCloud").tag(SyncBackendType?.some(.cloudKit))
+            #if !APP_STORE
             Text("Self-Hosted Server").tag(SyncBackendType?.some(.selfHosted))
+            #endif
         }
         .disabled(!syncManager.isEnabled)
 

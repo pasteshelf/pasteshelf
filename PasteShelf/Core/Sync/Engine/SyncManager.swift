@@ -240,6 +240,12 @@ public final class SyncManager: ObservableObject, SyncManaging {
         status = .disabled
     }
 
+    /// Clears the saved backend selection so the user must pick a provider again.
+    public func clearBackendSelection() {
+        activeBackendType = nil
+        UserDefaults.standard.removeObject(forKey: Self.backendTypeKey)
+    }
+
     public func syncNow() async throws {
         Self.logger.info("Manual sync requested")
 
