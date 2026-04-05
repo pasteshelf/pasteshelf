@@ -132,7 +132,7 @@ struct OnboardingView: View {
             return viewModel.hasAccessibilityPermission
             #endif
         case .notifications:
-            return viewModel.hasNotificationPermission
+            return true
         default:
             return true
         }
