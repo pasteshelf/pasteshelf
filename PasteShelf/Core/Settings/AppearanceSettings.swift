@@ -28,6 +28,9 @@ struct AppearanceSettings: Codable, Equatable {
     /// Whether to use compact mode
     var compactMode: Bool
 
+    /// Whether to show the tag filter row in the floating panel
+    var showTagFilters: Bool
+
     // MARK: - Initialization
 
     init(
@@ -35,13 +38,15 @@ struct AppearanceSettings: Codable, Equatable {
         panelWidth: PanelWidth = .normal,
         previewLines: Int = 1,
         showThumbnails: Bool = true,
-        compactMode: Bool = false
+        compactMode: Bool = false,
+        showTagFilters: Bool = true
     ) {
         self.theme = theme
         self.panelWidth = panelWidth
         self.previewLines = max(1, min(5, previewLines))
         self.showThumbnails = showThumbnails
         self.compactMode = compactMode
+        self.showTagFilters = showTagFilters
     }
 
     // MARK: - Default Configuration

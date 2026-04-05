@@ -270,6 +270,7 @@ struct FloatingPanelView: View {
                 }
             ),
             availableTags: viewModel.availableTags,
+            showTagFilters: settingsManager.appearance.showTagFilters,
             selectedTagIds: Binding(
                 get: { viewModel.activeFilters.selectedTagIds },
                 set: { newValue in
