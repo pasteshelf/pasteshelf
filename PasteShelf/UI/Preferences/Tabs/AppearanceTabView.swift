@@ -47,6 +47,10 @@ struct AppearanceTabView: View {
                 Toggle("Compact mode", isOn: $viewModel.compactMode)
                     .accessibilityLabel("Compact mode")
                     .accessibilityHint("When enabled, items are displayed more compactly")
+
+                Toggle("Show tag filters", isOn: $viewModel.showTagFilters)
+                    .accessibilityLabel("Show tag filters")
+                    .accessibilityHint("When enabled, tag filter chips are shown below the content type filters")
             } header: {
                 Text("Panel")
             }

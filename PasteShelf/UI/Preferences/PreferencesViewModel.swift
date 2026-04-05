@@ -97,6 +97,10 @@ final class PreferencesViewModel: ObservableObject {
         didSet { updateAppearance() }
     }
 
+    @Published var showTagFilters: Bool {
+        didSet { updateAppearance() }
+    }
+
     // MARK: - Shortcuts Settings
 
     @Published var globalHotkey: StoredHotkey {
@@ -152,6 +156,7 @@ final class PreferencesViewModel: ObservableObject {
         previewLines = settings.appearance.previewLines
         showThumbnails = settings.appearance.showThumbnails
         compactMode = settings.appearance.compactMode
+        showTagFilters = settings.appearance.showTagFilters
 
         // Shortcuts
         globalHotkey = settings.shortcuts.globalHotkey
@@ -229,7 +234,8 @@ final class PreferencesViewModel: ObservableObject {
             panelWidth: panelWidth,
             previewLines: previewLines,
             showThumbnails: showThumbnails,
-            compactMode: compactMode
+            compactMode: compactMode,
+            showTagFilters: showTagFilters
         )
     }
 
@@ -290,6 +296,7 @@ final class PreferencesViewModel: ObservableObject {
         previewLines = settings.appearance.previewLines
         showThumbnails = settings.appearance.showThumbnails
         compactMode = settings.appearance.compactMode
+        showTagFilters = settings.appearance.showTagFilters
 
         // Shortcuts
         globalHotkey = settings.shortcuts.globalHotkey

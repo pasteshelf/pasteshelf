@@ -27,6 +27,9 @@ struct FilterChipsView: View {
     /// Available tags for filtering
     var availableTags: [TagDisplayModel] = []
 
+    /// Whether to show the tag filter row
+    var showTagFilters: Bool = true
+
     /// Currently selected tag IDs
     @Binding var selectedTagIds: Set<UUID>
 
@@ -72,8 +75,8 @@ struct FilterChipsView: View {
                 .padding(.vertical, 4)
             }
 
-            // Second row: Tag filters (only if tags exist)
-            if !availableTags.isEmpty {
+            // Second row: Tag filters (only if tags exist and setting is enabled)
+            if showTagFilters, !availableTags.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
                         ForEach(availableTags) { tag in
