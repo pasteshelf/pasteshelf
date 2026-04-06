@@ -7,16 +7,16 @@
         <language>en</language>
     </channel>
         <item>
-            <title>Version 0.1.0</title>
-            <pubDate>Fri, 06 Mar 2026 19:33:54 +0000</pubDate>
-            <sparkle:version>0.1.0</sparkle:version>
-            <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+            <title>Version 1.0.0</title>
+            <pubDate>Mon, 06 Apr 2026 19:13:52 +0000</pubDate>
+            <sparkle:version>1.0.0</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <enclosure
-                url="https://github.com/pasteshelf/PasteShelf/releases/download/v0.1.0/PasteShelf-0.1.0.dmg"
-                length="5271449"
+                url="https://github.com/pasteshelf/PasteShelf/releases/download/v1.0.0/PasteShelf-1.0.0.dmg"
+                length="6064771"
                 type="application/octet-stream"
-                sparkle:edSignature="Vncl/t50UWXi0SCMHC6NBmkc4lqsuRxJXwRy6l87UfECxn6kDRZqCmhEfnOYD7CtvMWU2at0K8H5iqwchN2CBQ=="
+                sparkle:edSignature="DaDChfLH5h8p6bScFlq3Jk9NUPFcuUHD6xek5+vdehXRWd/u/WUEMGnr+xgcEPdTSNJh8EgnR6EpkgMaNtO8Bg=="
             />
         </item>
 </rss>
