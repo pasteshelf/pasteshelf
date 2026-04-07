@@ -41,7 +41,7 @@ final class HotkeyManager {
 
     /// Whether a hotkey is currently registered
     var isRegistered: Bool {
-        hotkeyRef != nil
+        self.hotkeyRef != nil
     }
 
     // MARK: - Registration
@@ -49,7 +49,7 @@ final class HotkeyManager {
     /// Registers the default hotkey (Cmd+Shift+V)
     @discardableResult
     func registerDefaultHotkey() -> Bool {
-        register(configuration: .default)
+        self.register(configuration: .default)
     }
 
     /// Registers a hotkey with the given configuration
@@ -58,19 +58,19 @@ final class HotkeyManager {
     @discardableResult
     func register(configuration: HotkeyConfiguration) -> Bool {
         // Unregister existing hotkey first
-        unregisterHotkey()
+        self.unregisterHotkey()
 
         self.configuration = configuration
 
         // Install event handler if not already installed
-        installEventHandler()
+        self.installEventHandler()
 
         // Register the hotkey
         var hotkeyRef: EventHotKeyRef?
         let status = RegisterEventHotKey(
             configuration.keyCode,
             configuration.modifiers,
-            hotkeyID,
+            self.hotkeyID,
             GetApplicationEventTarget(),
             0,
             &hotkeyRef
@@ -78,10 +78,10 @@ final class HotkeyManager {
 
         if status == noErr {
             self.hotkeyRef = hotkeyRef
-            logger.info("Hotkey registered: \(configuration.displayString)")
+            self.logger.info("Hotkey registered: \(configuration.displayString)")
             return true
         } else {
-            logger.error("Failed to register hotkey: \(status)")
+            self.logger.error("Failed to register hotkey: \(status)")
             return false
         }
     }
@@ -95,9 +95,9 @@ final class HotkeyManager {
         let status = UnregisterEventHotKey(hotkeyRef)
         if status == noErr {
             self.hotkeyRef = nil
-            logger.info("Hotkey unregistered")
+            self.logger.info("Hotkey unregistered")
         } else {
-            logger.error("Failed to unregister hotkey: \(status)")
+            self.logger.error("Failed to unregister hotkey: \(status)")
         }
     }
 
@@ -106,7 +106,7 @@ final class HotkeyManager {
     /// - Returns: True if the update was successful
     @discardableResult
     func updateConfiguration(_ configuration: HotkeyConfiguration) -> Bool {
-        register(configuration: configuration)
+        self.register(configuration: configuration)
     }
 
     /// Updates the hotkey (alias for updateConfiguration)
@@ -114,14 +114,14 @@ final class HotkeyManager {
     /// - Returns: True if the update was successful
     @discardableResult
     func updateHotkey(_ configuration: HotkeyConfiguration) -> Bool {
-        updateConfiguration(configuration)
+        self.updateConfiguration(configuration)
     }
 
     /// Resets to the default hotkey
     @discardableResult
     func resetToDefault() -> Bool {
         HotkeyConfiguration.reset()
-        return register(configuration: .default)
+        return self.register(configuration: .default)
     }
 
     // MARK: - Conflict Detection
@@ -191,9 +191,9 @@ final class HotkeyManager {
         }
 
         // Check if this is our hotkey
-        if hotkeyID.signature == shared?.hotkeyID.signature, hotkeyID.id == shared?.hotkeyID.id {
+        if hotkeyID.signature == self.shared?.hotkeyID.signature, hotkeyID.id == self.shared?.hotkeyID.id {
             DispatchQueue.main.async {
-                shared?.onHotkeyPressed?()
+                self.shared?.onHotkeyPressed?()
             }
             return noErr
         }
@@ -202,7 +202,7 @@ final class HotkeyManager {
     }
 
     private func installEventHandler() {
-        guard !eventHandlerInstalled else {
+        guard !self.eventHandlerInstalled else {
             return
         }
 
@@ -220,10 +220,10 @@ final class HotkeyManager {
         )
 
         if status == noErr {
-            eventHandlerInstalled = true
-            logger.debug("Event handler installed")
+            self.eventHandlerInstalled = true
+            self.logger.debug("Event handler installed")
         } else {
-            logger.error("Failed to install event handler: \(status)")
+            self.logger.error("Failed to install event handler: \(status)")
         }
     }
 }

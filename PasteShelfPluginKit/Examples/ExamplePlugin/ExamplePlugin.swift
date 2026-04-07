@@ -57,14 +57,14 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
         context.logger.debug("Host version: \(context.hostVersion)")
 
         // Initialize default settings if needed
-        initializeDefaultSettings()
+        self.initializeDefaultSettings()
     }
 
     /// Called before PasteShelf unloads this plugin.
     ///
     /// Clean up any resources here.
     public func willUnload() {
-        context?.logger.info("\(Self.name) unloading")
+        self.context?.logger.info("\(Self.name) unloading")
 
         // Cancel any pending operations
         // Release any resources
@@ -100,7 +100,7 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
 
     /// Returns the SwiftUI settings view for this plugin.
     public func settingsView() -> AnyView? {
-        AnyView(ExamplePluginSettingsView(storage: storage))
+        AnyView(ExamplePluginSettingsView(storage: self.storage))
     }
 
     // MARK: - Transform Protocol
@@ -109,7 +109,7 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
     ///
     /// This is called when the user invokes the plugin's primary action.
     public func transform(content: PluginClipboardContent) async throws -> PluginClipboardContent? {
-        try await reverseText(content, addPrefix: addPrefix)
+        try await self.reverseText(content, addPrefix: self.addPrefix)
     }
 
     /// Check if we support the given content type.
@@ -126,19 +126,19 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
 
     /// Convenience accessor for storage
     private var storage: (any PluginStorage)? {
-        context?.storage
+        self.context?.storage
     }
 
     // MARK: - Settings
 
     /// User preference: whether to add prefix to output
     private var addPrefix: Bool {
-        storage?.bool(forKey: "addPrefix") ?? true
+        self.storage?.bool(forKey: "addPrefix") ?? true
     }
 
     /// User preference: custom prefix text
     private var prefixText: String {
-        storage?.string(forKey: "prefixText") ?? "[Reversed] "
+        self.storage?.string(forKey: "prefixText") ?? "[Reversed] "
     }
 
     // MARK: - Settings Initialization
@@ -162,11 +162,11 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
     {
         // Validate input
         guard let text = content.text, !text.isEmpty else {
-            context?.logger.warning("No text content to reverse")
+            self.context?.logger.warning("No text content to reverse")
             throw ExamplePluginError.noContent
         }
 
-        context?.logger.debug("Reversing text of length \(text.count)")
+        self.context?.logger.debug("Reversing text of length \(text.count)")
 
         // Perform the transformation
         let reversed = String(text.reversed())
@@ -182,7 +182,7 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
         result.metadata["transformedBy"] = Self.identifier
         result.metadata["transformedAt"] = ISO8601DateFormatter().string(from: Date())
 
-        context?.logger.info("Text reversed successfully")
+        self.context?.logger.info("Text reversed successfully")
         return result
     }
 }
@@ -217,16 +217,16 @@ private struct ExamplePluginSettingsView: View {
     var body: some View {
         Form {
             Section("Output Options") {
-                Toggle("Add prefix to output", isOn: $addPrefix)
-                    .onChange(of: addPrefix) { _, newValue in
-                        storage?.setBool(newValue, forKey: "addPrefix")
+                Toggle("Add prefix to output", isOn: self.$addPrefix)
+                    .onChange(of: self.addPrefix) { _, newValue in
+                        self.storage?.setBool(newValue, forKey: "addPrefix")
                     }
 
-                if addPrefix {
-                    TextField("Prefix text", text: $prefixText)
+                if self.addPrefix {
+                    TextField("Prefix text", text: self.$prefixText)
                         .textFieldStyle(.roundedBorder)
-                        .onChange(of: prefixText) { _, newValue in
-                            storage?.setString(newValue, forKey: "prefixText")
+                        .onChange(of: self.prefixText) { _, newValue in
+                            self.storage?.setString(newValue, forKey: "prefixText")
                         }
                 }
             }
@@ -238,7 +238,7 @@ private struct ExamplePluginSettingsView: View {
             }
         }
         .onAppear {
-            loadSettings()
+            self.loadSettings()
         }
     }
 
@@ -248,8 +248,8 @@ private struct ExamplePluginSettingsView: View {
     @State private var prefixText: String = "[Reversed] "
 
     private func loadSettings() {
-        addPrefix = storage?.bool(forKey: "addPrefix") ?? true
-        prefixText = storage?.string(forKey: "prefixText") ?? "[Reversed] "
+        self.addPrefix = self.storage?.bool(forKey: "addPrefix") ?? true
+        self.prefixText = self.storage?.string(forKey: "prefixText") ?? "[Reversed] "
     }
 }
 

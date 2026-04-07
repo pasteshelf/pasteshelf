@@ -19,23 +19,23 @@ struct SyncTabView: View {
         Form {
             // Sync Status Section
             Section {
-                statusSection
+                self.statusSection
             } header: {
                 Text("Sync Status")
             }
 
             // Sync Provider Section
             Section {
-                providerSection
+                self.providerSection
             } header: {
                 Text("Sync Provider")
             }
 
             #if !APP_STORE
                 // Self-Hosted Configuration (shown only when self-hosted is selected)
-                if syncManager.activeBackendType == .selfHosted || isSelfHostedSelected {
+                if self.syncManager.activeBackendType == .selfHosted || self.isSelfHostedSelected {
                     Section {
-                        selfHostedSection
+                        self.selfHostedSection
                     } header: {
                         Text("Self-Hosted Server")
                     }
@@ -44,14 +44,14 @@ struct SyncTabView: View {
 
             // Sync Actions Section
             Section {
-                actionsSection
+                self.actionsSection
             } header: {
                 Text("Actions")
             }
         }
         .formStyle(.grouped)
         .onAppear {}
-        .alert("Reset Sync", isPresented: $showingResetConfirmation) {
+        .alert("Reset Sync", isPresented: self.$showingResetConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Reset", role: .destructive) {
                 resetSync()
@@ -62,7 +62,7 @@ struct SyncTabView: View {
                     + " This action cannot be undone."
             )
         }
-        .alert("Delete iCloud Data", isPresented: $showingDeleteCloudConfirmation) {
+        .alert("Delete iCloud Data", isPresented: self.$showingDeleteCloudConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
                 deleteCloudData()
@@ -74,10 +74,10 @@ struct SyncTabView: View {
                     + " Sync will be disabled."
             )
         }
-        .alert("Enable Sync", isPresented: $showingEnableSyncConfirmation) {
+        .alert("Enable Sync", isPresented: self.$showingEnableSyncConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Enable") {
-                syncManager.isEnabled = true
+                self.syncManager.isEnabled = true
             }
         } message: {
             Text(
@@ -102,11 +102,11 @@ struct SyncTabView: View {
 
     /// Whether the user has selected self-hosted in the provider picker
     private var isSelfHostedSelected: Bool {
-        syncManager.selfHostedConfiguration?.isEnabled == true
+        self.syncManager.selfHostedConfiguration?.isEnabled == true
     }
 
     private var statusTitle: String {
-        switch syncManager.status {
+        switch self.syncManager.status {
         case .disabled:
             "Sync Disabled"
         case .idle:
@@ -120,7 +120,7 @@ struct SyncTabView: View {
         case .offline:
             "Offline"
         case .waitingForAccount:
-            isSelfHostedSelected ? "Waiting for Server" : "Waiting for iCloud"
+            self.isSelfHostedSelected ? "Waiting for Server" : "Waiting for iCloud"
         }
     }
 
@@ -129,16 +129,16 @@ struct SyncTabView: View {
     @ViewBuilder private var statusSection: some View {
         // Current Status
         HStack {
-            Image(systemName: syncManager.status.symbolName)
+            Image(systemName: self.syncManager.status.symbolName)
                 .font(.title2)
-                .foregroundStyle(syncManager.status.color)
+                .foregroundStyle(self.syncManager.status.color)
                 .frame(width: 32)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(statusTitle)
+                Text(self.statusTitle)
                     .font(.headline)
 
-                Text(syncManager.status.localizedDescription)
+                Text(self.syncManager.status.localizedDescription)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -190,12 +190,12 @@ struct SyncTabView: View {
     @ViewBuilder private var providerSection: some View {
         // Enable/Disable Toggle
         Toggle("Enable Sync", isOn: Binding(
-            get: { syncManager.isEnabled },
+            get: { self.syncManager.isEnabled },
             set: { newValue in
                 if newValue {
-                    showingEnableSyncConfirmation = true
+                    self.showingEnableSyncConfirmation = true
                 } else {
-                    syncManager.isEnabled = false
+                    self.syncManager.isEnabled = false
                 }
             }
         ))
@@ -207,13 +207,13 @@ struct SyncTabView: View {
         // Provider Picker
         Picker("Provider", selection: Binding<SyncBackendType?>(
             get: {
-                guard syncManager.isEnabled else {
+                guard self.syncManager.isEnabled else {
                     return nil
                 }
-                if syncManager.selfHostedConfiguration?.isEnabled == true {
+                if self.syncManager.selfHostedConfiguration?.isEnabled == true {
                     return .selfHosted
                 }
-                return syncManager.activeBackendType
+                return self.syncManager.activeBackendType
             },
             set: { (newValue: SyncBackendType?) in
                 switch newValue {
@@ -221,36 +221,36 @@ struct SyncTabView: View {
                     // Disable self-hosted, use iCloud
                     if var config = syncManager.selfHostedConfiguration {
                         config.isEnabled = false
-                        syncManager.selfHostedConfiguration = config
+                        self.syncManager.selfHostedConfiguration = config
                     }
                     // Restart sync with iCloud backend
-                    if syncManager.isEnabled {
-                        syncManager.stop()
+                    if self.syncManager.isEnabled {
+                        self.syncManager.stop()
                         Task {
-                            try? await syncManager.start()
+                            try? await self.syncManager.start()
                         }
                     }
                 case .selfHosted:
                     // Enable self-hosted
-                    var config = syncManager.selfHostedConfiguration ?? .empty
+                    var config = self.syncManager.selfHostedConfiguration ?? .empty
                     config.isEnabled = true
-                    syncManager.selfHostedConfiguration = config
+                    self.syncManager.selfHostedConfiguration = config
                     // Only restart if server is configured
-                    if syncManager.isEnabled, config.isConfigured {
-                        syncManager.stop()
+                    if self.syncManager.isEnabled, config.isConfigured {
+                        self.syncManager.stop()
                         Task {
-                            try? await syncManager.start()
+                            try? await self.syncManager.start()
                         }
                     }
                 case .none:
                     // Clear self-hosted selection
                     if var config = syncManager.selfHostedConfiguration {
                         config.isEnabled = false
-                        syncManager.selfHostedConfiguration = config
+                        self.syncManager.selfHostedConfiguration = config
                     }
                     // Disable sync and clear backend so re-enabling doesn't auto-start
-                    syncManager.isEnabled = false
-                    syncManager.clearBackendSelection()
+                    self.syncManager.isEnabled = false
+                    self.syncManager.clearBackendSelection()
                 }
             }
         )) {
@@ -260,10 +260,10 @@ struct SyncTabView: View {
                 Text("Self-Hosted Server").tag(SyncBackendType?.some(.selfHosted))
             #endif
         }
-        .disabled(!syncManager.isEnabled)
+        .disabled(!self.syncManager.isEnabled)
 
         // Sync explanation
-        let fallback: SyncBackendType? = isSelfHostedSelected ? .selfHosted : nil
+        let fallback: SyncBackendType? = self.isSelfHostedSelected ? .selfHosted : nil
         if let selectedProvider = syncManager.activeBackendType ?? fallback {
             VStack(alignment: .leading, spacing: 4) {
                 if selectedProvider == .selfHosted {
@@ -314,26 +314,26 @@ struct SyncTabView: View {
         Button(
             action: {
                 Task {
-                    try? await syncManager.syncNow()
+                    try? await self.syncManager.syncNow()
                 }
             },
             label: {
                 Label("Sync Now", systemImage: "arrow.triangle.2.circlepath")
             }
         )
-        .disabled(!syncManager.isEnabled || !syncManager.status.canSync)
+        .disabled(!self.syncManager.isEnabled || !self.syncManager.status.canSync)
 
         // Reset Sync Button
         Button(
             role: .destructive,
             action: {
-                showingResetConfirmation = true
+                self.showingResetConfirmation = true
             },
             label: {
                 Label("Reset Sync...", systemImage: "arrow.counterclockwise")
             }
         )
-        .disabled(!syncManager.isEnabled)
+        .disabled(!self.syncManager.isEnabled)
 
         Text(
             "Deletes all remote sync data and re-uploads your local clipboard history."
@@ -346,7 +346,7 @@ struct SyncTabView: View {
         Button(
             role: .destructive,
             action: {
-                showingDeleteCloudConfirmation = true
+                self.showingDeleteCloudConfirmation = true
             },
             label: {
                 Label("Delete iCloud Data...", systemImage: "trash")
@@ -375,9 +375,9 @@ private extension SyncTabView {
     func resetSync() {
         Task {
             do {
-                try await syncManager.reset()
+                try await self.syncManager.reset()
             } catch {
-                errorMessage = error.localizedDescription
+                self.errorMessage = error.localizedDescription
             }
         }
     }
@@ -385,9 +385,9 @@ private extension SyncTabView {
     func deleteCloudData() {
         Task {
             do {
-                try await syncManager.deleteCloudData()
+                try await self.syncManager.deleteCloudData()
             } catch {
-                errorMessage = error.localizedDescription
+                self.errorMessage = error.localizedDescription
             }
         }
     }

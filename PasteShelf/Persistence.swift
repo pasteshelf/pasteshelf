@@ -12,34 +12,34 @@ struct PersistenceController {
     // MARK: Lifecycle
 
     init(inMemory: Bool = false) {
-        container = NSPersistentCloudKitContainer(name: "PasteShelf")
+        self.container = NSPersistentCloudKitContainer(name: "PasteShelf")
 
         if inMemory {
             // swiftlint:disable:next force_unwrapping
-            container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
+            self.container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }
 
         // Enable lightweight migration
-        container.persistentStoreDescriptions.first?.setOption(
+        self.container.persistentStoreDescriptions.first?.setOption(
             true as NSNumber,
             forKey: NSMigratePersistentStoresAutomaticallyOption
         )
-        container.persistentStoreDescriptions.first?.setOption(
+        self.container.persistentStoreDescriptions.first?.setOption(
             true as NSNumber,
             forKey: NSInferMappingModelAutomaticallyOption
         )
 
         // Configure for better CloudKit compatibility
-        container.persistentStoreDescriptions.first?.setOption(
+        self.container.persistentStoreDescriptions.first?.setOption(
             true as NSNumber,
             forKey: NSPersistentHistoryTrackingKey
         )
-        container.persistentStoreDescriptions.first?.setOption(
+        self.container.persistentStoreDescriptions.first?.setOption(
             true as NSNumber,
             forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey
         )
 
-        container.loadPersistentStores { storeDescription, error in
+        self.container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {
                 Self.logger.error("CoreData store failed to load: \(error.localizedDescription)")
                 // In production, handle gracefully instead of crashing
@@ -51,8 +51,8 @@ struct PersistenceController {
             }
         }
 
-        container.viewContext.automaticallyMergesChangesFromParent = true
-        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        self.container.viewContext.automaticallyMergesChangesFromParent = true
+        self.container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
 
     // MARK: Internal
@@ -65,7 +65,7 @@ struct PersistenceController {
 
     /// Creates a new background context for write operations
     func newBackgroundContext() -> NSManagedObjectContext {
-        let context = container.newBackgroundContext()
+        let context = self.container.newBackgroundContext()
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         return context
     }

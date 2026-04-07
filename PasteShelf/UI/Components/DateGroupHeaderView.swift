@@ -26,12 +26,12 @@ struct DateGroupHeaderView: View {
     var body: some View {
         HStack(spacing: 6) {
             // Icon
-            Image(systemName: group.icon)
+            Image(systemName: self.group.icon)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(.secondary)
 
             // Group name
-            Text(group.displayName)
+            Text(self.group.displayName)
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.secondary)
 
@@ -47,7 +47,7 @@ struct DateGroupHeaderView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(
-            isSticky ?
+            self.isSticky ?
                 VisualEffectView(material: .popover, blendingMode: .withinWindow)
                 .opacity(0.95) :
                 nil

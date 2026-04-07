@@ -118,7 +118,7 @@ public extension SyncChange {
 public extension SyncChange {
     /// Whether this is a local change (needs to be pushed)
     var isLocalChange: Bool {
-        switch changeType {
+        switch self.changeType {
         case .insert,
              .update,
              .delete:
@@ -132,12 +132,12 @@ public extension SyncChange {
 
     /// Whether this is a remote change (needs to be applied locally)
     var isRemoteChange: Bool {
-        !isLocalChange
+        !self.isLocalChange
     }
 
     /// Whether this change deletes the entity
     var isDeletion: Bool {
-        changeType == .delete || changeType == .remoteDelete
+        self.changeType == .delete || self.changeType == .remoteDelete
     }
 
     /// Create a CloudKit record ID from this change
@@ -145,7 +145,7 @@ public extension SyncChange {
         if let recordID = cloudKitRecordID {
             return CKRecord.ID(recordName: recordID, zoneID: zoneID)
         }
-        return CKRecord.ID(recordName: entityID.uuidString, zoneID: zoneID)
+        return CKRecord.ID(recordName: self.entityID.uuidString, zoneID: zoneID)
     }
 }
 
@@ -166,27 +166,27 @@ extension SyncChange: Codable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        changeType = try container.decode(ChangeType.self, forKey: .changeType)
-        entityType = try container.decode(EntityType.self, forKey: .entityType)
-        entityID = try container.decode(UUID.self, forKey: .entityID)
-        cloudKitRecordID = try container.decodeIfPresent(String.self, forKey: .cloudKitRecordID)
-        localTimestamp = try container.decode(Date.self, forKey: .localTimestamp)
-        serverTimestamp = try container.decodeIfPresent(Date.self, forKey: .serverTimestamp)
-        encryptedData = try container.decodeIfPresent(Data.self, forKey: .encryptedData)
-        serverRecord = nil // Not codable
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.changeType = try container.decode(ChangeType.self, forKey: .changeType)
+        self.entityType = try container.decode(EntityType.self, forKey: .entityType)
+        self.entityID = try container.decode(UUID.self, forKey: .entityID)
+        self.cloudKitRecordID = try container.decodeIfPresent(String.self, forKey: .cloudKitRecordID)
+        self.localTimestamp = try container.decode(Date.self, forKey: .localTimestamp)
+        self.serverTimestamp = try container.decodeIfPresent(Date.self, forKey: .serverTimestamp)
+        self.encryptedData = try container.decodeIfPresent(Data.self, forKey: .encryptedData)
+        self.serverRecord = nil // Not codable
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(changeType, forKey: .changeType)
-        try container.encode(entityType, forKey: .entityType)
-        try container.encode(entityID, forKey: .entityID)
-        try container.encodeIfPresent(cloudKitRecordID, forKey: .cloudKitRecordID)
-        try container.encode(localTimestamp, forKey: .localTimestamp)
-        try container.encodeIfPresent(serverTimestamp, forKey: .serverTimestamp)
-        try container.encodeIfPresent(encryptedData, forKey: .encryptedData)
+        try container.encode(self.id, forKey: .id)
+        try container.encode(self.changeType, forKey: .changeType)
+        try container.encode(self.entityType, forKey: .entityType)
+        try container.encode(self.entityID, forKey: .entityID)
+        try container.encodeIfPresent(self.cloudKitRecordID, forKey: .cloudKitRecordID)
+        try container.encode(self.localTimestamp, forKey: .localTimestamp)
+        try container.encodeIfPresent(self.serverTimestamp, forKey: .serverTimestamp)
+        try container.encodeIfPresent(self.encryptedData, forKey: .encryptedData)
         // serverRecord is not encoded
     }
 }
@@ -211,7 +211,7 @@ public extension SyncChange {
 extension SyncChange: CustomDebugStringConvertible {
     public var debugDescription: String {
         """
-        SyncChange(\(changeType.rawValue) \(entityType.rawValue) \(entityID.uuidString.prefix(8))...)
+        SyncChange(\(self.changeType.rawValue) \(self.entityType.rawValue) \(self.entityID.uuidString.prefix(8))...)
         """
     }
 }

@@ -62,7 +62,7 @@ struct DLPRuleEditorView: View {
         VStack(spacing: 0) {
             // Title bar
             HStack {
-                Text(rule == nil ? "New DLP Rule" : "Edit DLP Rule")
+                Text(self.rule == nil ? "New DLP Rule" : "Edit DLP Rule")
                     .font(.headline)
                 Spacer()
             }
@@ -74,9 +74,9 @@ struct DLPRuleEditorView: View {
 
             // Form content
             Form {
-                ruleDetailsSection
-                severitySection
-                actionsSection
+                self.ruleDetailsSection
+                self.severitySection
+                self.actionsSection
             }
             .formStyle(.grouped)
 
@@ -85,17 +85,17 @@ struct DLPRuleEditorView: View {
             // Bottom buttons
             HStack {
                 Button("Cancel") {
-                    isPresented = false
+                    self.isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
 
                 Spacer()
 
                 Button("Save") {
-                    saveRule()
+                    self.saveRule()
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || pattern
+                .disabled(self.name.trimmingCharacters(in: .whitespaces).isEmpty || self.pattern
                     .trimmingCharacters(in: .whitespaces).isEmpty)
             }
             .padding(.horizontal, 20)
@@ -122,23 +122,23 @@ struct DLPRuleEditorView: View {
     private var ruleDetailsSection: some View {
         Section("Rule Details") {
             LabeledContent("Name") {
-                TextField("e.g. Credit Card Numbers", text: $name)
+                TextField("e.g. Credit Card Numbers", text: self.$name)
                     .textFieldStyle(.plain)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
 
-            Picker("Category", selection: $patternCategory) {
+            Picker("Category", selection: self.$patternCategory) {
                 ForEach(DLPPatternCategory.allCases, id: \.self) { category in
                     Text(category.displayName).tag(category)
                 }
             }
 
             LabeledContent("Pattern") {
-                TextField("Regular expression pattern", text: $pattern)
+                TextField("Regular expression pattern", text: self.$pattern)
                     .font(.system(.body, design: .monospaced))
                     .textFieldStyle(.plain)
                     .frame(maxWidth: .infinity, alignment: .trailing)
-                    .onChange(of: pattern) { _, _ in regexError = nil }
+                    .onChange(of: self.pattern) { _, _ in regexError = nil }
             }
 
             if let regexError {
@@ -147,7 +147,7 @@ struct DLPRuleEditorView: View {
                     .foregroundStyle(.red)
             }
 
-            Toggle("Enabled", isOn: $isEnabled)
+            Toggle("Enabled", isOn: self.$isEnabled)
         }
     }
 
@@ -155,7 +155,7 @@ struct DLPRuleEditorView: View {
 
     private var severitySection: some View {
         Section("Severity") {
-            Picker("Severity", selection: $severity) {
+            Picker("Severity", selection: self.$severity) {
                 Text("None").tag(SensitiveSeverity.none)
                 Text("Low").tag(SensitiveSeverity.low)
                 Text("Medium").tag(SensitiveSeverity.medium)
@@ -171,13 +171,13 @@ struct DLPRuleEditorView: View {
     private var actionsSection: some View {
         Section("Actions") {
             ForEach(DLPAction.allCases, id: \.self) { action in
-                Toggle(actionDisplayName(action), isOn: Binding(
-                    get: { selectedActions.contains(action) },
+                Toggle(self.actionDisplayName(action), isOn: Binding(
+                    get: { self.selectedActions.contains(action) },
                     set: { isOn in
                         if isOn {
-                            selectedActions.insert(action)
+                            self.selectedActions.insert(action)
                         } else {
-                            selectedActions.remove(action)
+                            self.selectedActions.remove(action)
                         }
                     }
                 ))
@@ -188,45 +188,45 @@ struct DLPRuleEditorView: View {
     // MARK: - Save
 
     private func saveRule() {
-        let trimmedPattern = pattern.trimmingCharacters(in: .whitespaces)
+        let trimmedPattern = self.pattern.trimmingCharacters(in: .whitespaces)
         do {
             _ = try NSRegularExpression(pattern: trimmedPattern)
         } catch {
-            regexError = "Invalid regex: \(error.localizedDescription)"
+            self.regexError = "Invalid regex: \(error.localizedDescription)"
             return
         }
-        regexError = nil
+        self.regexError = nil
 
         let now = Date()
-        let orderedActions = DLPAction.allCases.filter { selectedActions.contains($0) }
+        let orderedActions = DLPAction.allCases.filter { self.selectedActions.contains($0) }
 
         let saved = if let existing = rule {
             DLPRule(
                 id: existing.id,
-                name: name.trimmingCharacters(in: .whitespaces),
-                isEnabled: isEnabled,
-                patternCategory: patternCategory,
-                pattern: pattern.trimmingCharacters(in: .whitespaces),
-                severity: severity,
+                name: self.name.trimmingCharacters(in: .whitespaces),
+                isEnabled: self.isEnabled,
+                patternCategory: self.patternCategory,
+                pattern: self.pattern.trimmingCharacters(in: .whitespaces),
+                severity: self.severity,
                 actions: orderedActions,
                 createdAt: existing.createdAt,
                 updatedAt: now
             )
         } else {
             DLPRule(
-                name: name.trimmingCharacters(in: .whitespaces),
-                isEnabled: isEnabled,
-                patternCategory: patternCategory,
-                pattern: pattern.trimmingCharacters(in: .whitespaces),
-                severity: severity,
+                name: self.name.trimmingCharacters(in: .whitespaces),
+                isEnabled: self.isEnabled,
+                patternCategory: self.patternCategory,
+                pattern: self.pattern.trimmingCharacters(in: .whitespaces),
+                severity: self.severity,
                 actions: orderedActions,
                 createdAt: now,
                 updatedAt: now
             )
         }
 
-        onSave(saved)
-        isPresented = false
+        self.onSave(saved)
+        self.isPresented = false
     }
 
     // MARK: - Helpers

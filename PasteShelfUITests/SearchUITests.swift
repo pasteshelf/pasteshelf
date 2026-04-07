@@ -15,22 +15,22 @@ final class SearchUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
 
-        app = XCUIApplication()
-        app.launchArguments.append("--skip-onboarding")
-        app.launch()
+        self.app = XCUIApplication()
+        self.app.launchArguments.append("--skip-onboarding")
+        self.app.launch()
     }
 
     override func tearDownWithError() throws {
-        app = nil
+        self.app = nil
     }
 
     // MARK: - Search Field Tests
 
     @MainActor
     func testSearchFieldExists() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -46,9 +46,9 @@ final class SearchUITests: XCTestCase {
 
     @MainActor
     func testSearchFieldPlaceholder() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -61,9 +61,9 @@ final class SearchUITests: XCTestCase {
 
     @MainActor
     func testSearchFieldAcceptsInput() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -83,9 +83,9 @@ final class SearchUITests: XCTestCase {
 
     @MainActor
     func testSearchFiltersInRealTime() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -115,9 +115,9 @@ final class SearchUITests: XCTestCase {
 
     @MainActor
     func testSearchShowsResultsCount() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -143,9 +143,9 @@ final class SearchUITests: XCTestCase {
 
     @MainActor
     func testSearchHighlightsMatches() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -168,9 +168,9 @@ final class SearchUITests: XCTestCase {
 
     @MainActor
     func testClearSearchRestoresAllItems() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -201,9 +201,9 @@ final class SearchUITests: XCTestCase {
 
     @MainActor
     func testEscapeClearsSearch() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -226,9 +226,9 @@ final class SearchUITests: XCTestCase {
 
     @MainActor
     func testNoResultsShowsEmptyState() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -251,9 +251,9 @@ final class SearchUITests: XCTestCase {
 
     @MainActor
     func testEmptyResultsShowsClearButton() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -276,9 +276,9 @@ final class SearchUITests: XCTestCase {
 
     @MainActor
     func testCmdFFocusesSearchField() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -302,11 +302,11 @@ final class SearchUITests: XCTestCase {
     // MARK: - Helper Methods
 
     private func showPanel() {
-        let menuBarItem = app.menuBars.statusItems.firstMatch
+        let menuBarItem = self.app.menuBars.statusItems.firstMatch
         if menuBarItem.exists {
             menuBarItem.click()
 
-            let showPanel = app.menuItems["Show Clipboard Panel"]
+            let showPanel = self.app.menuItems["Show Clipboard Panel"]
             if showPanel.waitForExistence(timeout: 2) {
                 showPanel.click()
             }

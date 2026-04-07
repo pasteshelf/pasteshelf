@@ -17,20 +17,20 @@ final class Deduplicator: Deduplicating, Sendable {
 
     func computeHash(for content: ClipboardContent) -> String {
         var hasher = SHA256()
-        hashContent(content, into: &hasher)
+        self.hashContent(content, into: &hasher)
         let digest = hasher.finalize()
-        return hexString(from: digest)
+        return self.hexString(from: digest)
     }
 
     func computeHash(forText text: String) -> String {
         var hasher = SHA256()
-        hashText(text, into: &hasher)
+        self.hashText(text, into: &hasher)
         let digest = hasher.finalize()
-        return hexString(from: digest)
+        return self.hexString(from: digest)
     }
 
     func isDuplicate(_ content: ClipboardContent, comparing recentHashes: [String]) -> Bool {
-        let hash = computeHash(for: content)
+        let hash = self.computeHash(for: content)
         return recentHashes.contains(hash)
     }
 
@@ -59,40 +59,40 @@ final class Deduplicator: Deduplicating, Sendable {
     private func hashContent(_ content: ClipboardContent, into hasher: inout SHA256) {
         switch content.primaryType {
         case .plainText:
-            hashPlainText(content, into: &hasher)
+            self.hashPlainText(content, into: &hasher)
 
         case .richText:
-            hashRichText(content, into: &hasher)
+            self.hashRichText(content, into: &hasher)
 
         case .html:
-            hashHTML(content, into: &hasher)
+            self.hashHTML(content, into: &hasher)
 
         case .png,
              .jpeg,
              .tiff:
-            hashImage(content, into: &hasher)
+            self.hashImage(content, into: &hasher)
 
         case .pdf:
-            hashPDF(content, into: &hasher)
+            self.hashPDF(content, into: &hasher)
 
         case .fileURL:
-            hashFileURLs(content, into: &hasher)
+            self.hashFileURLs(content, into: &hasher)
 
         case .url:
-            hashURL(content, into: &hasher)
+            self.hashURL(content, into: &hasher)
         }
     }
 
     private func hashPlainText(_ content: ClipboardContent, into hasher: inout SHA256) {
         if let text = content.plainText {
-            hashText(text, into: &hasher)
+            self.hashText(text, into: &hasher)
         }
     }
 
     private func hashRichText(_ content: ClipboardContent, into hasher: inout SHA256) {
         // For RTF, hash the plain text representation for semantic comparison
         if let plainText = content.plainText {
-            hashText(plainText, into: &hasher)
+            self.hashText(plainText, into: &hasher)
         } else if let rtfData = content.rtfData {
             hasher.update(data: rtfData)
         }
@@ -100,7 +100,7 @@ final class Deduplicator: Deduplicating, Sendable {
 
     private func hashHTML(_ content: ClipboardContent, into hasher: inout SHA256) {
         if let plainText = content.plainText {
-            hashText(plainText, into: &hasher)
+            self.hashText(plainText, into: &hasher)
         } else if let html = content.html {
             hasher.update(data: Data(html.utf8))
         }
@@ -132,7 +132,7 @@ final class Deduplicator: Deduplicating, Sendable {
 
     private func hashURL(_ content: ClipboardContent, into hasher: inout SHA256) {
         if let url = content.url {
-            let normalized = normalizeURL(url)
+            let normalized = self.normalizeURL(url)
             hasher.update(data: Data(normalized.utf8))
         }
     }
@@ -142,7 +142,7 @@ final class Deduplicator: Deduplicating, Sendable {
     /// Hashes text with normalization for consistent comparison
     private func hashText(_ text: String, into hasher: inout SHA256) {
         // Normalize text for consistent hashing
-        let normalized = normalizeText(text)
+        let normalized = self.normalizeText(text)
         hasher.update(data: Data(normalized.utf8))
     }
 

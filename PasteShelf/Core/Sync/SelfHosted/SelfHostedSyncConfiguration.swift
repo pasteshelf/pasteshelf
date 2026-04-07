@@ -87,6 +87,6 @@ public struct SelfHostedSyncConfiguration: Codable, Equatable, Sendable {
 
     /// `true` when both a server URL and a non-empty organization ID are present.
     public var isConfigured: Bool {
-        serverURL != nil && !organizationID.isEmpty
+        self.serverURL != nil && !self.organizationID.isEmpty
     }
 }

@@ -18,10 +18,10 @@ final class MockAuditLogStorage: AuditLogStoring, @unchecked Sendable {
     var shouldFail = false
 
     func save(_ event: AuditEvent) async throws {
-        if shouldFail {
+        if self.shouldFail {
             throw AuditError.storageFailure("Mock failure")
         }
-        savedEvents.append(event)
+        self.savedEvents.append(event)
     }
 
     func fetchEvents(

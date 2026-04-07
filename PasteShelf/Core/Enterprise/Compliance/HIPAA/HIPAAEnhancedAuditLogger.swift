@@ -45,10 +45,10 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
 
     /// Invalidates the cached mode, forcing a reload on next access.
     static func invalidateCache() {
-        cacheLock.lock()
+        self.cacheLock.lock()
         defer { cacheLock.unlock() }
-        _cachedMode = nil
-        _cacheTimestamp = .distantPast
+        self._cachedMode = nil
+        self._cacheTimestamp = .distantPast
     }
 
     // MARK: - HIPAA Enrichment
@@ -61,17 +61,17 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
     /// - Parameter event: The original audit event.
     /// - Returns: The event with HIPAA fields injected, or the original event if HIPAA mode is disabled.
     static func enrichIfNeeded(_ event: AuditEvent) -> AuditEvent {
-        let config = cachedMode
+        let config = self.cachedMode
         guard config.isEnabled else {
             return event
         }
 
         var enrichedDetail = event.detail
         if enrichedDetail["hipaa.accessReason"] == nil {
-            enrichedDetail["hipaa.accessReason"] = accessReason(for: event)
+            enrichedDetail["hipaa.accessReason"] = self.accessReason(for: event)
         }
         if enrichedDetail["hipaa.phiIndicator"] == nil {
-            enrichedDetail["hipaa.phiIndicator"] = phiIndicator(for: event)
+            enrichedDetail["hipaa.phiIndicator"] = self.phiIndicator(for: event)
         }
         if enrichedDetail["hipaa.minimumNecessary"] == nil {
             enrichedDetail["hipaa.minimumNecessary"] = "true"
@@ -94,13 +94,13 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
     // MARK: - AuditLogging
 
     func log(_ event: AuditEvent) async {
-        let enriched = enrichIfHIPAAEnabled(event)
-        await delegate.log(enriched)
+        let enriched = self.enrichIfHIPAAEnabled(event)
+        await self.delegate.log(enriched)
     }
 
     func logBatch(_ events: [AuditEvent]) async {
-        let enriched = events.map { enrichIfHIPAAEnabled($0) }
-        await delegate.logBatch(enriched)
+        let enriched = events.map { self.enrichIfHIPAAEnabled($0) }
+        await self.delegate.logBatch(enriched)
     }
 
     // MARK: Private

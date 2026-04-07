@@ -39,25 +39,25 @@ struct WelcomeStepView: View {
 
             // Feature highlights
             VStack(spacing: 12) {
-                featureRow(
+                self.featureRow(
                     icon: "clock.arrow.circlepath",
                     title: "Clipboard History",
                     description: "Access everything you've copied"
                 )
 
-                featureRow(
+                self.featureRow(
                     icon: "magnifyingglass",
                     title: "Instant Search",
                     description: "Find any item in seconds"
                 )
 
-                featureRow(
+                self.featureRow(
                     icon: "lock.shield",
                     title: "Privacy First",
                     description: "All data stays on your Mac"
                 )
 
-                featureRow(
+                self.featureRow(
                     icon: "keyboard",
                     title: "Keyboard Shortcuts",
                     description: "Quick access with a single keystroke"

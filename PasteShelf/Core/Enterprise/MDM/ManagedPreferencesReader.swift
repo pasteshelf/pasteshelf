@@ -52,7 +52,7 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
     // MARK: - MDMConfigurationObserving
 
     var configurationDidChange: AnyPublisher<MDMConfiguration, Never> {
-        configurationSubject.eraseToAnyPublisher()
+        self.configurationSubject.eraseToAnyPublisher()
     }
 
     // MARK: - ManagedPreferencesReading
@@ -62,14 +62,14 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
         var defaults: [ManagedPreferenceKey: PreferenceValue] = [:]
 
         // Strategy 1: Check flat keys via objectIsForced
-        readFlatForcedKeys(into: &forced)
+        self.readFlatForcedKeys(into: &forced)
 
         // Strategy 2: Check nested ManagedPreferences / DefaultPreferences dicts
-        readNestedManagedKeys(into: &forced)
-        readNestedDefaultKeys(into: &defaults)
+        self.readNestedManagedKeys(into: &forced)
+        self.readNestedDefaultKeys(into: &defaults)
 
         // Strategy 3: Non-forced flat keys that exist become defaults
-        readFlatDefaultKeys(forced: forced, into: &defaults)
+        self.readFlatDefaultKeys(forced: forced, into: &defaults)
 
         let config = MDMConfiguration(
             forcedPreferences: forced,
@@ -77,7 +77,7 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
         )
 
         if config.isManaged {
-            logger.info("MDM configuration loaded: \(forced.count) forced, \(defaults.count) default keys")
+            self.logger.info("MDM configuration loaded: \(forced.count) forced, \(defaults.count) default keys")
         }
 
         return config
@@ -85,7 +85,7 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
 
     func isKeyForced(_ key: ManagedPreferenceKey) -> Bool {
         // Check flat key forced status
-        if userDefaults.objectIsForced(forKey: key.rawValue) {
+        if self.userDefaults.objectIsForced(forKey: key.rawValue) {
             return true
         }
 
@@ -123,17 +123,17 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
     }
 
     func startObserving() {
-        guard !isObserving else {
+        guard !self.isObserving else {
             return
         }
-        isObserving = true
+        self.isObserving = true
 
         // Read initial configuration
-        lastConfiguration = readConfiguration()
-        configurationSubject.send(lastConfiguration)
+        self.lastConfiguration = self.readConfiguration()
+        self.configurationSubject.send(self.lastConfiguration)
 
         // Observe UserDefaults changes via DistributedNotificationCenter
-        notificationObserver = DistributedNotificationCenter.default().addObserver(
+        self.notificationObserver = DistributedNotificationCenter.default().addObserver(
             forName: UserDefaults.didChangeNotification,
             object: nil,
             queue: .main
@@ -142,31 +142,31 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
         }
 
         // Fallback polling timer (MDM profile changes don't always trigger notifications)
-        pollingTimer = Timer.scheduledTimer(
-            withTimeInterval: pollingInterval,
+        self.pollingTimer = Timer.scheduledTimer(
+            withTimeInterval: self.pollingInterval,
             repeats: true
         ) { [weak self] _ in
             self?.checkForConfigurationChanges()
         }
 
-        logger.debug("MDM observation started (polling interval: \(pollingInterval)s)")
+        self.logger.debug("MDM observation started (polling interval: \(self.pollingInterval)s)")
     }
 
     func stopObserving() {
-        guard isObserving else {
+        guard self.isObserving else {
             return
         }
-        isObserving = false
+        self.isObserving = false
 
         if let observer = notificationObserver {
             DistributedNotificationCenter.default().removeObserver(observer)
-            notificationObserver = nil
+            self.notificationObserver = nil
         }
 
-        pollingTimer?.invalidate()
-        pollingTimer = nil
+        self.pollingTimer?.invalidate()
+        self.pollingTimer = nil
 
-        logger.debug("MDM observation stopped")
+        self.logger.debug("MDM observation stopped")
     }
 
     // MARK: Private
@@ -202,7 +202,7 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
 
     /// Reads flat forced keys from UserDefaults.
     private func readFlatForcedKeys(into forced: inout [ManagedPreferenceKey: PreferenceValue]) {
-        for key in ManagedPreferenceKey.allCases where userDefaults.objectIsForced(forKey: key.rawValue) {
+        for key in ManagedPreferenceKey.allCases where self.userDefaults.objectIsForced(forKey: key.rawValue) {
             if let value = readPreferenceValue(for: key) {
                 forced[key] = value
             }
@@ -257,7 +257,7 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
         guard let raw = userDefaults.object(forKey: key.rawValue) else {
             return nil
         }
-        return convertToPreferenceValue(raw)
+        return self.convertToPreferenceValue(raw)
     }
 
     /// Converts a raw plist value to a typed `PreferenceValue`.
@@ -276,18 +276,18 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
             }
             return .int(nsNumber.intValue)
         default:
-            logger.warning("Unsupported MDM preference value type: \(type(of: raw))")
+            self.logger.warning("Unsupported MDM preference value type: \(type(of: raw))")
             return nil
         }
     }
 
     /// Checks if the MDM configuration has changed since the last read.
     private func checkForConfigurationChanges() {
-        let newConfig = readConfiguration()
-        if newConfig != lastConfiguration {
-            lastConfiguration = newConfig
-            configurationSubject.send(newConfig)
-            logger.info("MDM configuration changed")
+        let newConfig = self.readConfiguration()
+        if newConfig != self.lastConfiguration {
+            self.lastConfiguration = newConfig
+            self.configurationSubject.send(newConfig)
+            self.logger.info("MDM configuration changed")
         }
     }
 }

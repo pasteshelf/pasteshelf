@@ -21,9 +21,9 @@ final class SettingsManager: ObservableObject {
     // MARK: - Initialization
 
     private init() {
-        settings = AppSettings.load()
-        applyMDMOverridesIfNeeded()
-        logger.info("Settings loaded")
+        self.settings = AppSettings.load()
+        self.applyMDMOverridesIfNeeded()
+        self.logger.info("Settings loaded")
     }
 
     // MARK: Internal
@@ -38,12 +38,12 @@ final class SettingsManager: ObservableObject {
     /// Current application settings
     @Published private(set) var settings: AppSettings {
         didSet {
-            guard !isApplyingMDM else {
+            guard !self.isApplyingMDM else {
                 return
             }
-            reapplyMDMForcedValues()
-            settings.save()
-            notifySettingsChanged()
+            self.reapplyMDMForcedValues()
+            self.settings.save()
+            self.notifySettingsChanged()
         }
     }
 
@@ -51,64 +51,64 @@ final class SettingsManager: ObservableObject {
 
     /// General settings
     var general: GeneralSettings {
-        get { settings.general }
+        get { self.settings.general }
         set {
-            settings.general = newValue
-            logger.debug("General settings updated")
+            self.settings.general = newValue
+            self.logger.debug("General settings updated")
         }
     }
 
     /// Privacy settings
     var privacy: PrivacySettings {
-        get { settings.privacy }
+        get { self.settings.privacy }
         set {
-            settings.privacy = newValue
-            logger.debug("Privacy settings updated")
+            self.settings.privacy = newValue
+            self.logger.debug("Privacy settings updated")
         }
     }
 
     /// Appearance settings
     var appearance: AppearanceSettings {
-        get { settings.appearance }
+        get { self.settings.appearance }
         set {
-            settings.appearance = newValue
-            logger.debug("Appearance settings updated")
+            self.settings.appearance = newValue
+            self.logger.debug("Appearance settings updated")
         }
     }
 
     /// Shortcuts settings
     var shortcuts: ShortcutsSettings {
-        get { settings.shortcuts }
+        get { self.settings.shortcuts }
         set {
-            settings.shortcuts = newValue
-            logger.debug("Shortcuts settings updated")
+            self.settings.shortcuts = newValue
+            self.logger.debug("Shortcuts settings updated")
         }
     }
 
     /// Search settings
     var search: SearchSettings {
-        get { settings.search }
+        get { self.settings.search }
         set {
-            settings.search = newValue
-            logger.debug("Search settings updated")
+            self.settings.search = newValue
+            self.logger.debug("Search settings updated")
         }
     }
 
     /// Enterprise settings (sync, storage, plugins)
     var enterprise: EnterpriseSettings {
-        get { settings.enterprise }
+        get { self.settings.enterprise }
         set {
-            settings.enterprise = newValue
-            logger.debug("Enterprise settings updated")
+            self.settings.enterprise = newValue
+            self.logger.debug("Enterprise settings updated")
         }
     }
 
     /// Security settings (biometric auth, auto-lock, clear on quit)
     var security: SecuritySettings {
-        get { settings.security }
+        get { self.settings.security }
         set {
-            settings.security = newValue
-            logger.debug("Security settings updated")
+            self.settings.security = newValue
+            self.logger.debug("Security settings updated")
         }
     }
 
@@ -116,22 +116,22 @@ final class SettingsManager: ObservableObject {
 
     /// Updates a specific setting using a closure
     func update(_ block: (inout AppSettings) -> Void) {
-        var newSettings = settings
+        var newSettings = self.settings
         block(&newSettings)
-        settings = newSettings
+        self.settings = newSettings
     }
 
     /// Saves new settings (replacing current)
     func save(_ newSettings: AppSettings) {
-        settings = newSettings
-        logger.debug("Settings saved")
+        self.settings = newSettings
+        self.logger.debug("Settings saved")
     }
 
     /// Resets all settings to defaults
     func resetToDefaults() {
         AppSettings.reset()
-        settings = .default
-        logger.info("Settings reset to defaults")
+        self.settings = .default
+        self.logger.info("Settings reset to defaults")
     }
 
     // MARK: - MDM Integration
@@ -146,13 +146,13 @@ final class SettingsManager: ObservableObject {
             return
         }
 
-        isApplyingMDM = true
+        self.isApplyingMDM = true
         defer { isApplyingMDM = false }
 
-        mdm.applyOverrides(to: &settings)
-        settings.save()
-        notifySettingsChanged()
-        logger.info("MDM overrides applied")
+        mdm.applyOverrides(to: &self.settings)
+        self.settings.save()
+        self.notifySettingsChanged()
+        self.logger.info("MDM overrides applied")
     }
 
     /// Checks if a specific preference key is locked by MDM policy.
@@ -183,20 +183,20 @@ final class SettingsManager: ObservableObject {
             return
         }
 
-        var current = settings
+        var current = self.settings
         mdm.applyOverrides(to: &current)
 
-        if current != settings {
-            isApplyingMDM = true
-            settings = current
-            isApplyingMDM = false
+        if current != self.settings {
+            self.isApplyingMDM = true
+            self.settings = current
+            self.isApplyingMDM = false
         }
     }
 
     // MARK: - Notifications
 
     private func notifySettingsChanged() {
-        NotificationCenter.default.post(name: .settingsDidChange, object: settings)
+        NotificationCenter.default.post(name: .settingsDidChange, object: self.settings)
     }
 }
 

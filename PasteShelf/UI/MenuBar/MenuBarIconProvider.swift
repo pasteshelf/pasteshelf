@@ -94,7 +94,7 @@ enum MenuBarState {
              .active:
             MenuBarIconProvider.idleImage
         default:
-            MenuBarIconProvider.image(for: iconName)
+            MenuBarIconProvider.image(for: self.iconName)
         }
     }
 }

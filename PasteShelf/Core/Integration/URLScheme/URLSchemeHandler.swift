@@ -56,7 +56,7 @@ final class URLSchemeHandler {
         guard let host = url.host,
               let action = URLScheme.Host(rawValue: host)
         else {
-            showInvalidURLAlert(url)
+            self.showInvalidURLAlert(url)
             return false
         }
 
@@ -67,21 +67,21 @@ final class URLSchemeHandler {
 
         switch action {
         case .copy:
-            return handleCopy(parameters: parameters)
+            return self.handleCopy(parameters: parameters)
         case .search:
-            return handleSearch(parameters: parameters)
+            return self.handleSearch(parameters: parameters)
         case .show:
-            return handleShow(parameters: parameters)
+            return self.handleShow(parameters: parameters)
         case .hide:
-            return handleHide()
+            return self.handleHide()
         case .clear:
-            return handleClear(parameters: parameters)
+            return self.handleClear(parameters: parameters)
         case .transform:
-            return handleTransform(parameters: parameters)
+            return self.handleTransform(parameters: parameters)
         case .favorite:
-            return handleFavorite(parameters: parameters)
+            return self.handleFavorite(parameters: parameters)
         case .delete:
-            return handleDelete(parameters: parameters)
+            return self.handleDelete(parameters: parameters)
         }
     }
 
@@ -103,12 +103,12 @@ final class URLSchemeHandler {
         if let idString = parameters["id"],
            let uuid = UUID(uuidString: idString)
         {
-            return copyItemByID(uuid)
+            return self.copyItemByID(uuid)
         }
 
         // Copy most recent item
         if parameters["recent"] != nil {
-            return copyMostRecentItem()
+            return self.copyMostRecentItem()
         }
 
         return false
@@ -125,7 +125,7 @@ final class URLSchemeHandler {
 
             do {
                 if let item = try context.fetch(fetchRequest).first {
-                    success = copyItemToClipboard(item)
+                    success = self.copyItemToClipboard(item)
                 }
             } catch {
                 success = false
@@ -148,7 +148,7 @@ final class URLSchemeHandler {
 
             do {
                 if let item = try context.fetch(fetchRequest).first {
-                    success = copyItemToClipboard(item)
+                    success = self.copyItemToClipboard(item)
                 }
             } catch {
                 success = false

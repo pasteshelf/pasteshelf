@@ -27,7 +27,7 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
             throw SSOError.configurationInvalid("SAML configuration is missing")
         }
 
-        logger.info("Starting SAML SSO flow for provider: \(config.name)")
+        self.logger.info("Starting SAML SSO flow for provider: \(config.name)")
 
         // Generate AuthnRequest
         let requestId = "_\(UUID().uuidString)"
@@ -54,7 +54,7 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
 
         guard validationResult.isSuccess else {
             let error = validationResult.error?.localizedDescription ?? "Unknown validation error"
-            logger.error("SAML validation failed: \(error)")
+            self.logger.error("SAML validation failed: \(error)")
             throw SSOError.authenticationFailed(error)
         }
 
@@ -62,7 +62,7 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
             throw SSOError.authenticationFailed("No assertion in SAML response")
         }
 
-        logger.info("SAML SSO authentication successful for user: \(assertion.userId)")
+        self.logger.info("SAML SSO authentication successful for user: \(assertion.userId)")
 
         // Build session from assertion
         return SSOSession(
@@ -84,16 +84,16 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
     }
 
     func logout(session: SSOSession) async throws {
-        logger.info("SAML logout requested for session: \(session.id)")
+        self.logger.info("SAML logout requested for session: \(session.id)")
         guard let providerStore = await SSOManager.shared.providerStore,
               let provider = try await providerStore.load(id: session.providerId),
               let samlConfig = provider.samlConfig,
               samlConfig.sloURL != nil
         else {
-            logger.info("No SLO endpoint configured, skipping IdP logout")
+            self.logger.info("No SLO endpoint configured, skipping IdP logout")
             return
         }
-        try await logoutHandler.performLogout(session: session, config: samlConfig)
+        try await self.logoutHandler.performLogout(session: session, config: samlConfig)
     }
 
     // MARK: - AuthnRequest Generation
@@ -104,7 +104,7 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
         requestId: String,
         issuer: String
     ) throws -> URL {
-        let authnRequestXML = generateAuthnRequestXML(
+        let authnRequestXML = self.generateAuthnRequestXML(
             requestId: requestId,
             issuer: issuer,
             destination: config.ssoURL.absoluteString,
@@ -114,7 +114,7 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
 
         switch config.binding {
         case .httpRedirect:
-            return try buildRedirectURL(
+            return try self.buildRedirectURL(
                 ssoURL: config.ssoURL,
                 authnRequestXML: authnRequestXML
             )
@@ -122,7 +122,7 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
             // For HTTP-POST, we still redirect to our local handler that
             // generates the auto-submit form. In practice, we use HTTP-Redirect
             // for SP-initiated SSO and HTTP-POST for IdP responses.
-            return try buildRedirectURL(
+            return try self.buildRedirectURL(
                 ssoURL: config.ssoURL,
                 authnRequestXML: authnRequestXML
             )
@@ -266,7 +266,7 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
             }
             return compressedData
         } catch {
-            logger.warning("Deflate compression failed, using raw XML: \(error.localizedDescription)")
+            self.logger.warning("Deflate compression failed, using raw XML: \(error.localizedDescription)")
             return data
         }
     }

@@ -31,7 +31,7 @@ enum GDPRDataExportService {
     /// - Throws: `ComplianceError.exportFailed` if any step fails.
     @MainActor
     static func exportUserData(progressHandler: ((Double) -> Void)? = nil) async throws -> URL {
-        logger.info("GDPR data export: starting full user data export")
+        self.logger.info("GDPR data export: starting full user data export")
 
         let exportDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("PasteShelf-GDPR-Export-\(UUID().uuidString)", isDirectory: true)
@@ -55,9 +55,9 @@ enum GDPRDataExportService {
             try writeManifest(to: exportDir, encoder: encoder, counts: counts)
             progressHandler?(1.0)
 
-            await logExportAuditEvent(counts: counts)
+            await self.logExportAuditEvent(counts: counts)
 
-            logger.info("GDPR data export: completed to \(exportDir.lastPathComponent)")
+            self.logger.info("GDPR data export: completed to \(exportDir.lastPathComponent)")
             return exportDir
         } catch let error as ComplianceError {
             throw error

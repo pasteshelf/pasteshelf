@@ -38,7 +38,7 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
     /// Connect to the WebSocket endpoint.
     func connect(token: String, deviceID: String) {
         guard let serverURL = configuration.serverURL else {
-            logger.error("No server URL configured for WebSocket")
+            self.logger.error("No server URL configured for WebSocket")
             return
         }
 
@@ -59,31 +59,31 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
         }
 
         guard let wsURL = components?.url else {
-            logger.error("Failed to construct WebSocket URL")
+            self.logger.error("Failed to construct WebSocket URL")
             return
         }
 
         let session = URLSession(configuration: .default)
-        webSocketTask = session.webSocketTask(with: wsURL)
-        webSocketTask?.resume()
+        self.webSocketTask = session.webSocketTask(with: wsURL)
+        self.webSocketTask?.resume()
 
-        isConnected = true
-        reconnectAttempt = 0
-        onConnectionStateChanged?(true)
-        logger.info("WebSocket connecting to \(wsURL.host ?? "unknown")")
+        self.isConnected = true
+        self.reconnectAttempt = 0
+        self.onConnectionStateChanged?(true)
+        self.logger.info("WebSocket connecting to \(wsURL.host ?? "unknown")")
 
-        startReceiving()
-        startPingTimer()
+        self.startReceiving()
+        self.startPingTimer()
     }
 
     /// Disconnect from the WebSocket.
     func disconnect() {
-        stopPingTimer()
-        webSocketTask?.cancel(with: .normalClosure, reason: nil)
-        webSocketTask = nil
-        isConnected = false
-        onConnectionStateChanged?(false)
-        logger.info("WebSocket disconnected")
+        self.stopPingTimer()
+        self.webSocketTask?.cancel(with: .normalClosure, reason: nil)
+        self.webSocketTask = nil
+        self.isConnected = false
+        self.onConnectionStateChanged?(false)
+        self.logger.info("WebSocket disconnected")
     }
 
     // MARK: Private
@@ -99,19 +99,19 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
     // MARK: - Receiving
 
     private func startReceiving() {
-        webSocketTask?.receive { [weak self] result in
+        self.webSocketTask?.receive { [weak self] result in
             guard let self else {
                 return
             }
 
             switch result {
             case let .success(message):
-                handleMessage(message)
-                startReceiving() // Continue listening
+                self.handleMessage(message)
+                self.startReceiving() // Continue listening
 
             case let .failure(error):
-                logger.error("WebSocket receive error: \(error.localizedDescription)")
-                handleDisconnect()
+                self.logger.error("WebSocket receive error: \(error.localizedDescription)")
+                self.handleDisconnect()
             }
         }
     }
@@ -122,17 +122,17 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
             guard let data = text.data(using: .utf8),
                   let notification = try? JSONDecoder().decode(WebSocketNotification.self, from: data)
             else {
-                logger.warning("Failed to decode WebSocket message: \(text)")
+                self.logger.warning("Failed to decode WebSocket message: \(text)")
                 return
             }
-            logger.debug("WebSocket notification: \(notification.type)")
-            onNotification?(notification)
+            self.logger.debug("WebSocket notification: \(notification.type)")
+            self.onNotification?(notification)
 
         case let .data(data):
             guard let notification = try? JSONDecoder().decode(WebSocketNotification.self, from: data) else {
                 return
             }
-            onNotification?(notification)
+            self.onNotification?(notification)
 
         @unknown default:
             break
@@ -142,15 +142,15 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
     // MARK: - Ping/Pong
 
     private func startPingTimer() {
-        stopPingTimer()
-        pingTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+        self.stopPingTimer()
+        self.pingTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
             self?.sendPing()
         }
     }
 
     private func stopPingTimer() {
-        pingTimer?.invalidate()
-        pingTimer = nil
+        self.pingTimer?.invalidate()
+        self.pingTimer = nil
     }
 
     private func sendPing() {
@@ -161,7 +161,7 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
             return
         }
 
-        webSocketTask?.send(.string(jsonString)) { [weak self] error in
+        self.webSocketTask?.send(.string(jsonString)) { [weak self] error in
             if let error {
                 self?.logger.error("WebSocket ping failed: \(error.localizedDescription)")
                 self?.handleDisconnect()
@@ -172,16 +172,16 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
     // MARK: - Reconnection
 
     private func handleDisconnect() {
-        isConnected = false
-        onConnectionStateChanged?(false)
-        stopPingTimer()
+        self.isConnected = false
+        self.onConnectionStateChanged?(false)
+        self.stopPingTimer()
 
         // Exponential backoff
         let delays: [TimeInterval] = [1, 2, 4, 8, 16, 60]
         let delay = delays[min(reconnectAttempt, delays.count - 1)]
-        reconnectAttempt += 1
+        self.reconnectAttempt += 1
 
-        logger.info("WebSocket reconnecting in \(delay)s (attempt \(reconnectAttempt))")
+        self.logger.info("WebSocket reconnecting in \(delay)s (attempt \(self.reconnectAttempt))")
 
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             // Reconnection requires a new token — the caller must handle this

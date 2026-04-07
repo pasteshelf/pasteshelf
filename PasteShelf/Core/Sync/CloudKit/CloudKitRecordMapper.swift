@@ -35,7 +35,7 @@ final class CloudKitRecordMapper: Sendable {
         for change: SyncChange,
         encryptedData: Data
     ) -> CKRecord {
-        let recordID = change.makeRecordID(zoneID: zoneID)
+        let recordID = change.makeRecordID(zoneID: self.zoneID)
         let recordType = change.entityType.recordType
 
         let record: CKRecord = if let existingRecord = change.serverRecord {
@@ -75,7 +75,7 @@ final class CloudKitRecordMapper: Sendable {
         // Create record
         let recordID = CKRecord.ID(
             recordName: itemID.uuidString,
-            zoneID: zoneID
+            zoneID: self.zoneID
         )
 
         let record = CKRecord(
@@ -251,15 +251,15 @@ struct ClipboardContentPayload: Codable {
 
     init(from content: ClipboardContentData) {
         // Note: We don't sync plainText directly as it's in the main payload
-        htmlContent = content.htmlContent
-        rtfData = content.rtfData
-        imageData = content.imageData
-        imageWidth = content.imageWidth > 0 ? Int(content.imageWidth) : nil
-        imageHeight = content.imageHeight > 0 ? Int(content.imageHeight) : nil
-        isImageCompressed = content.isImageCompressed
-        urlString = content.urlString
-        fileURLsJSON = content.fileURLsJSON
-        pdfData = content.pdfData
+        self.htmlContent = content.htmlContent
+        self.rtfData = content.rtfData
+        self.imageData = content.imageData
+        self.imageWidth = content.imageWidth > 0 ? Int(content.imageWidth) : nil
+        self.imageHeight = content.imageHeight > 0 ? Int(content.imageHeight) : nil
+        self.isImageCompressed = content.isImageCompressed
+        self.urlString = content.urlString
+        self.fileURLsJSON = content.fileURLsJSON
+        self.pdfData = content.pdfData
     }
 
     // MARK: Internal

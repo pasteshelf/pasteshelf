@@ -19,30 +19,30 @@ struct DeduplicatorTests {
     @Test("Same text produces same hash")
     func sameTextProducesSameHash() {
         let text = "Hello, World!"
-        let hash1 = deduplicator.computeHash(forText: text)
-        let hash2 = deduplicator.computeHash(forText: text)
+        let hash1 = self.deduplicator.computeHash(forText: text)
+        let hash2 = self.deduplicator.computeHash(forText: text)
 
         #expect(hash1 == hash2)
     }
 
     @Test("Different text produces different hash")
     func differentTextProducesDifferentHash() {
-        let hash1 = deduplicator.computeHash(forText: "Hello")
-        let hash2 = deduplicator.computeHash(forText: "World")
+        let hash1 = self.deduplicator.computeHash(forText: "Hello")
+        let hash2 = self.deduplicator.computeHash(forText: "World")
 
         #expect(hash1 != hash2)
     }
 
     @Test("Hash is 64 characters (SHA256 hex)")
     func hashIsCorrectLength() {
-        let hash = deduplicator.computeHash(forText: "Test")
+        let hash = self.deduplicator.computeHash(forText: "Test")
 
         #expect(hash.count == 64)
     }
 
     @Test("Hash contains only hex characters")
     func hashContainsOnlyHexCharacters() {
-        let hash = deduplicator.computeHash(forText: "Test")
+        let hash = self.deduplicator.computeHash(forText: "Test")
         let hexCharacters = CharacterSet(charactersIn: "0123456789abcdef")
 
         #expect(hash.unicodeScalars.allSatisfy { hexCharacters.contains($0) })
@@ -52,24 +52,24 @@ struct DeduplicatorTests {
 
     @Test("Trailing whitespace is normalized")
     func trailingWhitespaceIsNormalized() {
-        let hash1 = deduplicator.computeHash(forText: "Hello")
-        let hash2 = deduplicator.computeHash(forText: "Hello   ")
+        let hash1 = self.deduplicator.computeHash(forText: "Hello")
+        let hash2 = self.deduplicator.computeHash(forText: "Hello   ")
 
         #expect(hash1 == hash2)
     }
 
     @Test("Leading whitespace is normalized")
     func leadingWhitespaceIsNormalized() {
-        let hash1 = deduplicator.computeHash(forText: "Hello")
-        let hash2 = deduplicator.computeHash(forText: "   Hello")
+        let hash1 = self.deduplicator.computeHash(forText: "Hello")
+        let hash2 = self.deduplicator.computeHash(forText: "   Hello")
 
         #expect(hash1 == hash2)
     }
 
     @Test("Line endings are normalized")
     func lineEndingsAreNormalized() {
-        let hash1 = deduplicator.computeHash(forText: "Hello\nWorld")
-        let hash2 = deduplicator.computeHash(forText: "Hello\r\nWorld")
+        let hash1 = self.deduplicator.computeHash(forText: "Hello\nWorld")
+        let hash2 = self.deduplicator.computeHash(forText: "Hello\r\nWorld")
 
         #expect(hash1 == hash2)
     }
@@ -82,8 +82,8 @@ struct DeduplicatorTests {
         var content = ClipboardContent(primaryType: .plainText)
         content.plainText = text
 
-        let contentHash = deduplicator.computeHash(for: content)
-        let textHash = deduplicator.computeHash(forText: text)
+        let contentHash = self.deduplicator.computeHash(for: content)
+        let textHash = self.deduplicator.computeHash(forText: text)
 
         #expect(contentHash == textHash)
     }
@@ -96,8 +96,8 @@ struct DeduplicatorTests {
         var content2 = ClipboardContent(primaryType: .url)
         content2.url = URL(string: "HTTPS://EXAMPLE.COM/path")
 
-        let hash1 = deduplicator.computeHash(for: content1)
-        let hash2 = deduplicator.computeHash(for: content2)
+        let hash1 = self.deduplicator.computeHash(for: content1)
+        let hash2 = self.deduplicator.computeHash(for: content2)
 
         #expect(hash1 == hash2)
     }
@@ -109,10 +109,10 @@ struct DeduplicatorTests {
         var content = ClipboardContent(primaryType: .plainText)
         content.plainText = "Test content"
 
-        let hash = deduplicator.computeHash(for: content)
+        let hash = self.deduplicator.computeHash(for: content)
         let recentHashes = [hash, "other-hash-1", "other-hash-2"]
 
-        #expect(deduplicator.isDuplicate(content, comparing: recentHashes))
+        #expect(self.deduplicator.isDuplicate(content, comparing: recentHashes))
     }
 
     @Test("Does not flag unique content as duplicate")
@@ -122,7 +122,7 @@ struct DeduplicatorTests {
 
         let recentHashes = ["hash-1", "hash-2", "hash-3"]
 
-        #expect(!deduplicator.isDuplicate(content, comparing: recentHashes))
+        #expect(!self.deduplicator.isDuplicate(content, comparing: recentHashes))
     }
 
     @Test("Empty recent hashes means no duplicates")
@@ -130,7 +130,7 @@ struct DeduplicatorTests {
         var content = ClipboardContent(primaryType: .plainText)
         content.plainText = "Any content"
 
-        #expect(!deduplicator.isDuplicate(content, comparing: []))
+        #expect(!self.deduplicator.isDuplicate(content, comparing: []))
     }
 }
 
@@ -172,37 +172,37 @@ final class ConfigurableDeduplicator: Deduplicating, Sendable {
 
     func computeHash(for content: ClipboardContent) -> String {
         guard content.primaryType.isTextType else {
-            return baseDeduplicator.computeHash(for: content)
+            return self.baseDeduplicator.computeHash(for: content)
         }
         guard var text = content.plainText else {
-            return baseDeduplicator.computeHash(for: content)
+            return self.baseDeduplicator.computeHash(for: content)
         }
-        if !options.whitespaceSignificant {
+        if !self.options.whitespaceSignificant {
             text = text.components(separatedBy: .whitespacesAndNewlines)
                 .filter { !$0.isEmpty }
                 .joined(separator: " ")
         }
-        if !options.caseSensitive {
+        if !self.options.caseSensitive {
             text = text.lowercased()
         }
-        return computeHash(forText: text)
+        return self.computeHash(forText: text)
     }
 
     func computeHash(forText text: String) -> String {
         var processedText = text
-        if !options.whitespaceSignificant {
+        if !self.options.whitespaceSignificant {
             processedText = processedText.components(separatedBy: .whitespacesAndNewlines)
                 .filter { !$0.isEmpty }
                 .joined(separator: " ")
         }
-        if !options.caseSensitive {
+        if !self.options.caseSensitive {
             processedText = processedText.lowercased()
         }
-        return baseDeduplicator.computeHash(forText: processedText)
+        return self.baseDeduplicator.computeHash(forText: processedText)
     }
 
     func isDuplicate(_ content: ClipboardContent, comparing recentHashes: [String]) -> Bool {
-        let hash = computeHash(for: content)
+        let hash = self.computeHash(for: content)
         return recentHashes.contains(hash)
     }
 

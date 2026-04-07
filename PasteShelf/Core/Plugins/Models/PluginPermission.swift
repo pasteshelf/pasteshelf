@@ -165,7 +165,7 @@
         init(pluginId: String, permission: PluginPermission, isPermanent: Bool = true) {
             self.pluginId = pluginId
             self.permission = permission
-            grantedAt = Date()
+            self.grantedAt = Date()
             self.isPermanent = isPermanent
         }
 

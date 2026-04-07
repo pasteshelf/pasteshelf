@@ -21,8 +21,8 @@ class AssertionBuilder {
     var attributeStatements: [SAMLAttributeStatement] = []
 
     func build() -> SAMLAssertion? {
-        guard !id.isEmpty,
-              !issuer.isEmpty,
+        guard !self.id.isEmpty,
+              !self.issuer.isEmpty,
               let issueInstant,
               let subject,
               let conditions
@@ -31,14 +31,14 @@ class AssertionBuilder {
         }
 
         return SAMLAssertion(
-            id: id,
-            issuer: issuer,
+            id: self.id,
+            issuer: self.issuer,
             issueInstant: issueInstant,
-            version: version,
+            version: self.version,
             subject: subject,
             conditions: conditions,
-            authnStatement: authnStatement,
-            attributeStatements: attributeStatements
+            authnStatement: self.authnStatement,
+            attributeStatements: self.attributeStatements
         )
     }
 }
@@ -55,7 +55,7 @@ class SubjectBuilder {
     var confirmationInResponseTo: String?
 
     func build() -> SAMLSubject? {
-        guard !nameID.isEmpty else {
+        guard !self.nameID.isEmpty else {
             return nil
         }
 
@@ -71,9 +71,9 @@ class SubjectBuilder {
         )
 
         return SAMLSubject(
-            nameID: nameID,
-            nameIDFormat: nameIDFormat,
-            nameQualifier: nameQualifier,
+            nameID: self.nameID,
+            nameIDFormat: self.nameIDFormat,
+            nameQualifier: self.nameQualifier,
             confirmations: [confirmation]
         )
     }
@@ -95,7 +95,7 @@ class ConditionsBuilder {
         return SAMLConditions(
             notBefore: notBefore,
             notOnOrAfter: notOnOrAfter,
-            audienceRestrictions: audiences.isEmpty ? [] : [audienceRestriction]
+            audienceRestrictions: self.audiences.isEmpty ? [] : [audienceRestriction]
         )
     }
 }
@@ -115,9 +115,9 @@ class AuthnStatementBuilder {
 
         return SAMLAuthnStatement(
             authnInstant: authnInstant,
-            sessionIndex: sessionIndex,
-            sessionNotOnOrAfter: sessionNotOnOrAfter,
-            authnContext: SAMLAuthnContext(classRef: authnContextClassRef)
+            sessionIndex: self.sessionIndex,
+            sessionNotOnOrAfter: self.sessionNotOnOrAfter,
+            authnContext: SAMLAuthnContext(classRef: self.authnContextClassRef)
         )
     }
 }
@@ -131,15 +131,15 @@ class AttributeBuilder {
     var values: [String] = []
 
     func build() -> SAMLAttribute? {
-        guard !name.isEmpty else {
+        guard !self.name.isEmpty else {
             return nil
         }
 
         return SAMLAttribute(
-            name: name,
-            friendlyName: friendlyName,
-            nameFormat: nameFormat,
-            values: values
+            name: self.name,
+            friendlyName: self.friendlyName,
+            nameFormat: self.nameFormat,
+            values: self.values
         )
     }
 }

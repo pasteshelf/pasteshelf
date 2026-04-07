@@ -232,11 +232,11 @@ struct HIPAAEnhancedAuditLoggerTests {
         var batchLoggedEvents: [[AuditEvent]] = []
 
         func log(_ event: AuditEvent) async {
-            loggedEvents.append(event)
+            self.loggedEvents.append(event)
         }
 
         func logBatch(_ events: [AuditEvent]) async {
-            batchLoggedEvents.append(events)
+            self.batchLoggedEvents.append(events)
         }
     }
 

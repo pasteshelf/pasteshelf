@@ -37,13 +37,13 @@ struct AppSettings: Codable, Equatable {
     /// Custom decoder to handle missing keys when new settings sections are added
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        general = try container.decode(GeneralSettings.self, forKey: .general)
-        privacy = try container.decode(PrivacySettings.self, forKey: .privacy)
-        appearance = try container.decode(AppearanceSettings.self, forKey: .appearance)
-        shortcuts = try container.decode(ShortcutsSettings.self, forKey: .shortcuts)
-        search = try container.decodeIfPresent(SearchSettings.self, forKey: .search) ?? .default
-        enterprise = try container.decodeIfPresent(EnterpriseSettings.self, forKey: .enterprise) ?? .default
-        security = try container.decodeIfPresent(SecuritySettings.self, forKey: .security) ?? .default
+        self.general = try container.decode(GeneralSettings.self, forKey: .general)
+        self.privacy = try container.decode(PrivacySettings.self, forKey: .privacy)
+        self.appearance = try container.decode(AppearanceSettings.self, forKey: .appearance)
+        self.shortcuts = try container.decode(ShortcutsSettings.self, forKey: .shortcuts)
+        self.search = try container.decodeIfPresent(SearchSettings.self, forKey: .search) ?? .default
+        self.enterprise = try container.decodeIfPresent(EnterpriseSettings.self, forKey: .enterprise) ?? .default
+        self.security = try container.decodeIfPresent(SecuritySettings.self, forKey: .security) ?? .default
     }
 
     // MARK: Internal
@@ -92,7 +92,7 @@ struct AppSettings: Codable, Equatable {
 
     /// Resets all settings to defaults
     static func reset() {
-        UserDefaults.standard.removeObject(forKey: userDefaultsKey)
+        UserDefaults.standard.removeObject(forKey: self.userDefaultsKey)
     }
 
     /// Saves settings to UserDefaults
@@ -118,18 +118,18 @@ struct AppSettings: Codable, Equatable {
         }
 
         if defaults.object(forKey: "semanticSearchEnabled") != nil {
-            search.semanticSearchEnabled = defaults.bool(forKey: "semanticSearchEnabled")
+            self.search.semanticSearchEnabled = defaults.bool(forKey: "semanticSearchEnabled")
         }
         let threshold = defaults.double(forKey: "semanticThreshold")
         if threshold > 0 {
-            search.semanticThreshold = threshold
+            self.search.semanticThreshold = threshold
         }
         if defaults.object(forKey: "ocrSearchEnabled") != nil {
-            search.ocrSearchEnabled = defaults.bool(forKey: "ocrSearchEnabled")
+            self.search.ocrSearchEnabled = defaults.bool(forKey: "ocrSearchEnabled")
         }
         let ocrThreshold = defaults.double(forKey: "ocrConfidenceThreshold")
         if ocrThreshold > 0 {
-            search.ocrConfidenceThreshold = ocrThreshold
+            self.search.ocrConfidenceThreshold = ocrThreshold
         }
 
         // Clean up legacy keys and mark migration as done

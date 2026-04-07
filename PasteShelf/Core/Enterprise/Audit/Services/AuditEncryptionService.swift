@@ -40,7 +40,7 @@ struct AuditEncryptionService {
     func encrypt(_ detail: [String: String]) throws -> Data {
         let key: SymmetricKey
         do {
-            key = try getOrCreateKey()
+            key = try self.getOrCreateKey()
         } catch {
             Self.logger.error("Failed to retrieve audit encryption key: \(error.localizedDescription)")
             throw AuditError.encryptionFailed("Key retrieval failed: \(error.localizedDescription)")
@@ -103,7 +103,7 @@ struct AuditEncryptionService {
 
         let key: SymmetricKey
         do {
-            key = try getOrCreateKey()
+            key = try self.getOrCreateKey()
         } catch {
             Self.logger.error("Failed to retrieve audit decryption key: \(error.localizedDescription)")
             throw AuditError.decryptionFailed("Key retrieval failed: \(error.localizedDescription)")
@@ -205,7 +205,7 @@ struct AuditEncryptionService {
     ///
     /// - Returns: The stored `SymmetricKey`, or `nil` if no item is present.
     private func loadKey() -> SymmetricKey? {
-        var query: [String: Any] = keychainQuery()
+        var query: [String: Any] = self.keychainQuery()
         query[kSecReturnData as String] = kCFBooleanTrue
         query[kSecMatchLimit as String] = kSecMatchLimitOne
 
@@ -232,14 +232,14 @@ struct AuditEncryptionService {
         let keyData = key.withUnsafeBytes { Data($0) }
 
         // Delete any existing item first (ignore errSecItemNotFound)
-        let deleteQuery = keychainQuery()
+        let deleteQuery = self.keychainQuery()
         let deleteStatus = SecItemDelete(deleteQuery as CFDictionary)
         if deleteStatus != errSecSuccess, deleteStatus != errSecItemNotFound {
             Self.logger.warning("SecItemDelete for audit key returned status \(deleteStatus)")
         }
 
         // Add the new key
-        var addQuery = keychainQuery()
+        var addQuery = self.keychainQuery()
         addQuery[kSecValueData as String] = keyData
         addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
 

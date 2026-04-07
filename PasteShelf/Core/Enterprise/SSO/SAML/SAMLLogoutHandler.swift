@@ -29,11 +29,11 @@ final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
     /// - Throws: `SSOError` if the logout flow cannot be initiated or the IdP reports failure.
     func performLogout(session: SSOSession, config: SAMLProviderConfig) async throws -> Bool {
         guard let sloURL = config.sloURL else {
-            logger.info("No SLO endpoint configured for provider — skipping IdP logout")
+            self.logger.info("No SLO endpoint configured for provider — skipping IdP logout")
             return true
         }
 
-        logger.info("Starting SAML SLO flow for user: \(session.userId)")
+        self.logger.info("Starting SAML SLO flow for user: \(session.userId)")
 
         let requestId = "_\(UUID().uuidString)"
         let logoutRequestURL = try buildLogoutURL(
@@ -53,11 +53,11 @@ final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
 
         // Extract and parse the LogoutResponse if the IdP redirected back with one
         if let logoutResponse = extractLogoutResponse(from: callbackURL) {
-            return try parseLogoutResponse(logoutResponse, requestId: requestId)
+            return try self.parseLogoutResponse(logoutResponse, requestId: requestId)
         }
 
         // If the callback URL had no SAMLResponse the IdP still accepted the logout
-        logger.info("SAML SLO completed (no LogoutResponse in callback)")
+        self.logger.info("SAML SLO completed (no LogoutResponse in callback)")
         return true
     }
 
@@ -236,26 +236,27 @@ final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
     private func parseLogoutResponse(_ base64Response: String, requestId: String) throws -> Bool {
         let response: SAMLResponse
         do {
-            response = try parser.parseBase64EncodedResponse(base64Response)
+            response = try self.parser.parseBase64EncodedResponse(base64Response)
         } catch {
-            logger.warning("Could not parse LogoutResponse — treating as successful: \(error.localizedDescription)")
+            self.logger
+                .warning("Could not parse LogoutResponse — treating as successful: \(error.localizedDescription)")
             // If we cannot parse the response, assume the IdP accepted the logout
             return true
         }
 
         switch response.status.code {
         case .success:
-            logger.info("SAML SLO succeeded (status: Success)")
+            self.logger.info("SAML SLO succeeded (status: Success)")
             return true
 
         case .partialLogout:
-            logger.warning("SAML SLO partially completed (status: PartialLogout)")
+            self.logger.warning("SAML SLO partially completed (status: PartialLogout)")
             // Partial logout is not an error — some sessions at the IdP may still be active
             return false
 
         default:
             let reason = response.status.message ?? response.status.code.displayName
-            logger.error("SAML SLO failed with status: \(response.status.code.rawValue)")
+            self.logger.error("SAML SLO failed with status: \(response.status.code.rawValue)")
             throw SSOError.logoutFailed("IdP rejected logout: \(reason)")
         }
     }
@@ -275,7 +276,7 @@ final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
             }
             return compressedData
         } catch {
-            logger.warning("Deflate compression failed, using raw XML: \(error.localizedDescription)")
+            self.logger.warning("Deflate compression failed, using raw XML: \(error.localizedDescription)")
             return data
         }
     }

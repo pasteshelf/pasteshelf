@@ -37,7 +37,7 @@ final class CertificatePinningDelegate: NSObject, URLSessionDelegate, @unchecked
         didReceive challenge: URLAuthenticationChallenge,
         completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
     ) {
-        guard configuration.certificatePinningEnabled else {
+        guard self.configuration.certificatePinningEnabled else {
             // Pinning disabled — use default handling
             completionHandler(.performDefaultHandling, nil)
             return
@@ -55,19 +55,19 @@ final class CertificatePinningDelegate: NSObject, URLSessionDelegate, @unchecked
         let isValid = SecTrustEvaluateWithError(serverTrust, &error)
 
         guard isValid else {
-            logger.error("Server trust evaluation failed: \(error?.localizedDescription ?? "unknown")")
+            self.logger.error("Server trust evaluation failed: \(error?.localizedDescription ?? "unknown")")
             completionHandler(.cancelAuthenticationChallenge, nil)
             return
         }
 
         // If we have pinned certificate data, verify against it
         if let pinnedData = configuration.pinnedCertificateData {
-            guard validatePinnedCertificate(serverTrust: serverTrust, pinnedData: pinnedData) else {
-                logger.error("Certificate pinning validation failed for \(challenge.protectionSpace.host)")
+            guard self.validatePinnedCertificate(serverTrust: serverTrust, pinnedData: pinnedData) else {
+                self.logger.error("Certificate pinning validation failed for \(challenge.protectionSpace.host)")
                 completionHandler(.cancelAuthenticationChallenge, nil)
                 return
             }
-            logger.debug("Certificate pinning validated for \(challenge.protectionSpace.host)")
+            self.logger.debug("Certificate pinning validated for \(challenge.protectionSpace.host)")
         }
 
         let credential = URLCredential(trust: serverTrust)
@@ -100,7 +100,7 @@ final class CertificatePinningDelegate: NSObject, URLSessionDelegate, @unchecked
 
         // Extract public key hash from server certificate
         guard let serverPublicKeyHash = publicKeyHash(for: serverCertificate) else {
-            logger.error("Failed to extract public key from server certificate")
+            self.logger.error("Failed to extract public key from server certificate")
             return false
         }
 
@@ -108,7 +108,7 @@ final class CertificatePinningDelegate: NSObject, URLSessionDelegate, @unchecked
         guard let pinnedCertificate = SecCertificateCreateWithData(nil, pinnedData as CFData),
               let pinnedPublicKeyHash = publicKeyHash(for: pinnedCertificate)
         else {
-            logger.error("Failed to extract public key from pinned certificate")
+            self.logger.error("Failed to extract public key from pinned certificate")
             return false
         }
 

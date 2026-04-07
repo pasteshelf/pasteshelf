@@ -55,7 +55,7 @@ final class ConflictResolver: ConflictResolving, Sendable {
         }
 
         // Same timestamp - try to merge
-        return try await mergeChanges(local: local, remote: remote)
+        return try await self.mergeChanges(local: local, remote: remote)
     }
 
     func resolveAll(
@@ -119,7 +119,7 @@ final class ConflictResolver: ConflictResolving, Sendable {
             let remotePayload = try decoder.decode(ClipboardItemPayload.self, from: remoteDecrypted)
 
             // Merge the payloads
-            let mergedPayload = mergePayloads(local: localPayload, remote: remotePayload)
+            let mergedPayload = self.mergePayloads(local: localPayload, remote: remotePayload)
 
             // Re-encrypt the merged payload
             let encoder = JSONEncoder()
@@ -209,7 +209,7 @@ extension ConflictResolver {
 
         for local in localChanges {
             if let remote = remoteByID[local.entityID] {
-                if conflictsExist(local: local, remote: remote) {
+                if self.conflictsExist(local: local, remote: remote) {
                     conflicts.append((local, remote))
                 }
             }

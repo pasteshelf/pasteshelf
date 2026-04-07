@@ -18,7 +18,7 @@ struct SSOSettingsView: View {
     // MARK: - Body
 
     var body: some View {
-        ssoContent
+        self.ssoContent
     }
 
     // MARK: Private
@@ -29,30 +29,30 @@ struct SSOSettingsView: View {
 
     private var ssoContent: some View {
         HSplitView {
-            providerList
+            self.providerList
                 .frame(minWidth: 220, maxWidth: 300)
 
             if let provider = viewModel.selectedProvider {
                 providerDetail(provider)
             } else {
-                emptyDetailState
+                self.emptyDetailState
             }
         }
         .frame(minHeight: 380)
         .onAppear {
-            Task { await viewModel.loadProviders() }
+            Task { await self.viewModel.loadProviders() }
         }
-        .sheet(isPresented: $viewModel.isShowingForm) {
-            providerFormSheet
+        .sheet(isPresented: self.$viewModel.isShowingForm) {
+            self.providerFormSheet
         }
         .confirmationDialog(
             "Delete Identity Provider",
-            isPresented: $viewModel.isShowingDeleteConfirmation,
+            isPresented: self.$viewModel.isShowingDeleteConfirmation,
             titleVisibility: .visible
         ) {
             if let provider = viewModel.selectedProvider {
                 Button("Delete \"\(provider.name)\"", role: .destructive) {
-                    Task { await viewModel.deleteProvider(provider) }
+                    Task { await self.viewModel.deleteProvider(provider) }
                 }
             }
             Button("Cancel", role: .cancel) {}
@@ -60,16 +60,16 @@ struct SSOSettingsView: View {
             Text("This action cannot be undone.")
         }
         .alert("Error", isPresented: .init(
-            get: { viewModel.errorMessage != nil },
+            get: { self.viewModel.errorMessage != nil },
             set: { newValue in
                 if !newValue {
-                    viewModel.errorMessage = nil
+                    self.viewModel.errorMessage = nil
                 }
             }
         )) {
-            Button("OK") { viewModel.errorMessage = nil }
+            Button("OK") { self.viewModel.errorMessage = nil }
         } message: {
-            Text(viewModel.errorMessage ?? "")
+            Text(self.viewModel.errorMessage ?? "")
         }
     }
 
@@ -83,7 +83,7 @@ struct SSOSettingsView: View {
                     .font(.headline)
                 Spacer()
                 Button {
-                    viewModel.addProvider()
+                    self.viewModel.addProvider()
                 } label: {
                     Image(systemName: "plus")
                 }
@@ -95,7 +95,7 @@ struct SSOSettingsView: View {
 
             Divider()
 
-            if viewModel.providers.isEmpty {
+            if self.viewModel.providers.isEmpty {
                 Spacer()
                 VStack(spacing: 8) {
                     Image(systemName: "key.slash")
@@ -105,24 +105,24 @@ struct SSOSettingsView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     Button("Add Provider") {
-                        viewModel.addProvider()
+                        self.viewModel.addProvider()
                     }
                     .buttonStyle(.borderless)
                     .foregroundStyle(Color.accentColor)
                 }
                 Spacer()
             } else {
-                List(selection: $viewModel.selectedProviderID) {
-                    ForEach(viewModel.providers) { provider in
+                List(selection: self.$viewModel.selectedProviderID) {
+                    ForEach(self.viewModel.providers) { provider in
                         ProviderListRow(
                             provider: provider
-                        ) { Task { await viewModel.toggleProvider(provider) } }
+                        ) { Task { await self.viewModel.toggleProvider(provider) } }
                             .tag(provider.id)
                             .contextMenu {
-                                Button("Edit") { viewModel.editProvider(provider) }
+                                Button("Edit") { self.viewModel.editProvider(provider) }
                                 Divider()
                                 Button("Delete", role: .destructive) {
-                                    viewModel.requestDeleteProvider(provider)
+                                    self.viewModel.requestDeleteProvider(provider)
                                 }
                             }
                     }
@@ -135,7 +135,7 @@ struct SSOSettingsView: View {
             // Bottom toolbar
             HStack(spacing: 4) {
                 Button {
-                    viewModel.addProvider()
+                    self.viewModel.addProvider()
                 } label: {
                     Image(systemName: "plus")
                         .frame(width: 20, height: 20)
@@ -145,21 +145,22 @@ struct SSOSettingsView: View {
 
                 Button {
                     if let provider = viewModel.selectedProvider {
-                        viewModel.requestDeleteProvider(provider)
+                        self.viewModel.requestDeleteProvider(provider)
                     }
                 } label: {
                     Image(systemName: "minus")
                         .frame(width: 20, height: 20)
                 }
                 .buttonStyle(.plain)
-                .disabled(viewModel.selectedProvider == nil)
+                .disabled(self.viewModel.selectedProvider == nil)
                 .help("Remove selected provider")
 
                 Spacer()
 
-                if !viewModel.providers.isEmpty {
+                if !self.viewModel.providers.isEmpty {
                     Text(
-                        "\(viewModel.providers.filter(\.isEnabled).count) of \(viewModel.providers.count) enabled"
+                        // swiftlint:disable:next line_length
+                        "\(self.viewModel.providers.filter(\.isEnabled).count) of \(self.viewModel.providers.count) enabled"
                     )
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -188,7 +189,7 @@ struct SSOSettingsView: View {
                 .frame(maxWidth: 300)
 
             Button("Add Identity Provider") {
-                viewModel.addProvider()
+                self.viewModel.addProvider()
             }
             .buttonStyle(.borderedProminent)
         }
@@ -199,22 +200,22 @@ struct SSOSettingsView: View {
 
     private var providerFormSheet: some View {
         IdentityProviderFormView(
-            provider: viewModel.editingProvider,
+            provider: self.viewModel.editingProvider,
             onSave: { saved in
                 Task {
-                    await viewModel.saveProvider(saved)
-                    viewModel.isShowingForm = false
-                    viewModel.selectedProvider = saved
+                    await self.viewModel.saveProvider(saved)
+                    self.viewModel.isShowingForm = false
+                    self.viewModel.selectedProvider = saved
                 }
             },
             onCancel: {
-                viewModel.isShowingForm = false
+                self.viewModel.isShowingForm = false
             },
             onTestConnection: { provider in
-                Task { await viewModel.testConnection(provider) }
+                Task { await self.viewModel.testConnection(provider) }
             },
-            testResult: $viewModel.testResult,
-            isTestingConnection: $viewModel.isTestingConnection
+            testResult: self.$viewModel.testResult,
+            isTestingConnection: self.$viewModel.isTestingConnection
         )
         .frame(minWidth: 560, minHeight: 500)
     }
@@ -226,10 +227,10 @@ extension SSOSettingsView {
     func providerDetail(_ provider: IdentityProvider) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                providerHeader(provider)
-                providerStatusSection(provider)
-                providerConfigSummary(provider)
-                providerActions(provider)
+                self.providerHeader(provider)
+                self.providerStatusSection(provider)
+                self.providerConfigSummary(provider)
+                self.providerActions(provider)
                 Spacer(minLength: 0)
             }
             .padding(20)
@@ -263,7 +264,7 @@ extension SSOSettingsView {
 
             Toggle("Enabled", isOn: .init(
                 get: { provider.isEnabled },
-                set: { _ in Task { await viewModel.toggleProvider(provider) } }
+                set: { _ in Task { await self.viewModel.toggleProvider(provider) } }
             ))
             .toggleStyle(.switch)
             .labelsHidden()
@@ -305,11 +306,11 @@ extension SSOSettingsView {
         GroupBox("Configuration") {
             VStack(alignment: .leading, spacing: 8) {
                 if !provider.isConfigured {
-                    configIncompleteRow
+                    self.configIncompleteRow
                 } else if provider.type == .saml, let saml = provider.samlConfig {
-                    samlConfigRows(saml)
+                    self.samlConfigRows(saml)
                 } else if provider.type == .oidc, let oidc = provider.oidcConfig {
-                    oidcConfigRows(oidc)
+                    self.oidcConfigRows(oidc)
                 }
             }
             .padding(.vertical, 4)
@@ -378,28 +379,28 @@ extension SSOSettingsView {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 Button("Edit") {
-                    viewModel.editProvider(provider)
+                    self.viewModel.editProvider(provider)
                 }
                 .buttonStyle(.bordered)
 
                 Button("Delete", role: .destructive) {
-                    viewModel.requestDeleteProvider(provider)
+                    self.viewModel.requestDeleteProvider(provider)
                 }
                 .buttonStyle(.bordered)
 
                 Spacer()
 
-                if viewModel.isTestingConnection {
+                if self.viewModel.isTestingConnection {
                     ProgressView()
                         .controlSize(.small)
                         .padding(.trailing, 4)
                 }
 
                 Button("Test Connection") {
-                    Task { await viewModel.testConnection(provider) }
+                    Task { await self.viewModel.testConnection(provider) }
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(!provider.isConfigured || viewModel.isTestingConnection)
+                .disabled(!provider.isConfigured || self.viewModel.isTestingConnection)
                 .help("Verify connectivity to this identity provider")
             }
 

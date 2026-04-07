@@ -19,8 +19,8 @@ struct DLPRuleEngineTests {
 
     @Test("No rules returns clean result")
     func noRulesReturnsCleanResult() async {
-        let engine = makeEngine()
-        let content = makeContent(text: "Hello, world!")
+        let engine = self.makeEngine()
+        let content = self.makeContent(text: "Hello, world!")
 
         let result = await engine.evaluate(content, against: [])
 
@@ -32,10 +32,10 @@ struct DLPRuleEngineTests {
 
     @Test("Disabled rules are skipped")
     func disabledRulesAreSkipped() async {
-        let engine = makeEngine()
-        let content = makeContent(text: "4111111111111111")
+        let engine = self.makeEngine()
+        let content = self.makeContent(text: "4111111111111111")
 
-        var rule = makeRule(pattern: "\\b4[0-9]{15}\\b", actions: [.block])
+        var rule = self.makeRule(pattern: "\\b4[0-9]{15}\\b", actions: [.block])
         rule = DLPRule(
             id: rule.id,
             name: rule.name,
@@ -56,10 +56,10 @@ struct DLPRuleEngineTests {
 
     @Test("Credit card pattern detection")
     func creditCardPatternDetection() async {
-        let engine = makeEngine()
+        let engine = self.makeEngine()
         // Standard Visa test card number
-        let content = makeContent(text: "4111111111111111")
-        let rule = makeRule(
+        let content = self.makeContent(text: "4111111111111111")
+        let rule = self.makeRule(
             name: "Credit Card",
             pattern: "\\b4[0-9]{12}(?:[0-9]{3})?\\b",
             actions: [.alert, .logOnly]
@@ -74,9 +74,9 @@ struct DLPRuleEngineTests {
 
     @Test("SSN pattern detection")
     func ssnPatternDetection() async {
-        let engine = makeEngine()
-        let content = makeContent(text: "SSN: 123-45-6789")
-        let rule = makeRule(
+        let engine = self.makeEngine()
+        let content = self.makeContent(text: "SSN: 123-45-6789")
+        let rule = self.makeRule(
             name: "SSN Detector",
             pattern: "\\b\\d{3}-\\d{2}-\\d{4}\\b",
             actions: [.alert, .logOnly]
@@ -90,10 +90,10 @@ struct DLPRuleEngineTests {
 
     @Test("API key pattern detection")
     func apiKeyPatternDetection() async {
-        let engine = makeEngine()
+        let engine = self.makeEngine()
         // AWS-style access key format: AKIA followed by 16 alphanumeric characters
-        let content = makeContent(text: "AKIA1234567890ABCDEF")
-        let rule = makeRule(
+        let content = self.makeContent(text: "AKIA1234567890ABCDEF")
+        let rule = self.makeRule(
             name: "AWS Key Detector",
             pattern: "AKIA[0-9A-Z]{16}",
             actions: [.alert, .logOnly]
@@ -107,9 +107,9 @@ struct DLPRuleEngineTests {
 
     @Test("Custom regex detection")
     func customRegexDetection() async {
-        let engine = makeEngine()
-        let content = makeContent(text: "The token is SECRET_ABCDEFGHIJ")
-        let rule = makeRule(
+        let engine = self.makeEngine()
+        let content = self.makeContent(text: "The token is SECRET_ABCDEFGHIJ")
+        let rule = self.makeRule(
             name: "Custom Secret",
             pattern: "SECRET_[A-Z]{10}",
             actions: [.alert, .logOnly]
@@ -125,9 +125,9 @@ struct DLPRuleEngineTests {
 
     @Test("Block action sets shouldBlock")
     func blockActionSetsShouldBlock() async {
-        let engine = makeEngine()
-        let content = makeContent(text: "4111111111111111")
-        let rule = makeRule(
+        let engine = self.makeEngine()
+        let content = self.makeContent(text: "4111111111111111")
+        let rule = self.makeRule(
             pattern: "\\b4[0-9]{12}(?:[0-9]{3})?\\b",
             actions: [.block, .alert, .logOnly]
         )
@@ -140,9 +140,9 @@ struct DLPRuleEngineTests {
 
     @Test("Redact action sets shouldRedact")
     func redactActionSetsShouldRedact() async {
-        let engine = makeEngine()
-        let content = makeContent(text: "123-45-6789")
-        let rule = makeRule(
+        let engine = self.makeEngine()
+        let content = self.makeContent(text: "123-45-6789")
+        let rule = self.makeRule(
             pattern: "\\b\\d{3}-\\d{2}-\\d{4}\\b",
             actions: [.redact, .logOnly]
         )
@@ -157,16 +157,16 @@ struct DLPRuleEngineTests {
 
     @Test("Multiple rules multiple violations")
     func multipleRulesMultipleViolations() async {
-        let engine = makeEngine()
+        let engine = self.makeEngine()
         // Content matches both a credit card pattern and an SSN pattern
-        let content = makeContent(text: "Card: 4111111111111111 SSN: 123-45-6789")
+        let content = self.makeContent(text: "Card: 4111111111111111 SSN: 123-45-6789")
 
-        let ccRule = makeRule(
+        let ccRule = self.makeRule(
             name: "Credit Card",
             pattern: "\\b4[0-9]{12}(?:[0-9]{3})?\\b",
             actions: [.alert, .logOnly]
         )
-        let ssnRule = makeRule(
+        let ssnRule = self.makeRule(
             name: "SSN",
             pattern: "\\b\\d{3}-\\d{2}-\\d{4}\\b",
             actions: [.alert, .logOnly]
@@ -182,10 +182,10 @@ struct DLPRuleEngineTests {
 
     @Test("Invalid regex pattern skipped")
     func invalidRegexPatternSkipped() async {
-        let engine = makeEngine()
-        let content = makeContent(text: "Some sensitive content here")
+        let engine = self.makeEngine()
+        let content = self.makeContent(text: "Some sensitive content here")
         // "[invalid" is not a valid regex — the engine must skip it without crashing
-        let rule = makeRule(pattern: "[invalid")
+        let rule = self.makeRule(pattern: "[invalid")
 
         let result = await engine.evaluate(content, against: [rule])
 
@@ -196,10 +196,10 @@ struct DLPRuleEngineTests {
 
     @Test("No match returns clean result")
     func noMatchReturnsCleanResult() async {
-        let engine = makeEngine()
-        let content = makeContent(text: "This text contains no sensitive data")
+        let engine = self.makeEngine()
+        let content = self.makeContent(text: "This text contains no sensitive data")
         // A valid pattern that will not match the content
-        let rule = makeRule(pattern: "\\b4[0-9]{12}(?:[0-9]{3})?\\b")
+        let rule = self.makeRule(pattern: "\\b4[0-9]{12}(?:[0-9]{3})?\\b")
 
         let result = await engine.evaluate(content, against: [rule])
 
@@ -210,10 +210,10 @@ struct DLPRuleEngineTests {
 
     @Test("Redacted content replaces matched text")
     func redactedContentReplacesMatchedText() async {
-        let engine = makeEngine()
+        let engine = self.makeEngine()
         // Credit card number is long enough (16 digits) for the partial-redaction path
-        let content = makeContent(text: "Card: 4111111111111111")
-        let rule = makeRule(
+        let content = self.makeContent(text: "Card: 4111111111111111")
+        let rule = self.makeRule(
             pattern: "\\b4[0-9]{12}(?:[0-9]{3})?\\b",
             actions: [.redact, .logOnly]
         )

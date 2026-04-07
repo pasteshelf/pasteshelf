@@ -15,58 +15,58 @@ final class PreferencesUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
 
-        app = XCUIApplication()
-        app.launchArguments.append("--skip-onboarding")
-        app.launchArguments.append("--show-preferences")
-        app.launch()
+        self.app = XCUIApplication()
+        self.app.launchArguments.append("--skip-onboarding")
+        self.app.launchArguments.append("--show-preferences")
+        self.app.launch()
     }
 
     override func tearDownWithError() throws {
-        app = nil
+        self.app = nil
     }
 
     // MARK: - Window Tests
 
     @MainActor
     func testPreferencesWindowOpens() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         XCTAssertTrue(prefsWindow.waitForExistence(timeout: 3))
     }
 
     @MainActor
     func testPreferencesWindowHasAllTabs() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
         // Check all tabs exist (SwiftUI TabView renders as toolbar items on macOS)
-        XCTAssertTrue(tabExists("General", in: prefsWindow))
-        XCTAssertTrue(tabExists("Privacy", in: prefsWindow))
-        XCTAssertTrue(tabExists("Appearance", in: prefsWindow))
-        XCTAssertTrue(tabExists("Shortcuts", in: prefsWindow))
-        XCTAssertTrue(tabExists("About", in: prefsWindow))
+        XCTAssertTrue(self.tabExists("General", in: prefsWindow))
+        XCTAssertTrue(self.tabExists("Privacy", in: prefsWindow))
+        XCTAssertTrue(self.tabExists("Appearance", in: prefsWindow))
+        XCTAssertTrue(self.tabExists("Shortcuts", in: prefsWindow))
+        XCTAssertTrue(self.tabExists("About", in: prefsWindow))
     }
 
     // MARK: - General Tab Tests
 
     @MainActor
     func testGeneralTabContent() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
         // Click General tab
-        selectTab("General", in: prefsWindow)
+        self.selectTab("General", in: prefsWindow)
 
         // Check General settings (accessibility labels override visible text)
         XCTAssertTrue(
@@ -85,15 +85,15 @@ final class PreferencesUITests: XCTestCase {
 
     @MainActor
     func testHistoryLimitPicker() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
-        selectTab("General", in: prefsWindow)
+        self.selectTab("General", in: prefsWindow)
 
         // Check history limit picker exists
         let historyPicker = prefsWindow.popUpButtons.firstMatch
@@ -104,16 +104,16 @@ final class PreferencesUITests: XCTestCase {
 
     @MainActor
     func testPrivacyTabContent() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
         // Click Privacy tab
-        selectTab("Privacy", in: prefsWindow)
+        self.selectTab("Privacy", in: prefsWindow)
 
         // Check Privacy settings
         XCTAssertTrue(
@@ -124,15 +124,15 @@ final class PreferencesUITests: XCTestCase {
 
     @MainActor
     func testClearHistoryButton() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
-        selectTab("Privacy", in: prefsWindow)
+        self.selectTab("Privacy", in: prefsWindow)
 
         // Check Clear History button exists (accessibilityLabel is "Clear all history")
         XCTAssertTrue(
@@ -146,16 +146,16 @@ final class PreferencesUITests: XCTestCase {
 
     @MainActor
     func testAppearanceTabContent() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
         // Click Appearance tab
-        selectTab("Appearance", in: prefsWindow)
+        self.selectTab("Appearance", in: prefsWindow)
 
         // Check Appearance settings
         XCTAssertTrue(
@@ -166,15 +166,15 @@ final class PreferencesUITests: XCTestCase {
 
     @MainActor
     func testThemePicker() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
-        selectTab("Appearance", in: prefsWindow)
+        self.selectTab("Appearance", in: prefsWindow)
 
         // Check theme options
         let systemOption = prefsWindow.radioButtons["System"]
@@ -191,16 +191,16 @@ final class PreferencesUITests: XCTestCase {
 
     @MainActor
     func testShortcutsTabContent() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
         // Click Shortcuts tab
-        selectTab("Shortcuts", in: prefsWindow)
+        self.selectTab("Shortcuts", in: prefsWindow)
 
         // Check Shortcuts settings
         XCTAssertTrue(
@@ -211,15 +211,15 @@ final class PreferencesUITests: XCTestCase {
 
     @MainActor
     func testHotkeyRecorder() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
-        selectTab("Shortcuts", in: prefsWindow)
+        self.selectTab("Shortcuts", in: prefsWindow)
 
         // Check hotkey recorder exists
         // The hotkey display should show something like "⌘⇧V" or section header "Global Hotkey"
@@ -237,16 +237,16 @@ final class PreferencesUITests: XCTestCase {
 
     @MainActor
     func testAboutTabContent() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
         // Click About tab
-        selectTab("About", in: prefsWindow)
+        self.selectTab("About", in: prefsWindow)
 
         // Check About content
         XCTAssertTrue(
@@ -264,15 +264,15 @@ final class PreferencesUITests: XCTestCase {
 
     @MainActor
     func testAboutLinks() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
         }
 
-        selectTab("About", in: prefsWindow)
+        self.selectTab("About", in: prefsWindow)
 
         // Check links exist (Link accessibilityLabels differ from visible text)
         XCTAssertTrue(
@@ -288,9 +288,9 @@ final class PreferencesUITests: XCTestCase {
 
     @MainActor
     func testTabSwitching() {
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 3) else {
             XCTSkip("Preferences window not available")
             return
@@ -300,7 +300,7 @@ final class PreferencesUITests: XCTestCase {
         let tabs = ["General", "Privacy", "Appearance", "Shortcuts", "About"]
 
         for tab in tabs {
-            selectTab(tab, in: prefsWindow)
+            self.selectTab(tab, in: prefsWindow)
             // Give UI time to update
             Thread.sleep(forTimeInterval: 0.2)
         }
@@ -313,7 +313,7 @@ final class PreferencesUITests: XCTestCase {
     private func openPreferences() {
         // Preferences window auto-opens via --show-preferences launch argument
         // Wait for window and its sidebar to fully render
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 5) else {
             return
         }

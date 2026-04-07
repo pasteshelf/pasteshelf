@@ -21,7 +21,7 @@
         // MARK: - Initialization
 
         private init() {
-            logger.info("PluginManager initialized")
+            self.logger.info("PluginManager initialized")
         }
 
         // MARK: Internal
@@ -48,19 +48,19 @@
 
         /// Returns all available plugins (discovered + active)
         var allPlugins: [LoadedPlugin] {
-            Array(plugins.values).sorted { $0.bundle.manifest.name < $1.bundle.manifest.name }
+            Array(self.plugins.values).sorted { $0.bundle.manifest.name < $1.bundle.manifest.name }
         }
 
         /// Returns only active plugins
         var loadedPlugins: [LoadedPlugin] {
-            allPlugins.filter { $0.state == .active }
+            self.allPlugins.filter { $0.state == .active }
         }
 
         // MARK: - Menu Items
 
         /// Collects menu items from all active plugins
         var allMenuItems: [(pluginId: String, items: [PluginMenuItem])] {
-            activePlugins.compactMap { id, plugin in
+            self.activePlugins.compactMap { id, plugin in
                 guard let items = plugin.menuItems?(), !items.isEmpty else {
                     return nil
                 }
@@ -73,50 +73,50 @@
         /// Initializes the plugin system
         /// - Parameter contextFactory: Factory for creating plugin contexts
         func initialize(contextFactory: PluginContextFactory) async {
-            guard !isInitialized else {
-                logger.warning("Plugin system already initialized")
+            guard !self.isInitialized else {
+                self.logger.warning("Plugin system already initialized")
                 return
             }
 
             self.contextFactory = contextFactory
-            loadingStatus = .discovering
+            self.loadingStatus = .discovering
 
             // Discover plugins
-            let bundles = loader.discoverPlugins()
-            logger.info("Discovered \(bundles.count) plugins")
+            let bundles = self.loader.discoverPlugins()
+            self.logger.info("Discovered \(bundles.count) plugins")
 
             // Validate and register plugins
-            loadingStatus = .validating
+            self.loadingStatus = .validating
             for bundle in bundles {
-                let validationResult = validator.validate(bundle)
+                let validationResult = self.validator.validate(bundle)
                 var plugin = LoadedPlugin(bundle: bundle, state: .discovered)
 
                 if case let .failure(error) = validationResult {
                     plugin.state = .failed
                     plugin.loadError = error.localizedDescription
-                    logger
+                    self.logger
                         .warning(
                             // swiftlint:disable:next line_length
                             "Plugin \(bundle.manifest.identifier) failed validation: \(error.localizedDescription ?? "Unknown")"
                         )
                 }
 
-                plugins[bundle.manifest.identifier] = plugin
+                self.plugins[bundle.manifest.identifier] = plugin
             }
 
             // Register and load built-in plugins
-            await registerBuiltInPlugins()
+            await self.registerBuiltInPlugins()
 
             // Load enabled plugins
-            loadingStatus = .loading
-            await loadEnabledPlugins()
+            self.loadingStatus = .loading
+            await self.loadEnabledPlugins()
 
             // Set up directory watching
-            setupDirectoryWatching()
+            self.setupDirectoryWatching()
 
-            isInitialized = true
-            loadingStatus = .ready
-            logger.info("Plugin system initialized with \(activePlugins.count) active plugins")
+            self.isInitialized = true
+            self.loadingStatus = .ready
+            self.logger.info("Plugin system initialized with \(self.activePlugins.count) active plugins")
         }
 
         /// Loads a specific plugin
@@ -135,7 +135,7 @@
             }
 
             plugin.state = .loading
-            plugins[id] = plugin
+            self.plugins[id] = plugin
 
             do {
                 // Load principal class
@@ -154,24 +154,24 @@
                 pluginInstance.didLoad(with: context)
 
                 // Update state
-                activePlugins[id] = pluginInstance
+                self.activePlugins[id] = pluginInstance
                 plugin.state = .active
-                plugins[id] = LoadedPlugin(
+                self.plugins[id] = LoadedPlugin(
                     bundle: plugin.bundle,
                     instance: pluginInstance,
                     state: .active
                 )
 
                 // Add to enabled set
-                var enabled = enabledPluginIds
+                var enabled = self.enabledPluginIds
                 enabled.insert(id)
-                enabledPluginIds = enabled
+                self.enabledPluginIds = enabled
 
-                logger.info("Loaded plugin: \(plugin.bundle.manifest.name)")
+                self.logger.info("Loaded plugin: \(plugin.bundle.manifest.name)")
             } catch {
                 plugin.state = .failed
                 plugin.loadError = error.localizedDescription
-                plugins[id] = plugin
+                self.plugins[id] = plugin
                 throw error
             }
         }
@@ -180,12 +180,12 @@
         /// - Parameter id: Plugin identifier
         func unloadPlugin(id: String) async {
             guard var plugin = plugins[id] else {
-                logger.warning("Cannot unload unknown plugin: \(id)")
+                self.logger.warning("Cannot unload unknown plugin: \(id)")
                 return
             }
 
             guard plugin.state == .active else {
-                logger.warning("Plugin \(id) is not active")
+                self.logger.warning("Plugin \(id) is not active")
                 return
             }
 
@@ -197,18 +197,18 @@
             }
 
             // Remove from active plugins
-            activePlugins.removeValue(forKey: id)
+            self.activePlugins.removeValue(forKey: id)
 
             // Update state
             plugin.state = .disabled
-            plugins[id] = LoadedPlugin(bundle: plugin.bundle, state: .disabled)
+            self.plugins[id] = LoadedPlugin(bundle: plugin.bundle, state: .disabled)
 
             // Remove from enabled set
-            var enabled = enabledPluginIds
+            var enabled = self.enabledPluginIds
             enabled.remove(id)
-            enabledPluginIds = enabled
+            self.enabledPluginIds = enabled
 
-            logger.info("Unloaded plugin: \(plugin.bundle.manifest.name)")
+            self.logger.info("Unloaded plugin: \(plugin.bundle.manifest.name)")
         }
 
         /// Enables a plugin (loads it if not already loaded)
@@ -219,28 +219,28 @@
             }
 
             if plugin.state != .active {
-                try await loadPlugin(id: id)
+                try await self.loadPlugin(id: id)
             }
         }
 
         /// Disables a plugin (unloads it)
         /// - Parameter id: Plugin identifier
         func disablePlugin(id: String) async {
-            await unloadPlugin(id: id)
+            await self.unloadPlugin(id: id)
         }
 
         /// Gets a loaded plugin instance by ID
         /// - Parameter id: Plugin identifier
         /// - Returns: Plugin instance if loaded
         func plugin(id: String) -> (any PasteShelfPlugin)? {
-            activePlugins[id]
+            self.activePlugins[id]
         }
 
         /// Checks if a plugin is enabled
         /// - Parameter id: Plugin identifier
         /// - Returns: True if enabled
         func isEnabled(id: String) -> Bool {
-            plugins[id]?.state == .active
+            self.plugins[id]?.state == .active
         }
 
         // MARK: - Permissions
@@ -251,7 +251,7 @@
         ///   - permission: Permission to check
         /// - Returns: True if permission is granted
         func hasPermission(_ permission: PluginPermission, for pluginId: String) -> Bool {
-            permissionGrants.contains { $0.pluginId == pluginId && $0.permission == permission }
+            self.permissionGrants.contains { $0.pluginId == pluginId && $0.permission == permission }
         }
 
         /// Grants a permission to a plugin
@@ -261,10 +261,10 @@
         ///   - permanent: Whether the grant persists across sessions
         func grantPermission(_ permission: PluginPermission, to pluginId: String, permanent: Bool = true) {
             let grant = PluginPermissionGrant(pluginId: pluginId, permission: permission, isPermanent: permanent)
-            var grants = permissionGrants.filter { !($0.pluginId == pluginId && $0.permission == permission) }
+            var grants = self.permissionGrants.filter { !($0.pluginId == pluginId && $0.permission == permission) }
             grants.append(grant)
-            permissionGrants = grants
-            logger.info("Granted \(permission.displayName) to plugin \(pluginId)")
+            self.permissionGrants = grants
+            self.logger.info("Granted \(permission.displayName) to plugin \(pluginId)")
         }
 
         /// Revokes a permission from a plugin
@@ -272,46 +272,47 @@
         ///   - permission: Permission to revoke
         ///   - pluginId: Plugin identifier
         func revokePermission(_ permission: PluginPermission, from pluginId: String) {
-            permissionGrants = permissionGrants.filter { !($0.pluginId == pluginId && $0.permission == permission) }
-            logger.info("Revoked \(permission.displayName) from plugin \(pluginId)")
+            self.permissionGrants = self.permissionGrants
+                .filter { !($0.pluginId == pluginId && $0.permission == permission) }
+            self.logger.info("Revoked \(permission.displayName) from plugin \(pluginId)")
         }
 
         /// Gets all granted permissions for a plugin
         /// - Parameter pluginId: Plugin identifier
         /// - Returns: Set of granted permissions
         func grantedPermissions(for pluginId: String) -> Set<PluginPermission> {
-            Set(permissionGrants.filter { $0.pluginId == pluginId }.map(\.permission))
+            Set(self.permissionGrants.filter { $0.pluginId == pluginId }.map(\.permission))
         }
 
         /// Refreshes the plugin list (re-discovers and validates)
         func refreshPlugins() async {
-            guard isInitialized else {
+            guard self.isInitialized else {
                 return
             }
 
-            logger.debug("Refreshing plugins...")
-            loadingStatus = .discovering
+            self.logger.debug("Refreshing plugins...")
+            self.loadingStatus = .discovering
 
             // Keep track of active plugins
             let previouslyActive = Set(activePlugins.keys)
 
             // Re-discover
-            let bundles = loader.discoverPlugins()
+            let bundles = self.loader.discoverPlugins()
             var newPlugins: [String: LoadedPlugin] = [:]
 
             // Process discovered bundles
-            loadingStatus = .validating
+            self.loadingStatus = .validating
             for bundle in bundles {
                 let id = bundle.manifest.identifier
-                let validationResult = validator.validate(bundle)
+                let validationResult = self.validator.validate(bundle)
 
                 if case let .failure(error) = validationResult {
                     newPlugins[id] = LoadedPlugin(bundle: bundle, state: .failed)
                     newPlugins[id]?.loadError = error.localizedDescription
                 } else if previouslyActive.contains(id) {
                     // Keep previously active plugins
-                    newPlugins[id] = plugins[id]
-                } else if enabledPluginIds.contains(id) {
+                    newPlugins[id] = self.plugins[id]
+                } else if self.enabledPluginIds.contains(id) {
                     // Plugin should be enabled
                     newPlugins[id] = LoadedPlugin(bundle: bundle, state: .discovered)
                 } else {
@@ -321,38 +322,38 @@
 
             // Find removed plugins
             let removedIds = Set(plugins.keys).subtracting(Set(newPlugins.keys))
-            for id in removedIds where activePlugins[id] != nil {
+            for id in removedIds where self.activePlugins[id] != nil {
                 await unloadPlugin(id: id)
             }
 
-            plugins = newPlugins
+            self.plugins = newPlugins
 
             // Load newly enabled plugins
-            loadingStatus = .loading
-            await loadEnabledPlugins()
+            self.loadingStatus = .loading
+            await self.loadEnabledPlugins()
 
-            loadingStatus = .ready
-            logger.info("Plugin refresh complete: \(plugins.count) plugins")
+            self.loadingStatus = .ready
+            self.logger.info("Plugin refresh complete: \(self.plugins.count) plugins")
         }
 
         // MARK: - Cleanup
 
         /// Shuts down the plugin system
         func shutdown() async {
-            logger.info("Shutting down plugin system...")
+            self.logger.info("Shutting down plugin system...")
 
             // Unload all active plugins
-            for id in activePlugins.keys {
-                await unloadPlugin(id: id)
+            for id in self.activePlugins.keys {
+                await self.unloadPlugin(id: id)
             }
 
             // Cancel directory watcher
-            directoryWatcher?.cancel()
-            directoryWatcher = nil
+            self.directoryWatcher?.cancel()
+            self.directoryWatcher = nil
 
-            isInitialized = false
-            loadingStatus = .idle
-            logger.info("Plugin system shut down")
+            self.isInitialized = false
+            self.loadingStatus = .idle
+            self.logger.info("Plugin system shut down")
         }
 
         // MARK: Private
@@ -428,11 +429,11 @@
 
         private var enabledPluginIds: Set<String> {
             get {
-                let array = UserDefaults.standard.stringArray(forKey: enabledPluginsKey) ?? []
+                let array = UserDefaults.standard.stringArray(forKey: self.enabledPluginsKey) ?? []
                 return Set(array)
             }
             set {
-                UserDefaults.standard.set(Array(newValue), forKey: enabledPluginsKey)
+                UserDefaults.standard.set(Array(newValue), forKey: self.enabledPluginsKey)
             }
         }
 
@@ -447,7 +448,7 @@
             }
             set {
                 if let data = try? JSONEncoder().encode(newValue) {
-                    UserDefaults.standard.set(data, forKey: permissionGrantsKey)
+                    UserDefaults.standard.set(data, forKey: self.permissionGrantsKey)
                 }
             }
         }
@@ -476,8 +477,8 @@
                 guard let pluginClass = Bundle.main.classNamed(def.pluginClass) as? NSObject.Type,
                       let instance = pluginClass.init() as? any PasteShelfPlugin
                 else {
-                    logger.warning("Built-in plugin class '\(def.pluginClass)' not found or invalid")
-                    plugins[def.id] = LoadedPlugin(bundle: bundle, state: .failed)
+                    self.logger.warning("Built-in plugin class '\(def.pluginClass)' not found or invalid")
+                    self.plugins[def.id] = LoadedPlugin(bundle: bundle, state: .failed)
                     continue
                 }
 
@@ -486,10 +487,10 @@
                 instance.didLoad(with: context)
 
                 // Register as active
-                activePlugins[def.id] = instance
-                plugins[def.id] = LoadedPlugin(bundle: bundle, instance: instance, state: .active)
+                self.activePlugins[def.id] = instance
+                self.plugins[def.id] = LoadedPlugin(bundle: bundle, instance: instance, state: .active)
 
-                logger.info("Registered built-in plugin: \(def.name)")
+                self.logger.info("Registered built-in plugin: \(def.name)")
             }
         }
 
@@ -497,17 +498,17 @@
 
         /// Loads all enabled plugins
         private func loadEnabledPlugins() async {
-            let enabled = enabledPluginIds
+            let enabled = self.enabledPluginIds
 
             for (id, var plugin) in plugins {
                 if enabled.contains(id), plugin.state == .discovered {
                     do {
-                        try await loadPlugin(id: id)
+                        try await self.loadPlugin(id: id)
                     } catch {
-                        logger.error("Failed to load plugin \(id): \(error.localizedDescription)")
+                        self.logger.error("Failed to load plugin \(id): \(error.localizedDescription)")
                         plugin.state = .failed
                         plugin.loadError = error.localizedDescription
-                        plugins[id] = plugin
+                        self.plugins[id] = plugin
                     }
                 }
             }
@@ -516,7 +517,7 @@
         // MARK: - Directory Watching
 
         private func setupDirectoryWatching() {
-            directoryWatcher = loader.watchForChanges { [weak self] in
+            self.directoryWatcher = self.loader.watchForChanges { [weak self] in
                 Task { @MainActor in
                     await self?.refreshPlugins()
                 }

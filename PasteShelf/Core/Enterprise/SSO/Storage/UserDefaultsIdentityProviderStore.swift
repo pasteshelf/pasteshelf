@@ -30,7 +30,7 @@ final class UserDefaultsIdentityProviderStore: IdentityProviderStore, Sendable {
     // MARK: - IdentityProviderStore
 
     func save(_ provider: IdentityProvider) async throws {
-        var providers = loadAllSync()
+        var providers = self.loadAllSync()
 
         // Replace existing or append
         if let index = providers.firstIndex(where: { $0.id == provider.id }) {
@@ -39,23 +39,23 @@ final class UserDefaultsIdentityProviderStore: IdentityProviderStore, Sendable {
             providers.append(provider)
         }
 
-        try persistAll(providers)
-        logger.debug("Saved identity provider: \(provider.name)")
+        try self.persistAll(providers)
+        self.logger.debug("Saved identity provider: \(provider.name)")
     }
 
     func load(id: UUID) async throws -> IdentityProvider? {
-        loadAllSync().first { $0.id == id }
+        self.loadAllSync().first { $0.id == id }
     }
 
     func loadAll() async throws -> [IdentityProvider] {
-        loadAllSync()
+        self.loadAllSync()
     }
 
     func delete(id: UUID) async throws {
-        var providers = loadAllSync()
+        var providers = self.loadAllSync()
         providers.removeAll { $0.id == id }
-        try persistAll(providers)
-        logger.debug("Deleted identity provider: \(id)")
+        try self.persistAll(providers)
+        self.logger.debug("Deleted identity provider: \(id)")
     }
 
     // MARK: Private
@@ -73,13 +73,13 @@ final class UserDefaultsIdentityProviderStore: IdentityProviderStore, Sendable {
         do {
             return try JSONDecoder().decode([IdentityProvider].self, from: data)
         } catch {
-            logger.error("Failed to decode identity providers: \(error.localizedDescription)")
+            self.logger.error("Failed to decode identity providers: \(error.localizedDescription)")
             return []
         }
     }
 
     private func persistAll(_ providers: [IdentityProvider]) throws {
         let data = try JSONEncoder().encode(providers)
-        defaults.set(data, forKey: storageKey)
+        self.defaults.set(data, forKey: self.storageKey)
     }
 }

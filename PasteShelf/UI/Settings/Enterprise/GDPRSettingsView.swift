@@ -34,13 +34,13 @@ struct GDPRSettingsView: View {
                                 }
                                 Spacer()
                                 Toggle("", isOn: Binding(
-                                    get: { consentManager.isConsentGranted(for: category) },
+                                    get: { self.consentManager.isConsentGranted(for: category) },
                                     set: { granted in
                                         Task {
                                             if granted {
-                                                await consentManager.grantConsent(for: category)
+                                                await self.consentManager.grantConsent(for: category)
                                             } else {
-                                                await consentManager.revokeConsent(for: category)
+                                                await self.consentManager.revokeConsent(for: category)
                                             }
                                         }
                                     }
@@ -71,16 +71,16 @@ struct GDPRSettingsView: View {
                             }
                             Spacer()
                             Button {
-                                Task { await exportData() }
+                                Task { await self.exportData() }
                             } label: {
-                                if viewModel.isGDPRExporting {
+                                if self.viewModel.isGDPRExporting {
                                     ProgressView()
                                         .controlSize(.small)
                                 } else {
                                     Label("Export", systemImage: "square.and.arrow.up")
                                 }
                             }
-                            .disabled(viewModel.isGDPRExporting)
+                            .disabled(self.viewModel.isGDPRExporting)
                         }
 
                         Divider()
@@ -96,16 +96,16 @@ struct GDPRSettingsView: View {
                             }
                             Spacer()
                             Button(role: .destructive) {
-                                showDeleteConfirmation = true
+                                self.showDeleteConfirmation = true
                             } label: {
-                                if viewModel.isGDPRDeleting {
+                                if self.viewModel.isGDPRDeleting {
                                     ProgressView()
                                         .controlSize(.small)
                                 } else {
                                     Label("Delete All", systemImage: "trash")
                                 }
                             }
-                            .disabled(viewModel.isGDPRDeleting)
+                            .disabled(self.viewModel.isGDPRDeleting)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -116,7 +116,7 @@ struct GDPRSettingsView: View {
                 // Privacy Dashboard Link
                 GroupBox {
                     Button {
-                        showPrivacyDashboard = true
+                        self.showPrivacyDashboard = true
                     } label: {
                         HStack {
                             Label("Open Privacy Dashboard", systemImage: "eye.fill")
@@ -133,10 +133,10 @@ struct GDPRSettingsView: View {
             }
             .padding()
         }
-        .alert("Delete All Data?", isPresented: $showDeleteConfirmation) {
+        .alert("Delete All Data?", isPresented: self.$showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete Everything", role: .destructive) {
-                Task { await viewModel.deleteAllGDPRData() }
+                Task { await self.viewModel.deleteAllGDPRData() }
             }
         } message: {
             Text(
@@ -145,7 +145,7 @@ struct GDPRSettingsView: View {
                     + " This action cannot be undone."
             )
         }
-        .sheet(isPresented: $showPrivacyDashboard) {
+        .sheet(isPresented: self.$showPrivacyDashboard) {
             PrivacyDashboardView()
                 .frame(minWidth: 500, minHeight: 400)
         }

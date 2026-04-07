@@ -14,11 +14,11 @@ actor RateLimitStore {
 
     func check(key: String) -> Bool {
         let now = Date()
-        let cutoff = now.addingTimeInterval(-window)
-        var entries = requests[key, default: []].filter { $0 > cutoff }
+        let cutoff = now.addingTimeInterval(-self.window)
+        var entries = self.requests[key, default: []].filter { $0 > cutoff }
         entries.append(now)
-        requests[key] = entries
-        return entries.count <= limit
+        self.requests[key] = entries
+        return entries.count <= self.limit
     }
 
     // MARK: Private
@@ -35,7 +35,7 @@ struct RateLimitMiddleware: AsyncMiddleware {
 
     func respond(to request: Request, chainingTo next: any AsyncResponder) async throws -> Response {
         let key = request.peerAddress?.description ?? "unknown"
-        guard await store.check(key: key) else {
+        guard await self.store.check(key: key) else {
             throw Abort(.tooManyRequests, reason: "Rate limit exceeded. Try again later.")
         }
         return try await next.respond(to: request)

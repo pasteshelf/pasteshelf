@@ -43,7 +43,7 @@ struct TagPickerView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
                     .font(.system(size: 11))
-                TextField("Search or create tag...", text: $searchText)
+                TextField("Search or create tag...", text: self.$searchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
             }
@@ -55,13 +55,13 @@ struct TagPickerView: View {
             // Tag list
             ScrollView {
                 LazyVStack(spacing: 2) {
-                    ForEach(filteredTags) { tag in
-                        tagRow(tag)
+                    ForEach(self.filteredTags) { tag in
+                        self.tagRow(tag)
                     }
 
                     // Create new tag option
-                    if shouldShowCreateOption {
-                        createTagRow
+                    if self.shouldShowCreateOption {
+                        self.createTagRow
                     }
                 }
                 .padding(.vertical, 4)
@@ -69,9 +69,9 @@ struct TagPickerView: View {
             .frame(maxHeight: 200)
 
             // New tag creation form
-            if isCreatingTag {
+            if self.isCreatingTag {
                 Divider()
-                createTagForm
+                self.createTagForm
             }
         }
         .frame(width: 220)
@@ -89,32 +89,32 @@ struct TagPickerView: View {
     // MARK: - Filtered Tags
 
     private var filteredTags: [TagDisplayModel] {
-        if searchText.isEmpty {
-            return availableTags
+        if self.searchText.isEmpty {
+            return self.availableTags
         }
-        return availableTags.filter {
-            $0.name.localizedCaseInsensitiveContains(searchText)
+        return self.availableTags.filter {
+            $0.name.localizedCaseInsensitiveContains(self.searchText)
         }
     }
 
     private var shouldShowCreateOption: Bool {
-        !searchText.isEmpty &&
-            !availableTags.contains { $0.name.lowercased() == searchText.lowercased() }
+        !self.searchText.isEmpty &&
+            !self.availableTags.contains { $0.name.lowercased() == self.searchText.lowercased() }
     }
 
     // MARK: - Create Tag Row
 
     private var createTagRow: some View {
         Button {
-            newTagName = searchText
-            isCreatingTag = true
+            self.newTagName = self.searchText
+            self.isCreatingTag = true
         } label: {
             HStack {
                 Image(systemName: "plus.circle")
                     .foregroundColor(.accentColor)
                     .font(.system(size: 14))
 
-                Text("Create \"\(searchText)\"")
+                Text("Create \"\(self.searchText)\"")
                     .font(.system(size: 12))
                     .foregroundColor(.accentColor)
 
@@ -137,8 +137,8 @@ struct TagPickerView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button("Cancel") {
-                    isCreatingTag = false
-                    newTagName = ""
+                    self.isCreatingTag = false
+                    self.newTagName = ""
                 }
                 .font(.system(size: 11))
                 .buttonStyle(.plain)
@@ -147,20 +147,20 @@ struct TagPickerView: View {
 
             HStack(spacing: 8) {
                 // Color picker
-                ColorPickerButton(selectedColor: $newTagColor)
+                ColorPickerButton(selectedColor: self.$newTagColor)
 
                 // Name field
-                TextField("Tag name", text: $newTagName)
+                TextField("Tag name", text: self.$newTagName)
                     .textFieldStyle(.roundedBorder)
                     .font(.system(size: 12))
 
                 // Create button
                 Button("Add") {
-                    createTag()
+                    self.createTag()
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
-                .disabled(newTagName.isEmpty)
+                .disabled(self.newTagName.isEmpty)
             }
         }
         .padding(8)
@@ -169,10 +169,10 @@ struct TagPickerView: View {
     // MARK: - Tag Row
 
     private func tagRow(_ tag: TagDisplayModel) -> some View {
-        let isSelected = selectedTagIds.contains(tag.id)
+        let isSelected = self.selectedTagIds.contains(tag.id)
 
         return Button {
-            toggleTag(tag)
+            self.toggleTag(tag)
         } label: {
             HStack {
                 // Checkbox
@@ -201,22 +201,22 @@ struct TagPickerView: View {
     }
 
     private func toggleTag(_ tag: TagDisplayModel) {
-        if selectedTagIds.contains(tag.id) {
-            selectedTagIds.remove(tag.id)
+        if self.selectedTagIds.contains(tag.id) {
+            self.selectedTagIds.remove(tag.id)
         } else {
-            selectedTagIds.insert(tag.id)
+            self.selectedTagIds.insert(tag.id)
         }
-        onSelectionChanged?()
+        self.onSelectionChanged?()
     }
 
     private func createTag() {
-        guard !newTagName.isEmpty else {
+        guard !self.newTagName.isEmpty else {
             return
         }
-        onCreateTag?(newTagName, newTagColor)
-        isCreatingTag = false
-        newTagName = ""
-        searchText = ""
+        self.onCreateTag?(self.newTagName, self.newTagColor)
+        self.isCreatingTag = false
+        self.newTagName = ""
+        self.searchText = ""
     }
 }
 
@@ -230,10 +230,10 @@ struct ColorPickerButton: View {
 
     var body: some View {
         Button {
-            showPicker.toggle()
+            self.showPicker.toggle()
         } label: {
             Circle()
-                .fill(Color(hex: selectedColor) ?? .blue)
+                .fill(Color(hex: self.selectedColor) ?? .blue)
                 .frame(width: 20, height: 20)
                 .overlay(
                     Circle()
@@ -241,8 +241,8 @@ struct ColorPickerButton: View {
                 )
         }
         .buttonStyle(.plain)
-        .popover(isPresented: $showPicker) {
-            colorGrid
+        .popover(isPresented: self.$showPicker) {
+            self.colorGrid
         }
     }
 
@@ -263,10 +263,10 @@ struct ColorPickerButton: View {
 
     private var colorGrid: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.fixed(28)), count: 4), spacing: 8) {
-            ForEach(presetColors, id: \.self) { colorHex in
+            ForEach(self.presetColors, id: \.self) { colorHex in
                 Button {
-                    selectedColor = colorHex
-                    showPicker = false
+                    self.selectedColor = colorHex
+                    self.showPicker = false
                 } label: {
                     Circle()
                         .fill(Color(hex: colorHex) ?? .blue)
@@ -274,7 +274,7 @@ struct ColorPickerButton: View {
                         .overlay(
                             Circle()
                                 .stroke(
-                                    selectedColor == colorHex ? Color.primary : Color.clear,
+                                    self.selectedColor == colorHex ? Color.primary : Color.clear,
                                     lineWidth: 2
                                 )
                         )
@@ -296,12 +296,12 @@ struct ColorPickerButton: View {
             var body: some View {
                 TagPickerView(
                     availableTags: TagDisplayModel.samples,
-                    selectedTagIds: $selectedIds,
+                    selectedTagIds: self.$selectedIds,
                     onCreateTag: { name, color in
                         tagPickerLogger.debug("Create tag: \(name) with color \(color)")
                     },
                     onSelectionChanged: {
-                        tagPickerLogger.debug("Selection changed: \(selectedIds.count) selected")
+                        tagPickerLogger.debug("Selection changed: \(self.selectedIds.count) selected")
                     }
                 )
             }

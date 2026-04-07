@@ -31,7 +31,7 @@
         // MARK: - Initialization
 
         private init() {
-            logger.info("PluginActionRegistry initialized")
+            self.logger.info("PluginActionRegistry initialized")
         }
 
         // MARK: Internal
@@ -42,7 +42,7 @@
 
         /// All registered actions
         var allActions: [PluginAction] {
-            actionsByPlugin.values.flatMap { $0 }
+            self.actionsByPlugin.values.flatMap { $0 }
         }
 
         // MARK: - Action Registration
@@ -75,11 +75,11 @@
             )
             action.execute = execute
 
-            var existing = actionsByPlugin[pluginId] ?? []
+            var existing = self.actionsByPlugin[pluginId] ?? []
             existing.append(action)
-            actionsByPlugin[pluginId] = existing
+            self.actionsByPlugin[pluginId] = existing
 
-            logger.debug("Registered action '\(name)' for plugin \(pluginId)")
+            self.logger.debug("Registered action '\(name)' for plugin \(pluginId)")
             NotificationCenter.default.post(name: .pluginActionsChanged, object: nil)
 
             return action
@@ -88,9 +88,9 @@
         /// Unregisters all actions for a plugin
         /// - Parameter pluginId: Plugin identifier
         func unregisterActions(for pluginId: String) {
-            let count = actionsByPlugin[pluginId]?.count ?? 0
-            actionsByPlugin.removeValue(forKey: pluginId)
-            logger.debug("Unregistered \(count) actions for plugin \(pluginId)")
+            let count = self.actionsByPlugin[pluginId]?.count ?? 0
+            self.actionsByPlugin.removeValue(forKey: pluginId)
+            self.logger.debug("Unregistered \(count) actions for plugin \(pluginId)")
             NotificationCenter.default.post(name: .pluginActionsChanged, object: nil)
         }
 
@@ -100,14 +100,14 @@
         /// - Parameter pluginId: Plugin identifier
         /// - Returns: Actions registered by the plugin
         func actions(for pluginId: String) -> [PluginAction] {
-            actionsByPlugin[pluginId] ?? []
+            self.actionsByPlugin[pluginId] ?? []
         }
 
         /// Gets actions that support a content type
         /// - Parameter contentType: Content type to filter by
         /// - Returns: Matching actions
         func actions(for contentType: ContentType) -> [PluginAction] {
-            allActions.filter { action in
+            self.allActions.filter { action in
                 action.supportedTypes.isEmpty || action.supportedTypes.contains(contentType)
             }
         }
@@ -116,7 +116,7 @@
         /// - Parameter id: Action ID
         /// - Returns: Action if found
         func findAction(id: UUID) -> PluginAction? {
-            allActions.first { $0.id == id }
+            self.allActions.first { $0.id == id }
         }
 
         // MARK: - Action Execution
@@ -146,7 +146,7 @@
                 throw PluginActionError.unsupportedContentType(contentType)
             }
 
-            logger.debug("Executing action '\(action.name)' for plugin \(action.pluginId)")
+            self.logger.debug("Executing action '\(action.name)' for plugin \(action.pluginId)")
 
             do {
                 return try await executeFunc(content)

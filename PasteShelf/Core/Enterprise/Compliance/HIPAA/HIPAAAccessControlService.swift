@@ -34,7 +34,7 @@ final class HIPAAAccessControlService: ObservableObject {
 
     /// Designated initializer for dependency injection in tests.
     init(initialLockState: Bool) {
-        isLocked = initialLockState
+        self.isLocked = initialLockState
     }
 
     // MARK: - Cleanup
@@ -71,13 +71,13 @@ final class HIPAAAccessControlService: ObservableObject {
         let config = HIPAAComplianceMode.load()
 
         if config.isEnabled {
-            isLocked = true
-            startTimeoutTimer(timeoutMinutes: config.sessionTimeoutMinutes)
-            logger.info("HIPAA access controls activated (timeout: \(config.sessionTimeoutMinutes)min)")
+            self.isLocked = true
+            self.startTimeoutTimer(timeoutMinutes: config.sessionTimeoutMinutes)
+            self.logger.info("HIPAA access controls activated (timeout: \(config.sessionTimeoutMinutes)min)")
         } else {
-            isLocked = false
-            stopTimeoutTimer()
-            logger.info("HIPAA access controls deactivated")
+            self.isLocked = false
+            self.stopTimeoutTimer()
+            self.logger.info("HIPAA access controls deactivated")
         }
     }
 
@@ -96,12 +96,12 @@ final class HIPAAAccessControlService: ObservableObject {
         let config = HIPAAComplianceMode.load()
 
         guard config.isEnabled else {
-            isLocked = false
+            self.isLocked = false
             return true
         }
 
-        isAuthenticating = true
-        lastError = nil
+        self.isAuthenticating = true
+        self.lastError = nil
 
         defer { isAuthenticating = false }
 
@@ -109,8 +109,8 @@ final class HIPAAAccessControlService: ObservableObject {
         if config.requireSSO {
             let ssoValid = await verifySSOSession()
             if !ssoValid {
-                await logAccessAttempt(success: false, method: "sso", reason: "No active SSO session")
-                lastError = .featureUnavailable
+                await self.logAccessAttempt(success: false, method: "sso", reason: "No active SSO session")
+                self.lastError = .featureUnavailable
                 return false
             }
         }
@@ -119,24 +119,28 @@ final class HIPAAAccessControlService: ObservableObject {
         if config.requireBiometric {
             let biometricResult = await performBiometricAuth()
             if !biometricResult {
-                await logAccessAttempt(success: false, method: "biometric", reason: "Biometric authentication failed")
+                await self.logAccessAttempt(
+                    success: false,
+                    method: "biometric",
+                    reason: "Biometric authentication failed"
+                )
                 return false
             }
         }
 
         // Both checks passed (or were not required)
-        isLocked = false
-        lastActivityTimestamp = Date()
-        await logAccessAttempt(success: true, method: authMethod(for: config), reason: nil)
+        self.isLocked = false
+        self.lastActivityTimestamp = Date()
+        await self.logAccessAttempt(success: true, method: self.authMethod(for: config), reason: nil)
 
-        logger.info("HIPAA access controls: application unlocked")
+        self.logger.info("HIPAA access controls: application unlocked")
         return true
     }
 
     /// Locks the application, requiring re-authentication.
     func lock() {
-        isLocked = true
-        logger.info("HIPAA access controls: application locked")
+        self.isLocked = true
+        self.logger.info("HIPAA access controls: application locked")
     }
 
     // MARK: - Activity Tracking
@@ -146,7 +150,7 @@ final class HIPAAAccessControlService: ObservableObject {
     /// Call this whenever the user interacts with the application (e.g., copies,
     /// pastes, navigates, searches). The timeout timer resets based on this timestamp.
     func recordActivity() {
-        lastActivityTimestamp = Date()
+        self.lastActivityTimestamp = Date()
     }
 
     // MARK: Private
@@ -170,11 +174,11 @@ final class HIPAAAccessControlService: ObservableObject {
     ///
     /// - Parameter timeoutMinutes: The number of minutes of inactivity before locking.
     private func startTimeoutTimer(timeoutMinutes: Int) {
-        stopTimeoutTimer()
+        self.stopTimeoutTimer()
 
         let timeoutInterval = TimeInterval(timeoutMinutes * 60)
 
-        timeoutTimer = Timer.scheduledTimer(
+        self.timeoutTimer = Timer.scheduledTimer(
             withTimeInterval: Self.timeoutCheckInterval,
             repeats: true
         ) { [weak self] _ in
@@ -183,10 +187,10 @@ final class HIPAAAccessControlService: ObservableObject {
                     return
                 }
 
-                let elapsed = Date().timeIntervalSince(lastActivityTimestamp)
+                let elapsed = Date().timeIntervalSince(self.lastActivityTimestamp)
                 if elapsed >= timeoutInterval {
-                    lock()
-                    logger.info(
+                    self.lock()
+                    self.logger.info(
                         "HIPAA session timeout after \(Int(elapsed / 60)) minutes of inactivity"
                     )
                 }
@@ -196,8 +200,8 @@ final class HIPAAAccessControlService: ObservableObject {
 
     /// Stops the session inactivity timer.
     private func stopTimeoutTimer() {
-        timeoutTimer?.invalidate()
-        timeoutTimer = nil
+        self.timeoutTimer?.invalidate()
+        self.timeoutTimer = nil
     }
 
     // MARK: - SSO Verification
@@ -222,8 +226,8 @@ final class HIPAAAccessControlService: ObservableObject {
         var error: NSError?
 
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
-            logger.warning("Biometric auth not available: \(error?.localizedDescription ?? "unknown")")
-            lastError = .invalidConfiguration("Biometric authentication is not available on this device")
+            self.logger.warning("Biometric auth not available: \(error?.localizedDescription ?? "unknown")")
+            self.lastError = .invalidConfiguration("Biometric authentication is not available on this device")
             return false
         }
 
@@ -233,8 +237,8 @@ final class HIPAAAccessControlService: ObservableObject {
                 localizedReason: "Authenticate to access HIPAA-protected clipboard data"
             )
         } catch {
-            logger.warning("Biometric auth failed: \(error.localizedDescription)")
-            lastError = .invalidConfiguration("Biometric authentication failed: \(error.localizedDescription)")
+            self.logger.warning("Biometric auth failed: \(error.localizedDescription)")
+            self.lastError = .invalidConfiguration("Biometric authentication failed: \(error.localizedDescription)")
             return false
         }
     }

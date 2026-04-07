@@ -200,31 +200,31 @@ struct DeviceRegistrationTests {
 
     @Test("DeviceRegistration.isActive is true when enrollmentStatus is enrolled")
     func isActiveTrueWhenEnrolled() {
-        let reg = makeRegistration(status: .enrolled)
+        let reg = self.makeRegistration(status: .enrolled)
         #expect(reg.isActive == true)
     }
 
     @Test("DeviceRegistration.isActive is false when enrollmentStatus is notEnrolled")
     func isActiveFalseWhenNotEnrolled() {
-        let reg = makeRegistration(status: .notEnrolled)
+        let reg = self.makeRegistration(status: .notEnrolled)
         #expect(reg.isActive == false)
     }
 
     @Test("DeviceRegistration.isActive is false when enrollmentStatus is enrolling")
     func isActiveFalseWhenEnrolling() {
-        let reg = makeRegistration(status: .enrolling)
+        let reg = self.makeRegistration(status: .enrolling)
         #expect(reg.isActive == false)
     }
 
     @Test("DeviceRegistration.isActive is false when enrollmentStatus is suspended")
     func isActiveFalseWhenSuspended() {
-        let reg = makeRegistration(status: .suspended)
+        let reg = self.makeRegistration(status: .suspended)
         #expect(reg.isActive == false)
     }
 
     @Test("DeviceRegistration.isActive is false when enrollmentStatus is revoked")
     func isActiveFalseWhenRevoked() {
-        let reg = makeRegistration(status: .revoked)
+        let reg = self.makeRegistration(status: .revoked)
         #expect(reg.isActive == false)
     }
 
@@ -314,7 +314,7 @@ struct DeviceHealthReportTests {
 
     @Test("DeviceHealthReport survives Codable round-trip and all fields are preserved")
     func codableRoundTrip() throws {
-        let original = makeReport()
+        let original = self.makeReport()
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(original)

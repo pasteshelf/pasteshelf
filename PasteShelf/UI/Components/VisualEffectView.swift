@@ -47,18 +47,18 @@ struct VisualEffectView: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.material = material
-        view.blendingMode = blendingMode
-        view.isEmphasized = isEmphasized
-        view.state = state
+        view.material = self.material
+        view.blendingMode = self.blendingMode
+        view.isEmphasized = self.isEmphasized
+        view.state = self.state
         return view
     }
 
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-        nsView.material = material
-        nsView.blendingMode = blendingMode
-        nsView.isEmphasized = isEmphasized
-        nsView.state = state
+        nsView.material = self.material
+        nsView.blendingMode = self.blendingMode
+        nsView.isEmphasized = self.isEmphasized
+        nsView.state = self.state
     }
 }
 
@@ -75,17 +75,17 @@ extension View {
 
     /// Applies a sidebar-style visual effect background
     func sidebarBackground() -> some View {
-        visualEffectBackground(material: .sidebar, blendingMode: .behindWindow)
+        self.visualEffectBackground(material: .sidebar, blendingMode: .behindWindow)
     }
 
     /// Applies a popover-style visual effect background
     func popoverBackground() -> some View {
-        visualEffectBackground(material: .popover, blendingMode: .behindWindow)
+        self.visualEffectBackground(material: .popover, blendingMode: .behindWindow)
     }
 
     /// Applies a menu-style visual effect background
     func menuBackground() -> some View {
-        visualEffectBackground(material: .menu, blendingMode: .behindWindow)
+        self.visualEffectBackground(material: .menu, blendingMode: .behindWindow)
     }
 }
 

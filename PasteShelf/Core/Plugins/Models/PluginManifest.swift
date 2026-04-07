@@ -95,7 +95,7 @@
         // MARK: - Identifiable
 
         var id: String {
-            identifier
+            self.identifier
         }
 
         // MARK: - Info.plist Parsing
@@ -166,7 +166,7 @@
                 return nil
             }
 
-            return from(plist: plist)
+            return self.from(plist: plist)
         }
 
         // MARK: - Version Comparison
@@ -179,7 +179,7 @@
                 return true // No minimum version specified
             }
 
-            return compareVersions(hostVersion, minVersion) >= 0
+            return self.compareVersions(hostVersion, minVersion) >= 0
         }
 
         // MARK: Private

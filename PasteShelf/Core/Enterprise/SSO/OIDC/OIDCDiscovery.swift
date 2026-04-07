@@ -39,7 +39,7 @@ final class OIDCDiscovery: Sendable {
         let document = try decodeDiscoveryDocument(data)
         try validateDiscoveryDocument(document, issuerURL: issuerURL)
 
-        logger.info("Successfully fetched and validated OIDC discovery document for issuer: \(document.issuer)")
+        self.logger.info("Successfully fetched and validated OIDC discovery document for issuer: \(document.issuer)")
         return document
     }
 
@@ -97,7 +97,7 @@ final class OIDCDiscovery: Sendable {
         }
 
         let scopeList = scopes.joined(separator: " ")
-        logger.info(
+        self.logger.info(
             "Building OIDCProviderConfig — clientId: \(clientId), scopes: \(scopeList), usePKCE: \(effectiveUsePKCE)"
         )
 
@@ -128,15 +128,15 @@ final class OIDCDiscovery: Sendable {
             .appendingPathComponent(".well-known")
             .appendingPathComponent("openid-configuration")
 
-        logger.info("Fetching OIDC discovery document from: \(discoveryURL.absoluteString)")
+        self.logger.info("Fetching OIDC discovery document from: \(discoveryURL.absoluteString)")
 
         let request = URLRequest(url: discoveryURL)
         let (data, response): (Data, URLResponse)
 
         do {
-            (data, response) = try await urlSession.data(for: request)
+            (data, response) = try await self.urlSession.data(for: request)
         } catch {
-            logger.error("Network request failed for discovery URL: \(error.localizedDescription)")
+            self.logger.error("Network request failed for discovery URL: \(error.localizedDescription)")
             throw SSOError.networkError("Failed to reach discovery endpoint: \(error.localizedDescription)")
         }
 
@@ -145,7 +145,7 @@ final class OIDCDiscovery: Sendable {
         }
 
         guard httpResponse.statusCode == 200 else {
-            logger.error("Discovery endpoint returned HTTP \(httpResponse.statusCode)")
+            self.logger.error("Discovery endpoint returned HTTP \(httpResponse.statusCode)")
             throw SSOError.networkError(
                 "Discovery endpoint returned HTTP \(httpResponse.statusCode)"
             )
@@ -160,7 +160,7 @@ final class OIDCDiscovery: Sendable {
             let decoder = JSONDecoder()
             return try decoder.decode(OIDCDiscoveryDocument.self, from: data)
         } catch {
-            logger.error("Failed to decode discovery document: \(error.localizedDescription)")
+            self.logger.error("Failed to decode discovery document: \(error.localizedDescription)")
             throw SSOError.configurationInvalid(
                 "Failed to parse discovery document: \(error.localizedDescription)"
             )
@@ -192,7 +192,7 @@ final class OIDCDiscovery: Sendable {
         let normalizedReqIssuer = issuerURL.absoluteString.trimmingCharacters(in: .init(charactersIn: "/"))
 
         guard normalizedDocIssuer == normalizedReqIssuer else {
-            logger.error(
+            self.logger.error(
                 "Issuer mismatch: expected '\(normalizedReqIssuer)', got '\(normalizedDocIssuer)'"
             )
             let docIssuer = document.issuer
@@ -277,11 +277,11 @@ struct OIDCDiscoveryDocument: Codable {
 
     /// Whether this provider supports PKCE with the S256 code challenge method
     var supportsPKCE: Bool {
-        codeChallengeMethodsSupported?.contains("S256") ?? false
+        self.codeChallengeMethodsSupported?.contains("S256") ?? false
     }
 
     /// Whether this provider supports the authorization code flow
     var supportsAuthCodeFlow: Bool {
-        responseTypesSupported?.contains("code") ?? true
+        self.responseTypesSupported?.contains("code") ?? true
     }
 }

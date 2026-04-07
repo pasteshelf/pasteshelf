@@ -20,10 +20,10 @@ struct ClipboardContent {
     /// Creates a new ClipboardContent with a primary type
     /// - Parameter primaryType: The primary content type
     init(primaryType: ContentType = .plainText) {
-        id = UUID()
-        timestamp = Date()
+        self.id = UUID()
+        self.timestamp = Date()
         self.primaryType = primaryType
-        availableTypes = [primaryType]
+        self.availableTypes = [primaryType]
     }
 
     /// Creates a ClipboardContent with full configuration
@@ -149,7 +149,7 @@ struct ClipboardContent {
 
     /// Returns the character count of plain text content
     var characterCount: Int? {
-        plainText?.count
+        self.plainText?.count
     }
 
     /// Returns the word count of plain text content
@@ -165,12 +165,12 @@ struct ClipboardContent {
     /// Returns the total size of all data in bytes
     var totalSizeBytes: Int {
         var size = 0
-        size += plainText?.utf8.count ?? 0
-        size += rtfData?.count ?? 0
-        size += html?.utf8.count ?? 0
-        size += imageData?.count ?? 0
-        size += thumbnailData?.count ?? 0
-        size += pdfData?.count ?? 0
+        size += self.plainText?.utf8.count ?? 0
+        size += self.rtfData?.count ?? 0
+        size += self.html?.utf8.count ?? 0
+        size += self.imageData?.count ?? 0
+        size += self.thumbnailData?.count ?? 0
+        size += self.pdfData?.count ?? 0
         return size
     }
 
@@ -184,39 +184,39 @@ struct ClipboardContent {
 
     /// Returns the file count for file URL content
     var fileCount: Int? {
-        fileURLs?.count
+        self.fileURLs?.count
     }
 
     /// Returns the first file URL's filename
     var primaryFileName: String? {
-        fileURLs?.first?.lastPathComponent
+        self.fileURLs?.first?.lastPathComponent
     }
 
     // MARK: - Type Checks
 
     /// Whether this content has text data
     var hasText: Bool {
-        plainText != nil || rtfData != nil || html != nil
+        self.plainText != nil || self.rtfData != nil || self.html != nil
     }
 
     /// Whether this content has image data
     var hasImage: Bool {
-        imageData != nil
+        self.imageData != nil
     }
 
     /// Whether this content has file references
     var hasFiles: Bool {
-        fileURLs != nil && !(fileURLs?.isEmpty ?? true)
+        self.fileURLs != nil && !(self.fileURLs?.isEmpty ?? true)
     }
 
     /// Whether this content has a URL
     var hasURL: Bool {
-        url != nil
+        self.url != nil
     }
 
     /// Whether this content is empty
     var isEmpty: Bool {
-        !hasText && !hasImage && !hasFiles && !hasURL && pdfData == nil
+        !self.hasText && !self.hasImage && !self.hasFiles && !self.hasURL && self.pdfData == nil
     }
 }
 
@@ -232,6 +232,6 @@ extension ClipboardContent: Equatable {
 
 extension ClipboardContent: Hashable {
     func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+        hasher.combine(self.id)
     }
 }

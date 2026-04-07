@@ -287,24 +287,24 @@ protocol ClipboardItemStoring: AnyObject {
 
         /// Access to stored items for testing
         var storedItems: [(content: ClipboardContent, sourceApp: SourceApp?)] {
-            items
+            self.items
         }
 
         func save(content: ClipboardContent, from sourceApp: SourceApp?) async -> Bool {
-            items.insert((content, sourceApp), at: 0)
-            if items.count > maxItems {
-                items.removeLast()
+            self.items.insert((content, sourceApp), at: 0)
+            if self.items.count > self.maxItems {
+                self.items.removeLast()
             }
             return true
         }
 
         func fetchRecentHashes(limit: Int) async -> [String] {
-            items.prefix(limit).compactMap(\.content.contentHash)
+            self.items.prefix(limit).compactMap(\.content.contentHash)
         }
 
         /// Clear all stored items
         func clear() {
-            items.removeAll()
+            self.items.removeAll()
         }
 
         // MARK: Private

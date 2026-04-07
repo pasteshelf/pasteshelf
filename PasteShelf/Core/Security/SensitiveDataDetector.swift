@@ -71,7 +71,7 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
 
         // Analyze all collected text
         let combinedText = textToAnalyze.joined(separator: "\n")
-        return analyze(text: combinedText)
+        return self.analyze(text: combinedText)
     }
 
     func analyze(text: String) -> SensitiveDataResult {
@@ -82,7 +82,7 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
         var detections: [SensitiveDetection] = []
         let nsRange = NSRange(text.startIndex..., in: text)
 
-        for pattern in patterns {
+        for pattern in self.patterns {
             let matches = pattern.regex.matches(in: text, options: [], range: nsRange)
 
             for match in matches {
@@ -108,7 +108,7 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
                     type: pattern.name,
                     severity: pattern.severity,
                     range: range,
-                    redactedPreview: redact(matchedText, type: pattern.name)
+                    redactedPreview: self.redact(matchedText, type: pattern.name)
                 )
 
                 detections.append(detection)
@@ -116,7 +116,7 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
         }
 
         // Remove duplicate detections at same location
-        let uniqueDetections = removeDuplicateDetections(detections)
+        let uniqueDetections = self.removeDuplicateDetections(detections)
 
         let highestSeverity = uniqueDetections.map(\.severity).max() ?? .none
 
@@ -241,7 +241,7 @@ extension SensitiveDataResult {
 
     /// Returns unique detection types
     var uniqueTypes: Set<String> {
-        Set(detectedTypes)
+        Set(self.detectedTypes)
     }
 
     /// Whether critical severity data was detected

@@ -148,7 +148,7 @@ public extension PluginContext {
     /// - Parameter permission: The permission to request
     /// - Returns: True if permission was granted
     func requestPermission(_ permission: PluginPermission) async -> Bool {
-        await requestPermission(permission.rawValue)
+        await self.requestPermission(permission.rawValue)
     }
 
     /// Checks if a permission is currently granted.
@@ -156,7 +156,7 @@ public extension PluginContext {
     /// - Parameter permission: The permission to check
     /// - Returns: True if the permission is granted
     func hasPermission(_ permission: PluginPermission) -> Bool {
-        hasPermission(permission.rawValue)
+        self.hasPermission(permission.rawValue)
     }
 }
 
@@ -281,19 +281,19 @@ public final class PluginLogger: NSObject, Sendable {
     // MARK: Public
 
     @objc public func debug(_ message: String) {
-        print("[\(pluginId)] DEBUG: \(message)")
+        print("[\(self.pluginId)] DEBUG: \(message)")
     }
 
     @objc public func info(_ message: String) {
-        print("[\(pluginId)] INFO: \(message)")
+        print("[\(self.pluginId)] INFO: \(message)")
     }
 
     @objc public func warning(_ message: String) {
-        print("[\(pluginId)] WARNING: \(message)")
+        print("[\(self.pluginId)] WARNING: \(message)")
     }
 
     @objc public func error(_ message: String) {
-        print("[\(pluginId)] ERROR: \(message)")
+        print("[\(self.pluginId)] ERROR: \(message)")
     }
 
     // MARK: Private
@@ -311,37 +311,37 @@ public class PluginClipboardContent: NSObject, @unchecked Sendable {
     /// Creates content with plain text.
     @objc public init(text: String) {
         self.text = text
-        contentTypeIdentifier = ContentType.plainText.rawValue
-        timestamp = Date()
-        metadata = [:]
+        self.contentTypeIdentifier = ContentType.plainText.rawValue
+        self.timestamp = Date()
+        self.metadata = [:]
         super.init()
     }
 
     /// Creates content with an image.
     @objc public init(image: NSImage) {
         self.image = image
-        imageData = image.tiffRepresentation
-        contentTypeIdentifier = ContentType.png.rawValue
-        timestamp = Date()
-        metadata = [:]
+        self.imageData = image.tiffRepresentation
+        self.contentTypeIdentifier = ContentType.png.rawValue
+        self.timestamp = Date()
+        self.metadata = [:]
         super.init()
     }
 
     /// Creates content with a URL.
     @objc public init(url: URL) {
         self.url = url
-        text = url.absoluteString
-        contentTypeIdentifier = ContentType.url.rawValue
-        timestamp = Date()
-        metadata = [:]
+        self.text = url.absoluteString
+        self.contentTypeIdentifier = ContentType.url.rawValue
+        self.timestamp = Date()
+        self.metadata = [:]
         super.init()
     }
 
     /// Creates empty content.
     @objc override public init() {
-        contentTypeIdentifier = ContentType.plainText.rawValue
-        timestamp = Date()
-        metadata = [:]
+        self.contentTypeIdentifier = ContentType.plainText.rawValue
+        self.timestamp = Date()
+        self.metadata = [:]
         super.init()
     }
 
@@ -382,7 +382,7 @@ public class PluginClipboardContent: NSObject, @unchecked Sendable {
 
     /// Content type enum value
     public var contentType: ContentType? {
-        ContentType(rawValue: contentTypeIdentifier)
+        ContentType(rawValue: self.contentTypeIdentifier)
     }
 }
 
@@ -398,7 +398,7 @@ public class PluginMenuItem: NSObject, @unchecked Sendable {
         self.iconName = iconName
         self.shortcutKey = shortcutKey
         self.isEnabled = isEnabled
-        actionId = UUID()
+        self.actionId = UUID()
         super.init()
     }
 
@@ -413,7 +413,7 @@ public class PluginMenuItem: NSObject, @unchecked Sendable {
         self.iconName = iconName
         self.shortcutKey = shortcutKey
         self.isEnabled = isEnabled
-        actionId = UUID()
+        self.actionId = UUID()
         self.action = action
         super.init()
     }

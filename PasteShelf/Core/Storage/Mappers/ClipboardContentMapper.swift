@@ -139,7 +139,7 @@ enum ClipboardContentMapper {
     /// - Parameter item: The CoreData ClipboardItem
     /// - Returns: An in-memory ClipboardContent, or nil if required data is missing
     static func mapFromEntity(_ item: ClipboardItem) -> ClipboardContent? {
-        mapFromEntities(item: item, contentData: item.content)
+        self.mapFromEntities(item: item, contentData: item.content)
     }
 
     // MARK: - Update Existing Entity

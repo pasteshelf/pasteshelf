@@ -35,7 +35,7 @@ final class OIDCTokenManager: Sendable {
             throw SSOError.sessionInvalid
         }
 
-        logger.info("Refreshing OIDC tokens for session: \(session.id)")
+        self.logger.info("Refreshing OIDC tokens for session: \(session.id)")
 
         var bodyParams: [String: String] = [
             "grant_type": "refresh_token",
@@ -65,7 +65,7 @@ final class OIDCTokenManager: Sendable {
 
         guard httpResponse.statusCode == 200 else {
             let errorBody = String(data: data, encoding: .utf8) ?? "Unknown error"
-            logger.error("Token refresh failed (\(httpResponse.statusCode)): \(errorBody)")
+            self.logger.error("Token refresh failed (\(httpResponse.statusCode)): \(errorBody)")
 
             // A 400 or 401 typically means the refresh token is invalid or revoked,
             // meaning the user must re-authenticate.
@@ -82,7 +82,7 @@ final class OIDCTokenManager: Sendable {
             throw SSOError.authenticationFailed("No access token in refresh response")
         }
 
-        logger.info("Token refresh successful for session: \(session.id)")
+        self.logger.info("Token refresh successful for session: \(session.id)")
 
         // Build an updated session, preserving identity fields and replacing token fields.
         // The refresh token returned by the server may be rotated; fall back to the existing
@@ -127,7 +127,7 @@ final class OIDCTokenManager: Sendable {
         let elapsed = Date().timeIntervalSince(session.authenticatedAt)
         let fractionElapsed = elapsed / totalLifetime
 
-        return fractionElapsed >= refreshThreshold
+        return fractionElapsed >= self.refreshThreshold
     }
 
     /// Refreshes the session if a proactive refresh is warranted; otherwise returns the
@@ -139,11 +139,11 @@ final class OIDCTokenManager: Sendable {
     /// - Returns: A refreshed session if refresh was needed, or the original session.
     /// - Throws: `SSOError` if the refresh network request fails.
     func refreshIfNeeded(session: SSOSession, config: OIDCProviderConfig) async throws -> SSOSession {
-        guard needsRefresh(session) else {
+        guard self.needsRefresh(session) else {
             return session
         }
 
-        return try await refreshTokens(session: session, config: config)
+        return try await self.refreshTokens(session: session, config: config)
     }
 
     // MARK: Private

@@ -45,15 +45,15 @@ struct HotkeySetupStepView: View {
                     .foregroundStyle(.secondary)
 
                 HotkeyRecorderView(
-                    hotkey: $hotkey,
-                    isRecording: $isRecording
+                    hotkey: self.$hotkey,
+                    isRecording: self.$isRecording
                 )
                 .frame(width: 180, height: 36)
-                .onChange(of: hotkey) { _, newValue in
-                    saveHotkey(newValue)
+                .onChange(of: self.hotkey) { _, newValue in
+                    self.saveHotkey(newValue)
                 }
 
-                Text(isRecording ? "Press your desired key combination..." : "Click to record a new shortcut")
+                Text(self.isRecording ? "Press your desired key combination..." : "Click to record a new shortcut")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -62,7 +62,7 @@ struct HotkeySetupStepView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.secondary.opacity(0.05))
             )
-            .animation(.easeInOut(duration: 0.2), value: isRecording)
+            .animation(.easeInOut(duration: 0.2), value: self.isRecording)
 
             // Quick presets
             VStack(spacing: 8) {
@@ -71,8 +71,8 @@ struct HotkeySetupStepView: View {
                     .foregroundStyle(.secondary)
 
                 HStack(spacing: 12) {
-                    presetButton(label: "⌘ ⇧ V", hotkey: .default, isSelected: hotkey == .default)
-                    presetButton(label: "⌘ ⌥ V", hotkey: .alternative, isSelected: hotkey == .alternative)
+                    self.presetButton(label: "⌘ ⇧ V", hotkey: .default, isSelected: self.hotkey == .default)
+                    self.presetButton(label: "⌘ ⌥ V", hotkey: .alternative, isSelected: self.hotkey == .alternative)
                 }
             }
 
@@ -94,8 +94,8 @@ struct HotkeySetupStepView: View {
         isSelected: Bool
     ) -> some View {
         Button {
-            hotkey = presetHotkey
-            saveHotkey(presetHotkey)
+            self.hotkey = presetHotkey
+            self.saveHotkey(presetHotkey)
         } label: {
             Text(label)
                 .font(.system(size: 13, weight: .medium, design: .monospaced))

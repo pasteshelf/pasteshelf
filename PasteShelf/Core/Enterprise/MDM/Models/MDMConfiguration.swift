@@ -63,7 +63,7 @@ struct MDMConfiguration: Equatable {
     ///
     /// Use this to show or hide the "Managed by your organization" notice in the UI.
     var isManaged: Bool {
-        !forcedPreferences.isEmpty || !defaultPreferences.isEmpty
+        !self.forcedPreferences.isEmpty || !self.defaultPreferences.isEmpty
     }
 
     // MARK: - Query Methods
@@ -72,7 +72,7 @@ struct MDMConfiguration: Equatable {
     ///
     /// - Parameter key: The preference key to check.
     func isForced(_ key: ManagedPreferenceKey) -> Bool {
-        forcedPreferences[key] != nil
+        self.forcedPreferences[key] != nil
     }
 
     /// Returns the effective value for a preference key, giving forced preferences
@@ -82,6 +82,6 @@ struct MDMConfiguration: Equatable {
     ///
     /// - Parameter key: The preference key to look up.
     func effectiveValue(for key: ManagedPreferenceKey) -> PreferenceValue? {
-        forcedPreferences[key] ?? defaultPreferences[key]
+        self.forcedPreferences[key] ?? self.defaultPreferences[key]
     }
 }

@@ -20,11 +20,11 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
         fuzzyMatcher: FuzzyMatcher = .default
     ) {
         self.storageManager = storageManager
-        fullTextEngine = FullTextSearchEngine(storageManager: storageManager)
-        semanticEngine = SemanticSearchEngine(storageManager: storageManager)
-        ocrEngine = OCRSearchEngine(storageManager: storageManager)
+        self.fullTextEngine = FullTextSearchEngine(storageManager: storageManager)
+        self.semanticEngine = SemanticSearchEngine(storageManager: storageManager)
+        self.ocrEngine = OCRSearchEngine(storageManager: storageManager)
         self.fuzzyMatcher = fuzzyMatcher
-        queryParser = NaturalLanguageQueryParser.self
+        self.queryParser = NaturalLanguageQueryParser.self
     }
 
     // MARK: Internal
@@ -33,12 +33,12 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
     /// Whether semantic search is available (system support)
     var isSemanticSearchAvailable: Bool {
-        semanticEngine.isAvailable
+        self.semanticEngine.isAvailable
     }
 
     /// Whether OCR search is available (system support)
     var isOCRSearchAvailable: Bool {
-        ocrEngine.isAvailable
+        self.ocrEngine.isAvailable
     }
 
     // MARK: - SearchEngine Protocol
@@ -46,7 +46,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     // swiftlint:disable:next function_body_length
     func search(query: String, options: SearchOptions) async -> [SearchResult] {
         // Cancel any existing search
-        await cancelSearch()
+        await self.cancelSearch()
 
         // Trim and validate query
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -62,31 +62,32 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
             }
 
             // Parse the natural language query
-            let parsedQuery = queryParser.parse(trimmedQuery)
+            let parsedQuery = self.queryParser.parse(trimmedQuery)
 
             // Build options from parsed query
-            let enhancedOptions = applyParsedQueryFilters(parsedQuery, to: options)
+            let enhancedOptions = self.applyParsedQueryFilters(parsedQuery, to: options)
 
             // Determine which engines to use
-            let useSemanticSearch = shouldUseSemanticSearch(options: enhancedOptions)
-            let useOCRSearch = shouldUseOCRSearch(options: enhancedOptions)
+            let useSemanticSearch = self.shouldUseSemanticSearch(options: enhancedOptions)
+            let useOCRSearch = self.shouldUseOCRSearch(options: enhancedOptions)
 
-            logger.debug("Hybrid search: query='\(trimmedQuery)', semantic=\(useSemanticSearch), ocr=\(useOCRSearch)")
+            self.logger
+                .debug("Hybrid search: query='\(trimmedQuery)', semantic=\(useSemanticSearch), ocr=\(useOCRSearch)")
 
             // Always run full-text search
-            async let fullTextResults = fullTextEngine.search(query: trimmedQuery, options: enhancedOptions)
+            async let fullTextResults = self.fullTextEngine.search(query: trimmedQuery, options: enhancedOptions)
 
             // Conditionally run semantic search
             let semanticText = parsedQuery.semanticText.isEmpty ? trimmedQuery : parsedQuery.semanticText
             let semanticResults: [SearchResult] = if useSemanticSearch {
-                await semanticEngine.search(query: semanticText, options: enhancedOptions)
+                await self.semanticEngine.search(query: semanticText, options: enhancedOptions)
             } else {
                 []
             }
 
             // Conditionally run OCR search
             let ocrResults: [SearchResult] = if useOCRSearch {
-                await ocrEngine.search(query: trimmedQuery, options: enhancedOptions)
+                await self.ocrEngine.search(query: trimmedQuery, options: enhancedOptions)
             } else {
                 []
             }
@@ -104,7 +105,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
                 let existingIds = Set(fullText.map(\.itemId))
                     .union(semanticResults.map(\.itemId))
                     .union(ocrResults.map(\.itemId))
-                fuzzyResults = await performFuzzySearch(
+                fuzzyResults = await self.performFuzzySearch(
                     query: trimmedQuery,
                     options: enhancedOptions,
                     excluding: existingIds
@@ -114,7 +115,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
             }
 
             // Merge results from all engines
-            let merged = mergeResults(
+            let merged = self.mergeResults(
                 fullText: fullText,
                 semantic: semanticResults,
                 ocr: ocrResults,
@@ -122,7 +123,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
                 limit: options.limit
             )
 
-            logger
+            self.logger
                 .debug(
                     // swiftlint:disable:next line_length
                     "Hybrid search completed: \(merged.count) results (FT: \(fullText.count), Semantic: \(semanticResults.count), OCR: \(ocrResults.count), Fuzzy: \(fuzzyResults.count))"
@@ -130,22 +131,22 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
             return merged
         }
 
-        lock.lock()
-        currentSearchTask = task
-        lock.unlock()
+        self.lock.lock()
+        self.currentSearchTask = task
+        self.lock.unlock()
 
         return await task.value
     }
 
     func cancelSearch() async {
-        lock.lock()
-        currentSearchTask?.cancel()
-        currentSearchTask = nil
-        lock.unlock()
+        self.lock.lock()
+        self.currentSearchTask?.cancel()
+        self.currentSearchTask = nil
+        self.lock.unlock()
 
-        await fullTextEngine.cancelSearch()
-        await semanticEngine.cancelSearch()
-        await ocrEngine.cancelSearch()
+        await self.fullTextEngine.cancelSearch()
+        await self.semanticEngine.cancelSearch()
+        await self.ocrEngine.cancelSearch()
     }
 
     // MARK: Private
@@ -228,8 +229,8 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
         }
 
         // Check if semantic engine is available
-        guard semanticEngine.isAvailable else {
-            logger.debug("Semantic search engine not available")
+        guard self.semanticEngine.isAvailable else {
+            self.logger.debug("Semantic search engine not available")
             return false
         }
 
@@ -244,8 +245,8 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
         }
 
         // Check if OCR engine is available
-        guard ocrEngine.isAvailable else {
-            logger.debug("OCR search engine not available")
+        guard self.ocrEngine.isAvailable else {
+            self.logger.debug("OCR search engine not available")
             return false
         }
 
@@ -304,7 +305,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
             // Add full-text contribution
             if let ft = ftResult {
-                combinedScore += ft.relevanceScore * fullTextWeight
+                combinedScore += ft.relevanceScore * self.fullTextWeight
                 matchRanges = ft.matchRanges
                 matchType = ft.matchType
                 matchCount += 1
@@ -312,7 +313,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
             // Add semantic contribution
             if let sem = semResult {
-                combinedScore += sem.relevanceScore * semanticWeight
+                combinedScore += sem.relevanceScore * self.semanticWeight
                 if matchType != .hybrid {
                     matchType = .semantic
                 }
@@ -321,7 +322,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
             // Add OCR contribution
             if let ocr = ocrResult {
-                combinedScore += ocr.relevanceScore * ocrWeight
+                combinedScore += ocr.relevanceScore * self.ocrWeight
                 // Prefer OCR match ranges if no full-text ranges
                 if matchRanges.isEmpty {
                     matchRanges = ocr.matchRanges
@@ -334,7 +335,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
             // Add fuzzy contribution
             if let fuz = fuzzyScores[itemId] {
-                combinedScore += fuz.relevanceScore * fuzzyWeight
+                combinedScore += fuz.relevanceScore * self.fuzzyWeight
                 if matchRanges.isEmpty {
                     matchRanges = fuz.matchRanges
                 }

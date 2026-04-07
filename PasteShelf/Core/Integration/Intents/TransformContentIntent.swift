@@ -44,7 +44,7 @@ struct TransformContentIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
         // Apply transformation
-        let result = transformation.preset.transform(text)
+        let result = self.transformation.preset.transform(self.text)
 
         return .result(value: result)
     }

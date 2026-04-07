@@ -75,10 +75,10 @@ struct ComplianceReport: Codable, Identifiable {
 
     /// The worst status among all findings. Returns `.pass` when there are no findings.
     var overallStatus: ComplianceFindingStatus {
-        if findings.contains(where: { $0.status == .fail }) {
+        if self.findings.contains(where: { $0.status == .fail }) {
             return .fail
         }
-        if findings.contains(where: { $0.status == .warning }) {
+        if self.findings.contains(where: { $0.status == .warning }) {
             return .warning
         }
         return .pass

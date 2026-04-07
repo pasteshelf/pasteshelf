@@ -34,29 +34,29 @@ final class PreferencesWindowController: NSObject {
 
     /// Shows the preferences window
     func show() {
-        if window == nil {
-            createWindow()
+        if self.window == nil {
+            self.createWindow()
         }
 
-        window?.center()
-        window?.orderFrontRegardless()
-        window?.makeKey()
+        self.window?.center()
+        self.window?.orderFrontRegardless()
+        self.window?.makeKey()
         NSApp.activate(ignoringOtherApps: true)
 
-        logger.debug("Preferences window shown")
+        self.logger.debug("Preferences window shown")
     }
 
     /// Hides the preferences window
     func hide() {
-        window?.orderOut(nil)
-        logger.debug("Preferences window hidden")
+        self.window?.orderOut(nil)
+        self.logger.debug("Preferences window hidden")
     }
 
     /// Closes the preferences window
     func close() {
-        window?.close()
-        window = nil
-        logger.debug("Preferences window closed")
+        self.window?.close()
+        self.window = nil
+        self.logger.debug("Preferences window closed")
     }
 
     // MARK: Private
@@ -102,7 +102,7 @@ final class PreferencesWindowController: NSObject {
 
         self.window = window
 
-        logger.info("Preferences window created")
+        self.logger.info("Preferences window created")
     }
 
     private func makeHostingController(for tab: PreferencesTab, viewModel: PreferencesViewModel) -> NSViewController {
@@ -144,7 +144,7 @@ final class PreferencesWindowController: NSObject {
 
 extension PreferencesWindowController: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
-        window = nil
-        logger.debug("Preferences window closed")
+        self.window = nil
+        self.logger.debug("Preferences window closed")
     }
 }

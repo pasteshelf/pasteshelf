@@ -22,7 +22,7 @@ struct OnboardingView: View {
             // Progress indicator — simple dots
             HStack(spacing: 8) {
                 let steps = OnboardingStep.activeSteps
-                let currentIndex = steps.firstIndex(of: viewModel.currentStep) ?? 0
+                let currentIndex = steps.firstIndex(of: self.viewModel.currentStep) ?? 0
                 ForEach(Array(steps.enumerated()), id: \.element.id) { index, _ in
                     Circle()
                         .fill(
@@ -38,23 +38,23 @@ struct OnboardingView: View {
             .accessibilityElement(children: .combine)
             .accessibilityLabel(
                 "Setup progress: step "
-                    + "\(Self.currentStepNumber(for: viewModel.currentStep)) "
+                    + "\(Self.currentStepNumber(for: self.viewModel.currentStep)) "
                     + "of \(OnboardingStep.activeSteps.count)"
             )
 
             // Step content
             Group {
-                switch viewModel.currentStep {
+                switch self.viewModel.currentStep {
                 case .welcome:
                     WelcomeStepView()
                 case .permissions:
                     #if APP_STORE
                         EmptyView()
                     #else
-                        PermissionStepView(viewModel: viewModel)
+                        PermissionStepView(viewModel: self.viewModel)
                     #endif
                 case .notifications:
-                    NotificationPermissionStepView(viewModel: viewModel)
+                    NotificationPermissionStepView(viewModel: self.viewModel)
                 case .tutorial:
                     TutorialStepView()
                 case .hotkeySetup:
@@ -66,16 +66,16 @@ struct OnboardingView: View {
                 insertion: .move(edge: .trailing).combined(with: .opacity),
                 removal: .move(edge: .leading).combined(with: .opacity)
             ))
-            .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: viewModel.currentStep)
+            .animation(self.reduceMotion ? nil : .easeInOut(duration: 0.3), value: self.viewModel.currentStep)
 
             // Navigation buttons
             HStack {
-                if viewModel.currentStep.previous != nil {
+                if self.viewModel.currentStep.previous != nil {
                     Button("Back") {
-                        if reduceMotion {
-                            viewModel.previousStep()
+                        if self.reduceMotion {
+                            self.viewModel.previousStep()
                         } else {
-                            withAnimation { viewModel.previousStep() }
+                            withAnimation { self.viewModel.previousStep() }
                         }
                     }
                     .accessibilityHint("Goes to the previous setup step")
@@ -84,32 +84,32 @@ struct OnboardingView: View {
                 Spacer()
 
                 // Skip button (if allowed)
-                if viewModel.currentStep.isSkippable {
+                if self.viewModel.currentStep.isSkippable {
                     Button("Skip") {
-                        if reduceMotion {
-                            viewModel.skipStep()
+                        if self.reduceMotion {
+                            self.viewModel.skipStep()
                         } else {
-                            withAnimation { viewModel.skipStep() }
+                            withAnimation { self.viewModel.skipStep() }
                         }
                     }
                     .foregroundStyle(.secondary)
                 }
 
                 // Next/Finish button
-                if viewModel.currentStep.next != nil {
+                if self.viewModel.currentStep.next != nil {
                     Button("Continue") {
-                        if reduceMotion {
-                            viewModel.nextStep()
+                        if self.reduceMotion {
+                            self.viewModel.nextStep()
                         } else {
-                            withAnimation { viewModel.nextStep() }
+                            withAnimation { self.viewModel.nextStep() }
                         }
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(!canProceed)
+                    .disabled(!self.canProceed)
                     .accessibilityHint("Proceeds to the next setup step")
                 } else {
                     Button("Get Started") {
-                        viewModel.completeOnboarding()
+                        self.viewModel.completeOnboarding()
                     }
                     .buttonStyle(.borderedProminent)
                     .accessibilityHint("Completes setup and opens PasteShelf")
@@ -129,12 +129,12 @@ struct OnboardingView: View {
     private var reduceMotion
 
     private var canProceed: Bool {
-        switch viewModel.currentStep {
+        switch self.viewModel.currentStep {
         case .permissions:
             #if APP_STORE
                 return true
             #else
-                return viewModel.hasAccessibilityPermission
+                return self.viewModel.hasAccessibilityPermission
             #endif
         case .notifications:
             return true

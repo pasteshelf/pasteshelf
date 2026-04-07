@@ -37,9 +37,9 @@ struct DLPPatternTestView: View {
 
             // Form content
             Form {
-                testInputSection
-                patternSection
-                resultsSection
+                self.testInputSection
+                self.patternSection
+                self.resultsSection
             }
             .formStyle(.grouped)
 
@@ -49,7 +49,7 @@ struct DLPPatternTestView: View {
             HStack {
                 Spacer()
                 Button("Done") {
-                    isPresented = false
+                    self.isPresented = false
                 }
                 .keyboardShortcut(.defaultAction)
             }
@@ -74,12 +74,12 @@ struct DLPPatternTestView: View {
 
     private var testInputSection: some View {
         Section("Test Input") {
-            TextEditor(text: $testText)
+            TextEditor(text: self.$testText)
                 .font(.system(.body, design: .monospaced))
                 .frame(minHeight: 80, maxHeight: 120)
                 .overlay(
                     Group {
-                        if testText.isEmpty {
+                        if self.testText.isEmpty {
                             Text("Paste or type sample clipboard content here…")
                                 .foregroundStyle(.tertiary)
                                 .font(.system(.body, design: .monospaced))
@@ -98,14 +98,14 @@ struct DLPPatternTestView: View {
     private var patternSection: some View {
         Section("Pattern") {
             VStack(alignment: .leading, spacing: 8) {
-                TextField("Regular expression pattern", text: $pattern)
+                TextField("Regular expression pattern", text: self.$pattern)
                     .font(.system(.body, design: .monospaced))
                     .textFieldStyle(.roundedBorder)
 
                 Button("Test Pattern") {
-                    runTest()
+                    self.runTest()
                 }
-                .disabled(pattern.trimmingCharacters(in: .whitespaces).isEmpty || testText.isEmpty)
+                .disabled(self.pattern.trimmingCharacters(in: .whitespaces).isEmpty || self.testText.isEmpty)
             }
         }
     }
@@ -122,12 +122,12 @@ struct DLPPatternTestView: View {
                         .foregroundStyle(.red)
                         .font(.body)
                 }
-            } else if !hasRun {
+            } else if !self.hasRun {
                 Text("Enter a pattern and tap \"Test Pattern\" to see results.")
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 8)
-            } else if matchResults.isEmpty {
+            } else if self.matchResults.isEmpty {
                 HStack(spacing: 6) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
@@ -136,11 +136,11 @@ struct DLPPatternTestView: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("\(matchResults.count) match\(matchResults.count == 1 ? "" : "es") found")
+                    Text("\(self.matchResults.count) match\(self.matchResults.count == 1 ? "" : "es") found")
                         .font(.body)
                         .fontWeight(.medium)
 
-                    ForEach(Array(matchResults.enumerated()), id: \.offset) { index, match in
+                    ForEach(Array(self.matchResults.enumerated()), id: \.offset) { index, match in
                         HStack(alignment: .top, spacing: 8) {
                             Text("\(index + 1).")
                                 .font(.caption.monospaced())
@@ -161,19 +161,19 @@ struct DLPPatternTestView: View {
     // MARK: - Pattern Testing
 
     private func runTest() {
-        let trimmedPattern = pattern.trimmingCharacters(in: .whitespaces)
-        let trimmedText = testText
+        let trimmedPattern = self.pattern.trimmingCharacters(in: .whitespaces)
+        let trimmedText = self.testText
 
-        errorMessage = nil
-        matchResults = []
-        hasRun = true
+        self.errorMessage = nil
+        self.matchResults = []
+        self.hasRun = true
 
         let regex: NSRegularExpression
         do {
             // Match DLPRuleEngine's regex options so test results reflect production behavior
             regex = try NSRegularExpression(pattern: trimmedPattern, options: [.caseInsensitive])
         } catch {
-            errorMessage = "Invalid regular expression: \(error.localizedDescription)"
+            self.errorMessage = "Invalid regular expression: \(error.localizedDescription)"
             return
         }
 
@@ -181,7 +181,7 @@ struct DLPPatternTestView: View {
         let range = NSRange(location: 0, length: nsText.length)
         let matches = regex.matches(in: trimmedText, options: [], range: range)
 
-        matchResults = matches.compactMap { match -> String? in
+        self.matchResults = matches.compactMap { match -> String? in
             guard match.range.location != NSNotFound else {
                 return nil
             }

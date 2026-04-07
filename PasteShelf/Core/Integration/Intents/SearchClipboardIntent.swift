@@ -47,14 +47,14 @@ struct SearchClipboardIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ReturnsValue<[ClipboardItemEntity]> {
         // Validate query
-        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        guard !self.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw IntentError.invalidQuery
         }
 
         // Search clipboard history
         let results = await ClipboardItemEntity.search(
-            query: query,
-            limit: max(1, min(limit, 50)) // Clamp between 1 and 50
+            query: self.query,
+            limit: max(1, min(self.limit, 50)) // Clamp between 1 and 50
         )
 
         return .result(value: results)

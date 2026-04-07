@@ -34,7 +34,7 @@ struct CollectionsSidebarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
-            headerView
+            self.headerView
 
             Divider()
                 .padding(.horizontal, 12)
@@ -43,18 +43,18 @@ struct CollectionsSidebarView: View {
             ScrollView {
                 LazyVStack(spacing: 2) {
                     // All Items row
-                    allItemsRow
+                    self.allItemsRow
 
                     // Divider between All Items and collections
-                    if !collections.isEmpty {
+                    if !self.collections.isEmpty {
                         Divider()
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
                     }
 
                     // Collection rows
-                    ForEach(collections) { collection in
-                        collectionRow(collection)
+                    ForEach(self.collections) { collection in
+                        self.collectionRow(collection)
                     }
                 }
                 .padding(.vertical, 8)
@@ -63,7 +63,7 @@ struct CollectionsSidebarView: View {
             Spacer()
 
             // Footer with new collection button
-            footerView
+            self.footerView
         }
         .frame(minWidth: 180, maxWidth: 220)
     }
@@ -101,22 +101,22 @@ struct CollectionsSidebarView: View {
             .frame(width: 26, height: 26)
 
             Text("All Items")
-                .font(.system(size: 13, weight: selectedCollectionId == nil ? .semibold : .regular))
+                .font(.system(size: 13, weight: self.selectedCollectionId == nil ? .semibold : .regular))
                 .foregroundStyle(.primary)
 
             Spacer()
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(allItemsBackground)
+        .background(self.allItemsBackground)
         .contentShape(Rectangle())
         .onTapGesture {
-            selectedCollectionId = nil
+            self.selectedCollectionId = nil
         }
     }
 
     @ViewBuilder private var allItemsBackground: some View {
-        if selectedCollectionId == nil {
+        if self.selectedCollectionId == nil {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.accentColor.opacity(0.15))
                 .overlay(
@@ -136,7 +136,7 @@ struct CollectionsSidebarView: View {
                 .padding(.horizontal, 12)
 
             Button(
-                action: { onCreate?() },
+                action: { self.onCreate?() },
                 label: {
                     HStack(spacing: 6) {
                         Image(systemName: "plus.circle.fill")
@@ -158,12 +158,12 @@ struct CollectionsSidebarView: View {
     private func collectionRow(_ collection: CollectionDisplayModel) -> some View {
         CollectionRowView(
             collection: collection,
-            isSelected: selectedCollectionId == collection.id
+            isSelected: self.selectedCollectionId == collection.id
         ) {
-            selectedCollectionId = collection.id
+            self.selectedCollectionId = collection.id
         }
         .contextMenu {
-            collectionContextMenu(collection)
+            self.collectionContextMenu(collection)
         }
     }
 
@@ -171,7 +171,7 @@ struct CollectionsSidebarView: View {
     private func collectionContextMenu(_ collection: CollectionDisplayModel) -> some View {
         // Edit
         Button {
-            onEdit?(collection)
+            self.onEdit?(collection)
         } label: {
             Label("Edit Collection...", systemImage: "pencil")
         }
@@ -180,7 +180,7 @@ struct CollectionsSidebarView: View {
 
         // Delete
         Button(role: .destructive) {
-            onDelete?(collection)
+            self.onDelete?(collection)
         } label: {
             Label("Delete Collection", systemImage: "trash")
         }
@@ -197,7 +197,7 @@ struct CollectionsSidebarView: View {
             var body: some View {
                 CollectionsSidebarView(
                     collections: CollectionDisplayModel.samples,
-                    selectedCollectionId: $selectedId,
+                    selectedCollectionId: self.$selectedId,
                     onEdit: { _ in },
                     onDelete: { _ in },
                     onCreate: {}

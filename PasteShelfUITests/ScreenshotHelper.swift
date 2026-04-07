@@ -96,7 +96,7 @@ enum ScreenshotHelper {
         testCase: XCTestCase
     ) {
         // Wait for UI to stabilize
-        waitForUI()
+        self.waitForUI()
 
         // Take screenshot
         let screenshot = XCUIScreen.main.screenshot()
@@ -128,7 +128,7 @@ enum ScreenshotHelper {
             return
         }
 
-        waitForUI()
+        self.waitForUI()
 
         // Take screenshot of element
         let screenshot = element.screenshot()
@@ -171,14 +171,14 @@ enum ScreenshotHelper {
         let alerts = app.alerts
         if !alerts.allElementsBoundByIndex.isEmpty {
             alerts.buttons.firstMatch.tap()
-            waitForUI()
+            self.waitForUI()
         }
 
         // Dismiss any sheets
         let sheets = app.sheets
         if !sheets.allElementsBoundByIndex.isEmpty {
             sheets.buttons.firstMatch.tap()
-            waitForUI()
+            self.waitForUI()
         }
     }
 

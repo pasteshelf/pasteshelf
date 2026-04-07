@@ -30,7 +30,7 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
 
     /// Whether semantic search is available on this system
     var isAvailable: Bool {
-        embeddingManager.isAvailable
+        self.embeddingManager.isAvailable
     }
 
     // MARK: - SearchEngine Protocol
@@ -38,7 +38,7 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
     // swiftlint:disable:next function_body_length
     func search(query: String, options: SearchOptions) async -> [SearchResult] {
         // Cancel any existing search
-        await cancelSearch()
+        await self.cancelSearch()
 
         // Trim and validate query
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -48,8 +48,8 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
         }
 
         // Check if embeddings are available
-        guard embeddingManager.isAvailable else {
-            logger.warning("Semantic search unavailable: NLEmbedding not loaded")
+        guard self.embeddingManager.isAvailable else {
+            self.logger.warning("Semantic search unavailable: NLEmbedding not loaded")
             return []
         }
 
@@ -59,11 +59,11 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
                 return []
             }
 
-            logger.debug("Starting semantic search for: \(trimmedQuery)")
+            self.logger.debug("Starting semantic search for: \(trimmedQuery)")
 
             // Generate embedding for the query
             guard let queryEmbedding = embeddingManager.generateEmbedding(for: trimmedQuery) else {
-                logger.debug("Could not generate embedding for query")
+                self.logger.debug("Could not generate embedding for query")
                 return []
             }
 
@@ -88,7 +88,7 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
 
             // No embeddings available
             guard !embeddings.isEmpty else {
-                logger.debug("No embeddings found for candidates")
+                self.logger.debug("No embeddings found for candidates")
                 return []
             }
 
@@ -112,22 +112,22 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
                 )
             }
 
-            logger.debug("Semantic search completed: \(results.count) results")
+            self.logger.debug("Semantic search completed: \(results.count) results")
             return results
         }
 
-        lock.lock()
-        currentSearchTask = task
-        lock.unlock()
+        self.lock.lock()
+        self.currentSearchTask = task
+        self.lock.unlock()
 
         return await task.value
     }
 
     func cancelSearch() async {
-        lock.lock()
-        currentSearchTask?.cancel()
-        currentSearchTask = nil
-        lock.unlock()
+        self.lock.lock()
+        self.currentSearchTask?.cancel()
+        self.currentSearchTask = nil
+        self.lock.unlock()
     }
 
     // MARK: Private
@@ -155,7 +155,7 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
     /// Fetches IDs of clipboard items that match the filter criteria
     private func fetchCandidateItemIds(options: SearchOptions) async -> [UUID] {
         // Build filter predicate
-        let predicate = buildFilterPredicate(options: options)
+        let predicate = self.buildFilterPredicate(options: options)
 
         // Fetch matching item IDs
         let items = await storageManager.fetchRecentItems(

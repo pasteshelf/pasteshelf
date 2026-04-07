@@ -70,7 +70,7 @@ public extension WebhookEndpoint {
     /// Fetch all enabled webhook endpoints
     @nonobjc
     class func enabledEndpointsFetchRequest() -> NSFetchRequest<WebhookEndpoint> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(format: "isEnabled == YES")
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \WebhookEndpoint.name, ascending: true),
@@ -81,7 +81,7 @@ public extension WebhookEndpoint {
     /// Fetch endpoints for a specific event type
     @nonobjc
     class func endpointsForEventFetchRequest(event: String) -> NSFetchRequest<WebhookEndpoint> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(
             format: "isEnabled == YES AND eventsJSON CONTAINS %@",
             event
@@ -95,7 +95,7 @@ public extension WebhookEndpoint {
     /// Fetch all endpoints sorted by name
     @nonobjc
     class func allEndpointsFetchRequest() -> NSFetchRequest<WebhookEndpoint> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \WebhookEndpoint.name, ascending: true),
         ]
@@ -105,7 +105,7 @@ public extension WebhookEndpoint {
     /// Fetch endpoints with failures
     @nonobjc
     class func failedEndpointsFetchRequest(minFailures: Int32 = 1) -> NSFetchRequest<WebhookEndpoint> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(format: "failureCount >= %d", minFailures)
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \WebhookEndpoint.failureCount, ascending: false),
@@ -168,7 +168,7 @@ extension WebhookEndpoint {
             if let data = try? JSONEncoder().encode(rawValues),
                let json = String(data: data, encoding: .utf8)
             {
-                eventsJSON = json
+                self.eventsJSON = json
             }
         }
     }
@@ -193,7 +193,7 @@ extension WebhookEndpoint {
             if let data = try? JSONEncoder().encode(filters),
                let json = String(data: data, encoding: .utf8)
             {
-                filtersJSON = json
+                self.filtersJSON = json
             }
         }
     }
@@ -216,41 +216,41 @@ extension WebhookEndpoint {
             if let data = try? JSONEncoder().encode(newValue),
                let json = String(data: data, encoding: .utf8)
             {
-                headersJSON = json
+                self.headersJSON = json
             }
         }
     }
 
     /// Check if endpoint should receive a specific event
     func shouldReceive(event: WebhookEventType) -> Bool {
-        let subscribedEvents = events
+        let subscribedEvents = self.events
         return subscribedEvents.isEmpty || subscribedEvents.contains(event)
     }
 
     /// Check if endpoint should receive events for a content type
     func shouldReceive(contentType: String) -> Bool {
-        let filters = contentTypeFilters
+        let filters = self.contentTypeFilters
         return filters.isEmpty || filters.contains(contentType)
     }
 
     /// Record a successful delivery (caller must save context)
     func recordSuccess() {
-        lastSuccessAt = Date()
-        failureCount = 0
-        lastFailureMessage = nil
-        modifiedAt = Date()
+        self.lastSuccessAt = Date()
+        self.failureCount = 0
+        self.lastFailureMessage = nil
+        self.modifiedAt = Date()
     }
 
     /// Record a failed delivery (caller must save context)
     func recordFailure(message: String) {
-        lastFailureAt = Date()
-        failureCount += 1
-        lastFailureMessage = message
-        modifiedAt = Date()
+        self.lastFailureAt = Date()
+        self.failureCount += 1
+        self.lastFailureMessage = message
+        self.modifiedAt = Date()
 
         // Auto-disable after 10 consecutive failures
-        if failureCount >= 10 {
-            isEnabled = false
+        if self.failureCount >= 10 {
+            self.isEnabled = false
         }
     }
 }
@@ -261,27 +261,27 @@ extension WebhookEndpoint {
     /// Create a configuration struct from the entity
     func toConfiguration() -> WebhookConfiguration {
         WebhookConfiguration(
-            id: id ?? UUID(),
-            name: name ?? "",
-            url: url ?? "",
-            secretKey: secretKey,
-            isEnabled: isEnabled,
-            events: events,
-            contentTypeFilters: contentTypeFilters,
-            customHeaders: customHeaders
+            id: self.id ?? UUID(),
+            name: self.name ?? "",
+            url: self.url ?? "",
+            secretKey: self.secretKey,
+            isEnabled: self.isEnabled,
+            events: self.events,
+            contentTypeFilters: self.contentTypeFilters,
+            customHeaders: self.customHeaders
         )
     }
 
     /// Update entity from configuration (caller must save context)
     func update(from config: WebhookConfiguration) {
-        name = config.name
-        url = config.url
-        secretKey = config.secretKey
-        isEnabled = config.isEnabled
-        events = config.events
-        contentTypeFilters = config.contentTypeFilters
-        customHeaders = config.customHeaders
-        modifiedAt = Date()
+        self.name = config.name
+        self.url = config.url
+        self.secretKey = config.secretKey
+        self.isEnabled = config.isEnabled
+        self.events = config.events
+        self.contentTypeFilters = config.contentTypeFilters
+        self.customHeaders = config.customHeaders
+        self.modifiedAt = Date()
     }
 }
 
@@ -324,6 +324,6 @@ struct WebhookConfiguration: Identifiable, Codable, Equatable {
 
     /// Validate the configuration
     var isValid: Bool {
-        !name.isEmpty && URL(string: url) != nil
+        !self.name.isEmpty && URL(string: self.url) != nil
     }
 }

@@ -103,7 +103,7 @@ struct SSOSession: Codable, Identifiable, Equatable {
 
     /// Whether this session is currently valid (not expired)
     var isValid: Bool {
-        !isExpired
+        !self.isExpired
     }
 
     /// Time remaining until expiry; nil if the session does not expire
@@ -116,7 +116,7 @@ struct SSOSession: Codable, Identifiable, Equatable {
 
     /// Whether this session has a refresh token available for renewal
     var canRefresh: Bool {
-        refreshToken != nil
+        self.refreshToken != nil
     }
 
     // MARK: - Equatable

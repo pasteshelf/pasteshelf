@@ -22,10 +22,10 @@ final class WebhookManager {
 
     private init() {
         let configuration = URLSessionConfiguration.default
-        configuration.timeoutIntervalForRequest = requestTimeout
-        configuration.timeoutIntervalForResource = requestTimeout * 2
+        configuration.timeoutIntervalForRequest = self.requestTimeout
+        configuration.timeoutIntervalForResource = self.requestTimeout * 2
         configuration.waitsForConnectivity = true
-        session = URLSession(configuration: configuration)
+        self.session = URLSession(configuration: configuration)
     }
 
     // MARK: Internal
@@ -44,11 +44,11 @@ final class WebhookManager {
         let endpoints = await fetchEnabledEndpoints(for: event)
 
         guard !endpoints.isEmpty else {
-            logger.debug("No endpoints subscribed to event: \(event.rawValue)")
+            self.logger.debug("No endpoints subscribed to event: \(event.rawValue)")
             return
         }
 
-        logger.info("Sending webhook event \(event.rawValue) to \(endpoints.count) endpoints")
+        self.logger.info("Sending webhook event \(event.rawValue) to \(endpoints.count) endpoints")
 
         // Send to all endpoints concurrently
         await withTaskGroup(of: Void.self) { group in
@@ -63,31 +63,31 @@ final class WebhookManager {
     /// Send a clipboard created event
     func sendClipboardCreated(item: ClipboardItem) async {
         let payload = WebhookPayload.clipboardCreated(item: item)
-        await send(event: .clipboardCreated, payload: payload)
+        await self.send(event: .clipboardCreated, payload: payload)
     }
 
     /// Send a clipboard created event from content
     func sendClipboardCreated(content: ClipboardContent) async {
         let payload = WebhookPayload.clipboardCreated(content: content)
-        await send(event: .clipboardCreated, payload: payload)
+        await self.send(event: .clipboardCreated, payload: payload)
     }
 
     /// Send a clipboard deleted event
     func sendClipboardDeleted(itemId: UUID, contentType: String) async {
         let payload = WebhookPayload.clipboardDeleted(itemId: itemId, contentType: contentType)
-        await send(event: .clipboardDeleted, payload: payload)
+        await self.send(event: .clipboardDeleted, payload: payload)
     }
 
     /// Send a clipboard favorited event
     func sendClipboardFavorited(item: ClipboardItem) async {
         let payload = WebhookPayload.clipboardFavorited(item: item)
-        await send(event: .clipboardFavorited, payload: payload)
+        await self.send(event: .clipboardFavorited, payload: payload)
     }
 
     /// Send a clipboard pasted event
     func sendClipboardPasted(item: ClipboardItem) async {
         let payload = WebhookPayload.clipboardPasted(item: item)
-        await send(event: .clipboardPasted, payload: payload)
+        await self.send(event: .clipboardPasted, payload: payload)
     }
 
     /// Send a rule executed event
@@ -105,7 +105,7 @@ final class WebhookManager {
             errorMessage: errorMessage,
             durationMs: durationMs
         )
-        await send(event: .ruleExecuted, payload: payload)
+        await self.send(event: .ruleExecuted, payload: payload)
     }
 
     /// Create a new webhook endpoint
@@ -258,10 +258,10 @@ final class WebhookManager {
     private func deliver(payload: WebhookPayload, to endpoint: WebhookConfiguration) async {
         var lastError: Error?
 
-        for attempt in 0 ..< maxRetries {
+        for attempt in 0 ..< self.maxRetries {
             if attempt > 0 {
                 // Exponential backoff
-                let delay = baseRetryDelay * pow(2.0, Double(attempt - 1))
+                let delay = self.baseRetryDelay * pow(2.0, Double(attempt - 1))
                 try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             }
 
@@ -269,8 +269,8 @@ final class WebhookManager {
                 let result = try await deliverOnce(payload: payload, to: endpoint)
 
                 if result.success {
-                    logger.info("Webhook delivered to \(endpoint.name): \(result.statusCode ?? 0)")
-                    await recordSuccess(for: endpoint.id)
+                    self.logger.info("Webhook delivered to \(endpoint.name): \(result.statusCode ?? 0)")
+                    await self.recordSuccess(for: endpoint.id)
                     return
                 } else {
                     lastError = WebhookError.httpError(
@@ -280,14 +280,15 @@ final class WebhookManager {
                 }
             } catch {
                 lastError = error
-                logger.warning("Webhook delivery attempt \(attempt + 1) failed: \(error.localizedDescription)")
+                self.logger.warning("Webhook delivery attempt \(attempt + 1) failed: \(error.localizedDescription)")
             }
         }
 
         // All retries exhausted
         let errorMessage = lastError?.localizedDescription ?? "Unknown error"
-        logger.error("Webhook delivery to \(endpoint.name) failed after \(maxRetries) attempts: \(errorMessage)")
-        await recordFailure(for: endpoint.id, message: errorMessage)
+        self.logger
+            .error("Webhook delivery to \(endpoint.name) failed after \(self.maxRetries) attempts: \(errorMessage)")
+        await self.recordFailure(for: endpoint.id, message: errorMessage)
     }
 
     /// Deliver payload once (no retries)
@@ -318,7 +319,7 @@ final class WebhookManager {
 
         // Add HMAC signature if secret key is configured
         if let secretKey = endpoint.secretKey, !secretKey.isEmpty {
-            let signature = sign(data: jsonData, with: secretKey)
+            let signature = self.sign(data: jsonData, with: secretKey)
             request.setValue(signature, forHTTPHeaderField: "X-PasteShelf-Signature")
             request.setValue("sha256", forHTTPHeaderField: "X-PasteShelf-Signature-Algorithm")
         }
@@ -420,12 +421,12 @@ struct WebhookTestResult {
     let errorMessage: String?
 
     var statusDescription: String {
-        if success {
-            "Success (\(statusCode ?? 200))"
+        if self.success {
+            "Success (\(self.statusCode ?? 200))"
         } else if let code = statusCode {
             "Failed (HTTP \(code))"
         } else {
-            errorMessage ?? "Failed"
+            self.errorMessage ?? "Failed"
         }
     }
 

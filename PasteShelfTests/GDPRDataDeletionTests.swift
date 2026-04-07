@@ -186,7 +186,7 @@ struct GDPRDeletionErrorTests {
         let message: String
 
         var errorDescription: String? {
-            message
+            self.message
         }
     }
 }

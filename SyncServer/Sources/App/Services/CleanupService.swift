@@ -21,7 +21,7 @@ struct CleanupService {
         DELETE FROM change_log
         WHERE created_at < NOW() - INTERVAL '\(raw: String(retentionDays)) days'
         """).run()
-        app.logger.info("Cleaned up change_log entries older than \(retentionDays) days")
+        self.app.logger.info("Cleaned up change_log entries older than \(retentionDays) days")
     }
 
     /// Remove revoked API keys older than 30 days.
@@ -34,7 +34,7 @@ struct CleanupService {
         WHERE revoked_at IS NOT NULL
         AND revoked_at < NOW() - INTERVAL '30 days'
         """).run()
-        app.logger.info("Cleaned up old revoked API keys")
+        self.app.logger.info("Cleaned up old revoked API keys")
     }
 
     /// Remove soft-deleted sync records older than the retention period.
@@ -47,6 +47,6 @@ struct CleanupService {
         WHERE is_deleted = TRUE
         AND updated_at < NOW() - INTERVAL '\(raw: String(retentionDays)) days'
         """).run()
-        app.logger.info("Cleaned up soft-deleted sync records older than \(retentionDays) days")
+        self.app.logger.info("Cleaned up soft-deleted sync records older than \(retentionDays) days")
     }
 }

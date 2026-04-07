@@ -65,10 +65,10 @@ struct JWTPayload: Vapor.JWTPayload, Equatable {
     let deviceID: String?
 
     var userID: UUID? {
-        UUID(uuidString: sub.value)
+        UUID(uuidString: self.sub.value)
     }
 
     func verify(using algorithm: some JWTAlgorithm) async throws {
-        try exp.verifyNotExpired()
+        try self.exp.verifyNotExpired()
     }
 }

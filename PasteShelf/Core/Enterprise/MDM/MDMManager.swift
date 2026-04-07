@@ -26,7 +26,7 @@ final class MDMManager: ObservableObject {
     private init() {
         let reader = ManagedPreferencesReader()
         self.reader = reader
-        enforcer = MDMPolicyEnforcer()
+        self.enforcer = MDMPolicyEnforcer()
     }
 
     /// Creates a manager with injected dependencies (for testing).
@@ -73,8 +73,8 @@ final class MDMManager: ObservableObject {
 
     /// Loads the current MDM configuration and updates published state.
     func loadConfiguration() {
-        let config = reader.readConfiguration()
-        updateState(with: config)
+        let config = self.reader.readConfiguration()
+        self.updateState(with: config)
     }
 
     /// Applies MDM overrides to the provided settings.
@@ -84,12 +84,12 @@ final class MDMManager: ObservableObject {
     ///
     /// - Parameter settings: The application settings to apply overrides to.
     func applyOverrides(to settings: inout AppSettings) {
-        guard configuration.isManaged else {
+        guard self.configuration.isManaged else {
             return
         }
 
-        enforcer.applyForcedPreferences(to: &settings, from: configuration)
-        enforcer.applyDefaults(to: &settings, from: configuration)
+        self.enforcer.applyForcedPreferences(to: &settings, from: self.configuration)
+        self.enforcer.applyDefaults(to: &settings, from: self.configuration)
     }
 
     /// Checks if a specific preference key is locked by MDM policy.
@@ -97,7 +97,7 @@ final class MDMManager: ObservableObject {
     /// - Parameter key: The preference key to check.
     /// - Returns: `true` if the key is forced by MDM and cannot be changed by the user.
     func isSettingLocked(_ key: ManagedPreferenceKey) -> Bool {
-        forcedKeys.contains(key)
+        self.forcedKeys.contains(key)
     }
 
     // MARK: - Monitoring
@@ -107,23 +107,23 @@ final class MDMManager: ObservableObject {
     /// When the MDM profile is updated, the configuration is re-read and
     /// overrides are re-applied to the current settings.
     func startMonitoring() {
-        reader.startObserving()
+        self.reader.startObserving()
 
-        reader.configurationDidChange
+        self.reader.configurationDidChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] config in
                 self?.handleConfigurationChange(config)
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
 
-        logger.info("MDM monitoring started")
+        self.logger.info("MDM monitoring started")
     }
 
     /// Stops observing for MDM profile changes.
     func stopMonitoring() {
-        cancellables.removeAll()
-        reader.stopObserving()
-        logger.info("MDM monitoring stopped")
+        self.cancellables.removeAll()
+        self.reader.stopObserving()
+        self.logger.info("MDM monitoring stopped")
     }
 
     // MARK: Private
@@ -137,15 +137,15 @@ final class MDMManager: ObservableObject {
 
     /// Updates internal state from a new configuration.
     private func updateState(with config: MDMConfiguration) {
-        configuration = config
-        isManaged = config.isManaged
-        forcedKeys = enforcer.lockedSettings(from: config)
+        self.configuration = config
+        self.isManaged = config.isManaged
+        self.forcedKeys = self.enforcer.lockedSettings(from: config)
     }
 
     /// Handles a configuration change from the observer.
     private func handleConfigurationChange(_ config: MDMConfiguration) {
-        updateState(with: config)
+        self.updateState(with: config)
         SettingsManager.shared.applyMDMOverridesIfNeeded()
-        logger.info("MDM configuration updated: \(forcedKeys.count) forced keys")
+        self.logger.info("MDM configuration updated: \(self.forcedKeys.count) forced keys")
     }
 }

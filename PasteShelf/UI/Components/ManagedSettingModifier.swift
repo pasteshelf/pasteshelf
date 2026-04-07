@@ -34,7 +34,7 @@ struct ManagedSettingModifier: ViewModifier {
     // MARK: - Body
 
     func body(content: Content) -> some View {
-        if settingsManager.isLocked(key) {
+        if self.settingsManager.isLocked(self.key) {
             HStack(spacing: 6) {
                 content
                 Image(systemName: "lock.fill")

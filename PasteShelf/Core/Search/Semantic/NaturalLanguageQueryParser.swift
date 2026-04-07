@@ -30,7 +30,7 @@ struct ParsedQuery: Equatable {
 
     /// Whether any filters were extracted
     var hasFilters: Bool {
-        dateRange != nil || !contentTypeHints.isEmpty || !sourceAppHints.isEmpty
+        self.dateRange != nil || !self.contentTypeHints.isEmpty || !self.sourceAppHints.isEmpty
     }
 }
 
@@ -54,7 +54,7 @@ enum NaturalLanguageQueryParser {
         var sourceAppHints: [String] = []
 
         // Extract time references
-        for (pattern, rangeFn) in timePatterns {
+        for (pattern, rangeFn) in self.timePatterns {
             if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
                 let range = NSRange(lowercaseQuery.startIndex..., in: lowercaseQuery)
                 if let match = regex.firstMatch(in: lowercaseQuery, options: [], range: range) {
@@ -65,9 +65,9 @@ enum NaturalLanguageQueryParser {
                         if let numRange = Range(match.range(at: 2), in: lowercaseQuery) {
                             if let num = Int(lowercaseQuery[numRange]) {
                                 if pattern.contains("days") {
-                                    dateRange = lastNDays(num)
+                                    dateRange = self.lastNDays(num)
                                 } else if pattern.contains("hours") {
-                                    dateRange = lastNHours(num)
+                                    dateRange = self.lastNHours(num)
                                 }
                             }
                         }
@@ -83,7 +83,7 @@ enum NaturalLanguageQueryParser {
         }
 
         // Extract content type hints
-        for (keyword, types) in contentTypeKeywords {
+        for (keyword, types) in self.contentTypeKeywords {
             let keywordPattern = "\\b\(keyword)s?\\b"
             if let regex = try? NSRegularExpression(pattern: keywordPattern, options: .caseInsensitive) {
                 let range = NSRange(lowercaseQuery.startIndex..., in: lowercaseQuery)
@@ -95,7 +95,7 @@ enum NaturalLanguageQueryParser {
         }
 
         // Extract app references
-        for pattern in appPatterns {
+        for pattern in self.appPatterns {
             if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
                 let range = NSRange(lowercaseQuery.startIndex..., in: lowercaseQuery)
                 regex.enumerateMatches(in: lowercaseQuery, options: [], range: range) { match, _, _ in

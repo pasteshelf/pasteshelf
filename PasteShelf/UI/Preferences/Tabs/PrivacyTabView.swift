@@ -21,7 +21,7 @@ struct PrivacyTabView: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Pause clipboard monitoring", isOn: $viewModel.isMonitoringPaused)
+                Toggle("Pause clipboard monitoring", isOn: self.$viewModel.isMonitoringPaused)
                     .accessibilityLabel("Pause clipboard monitoring")
                     .accessibilityHint("When enabled, clipboard contents will not be captured")
             } header: {
@@ -29,14 +29,14 @@ struct PrivacyTabView: View {
             }
 
             Section {
-                Toggle("Detect sensitive data in clipboard", isOn: $viewModel.sensitiveDetectionEnabled)
+                Toggle("Detect sensitive data in clipboard", isOn: self.$viewModel.sensitiveDetectionEnabled)
                     .accessibilityLabel("Detect sensitive data")
                     .accessibilityHint(
                         "When enabled, clipboard items containing sensitive data"
                             + " like API keys, passwords, and credit cards are labeled as sensitive"
                     )
 
-                if viewModel.sensitiveDetectionEnabled {
+                if self.viewModel.sensitiveDetectionEnabled {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Detection Categories")
                             .font(.subheadline)
@@ -44,8 +44,8 @@ struct PrivacyTabView: View {
 
                         ForEach(SensitivePatterns.SensitiveCategory.allCases, id: \.self) { category in
                             Toggle(isOn: Binding(
-                                get: { viewModel.enabledSensitiveCategories.contains(category) },
-                                set: { _ in viewModel.toggleSensitiveCategory(category) }
+                                get: { self.viewModel.enabledSensitiveCategories.contains(category) },
+                                set: { _ in self.viewModel.toggleSensitiveCategory(category) }
                             )) {
                                 Label(category.displayName, systemImage: category.iconName)
                             }
@@ -70,23 +70,23 @@ struct PrivacyTabView: View {
                         Text("Excluded Applications")
                         Spacer()
                         Button(
-                            action: { showAppPicker = true },
+                            action: { self.showAppPicker = true },
                             label: { Image(systemName: "plus") }
                         )
                         .buttonStyle(.borderless)
                         .accessibilityLabel("Add excluded application")
                     }
 
-                    if viewModel.excludedAppBundleIds.isEmpty {
+                    if self.viewModel.excludedAppBundleIds.isEmpty {
                         Text("No applications excluded")
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .padding(.vertical, 4)
                     } else {
                         AppExclusionListView(
-                            bundleIds: viewModel.excludedAppBundleIds
+                            bundleIds: self.viewModel.excludedAppBundleIds
                         ) { bundleId in
-                            viewModel.removeExcludedApp(bundleId)
+                            self.viewModel.removeExcludedApp(bundleId)
                         }
                     }
                 }
@@ -99,17 +99,17 @@ struct PrivacyTabView: View {
             }
 
             Section {
-                Toggle("Auto-delete old items", isOn: $viewModel.autoDeleteEnabled)
+                Toggle("Auto-delete old items", isOn: self.$viewModel.autoDeleteEnabled)
                     .accessibilityLabel("Auto-delete old items")
                     .accessibilityHint(
                         "When enabled, items older than the specified period will be automatically deleted"
                     )
                     .managedSetting(.maxHistoryDays)
 
-                if viewModel.autoDeleteEnabled {
-                    Picker("Delete items older than", selection: $viewModel.autoDeleteDays) {
+                if self.viewModel.autoDeleteEnabled {
+                    Picker("Delete items older than", selection: self.$viewModel.autoDeleteDays) {
                         ForEach(PrivacySettings.autoDeleteOptions, id: \.self) { days in
-                            Text(formatDays(days)).tag(days)
+                            Text(self.formatDays(days)).tag(days)
                         }
                     }
                     .accessibilityLabel("Auto-delete period")
@@ -117,7 +117,7 @@ struct PrivacyTabView: View {
             } header: {
                 Text("Auto Cleanup")
             } footer: {
-                if viewModel.autoDeleteEnabled {
+                if self.viewModel.autoDeleteEnabled {
                     Text("Favorites are never automatically deleted.")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -126,7 +126,7 @@ struct PrivacyTabView: View {
 
             Section {
                 Button(role: .destructive) {
-                    showClearHistoryAlert = true
+                    self.showClearHistoryAlert = true
                 } label: {
                     HStack {
                         Image(systemName: "trash")
@@ -141,10 +141,10 @@ struct PrivacyTabView: View {
         }
         .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .alert("Clear History?", isPresented: $showClearHistoryAlert) {
+        .alert("Clear History?", isPresented: self.$showClearHistoryAlert) {
             Button("Cancel", role: .cancel) {}
             Button("Clear", role: .destructive) {
-                clearHistory()
+                self.clearHistory()
             }
         } message: {
             Text(
@@ -152,11 +152,11 @@ struct PrivacyTabView: View {
                     + " Favorites will be preserved. This action cannot be undone."
             )
         }
-        .sheet(isPresented: $showAppPicker) {
+        .sheet(isPresented: self.$showAppPicker) {
             AppPickerSheet(
-                excludedBundleIds: viewModel.excludedAppBundleIds
+                excludedBundleIds: self.viewModel.excludedAppBundleIds
             ) { bundleId in
-                viewModel.addExcludedApp(bundleId)
+                self.viewModel.addExcludedApp(bundleId)
             }
         }
     }
@@ -181,7 +181,7 @@ struct PrivacyTabView: View {
     }
 
     private func clearHistory() {
-        viewModel.clearHistory()
+        self.viewModel.clearHistory()
     }
 }
 
@@ -194,12 +194,12 @@ struct AppPickerSheet: View {
     let onSelect: (String) -> Void
 
     var filteredApps: [InstalledApp] {
-        let nonExcluded = installedApps.filter { !excludedBundleIds.contains($0.bundleId) }
-        if searchText.isEmpty {
+        let nonExcluded = self.installedApps.filter { !self.excludedBundleIds.contains($0.bundleId) }
+        if self.searchText.isEmpty {
             return nonExcluded
         }
         return nonExcluded.filter {
-            $0.name.localizedCaseInsensitiveContains(searchText)
+            $0.name.localizedCaseInsensitiveContains(self.searchText)
         }
     }
 
@@ -210,20 +210,20 @@ struct AppPickerSheet: View {
                     .font(.headline)
                 Spacer()
                 Button("Cancel") {
-                    dismiss()
+                    self.dismiss()
                 }
                 .keyboardShortcut(.escape)
             }
             .padding()
 
-            TextField("Search applications...", text: $searchText)
+            TextField("Search applications...", text: self.$searchText)
                 .textFieldStyle(.roundedBorder)
                 .padding(.horizontal)
 
-            List(filteredApps) { app in
+            List(self.filteredApps) { app in
                 Button {
-                    onSelect(app.bundleId)
-                    dismiss()
+                    self.onSelect(app.bundleId)
+                    self.dismiss()
                 } label: {
                     HStack {
                         if let icon = app.icon {
@@ -244,7 +244,7 @@ struct AppPickerSheet: View {
         }
         .frame(width: 400, height: 500)
         .onAppear {
-            loadInstalledApps()
+            self.loadInstalledApps()
         }
     }
 
@@ -280,7 +280,7 @@ struct AppPickerSheet: View {
             }
         }
 
-        installedApps = apps.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        self.installedApps = apps.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 }
 
@@ -292,7 +292,7 @@ struct InstalledApp: Identifiable {
     let icon: NSImage?
 
     var id: String {
-        bundleId
+        self.bundleId
     }
 }
 

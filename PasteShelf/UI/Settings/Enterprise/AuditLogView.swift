@@ -23,7 +23,7 @@ struct AuditLogView: View {
     // MARK: - Body
 
     var body: some View {
-        auditLogContent
+        self.auditLogContent
     }
 
     // MARK: Private
@@ -35,21 +35,21 @@ struct AuditLogView: View {
 
     private var auditLogContent: some View {
         Form {
-            filtersSection
-            eventsSection
-            exportSection
-            retentionSection
+            self.filtersSection
+            self.eventsSection
+            self.exportSection
+            self.retentionSection
         }
         .formStyle(.grouped)
         .alert("Error", isPresented: Binding(
-            get: { viewModel.errorMessage != nil },
+            get: { self.viewModel.errorMessage != nil },
             set: { newValue in
                 if !newValue {
-                    viewModel.errorMessage = nil
+                    self.viewModel.errorMessage = nil
                 }
             }
         )) {
-            Button("OK") { viewModel.errorMessage = nil }
+            Button("OK") { self.viewModel.errorMessage = nil }
         } message: {
             if let message = viewModel.errorMessage {
                 Text(message)
@@ -58,24 +58,24 @@ struct AuditLogView: View {
         .alert(
             "Change Retention Period?",
             isPresented: Binding(
-                get: { pendingRetentionDays != nil },
+                get: { self.pendingRetentionDays != nil },
                 set: { newValue in
                     if !newValue {
-                        pendingRetentionDays = nil
+                        self.pendingRetentionDays = nil
                     }
                 }
             )
         ) {
             Button("Apply") {
                 if let days = pendingRetentionDays {
-                    viewModel.updateRetentionDays(days)
+                    self.viewModel.updateRetentionDays(days)
                 }
-                pendingRetentionDays = nil
+                self.pendingRetentionDays = nil
             }
             Button("Cancel", role: .cancel) {
-                pendingRetentionDays = nil
+                self.pendingRetentionDays = nil
                 // Reset picker to current value
-                viewModel.retentionDays = viewModel.retentionDays
+                self.viewModel.retentionDays = self.viewModel.retentionDays
             }
         } message: {
             if let days = pendingRetentionDays {
@@ -94,10 +94,10 @@ struct AuditLogView: View {
         Section("Filters") {
             // MARK: Category Picker
 
-            Picker("Category", selection: $viewModel.selectedCategory) {
+            Picker("Category", selection: self.$viewModel.selectedCategory) {
                 Text("All Categories").tag(AuditEventCategory?.none)
                 ForEach(AuditEventCategory.allCases, id: \.self) { category in
-                    Text(categoryDisplayName(category)).tag(Optional(category))
+                    Text(self.categoryDisplayName(category)).tag(Optional(category))
                 }
             }
 
@@ -109,18 +109,18 @@ struct AuditLogView: View {
                         "From",
                         selection: Binding(
                             get: { start },
-                            set: { viewModel.dateRangeStart = $0 }
+                            set: { self.viewModel.dateRangeStart = $0 }
                         ),
                         displayedComponents: .date
                     )
-                    Button("Clear") { viewModel.dateRangeStart = nil }
+                    Button("Clear") { self.viewModel.dateRangeStart = nil }
                         .buttonStyle(.borderless)
                         .foregroundStyle(.secondary)
                 } else {
                     Text("From")
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Button("Set Start Date") { viewModel.dateRangeStart = Date() }
+                    Button("Set Start Date") { self.viewModel.dateRangeStart = Date() }
                         .buttonStyle(.borderless)
                 }
             }
@@ -133,18 +133,18 @@ struct AuditLogView: View {
                         "To",
                         selection: Binding(
                             get: { end },
-                            set: { viewModel.dateRangeEnd = $0 }
+                            set: { self.viewModel.dateRangeEnd = $0 }
                         ),
                         displayedComponents: .date
                     )
-                    Button("Clear") { viewModel.dateRangeEnd = nil }
+                    Button("Clear") { self.viewModel.dateRangeEnd = nil }
                         .buttonStyle(.borderless)
                         .foregroundStyle(.secondary)
                 } else {
                     Text("To")
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Button("Set End Date") { viewModel.dateRangeEnd = Date() }
+                    Button("Set End Date") { self.viewModel.dateRangeEnd = Date() }
                         .buttonStyle(.borderless)
                 }
             }
@@ -158,7 +158,7 @@ struct AuditLogView: View {
             // MARK: Clear All Filters
 
             Button("Clear Filters") {
-                viewModel.clearFilters()
+                self.viewModel.clearFilters()
             }
             .buttonStyle(.borderless)
             .foregroundStyle(.secondary)
@@ -168,9 +168,9 @@ struct AuditLogView: View {
     // MARK: - Events Section
 
     private var eventsSection: some View {
-        Section("Events (\(viewModel.events.count))") {
-            if viewModel.decryptionFailureCount > 0 {
-                let count = viewModel.decryptionFailureCount
+        Section("Events (\(self.viewModel.events.count))") {
+            if self.viewModel.decryptionFailureCount > 0 {
+                let count = self.viewModel.decryptionFailureCount
                 let suffix = count == 1 ? "" : "s"
                 Label(
                     "\(count) event\(suffix) could not be decrypted",
@@ -180,20 +180,20 @@ struct AuditLogView: View {
                 .foregroundStyle(.orange)
             }
 
-            if viewModel.isLoading {
+            if self.viewModel.isLoading {
                 HStack {
                     Spacer()
                     ProgressView()
                         .padding(.vertical, 8)
                     Spacer()
                 }
-            } else if viewModel.events.isEmpty {
+            } else if self.viewModel.events.isEmpty {
                 Text("No audit events found")
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 8)
             } else {
-                ForEach(viewModel.events) { item in
+                ForEach(self.viewModel.events) { item in
                     EventRowView(item: item)
                 }
             }
@@ -206,14 +206,14 @@ struct AuditLogView: View {
         Section("Export") {
             HStack(spacing: 12) {
                 Button("Export as CSV") {
-                    viewModel.exportAsCSV()
+                    self.viewModel.exportAsCSV()
                 }
-                .disabled(viewModel.events.isEmpty)
+                .disabled(self.viewModel.events.isEmpty)
 
                 Button("Export as JSON") {
-                    viewModel.exportAsJSON()
+                    self.viewModel.exportAsJSON()
                 }
-                .disabled(viewModel.events.isEmpty)
+                .disabled(self.viewModel.events.isEmpty)
             }
         }
     }
@@ -223,15 +223,15 @@ struct AuditLogView: View {
     private var retentionSection: some View {
         Section("Retention Policy") {
             LabeledContent("Keep events for") {
-                Picker("Retention", selection: $viewModel.retentionDays) {
+                Picker("Retention", selection: self.$viewModel.retentionDays) {
                     ForEach(AuditRetentionConfiguration.options, id: \.self) { days in
-                        Text(retentionLabel(days: days)).tag(days)
+                        Text(self.retentionLabel(days: days)).tag(days)
                     }
                 }
                 .labelsHidden()
                 .frame(width: 160)
-                .onChange(of: viewModel.retentionDays) { _, newValue in
-                    pendingRetentionDays = newValue
+                .onChange(of: self.viewModel.retentionDays) { _, newValue in
+                    self.pendingRetentionDays = newValue
                 }
             }
 
@@ -293,23 +293,23 @@ private struct EventRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
-                severityIcon
+                self.severityIcon
 
-                Text(item.actionDisplayName)
+                Text(self.item.actionDisplayName)
                     .font(.body)
 
                 Spacer()
 
-                categoryBadge
+                self.categoryBadge
 
-                Text(item.formattedTimestamp)
+                Text(self.item.formattedTimestamp)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            if !item.detail.isEmpty {
+            if !self.item.detail.isEmpty {
                 DisclosureGroup("Details") {
-                    let sortedDetail = item.detail.sorted { $0.key < $1.key }
+                    let sortedDetail = self.item.detail.sorted { $0.key < $1.key }
                     VStack(alignment: .leading, spacing: 2) {
                         ForEach(Array(sortedDetail), id: \.key) { key, value in
                             HStack(alignment: .top, spacing: 6) {
@@ -335,7 +335,7 @@ private struct EventRowView: View {
     // MARK: Private
 
     private var severityColor: Color {
-        switch item.severity {
+        switch self.item.severity {
         case .info:
             .blue
         case .warning:
@@ -348,13 +348,13 @@ private struct EventRowView: View {
     // MARK: Subviews
 
     private var severityIcon: some View {
-        Image(systemName: item.severityIconName)
-            .foregroundStyle(severityColor)
+        Image(systemName: self.item.severityIconName)
+            .foregroundStyle(self.severityColor)
             .imageScale(.small)
     }
 
     private var categoryBadge: some View {
-        Text(item.categoryDisplayName)
+        Text(self.item.categoryDisplayName)
             .font(.caption2)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)

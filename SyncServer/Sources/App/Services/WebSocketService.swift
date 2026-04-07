@@ -136,15 +136,15 @@ actor WebSocketConnectionStore {
     // MARK: Internal
 
     func add(_ connection: WebSocketConnection) {
-        store[connection.id] = connection
+        self.store[connection.id] = connection
     }
 
     func remove(_ id: UUID) {
-        store.removeValue(forKey: id)
+        self.store.removeValue(forKey: id)
     }
 
     func connections(for userID: UUID) -> [WebSocketConnection] {
-        store.values.filter { $0.userID == userID }
+        self.store.values.filter { $0.userID == userID }
     }
 
     // MARK: Private

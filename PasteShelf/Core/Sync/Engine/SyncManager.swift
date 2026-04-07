@@ -46,13 +46,13 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
         self.persistenceController = persistenceController
 
         // Load persisted state
-        loadPersistedState()
+        self.loadPersistedState()
 
         // Setup network monitoring
-        setupNetworkMonitoring()
+        self.setupNetworkMonitoring()
 
         // Setup CoreData change observation
-        setupCoreDataObservation()
+        self.setupCoreDataObservation()
     }
 
     deinit {
@@ -71,8 +71,8 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
 
     @Published public var isEnabled: Bool = false {
         didSet {
-            if isEnabled != oldValue {
-                handleEnabledStateChange()
+            if self.isEnabled != oldValue {
+                self.handleEnabledStateChange()
             }
         }
     }
@@ -80,12 +80,12 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
     // MARK: - Publishers
 
     public var statusPublisher: AnyPublisher<SyncStatus, Never> {
-        $status.eraseToAnyPublisher()
+        self.$status.eraseToAnyPublisher()
     }
 
     /// Configuration for the self-hosted sync server.
     @Published public var selfHostedConfiguration: SelfHostedSyncConfiguration? {
-        didSet { saveSelfHostedConfiguration() }
+        didSet { self.saveSelfHostedConfiguration() }
     }
 
     // MARK: - SyncManaging Protocol
@@ -96,31 +96,31 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
 
         // Determine which backend to use based on configuration
         let backend = try resolveBackend()
-        syncBackend = backend
+        self.syncBackend = backend
 
         // Check network
-        guard isNetworkAvailable else {
-            status = .offline
+        guard self.isNetworkAvailable else {
+            self.status = .offline
             throw SyncError.networkUnavailable
         }
 
         // Check backend availability
-        status = .syncing(progress: 0.1)
+        self.status = .syncing(progress: 0.1)
         let availability = try await backend.checkAvailability()
         switch availability {
         case .available:
             break
         case .authenticationRequired:
-            let error: SyncError = activeBackendType == .selfHosted
+            let error: SyncError = self.activeBackendType == .selfHosted
                 ? .authenticationTokenExpired
                 : .noAccount
-            status = .error(error)
+            self.status = .error(error)
             throw error
         case let .unavailable(reason):
-            let error: SyncError = activeBackendType == .selfHosted
+            let error: SyncError = self.activeBackendType == .selfHosted
                 ? .serverConnectionFailed(message: reason)
                 : .accountTemporarilyUnavailable
-            status = .error(error)
+            self.status = .error(error)
             throw error
         }
 
@@ -136,7 +136,7 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
         try await performSync()
 
         // Start auto-sync timer
-        startAutoSyncTimer()
+        self.startAutoSyncTimer()
 
         // Subscribe to real-time change notifications
         try? await backend.subscribeToChanges { [weak self] notification in
@@ -157,78 +157,78 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
             }
         }
 
-        Self.logger.info("Sync engine started with \(activeBackendType?.rawValue ?? "unknown") backend")
+        Self.logger.info("Sync engine started with \(self.activeBackendType?.rawValue ?? "unknown") backend")
     }
 
     public func stop() {
         Self.logger.info("Stopping sync engine")
 
-        syncTask?.cancel()
-        syncTask = nil
-        isCurrentlySyncing = false
-        pendingSync = false
+        self.syncTask?.cancel()
+        self.syncTask = nil
+        self.isCurrentlySyncing = false
+        self.pendingSync = false
 
         // Tear down backend (close WebSocket, unregister device) before releasing
-        let backend = syncBackend
-        syncBackend = nil
+        let backend = self.syncBackend
+        self.syncBackend = nil
         if let backend {
             Task { try? await backend.teardown() }
         }
 
-        status = .disabled
+        self.status = .disabled
     }
 
     /// Clears the saved backend selection so the user must pick a provider again.
     public func clearBackendSelection() {
-        activeBackendType = nil
+        self.activeBackendType = nil
         UserDefaults.standard.removeObject(forKey: Self.backendTypeKey)
     }
 
     public func syncNow() async throws {
         Self.logger.info("Manual sync requested")
 
-        guard isEnabled else {
+        guard self.isEnabled else {
             throw SyncError.unknown(message: "Sync is not enabled")
         }
 
-        guard !isCurrentlySyncing else {
-            pendingSync = true
+        guard !self.isCurrentlySyncing else {
+            self.pendingSync = true
             return
         }
 
-        try await performSync()
+        try await self.performSync()
     }
 
     public func reset() async throws {
         Self.logger.info("Resetting sync state")
 
-        let backend = syncBackend
-        stop()
+        let backend = self.syncBackend
+        self.stop()
 
         // Delete encryption keys
-        try encryptionManager.deleteKeys()
+        try self.encryptionManager.deleteKeys()
 
         // Clear change tracker
-        changeTracker.clearHistoryToken()
+        self.changeTracker.clearHistoryToken()
 
         // Clear stored tokens
         UserDefaults.standard.removeObject(forKey: Self.changeTokenKey)
         UserDefaults.standard.removeObject(forKey: Self.lastSyncKey)
         UserDefaults.standard.removeObject(forKey: Self.backendSyncTokenKey)
         UserDefaults.standard.removeObject(forKey: Self.backendTypeKey)
-        backendSyncToken = nil
-        activeBackendType = nil
+        self.backendSyncToken = nil
+        self.activeBackendType = nil
 
         // Tear down the backend (delete zone / unregister device)
         if let backend {
             try await backend.teardown()
         } else {
             // Fallback: reset CloudKit directly
-            try await cloudKitProvider.reset()
+            try await self.cloudKitProvider.reset()
         }
 
         // Mark all local items as pending sync
-        try await markAllItemsAsPending()
+        try await self.markAllItemsAsPending()
 
         Self.logger.info("Sync reset complete")
     }
@@ -237,32 +237,32 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
     public func deleteCloudData() async throws {
         Self.logger.info("Deleting cloud data")
 
-        let backend = syncBackend
-        stop()
+        let backend = self.syncBackend
+        self.stop()
 
         // Delete encryption keys
-        try encryptionManager.deleteKeys()
+        try self.encryptionManager.deleteKeys()
 
         // Clear change tracker
-        changeTracker.clearHistoryToken()
+        self.changeTracker.clearHistoryToken()
 
         // Clear stored tokens
         UserDefaults.standard.removeObject(forKey: Self.changeTokenKey)
         UserDefaults.standard.removeObject(forKey: Self.lastSyncKey)
         UserDefaults.standard.removeObject(forKey: Self.backendSyncTokenKey)
         UserDefaults.standard.removeObject(forKey: Self.backendTypeKey)
-        backendSyncToken = nil
-        activeBackendType = nil
+        self.backendSyncToken = nil
+        self.activeBackendType = nil
 
         // Tear down the backend (delete zone only, do not recreate)
         if let backend {
             try await backend.teardown()
         } else {
-            try await cloudKitProvider.teardownOnly()
+            try await self.cloudKitProvider.teardownOnly()
         }
 
         // Disable sync so items are NOT re-uploaded
-        isEnabled = false
+        self.isEnabled = false
 
         Self.logger.info("Cloud data deleted, sync disabled")
     }
@@ -335,15 +335,15 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
         }
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: selfHostedApiKeyService,
-            kSecAttrAccount as String: selfHostedApiKeyAccount,
+            kSecAttrService as String: self.selfHostedApiKeyService,
+            kSecAttrAccount as String: self.selfHostedApiKeyAccount,
         ]
         SecItemDelete(deleteQuery as CFDictionary)
 
         let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: selfHostedApiKeyService,
-            kSecAttrAccount as String: selfHostedApiKeyAccount,
+            kSecAttrService as String: self.selfHostedApiKeyService,
+            kSecAttrAccount as String: self.selfHostedApiKeyAccount,
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
         ]
@@ -353,8 +353,8 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
     private static func loadSelfHostedApiKeyFromKeychain() -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: selfHostedApiKeyService,
-            kSecAttrAccount as String: selfHostedApiKeyAccount,
+            kSecAttrService as String: self.selfHostedApiKeyService,
+            kSecAttrAccount as String: self.selfHostedApiKeyAccount,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
         ]
@@ -369,8 +369,8 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
     private static func deleteSelfHostedApiKeyFromKeychain() {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: selfHostedApiKeyService,
-            kSecAttrAccount as String: selfHostedApiKeyAccount,
+            kSecAttrService as String: self.selfHostedApiKeyService,
+            kSecAttrAccount as String: self.selfHostedApiKeyAccount,
         ]
         SecItemDelete(query as CFDictionary)
     }
@@ -380,27 +380,27 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
         #if !APP_STORE
             // Self-hosted sync takes precedence if configured
             if let config = selfHostedConfiguration, config.isConfigured, config.isEnabled {
-                activeBackendType = .selfHosted
+                self.activeBackendType = .selfHosted
                 Self.logger.info("Using self-hosted sync backend")
                 return SelfHostedSyncBackend(configuration: config)
             }
         #endif
 
         // Fall back to CloudKit
-        activeBackendType = .cloudKit
+        self.activeBackendType = .cloudKit
         Self.logger.info("Using CloudKit sync backend")
-        return CloudKitSyncBackend(provider: cloudKitProvider)
+        return CloudKitSyncBackend(provider: self.cloudKitProvider)
     }
 
     // MARK: - Private Sync Operations
 
     private func performSync() async throws {
-        guard !isCurrentlySyncing else {
-            pendingSync = true
+        guard !self.isCurrentlySyncing else {
+            self.pendingSync = true
             return
         }
 
-        isCurrentlySyncing = true
+        self.isCurrentlySyncing = true
         defer {
             isCurrentlySyncing = false
             if pendingSync {
@@ -412,31 +412,31 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
             }
         }
 
-        status = .syncing(progress: 0.2)
+        self.status = .syncing(progress: 0.2)
         Self.logger.info("Starting sync operation")
 
         do {
             // 1. Pull remote changes first
-            status = .syncing(progress: 0.3)
-            try await pullRemoteChanges()
+            self.status = .syncing(progress: 0.3)
+            try await self.pullRemoteChanges()
 
             // 2. Push local changes
-            status = .syncing(progress: 0.6)
-            try await pushLocalChanges()
+            self.status = .syncing(progress: 0.6)
+            try await self.pushLocalChanges()
 
             // 3. Update sync state
             let now = Date()
-            lastSyncDate = now
+            self.lastSyncDate = now
             UserDefaults.standard.set(now, forKey: Self.lastSyncKey)
 
-            status = .synced(lastSync: now)
+            self.status = .synced(lastSync: now)
             Self.logger.info("Sync completed successfully")
         } catch let error as SyncError {
             status = .error(error)
             throw error
         } catch {
             let syncError = SyncError.unknown(message: error.localizedDescription)
-            status = .error(syncError)
+            self.status = .error(syncError)
             throw syncError
         }
     }
@@ -446,23 +446,23 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
             return
         }
 
-        Self.logger.debug("Pulling remote changes via \(activeBackendType?.rawValue ?? "unknown") backend")
+        Self.logger.debug("Pulling remote changes via \(self.activeBackendType?.rawValue ?? "unknown") backend")
 
-        let result = try await backend.pullChanges(sinceToken: backendSyncToken)
+        let result = try await backend.pullChanges(sinceToken: self.backendSyncToken)
 
         if !result.changes.isEmpty {
-            try await applyRemoteChanges(result.changes)
+            try await self.applyRemoteChanges(result.changes)
         }
 
         // Save new token
         if let newToken = result.newToken {
-            backendSyncToken = newToken
-            saveBackendSyncToken(newToken)
+            self.backendSyncToken = newToken
+            self.saveBackendSyncToken(newToken)
         }
 
         // Continue pulling if more changes are available
         if result.hasMore {
-            try await pullRemoteChanges()
+            try await self.pullRemoteChanges()
         }
 
         Self.logger.debug("Pulled \(result.changes.count) remote changes")
@@ -473,7 +473,7 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
             return
         }
 
-        Self.logger.debug("Pushing local changes via \(activeBackendType?.rawValue ?? "unknown") backend")
+        Self.logger.debug("Pushing local changes via \(self.activeBackendType?.rawValue ?? "unknown") backend")
 
         // Get pending changes
         let pendingChanges = try await changeTracker.getPendingChanges()
@@ -492,17 +492,17 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
         // Handle conflicts if any
         if !pushResult.conflicts.isEmpty {
             Self.logger.info("Push returned \(pushResult.conflicts.count) conflicts")
-            try await handlePushConflicts(pushResult.conflicts, originalChanges: preparedChanges)
+            try await self.handlePushConflicts(pushResult.conflicts, originalChanges: preparedChanges)
         }
 
         // Update sync token from push result
         if let newToken = pushResult.newToken {
-            backendSyncToken = newToken
-            saveBackendSyncToken(newToken)
+            self.backendSyncToken = newToken
+            self.saveBackendSyncToken(newToken)
         }
 
         // Mark as synced
-        try await changeTracker.markAsSynced(preparedChanges)
+        try await self.changeTracker.markAsSynced(preparedChanges)
 
         Self.logger.debug("Pushed \(preparedChanges.count) local changes (\(pushResult.accepted) accepted)")
     }
@@ -533,10 +533,10 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
                 Self.logger.debug("Conflict resolved: using local version for \(conflict.entityID)")
             case let .useRemote(change):
                 // Apply the server's version locally
-                try await applyRemoteChanges([change])
+                try await self.applyRemoteChanges([change])
             case let .merged(change):
                 // Apply the merged version locally, then re-push
-                try await applyRemoteChanges([change])
+                try await self.applyRemoteChanges([change])
             }
         }
     }
@@ -544,7 +544,7 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
     private func applyRemoteChanges(_ changes: [SyncChange]) async throws {
         Self.logger.debug("Applying \(changes.count) remote changes")
 
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
 
         // Pre-decrypt all payloads outside context.perform to avoid blocking
         // the context queue with async operations (no DispatchSemaphore needed)
@@ -554,7 +554,7 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
                change.entityType == .clipboardItem,
                let encryptedData = change.encryptedData
             {
-                decryptedPayloads[change.entityID] = try await encryptionManager.decrypt(encryptedData)
+                decryptedPayloads[change.entityID] = try await self.encryptionManager.decrypt(encryptedData)
             }
         }
 
@@ -577,9 +577,9 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
         switch change.changeType {
         case .remoteInsert,
              .remoteUpdate:
-            try applyInsertOrUpdate(change, decryptedPayloads: decryptedPayloads, in: context)
+            try self.applyInsertOrUpdate(change, decryptedPayloads: decryptedPayloads, in: context)
         case .remoteDelete:
-            try applyDelete(change, in: context)
+            try self.applyDelete(change, in: context)
         default:
             break
         }
@@ -642,18 +642,18 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
     // MARK: - Helper Methods
 
     private func loadPersistedState() {
-        isEnabled = UserDefaults.standard.bool(forKey: Self.enabledKey)
-        lastSyncDate = UserDefaults.standard.object(forKey: Self.lastSyncKey) as? Date
-        changeToken = loadChangeToken()
-        backendSyncToken = UserDefaults.standard.data(forKey: Self.backendSyncTokenKey)
-        selfHostedConfiguration = loadSelfHostedConfiguration()
+        self.isEnabled = UserDefaults.standard.bool(forKey: Self.enabledKey)
+        self.lastSyncDate = UserDefaults.standard.object(forKey: Self.lastSyncKey) as? Date
+        self.changeToken = self.loadChangeToken()
+        self.backendSyncToken = UserDefaults.standard.data(forKey: Self.backendSyncTokenKey)
+        self.selfHostedConfiguration = self.loadSelfHostedConfiguration()
 
         if let typeString = UserDefaults.standard.string(forKey: Self.backendTypeKey) {
-            activeBackendType = SyncBackendType(rawValue: typeString)
+            self.activeBackendType = SyncBackendType(rawValue: typeString)
         }
 
-        if isEnabled {
-            status = lastSyncDate.map { .synced(lastSync: $0) } ?? .idle
+        if self.isEnabled {
+            self.status = self.lastSyncDate.map { .synced(lastSync: $0) } ?? .idle
         }
     }
 
@@ -716,24 +716,24 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
     }
 
     private func handleEnabledStateChange() {
-        UserDefaults.standard.set(isEnabled, forKey: Self.enabledKey)
+        UserDefaults.standard.set(self.isEnabled, forKey: Self.enabledKey)
 
-        if isEnabled {
+        if self.isEnabled {
             // Only auto-start if a backend was previously configured.
             // First-time enable waits for the user to pick a provider.
-            if activeBackendType != nil || UserDefaults.standard.string(forKey: Self.backendTypeKey) != nil {
+            if self.activeBackendType != nil || UserDefaults.standard.string(forKey: Self.backendTypeKey) != nil {
                 Task {
-                    try? await start()
+                    try? await self.start()
                 }
             }
         } else {
-            stop()
+            self.stop()
         }
     }
 
     // swiftlint:disable:next function_body_length
     private func setupNetworkMonitoring() {
-        networkMonitor.pathUpdateHandler = { [weak self] path in
+        self.networkMonitor.pathUpdateHandler = { [weak self] path in
             Task { @MainActor in
                 let wasAvailable = self?.isNetworkAvailable ?? true
                 self?.isNetworkAvailable = path.status == .satisfied
@@ -748,7 +748,7 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
                 }
             }
         }
-        networkMonitor.start(queue: networkQueue)
+        self.networkMonitor.start(queue: self.networkQueue)
 
         // Observe NetworkMonitor notifications as a secondary signal
         NotificationCenter.default.addObserver(
@@ -816,19 +816,19 @@ public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:di
     }
 
     private func startAutoSyncTimer() {
-        syncTask = Task { [weak self] in
+        self.syncTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: UInt64(Self.autoSyncInterval * 1_000_000_000))
                 guard let self, !Task.isCancelled else {
                     break
                 }
-                try? await syncNow()
+                try? await self.syncNow()
             }
         }
     }
 
     private func markAllItemsAsPending() async throws {
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
 
         try await context.perform {
             let request: NSFetchRequest<ClipboardItem> = ClipboardItem.fetchRequest()

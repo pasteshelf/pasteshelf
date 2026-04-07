@@ -53,28 +53,28 @@ final class ComplianceSettingsViewModel: ObservableObject {
 
     /// Loads the current HIPAA configuration and validates retention compliance.
     func loadConfiguration() {
-        hipaaConfig = HIPAAComplianceMode.load()
+        self.hipaaConfig = HIPAAComplianceMode.load()
 
         let retentionConfig = AuditManager.shared.retentionConfiguration
-        isHIPAARetentionCompliant = HIPAARetentionPolicy.isCompliant(retentionConfig)
+        self.isHIPAARetentionCompliant = HIPAARetentionPolicy.isCompliant(retentionConfig)
     }
 
     /// Saves the current HIPAA configuration and reconfigures access controls.
     func saveHIPAAConfig() {
-        hipaaConfig.save()
+        self.hipaaConfig.save()
         HIPAAAccessControlService.shared.configure()
-        logger.info("HIPAA configuration saved")
+        self.logger.info("HIPAA configuration saved")
     }
 
     // MARK: - Encryption Verification
 
     /// Runs HIPAA encryption verification and updates the report.
     func verifyEncryption() async {
-        isVerifying = true
+        self.isVerifying = true
         defer { isVerifying = false }
 
-        encryptionReport = await HIPAAEncryptionVerifier.verify()
-        logger.info("Encryption verification complete")
+        self.encryptionReport = await HIPAAEncryptionVerifier.verify()
+        self.logger.info("Encryption verification complete")
     }
 
     // MARK: - SOC 2 Report
@@ -82,29 +82,29 @@ final class ComplianceSettingsViewModel: ObservableObject {
     /// Generates a SOC 2 security controls report.
     func generateSOC2Report() {
         guard ComplianceManager.shared.isSOC2Active else {
-            logger.info("SOC 2 report generation skipped — SOC 2 not active")
+            self.logger.info("SOC 2 report generation skipped — SOC 2 not active")
             return
         }
 
-        isGenerating = true
+        self.isGenerating = true
         defer { isGenerating = false }
 
-        soc2Report = SOC2SecurityControlsReport.generateReport()
-        logger.info("SOC 2 report generated")
+        self.soc2Report = SOC2SecurityControlsReport.generateReport()
+        self.logger.info("SOC 2 report generated")
     }
 
     /// Runs SOC 2 encryption verification across all data-protection layers.
     func verifySOC2Encryption() async {
         guard ComplianceManager.shared.isSOC2Active else {
-            logger.info("SOC 2 encryption verification skipped — SOC 2 not active")
+            self.logger.info("SOC 2 encryption verification skipped — SOC 2 not active")
             return
         }
 
-        isVerifying = true
+        self.isVerifying = true
         defer { isVerifying = false }
 
-        soc2EncryptionReport = await SOC2EncryptionVerifier.verify()
-        logger.info("SOC 2 encryption verification complete")
+        self.soc2EncryptionReport = await SOC2EncryptionVerifier.verify()
+        self.logger.info("SOC 2 encryption verification complete")
     }
 
     /// Exports SOC 2 access control evidence for the given date range.
@@ -113,19 +113,19 @@ final class ComplianceSettingsViewModel: ObservableObject {
     /// - Returns: The URL of the evidence directory, or nil on failure.
     func exportAccessControlEvidence(dateRange: ClosedRange<Date>) async -> URL? {
         guard ComplianceManager.shared.isSOC2Active else {
-            logger.info("SOC 2 access control evidence export skipped — SOC 2 not active")
+            self.logger.info("SOC 2 access control evidence export skipped — SOC 2 not active")
             return nil
         }
 
-        isExporting = true
+        self.isExporting = true
         defer { isExporting = false }
 
         do {
             let url = try await SOC2AccessControlEvidence.exportEvidencePackage(dateRange: dateRange)
-            logger.info("SOC 2 access control evidence exported to \(url.lastPathComponent)")
+            self.logger.info("SOC 2 access control evidence exported to \(url.lastPathComponent)")
             return url
         } catch {
-            lastError = .reportGenerationFailed(error.localizedDescription)
+            self.lastError = .reportGenerationFailed(error.localizedDescription)
             return nil
         }
     }
@@ -134,7 +134,7 @@ final class ComplianceSettingsViewModel: ObservableObject {
     ///
     /// - Returns: The URL of the export directory, or nil on failure.
     func exportGDPRData() async -> URL? {
-        isGDPRExporting = true
+        self.isGDPRExporting = true
         defer { isGDPRExporting = false }
 
         do {
@@ -143,10 +143,10 @@ final class ComplianceSettingsViewModel: ObservableObject {
                     self?.gdprExportProgress = progress
                 }
             }
-            logger.info("GDPR data exported to \(url.lastPathComponent)")
+            self.logger.info("GDPR data exported to \(url.lastPathComponent)")
             return url
         } catch {
-            lastError = error as? ComplianceError
+            self.lastError = error as? ComplianceError
             return nil
         }
     }
@@ -156,15 +156,15 @@ final class ComplianceSettingsViewModel: ObservableObject {
     /// - Returns: `true` if deletion succeeded.
     @discardableResult
     func deleteAllGDPRData() async -> Bool {
-        isGDPRDeleting = true
+        self.isGDPRDeleting = true
         defer { isGDPRDeleting = false }
 
         do {
             _ = try await GDPRDataDeletionService.deleteAllUserData()
-            logger.info("GDPR data deletion completed")
+            self.logger.info("GDPR data deletion completed")
             return true
         } catch {
-            lastError = error as? ComplianceError
+            self.lastError = error as? ComplianceError
             return false
         }
     }
@@ -177,22 +177,22 @@ final class ComplianceSettingsViewModel: ObservableObject {
     /// - Returns: The URL of the export directory, or nil on failure.
     func exportAuditTrail(dateRange: ClosedRange<Date>) async -> URL? {
         guard ComplianceManager.shared.isSOC2Active else {
-            logger.info("Audit trail export skipped — SOC 2 not active")
+            self.logger.info("Audit trail export skipped — SOC 2 not active")
             return nil
         }
 
-        isExporting = true
+        self.isExporting = true
         defer { isExporting = false }
 
         do {
             let url = try await SOC2AuditTrailExporter.exportVerifiedTrail(dateRange: dateRange)
-            logger.info("Audit trail exported to \(url.lastPathComponent)")
+            self.logger.info("Audit trail exported to \(url.lastPathComponent)")
             return url
         } catch let error as ComplianceError {
             lastError = error
             return nil
         } catch {
-            lastError = .reportGenerationFailed(error.localizedDescription)
+            self.lastError = .reportGenerationFailed(error.localizedDescription)
             return nil
         }
     }

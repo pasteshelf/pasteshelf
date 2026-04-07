@@ -20,7 +20,7 @@ struct NotificationPermissionStepView: View {
             Spacer()
 
             // Icon
-            if viewModel.hasNotificationPermission {
+            if self.viewModel.hasNotificationPermission {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 64))
                     .foregroundStyle(Color.green)
@@ -46,13 +46,13 @@ struct NotificationPermissionStepView: View {
             .frame(maxWidth: 380)
 
             // Permission status and action
-            if viewModel.hasNotificationPermission {
+            if self.viewModel.hasNotificationPermission {
                 Label("Notifications enabled", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(Color.green)
                     .font(.callout)
             } else {
                 Button("Enable Notifications") {
-                    viewModel.requestNotificationPermission()
+                    self.viewModel.requestNotificationPermission()
                 }
                 .buttonStyle(.bordered)
 
@@ -68,12 +68,12 @@ struct NotificationPermissionStepView: View {
             Spacer()
         }
         .padding(.horizontal, 40)
-        .animation(.easeInOut(duration: 0.3), value: viewModel.hasNotificationPermission)
+        .animation(.easeInOut(duration: 0.3), value: self.viewModel.hasNotificationPermission)
         .onAppear {
-            viewModel.startNotificationChecking()
+            self.viewModel.startNotificationChecking()
         }
         .onDisappear {
-            viewModel.stopNotificationChecking()
+            self.viewModel.stopNotificationChecking()
         }
     }
 }

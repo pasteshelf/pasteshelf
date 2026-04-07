@@ -21,7 +21,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy maps maxItems <= 100 to HistoryLimit.small")
     func historyLimitSmall() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -38,7 +38,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy maps maxItems of 1 to HistoryLimit.small")
     func historyLimit1MapsToSmall() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -55,7 +55,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy maps maxItems <= 500 to HistoryLimit.medium")
     func historyLimitMedium() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -72,7 +72,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy maps maxItems of 101 to HistoryLimit.medium")
     func historyLimit101MapsToMedium() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -89,7 +89,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy maps maxItems <= 1000 to HistoryLimit.large")
     func historyLimitLarge() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -106,7 +106,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy maps maxItems of 501 to HistoryLimit.large")
     func historyLimit501MapsToLarge() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -123,7 +123,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy maps maxItems > 1000 to HistoryLimit.unlimited")
     func historyLimitUnlimited() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -140,7 +140,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy maps maxItems of 0 to HistoryLimit.unlimited")
     func historyLimit0MapsToUnlimited() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -157,7 +157,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy maps negative maxItems to HistoryLimit.unlimited")
     func historyLimitNegativeMapsToUnlimited() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -176,7 +176,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy enables auto-delete and sets days for maxDays")
     func historyMaxDaysEnablesAutoDelete() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         settings.privacy.autoDeleteEnabled = false
         let policy = AdminPolicy(
@@ -195,7 +195,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy with maxDays of 90 sets correct days")
     func historyMaxDays90() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -213,7 +213,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy does not enable auto-delete for maxDays of 0")
     func historyMaxDays0DoesNotEnableAutoDelete() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         settings.privacy.autoDeleteEnabled = false
         let policy = AdminPolicy(
@@ -231,7 +231,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy does not enable auto-delete for negative maxDays")
     func historyMaxDaysNegativeDoesNotEnableAutoDelete() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         settings.privacy.autoDeleteEnabled = false
         let policy = AdminPolicy(
@@ -249,7 +249,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy applies both maxItems and maxDays together")
     func historyBothItemsAndDays() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
             id: "p1",
@@ -270,7 +270,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy merges enforced excluded apps with existing list")
     func excludedAppsMerge() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.user.app"]
         let policy = AdminPolicy(
@@ -294,7 +294,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy excluded apps are sorted")
     func excludedAppsAreSorted() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.zzz"]
         let policy = AdminPolicy(
@@ -312,7 +312,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy does not duplicate existing excluded apps")
     func excludedAppsNoDuplicates() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.shared.app"]
         let policy = AdminPolicy(
@@ -332,7 +332,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy with empty excluded apps policy preserves existing list")
     func excludedAppsEmptyPolicyPreservesExisting() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.user.app"]
         let policy = AdminPolicy(
@@ -352,7 +352,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy skips non-enforced history limits")
     func nonEnforcedHistoryLimitsSkipped() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let original = settings
         let policy = AdminPolicy(
@@ -371,7 +371,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy skips non-enforced excluded apps")
     func nonEnforcedExcludedAppsSkipped() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.user.app"]
         let policy = AdminPolicy(
@@ -389,7 +389,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy skips non-enforced sync settings")
     func nonEnforcedSyncSettingsSkipped() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let original = settings
         let policy = AdminPolicy(
@@ -407,7 +407,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy skips non-enforced encryption policy")
     func nonEnforcedEncryptionSkipped() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let original = settings
         let policy = AdminPolicy(
@@ -427,7 +427,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy with all nil sub-policies changes nothing")
     func nilSubPoliciesChangeNothing() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let original = settings
         let policy = AdminPolicy(id: "p1", version: "1", name: "Test", updatedAt: Date())
@@ -439,7 +439,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy with AdminPolicy.empty changes nothing")
     func emptyPolicyChangesNothing() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         let original = settings
 
@@ -452,7 +452,7 @@ struct AdminPolicySyncTests {
 
     @Test("applyPolicy applies multiple enforced sub-policies simultaneously")
     func fullPolicyApplication() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.user.kept"]
         let policy = AdminPolicy(
@@ -489,7 +489,7 @@ struct AdminPolicySyncTests {
         let expectedPolicy = AdminPolicy(id: "pol-new", version: "5", name: "Updated", updatedAt: Date())
         api.fetchPolicyResult = .success(expectedPolicy)
 
-        let (service, _) = makeService(api: api, deviceId: "dev-123")
+        let (service, _) = self.makeService(api: api, deviceId: "dev-123")
         let result = try await service.fetchLatestPolicy()
 
         #expect(result.id == "pol-new")
@@ -503,7 +503,7 @@ struct AdminPolicySyncTests {
         let policy = AdminPolicy(id: "pol-cached", version: "1", name: "Cached", updatedAt: Date())
         api.fetchPolicyResult = .success(policy)
 
-        let (service, _) = makeService(api: api, deviceId: "dev-1")
+        let (service, _) = self.makeService(api: api, deviceId: "dev-1")
         _ = try await service.fetchLatestPolicy()
 
         #expect(service.currentPolicy?.id == "pol-cached")
@@ -512,7 +512,7 @@ struct AdminPolicySyncTests {
     @Test("fetchLatestPolicy throws notEnrolled when deviceId is nil")
     func fetchLatestPolicyThrowsWhenNoDevice() async throws {
         let api = MockAdminAPIClient()
-        let (service, _) = makeService(api: api, deviceId: nil)
+        let (service, _) = self.makeService(api: api, deviceId: nil)
 
         do {
             _ = try await service.fetchLatestPolicy()
@@ -531,7 +531,7 @@ struct AdminPolicySyncTests {
         let api = MockAdminAPIClient()
         api.fetchPolicyResult = .failure(AdminError.networkError("DNS failure"))
 
-        let (service, _) = makeService(api: api, deviceId: "dev-1")
+        let (service, _) = self.makeService(api: api, deviceId: "dev-1")
 
         do {
             _ = try await service.fetchLatestPolicy()
@@ -547,7 +547,7 @@ struct AdminPolicySyncTests {
 
     @Test("currentPolicy is nil before any fetch")
     func currentPolicyNilBeforeFetch() {
-        let (service, _) = makeService()
+        let (service, _) = self.makeService()
         #expect(service.currentPolicy == nil)
     }
 

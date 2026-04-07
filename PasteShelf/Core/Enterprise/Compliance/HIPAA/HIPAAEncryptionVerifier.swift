@@ -30,24 +30,24 @@ enum HIPAAEncryptionVerifier {
         var findings: [ComplianceFinding] = []
 
         // Check audit log encryption key
-        findings.append(verifyKeychainKey(
-            tag: auditKeyTag,
+        findings.append(self.verifyKeychainKey(
+            tag: self.auditKeyTag,
             category: "Audit Encryption",
             description: "AES-256-GCM encryption key for audit log detail payloads"
         ))
 
         // Check sync encryption key
-        findings.append(verifyKeychainKey(
-            tag: syncKeyTag,
+        findings.append(self.verifyKeychainKey(
+            tag: self.syncKeyTag,
             category: "Sync Encryption",
             description: "AES-256-GCM encryption key for sync data payloads"
         ))
 
         // Check FileVault / disk encryption
-        findings.append(verifyDiskEncryption())
+        findings.append(self.verifyDiskEncryption())
 
         // Check key rotation status
-        findings.append(verifyKeyRotation())
+        findings.append(self.verifyKeyRotation())
 
         let overallCompliant = !findings.contains { $0.status == .fail }
 
@@ -85,14 +85,14 @@ enum HIPAAEncryptionVerifier {
         let status = SecItemCopyMatching(query as CFDictionary, nil)
 
         if status == errSecSuccess {
-            logger.debug("Encryption key found for \(category)")
+            self.logger.debug("Encryption key found for \(category)")
             return ComplianceFinding(
                 category: category,
                 status: .pass,
                 description: "\(description) is present in Keychain"
             )
         } else {
-            logger.warning("Encryption key NOT found for \(category) (status: \(status))")
+            self.logger.warning("Encryption key NOT found for \(category) (status: \(status))")
             return ComplianceFinding(
                 category: category,
                 status: .fail,
@@ -127,14 +127,14 @@ enum HIPAAEncryptionVerifier {
                 process.waitUntilExit()
 
                 if process.terminationStatus == 0 {
-                    logger.debug("FileVault is active")
+                    self.logger.debug("FileVault is active")
                     return ComplianceFinding(
                         category: "Disk Encryption",
                         status: .pass,
                         description: "FileVault full-disk encryption is active"
                     )
                 } else {
-                    logger.warning("FileVault is NOT active")
+                    self.logger.warning("FileVault is NOT active")
                     return ComplianceFinding(
                         category: "Disk Encryption",
                         status: .fail,
@@ -143,7 +143,7 @@ enum HIPAAEncryptionVerifier {
                     )
                 }
             } catch {
-                logger.warning("Unable to determine FileVault status: \(error.localizedDescription)")
+                self.logger.warning("Unable to determine FileVault status: \(error.localizedDescription)")
                 return ComplianceFinding(
                     category: "Disk Encryption",
                     status: .warning,
@@ -159,8 +159,8 @@ enum HIPAAEncryptionVerifier {
         // Key rotation check: verify that the key creation date is not too old
         // In practice, key metadata would be stored alongside the key
         // For now, we check that keys exist (rotation is tracked separately)
-        let auditKeyExists = keychainKeyExists(tag: auditKeyTag)
-        let syncKeyExists = keychainKeyExists(tag: syncKeyTag)
+        let auditKeyExists = self.keychainKeyExists(tag: self.auditKeyTag)
+        let syncKeyExists = self.keychainKeyExists(tag: self.syncKeyTag)
 
         if auditKeyExists, syncKeyExists {
             return ComplianceFinding(

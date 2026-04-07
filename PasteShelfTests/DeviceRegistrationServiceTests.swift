@@ -38,38 +38,38 @@ final class MockAdminAPIClient: AdminAPIProviding, @unchecked Sendable {
     // MARK: - AdminAPIProviding
 
     func registerDevice(_ registration: DeviceRegistration) async throws -> DeviceRegistration {
-        registerDeviceCalls.append(registration)
-        return try registerDeviceResult.get()
+        self.registerDeviceCalls.append(registration)
+        return try self.registerDeviceResult.get()
     }
 
     func unregisterDevice(deviceId: String) async throws {
-        unregisterDeviceCalls.append(deviceId)
-        try unregisterDeviceResult.get()
+        self.unregisterDeviceCalls.append(deviceId)
+        try self.unregisterDeviceResult.get()
     }
 
     func fetchPolicy(for deviceId: String) async throws -> AdminPolicy {
-        fetchPolicyCalls.append(deviceId)
-        return try fetchPolicyResult.get()
+        self.fetchPolicyCalls.append(deviceId)
+        return try self.fetchPolicyResult.get()
     }
 
     func submitHealthReport(_ report: DeviceHealthReport) async throws {
-        submitHealthReportCalls.append(report)
-        try submitHealthReportResult.get()
+        self.submitHealthReportCalls.append(report)
+        try self.submitHealthReportResult.get()
     }
 
     func submitAnalyticsEvents(_ events: [AdminAnalyticsEvent]) async throws {
-        submitAnalyticsEventsCalls.append(events)
-        try submitAnalyticsEventsResult.get()
+        self.submitAnalyticsEventsCalls.append(events)
+        try self.submitAnalyticsEventsResult.get()
     }
 
     func fetchDeviceStatus(deviceId: String) async throws -> DeviceEnrollmentStatus {
-        fetchDeviceStatusCalls.append(deviceId)
-        return try fetchDeviceStatusResult.get()
+        self.fetchDeviceStatusCalls.append(deviceId)
+        return try self.fetchDeviceStatusResult.get()
     }
 
     func submitAuditEvents(_ events: [AuditEvent]) async throws {
-        submitAuditEventsCalls.append(events)
-        try submitAuditEventsResult.get()
+        self.submitAuditEventsCalls.append(events)
+        try self.submitAuditEventsResult.get()
     }
 }
 
@@ -83,22 +83,22 @@ final class MockDeviceRegistrationStore: DeviceRegistrationStore, @unchecked Sen
     var deleteCalled = false
 
     func save(_ registration: DeviceRegistration) throws {
-        if shouldFailOnSave {
+        if self.shouldFailOnSave {
             throw AdminError.enrollmentFailed("Mock save failure")
         }
-        savedRegistration = registration
+        self.savedRegistration = registration
     }
 
     func load() -> DeviceRegistration? {
-        savedRegistration
+        self.savedRegistration
     }
 
     func delete() throws {
-        if shouldFailOnDelete {
+        if self.shouldFailOnDelete {
             throw AdminError.enrollmentFailed("Mock delete failure")
         }
-        deleteCalled = true
-        savedRegistration = nil
+        self.deleteCalled = true
+        self.savedRegistration = nil
     }
 }
 

@@ -30,11 +30,11 @@ final class CloudKitProvider: SyncProviding, Sendable {
         containerIdentifier: String = "iCloud.com.pasteshelf.PasteShelf",
         encryptionManager: SyncEncryptionManager = SyncEncryptionManager()
     ) {
-        container = CKContainer(identifier: containerIdentifier)
-        database = container.privateCloudDatabase
-        zoneManager = CloudKitZoneManager(container: container)
-        recordMapper = CloudKitRecordMapper(
-            zoneID: zoneManager.zoneID,
+        self.container = CKContainer(identifier: containerIdentifier)
+        self.database = self.container.privateCloudDatabase
+        self.zoneManager = CloudKitZoneManager(container: self.container)
+        self.recordMapper = CloudKitRecordMapper(
+            zoneID: self.zoneManager.zoneID,
             encryptionManager: encryptionManager
         )
     }
@@ -45,7 +45,7 @@ final class CloudKitProvider: SyncProviding, Sendable {
 
     /// Get the zone ID for external use
     var zoneID: CKRecordZone.ID {
-        zoneManager.zoneID
+        self.zoneManager.zoneID
     }
 
     // MARK: - SyncProviding Protocol
@@ -77,7 +77,7 @@ final class CloudKitProvider: SyncProviding, Sendable {
     }
 
     func setupZone() async throws {
-        try await zoneManager.setup()
+        try await self.zoneManager.setup()
     }
 
     func pushChanges(_ changes: [SyncChange]) async throws {
@@ -93,7 +93,7 @@ final class CloudKitProvider: SyncProviding, Sendable {
 
         for (index, batch) in batches.enumerated() {
             Self.logger.debug("Processing batch \(index + 1)/\(batches.count)")
-            try await pushBatch(batch)
+            try await self.pushBatch(batch)
         }
 
         Self.logger.info("Successfully pushed all changes")
@@ -151,7 +151,7 @@ final class CloudKitProvider: SyncProviding, Sendable {
         Self.logger.debug("Fetching record: \(recordID.recordName)")
 
         do {
-            return try await database.record(for: recordID)
+            return try await self.database.record(for: recordID)
         } catch let error as CKError where error.code == .unknownItem {
             return nil
         } catch {
@@ -161,18 +161,18 @@ final class CloudKitProvider: SyncProviding, Sendable {
     }
 
     func subscribeToChanges() async throws {
-        try await zoneManager.createSubscriptionIfNeeded()
+        try await self.zoneManager.createSubscriptionIfNeeded()
     }
 
     /// Reset all CloudKit data (teardown + recreate)
     func reset() async throws {
-        try await zoneManager.teardown()
-        try await zoneManager.setup()
+        try await self.zoneManager.teardown()
+        try await self.zoneManager.setup()
     }
 
     /// Delete all CloudKit data without recreating
     func teardownOnly() async throws {
-        try await zoneManager.teardown()
+        try await self.zoneManager.teardown()
     }
 
     // MARK: Private
@@ -211,14 +211,14 @@ final class CloudKitProvider: SyncProviding, Sendable {
             case .insert,
                  .update:
                 if let encryptedData = change.encryptedData {
-                    let record = recordMapper.createRecord(
+                    let record = self.recordMapper.createRecord(
                         for: change,
                         encryptedData: encryptedData
                     )
                     recordsToSave.append(record)
                 }
             case .delete:
-                let recordID = change.makeRecordID(zoneID: zoneManager.zoneID)
+                let recordID = change.makeRecordID(zoneID: self.zoneManager.zoneID)
                 recordIDsToDelete.append(recordID)
             default:
                 break // Remote changes don't need pushing
@@ -263,7 +263,7 @@ final class CloudKitProvider: SyncProviding, Sendable {
 
         let operation = CKFetchRecordZoneChangesOperation(
             recordZoneIDs: [zoneManager.zoneID],
-            configurationsByRecordZoneID: [zoneManager.zoneID: configuration]
+            configurationsByRecordZoneID: [self.zoneManager.zoneID: configuration]
         )
 
         operation.qualityOfService = .userInitiated

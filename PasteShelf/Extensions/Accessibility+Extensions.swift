@@ -47,7 +47,7 @@ struct ReduceMotionModifier: ViewModifier {
     let animation: Animation
 
     func body(content: Content) -> some View {
-        content.animation(reduceMotion ? nil : animation)
+        content.animation(self.reduceMotion ? nil : self.animation)
     }
 
     // MARK: Private
@@ -64,7 +64,7 @@ struct HighContrastModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .foregroundColor(highContrast ? .primary : nil)
+            .foregroundColor(self.highContrast ? .primary : nil)
     }
 
     // MARK: Private
@@ -93,7 +93,7 @@ extension View {
         isSensitive: Bool,
         sourceApp: String?
     ) -> some View {
-        let description = buildAccessibilityDescription(
+        let description = self.buildAccessibilityDescription(
             contentType: contentType,
             preview: preview,
             timestamp: timestamp,
@@ -185,12 +185,12 @@ enum AccessibilityAnnouncement {
 
     /// Announces item selection
     static func announceSelection(at index: Int, of total: Int, item: String) {
-        announce("Item \(index + 1) of \(total): \(item)")
+        self.announce("Item \(index + 1) of \(total): \(item)")
     }
 
     /// Announces action completion
     static func announceAction(_ action: String) {
-        announce(action, priority: .high)
+        self.announce(action, priority: .high)
     }
 }
 
@@ -203,24 +203,24 @@ final class KeyboardNavigationHelper: ObservableObject {
     @Published var itemCount: Int = 0
 
     func moveToNext() {
-        if focusedIndex < itemCount - 1 {
-            focusedIndex += 1
+        if self.focusedIndex < self.itemCount - 1 {
+            self.focusedIndex += 1
         }
     }
 
     func moveToPrevious() {
-        if focusedIndex > 0 {
-            focusedIndex -= 1
+        if self.focusedIndex > 0 {
+            self.focusedIndex -= 1
         }
     }
 
     func moveToFirst() {
-        focusedIndex = 0
+        self.focusedIndex = 0
     }
 
     func moveToLast() {
-        if itemCount > 0 {
-            focusedIndex = itemCount - 1
+        if self.itemCount > 0 {
+            self.focusedIndex = self.itemCount - 1
         }
     }
 }

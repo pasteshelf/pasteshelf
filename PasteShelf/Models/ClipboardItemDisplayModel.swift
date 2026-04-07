@@ -51,7 +51,7 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
 
     /// Whether this item has OCR text available
     var hasOCRText: Bool {
-        ocrText != nil && !(ocrText?.isEmpty ?? true)
+        self.ocrText != nil && !(self.ocrText?.isEmpty ?? true)
     }
 
     /// Short OCR text preview (truncated)
@@ -70,17 +70,17 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
 
     /// SF Symbol icon for the content type
     var icon: String {
-        contentType.icon
+        self.contentType.icon
     }
 
     /// Human-readable content type name
     var contentTypeName: String {
-        contentType.displayName
+        self.contentType.displayName
     }
 
     /// Whether this item has a thumbnail preview
     var hasThumbnail: Bool {
-        thumbnailData != nil
+        self.thumbnailData != nil
     }
 
     /// NSImage from thumbnail data
@@ -105,7 +105,7 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
     var relativeTimestamp: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: timestamp, relativeTo: Date())
+        return formatter.localizedString(for: self.timestamp, relativeTo: Date())
     }
 
     /// Full timestamp string for tooltip
@@ -113,7 +113,7 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        return formatter.string(from: timestamp)
+        return formatter.string(from: self.timestamp)
     }
 
     /// Display text for the item (truncated preview or type description)
@@ -121,7 +121,7 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
         if let preview = plainTextPreview, !preview.isEmpty {
             return preview
         }
-        return "[\(contentTypeName)]"
+        return "[\(self.contentTypeName)]"
     }
 
     static func == (lhs: ClipboardItemDisplayModel, rhs: ClipboardItemDisplayModel) -> Bool {
@@ -130,7 +130,7 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
 
     /// Short display text (single line, truncated)
     func shortDisplayText(maxLength: Int = 50) -> String {
-        let text = displayText
+        let text = self.displayText
             .replacingOccurrences(of: "\n", with: " ")
             .replacingOccurrences(of: "\t", with: " ")
             .trimmingCharacters(in: .whitespaces)
@@ -144,7 +144,7 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
     // MARK: - Hashable
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+        hasher.combine(self.id)
     }
 }
 
@@ -198,7 +198,7 @@ extension ClipboardItemDisplayModel {
     /// - Parameter items: Array of CoreData entities
     /// - Returns: Array of display models (invalid items are filtered out)
     static func from(_ items: [ClipboardItem]) -> [ClipboardItemDisplayModel] {
-        items.compactMap { from($0) }
+        items.compactMap { self.from($0) }
     }
 }
 

@@ -146,22 +146,22 @@ final class MockClipboardMonitorDelegate: ClipboardMonitorDelegate {
         didCapture content: ClipboardContent,
         from sourceApp: SourceApp?
     ) {
-        capturedContents.append(content)
-        capturedSourceApps.append(sourceApp)
+        self.capturedContents.append(content)
+        self.capturedSourceApps.append(sourceApp)
     }
 
     func clipboardMonitor(
         _ monitor: ClipboardMonitoring,
         didExcludeContentWithReason reason: ExclusionReason
     ) {
-        excludedReasons.append(reason)
+        self.excludedReasons.append(reason)
     }
 
     func clipboardMonitor(
         _ monitor: ClipboardMonitoring,
         didEncounterError error: Error
     ) {
-        errors.append(error)
+        self.errors.append(error)
     }
 }
 

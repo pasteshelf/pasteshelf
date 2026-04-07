@@ -18,7 +18,7 @@ final class EmbeddingManager: @unchecked Sendable {
 
     private init() {
         // Pre-load embedding instance on init
-        _ = getEmbedding()
+        _ = self.getEmbedding()
     }
 
     // MARK: Internal
@@ -32,12 +32,12 @@ final class EmbeddingManager: @unchecked Sendable {
 
     /// Returns the embedding dimension (vector size)
     var embeddingDimension: Int {
-        getEmbedding()?.dimension ?? 0
+        self.getEmbedding()?.dimension ?? 0
     }
 
     /// Checks if embeddings are available on this system
     var isAvailable: Bool {
-        getEmbedding() != nil
+        self.getEmbedding() != nil
     }
 
     // MARK: - Serialization
@@ -69,19 +69,19 @@ final class EmbeddingManager: @unchecked Sendable {
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // Skip text that's too short for meaningful embeddings
-        guard trimmedText.count >= minimumTextLength else {
-            logger.debug("Text too short for embedding: \(trimmedText.count) chars")
+        guard trimmedText.count >= self.minimumTextLength else {
+            self.logger.debug("Text too short for embedding: \(trimmedText.count) chars")
             return nil
         }
 
         guard let embedding = getEmbedding() else {
-            logger.error("Failed to get NLEmbedding instance")
+            self.logger.error("Failed to get NLEmbedding instance")
             return nil
         }
 
         // Get the embedding vector
         guard let vector = embedding.vector(for: trimmedText) else {
-            logger.debug("No embedding vector for text")
+            self.logger.debug("No embedding vector for text")
             return nil
         }
 
@@ -108,7 +108,7 @@ final class EmbeddingManager: @unchecked Sendable {
     /// - Returns: True if the text can be embedded
     func canEmbed(_ text: String) -> Bool {
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmedText.count >= minimumTextLength
+        return trimmedText.count >= self.minimumTextLength
     }
 
     // MARK: Private
@@ -132,7 +132,7 @@ final class EmbeddingManager: @unchecked Sendable {
 
     /// Gets or creates the NLEmbedding instance
     private func getEmbedding() -> NLEmbedding? {
-        lock.lock()
+        self.lock.lock()
         defer { lock.unlock() }
 
         if let existing = cachedEmbedding {
@@ -142,19 +142,19 @@ final class EmbeddingManager: @unchecked Sendable {
         // Request sentence embedding for English
         // NLEmbedding.sentenceEmbedding supports semantic similarity
         if let embedding = NLEmbedding.sentenceEmbedding(for: .english) {
-            cachedEmbedding = embedding
-            logger.info("Loaded NLEmbedding for English (dimension: \(embedding.dimension))")
+            self.cachedEmbedding = embedding
+            self.logger.info("Loaded NLEmbedding for English (dimension: \(embedding.dimension))")
             return embedding
         }
 
         // Fallback: Try word embedding if sentence embedding unavailable
         if let wordEmbedding = NLEmbedding.wordEmbedding(for: .english) {
-            logger.warning("Sentence embedding unavailable, falling back to word embedding")
-            cachedEmbedding = wordEmbedding
+            self.logger.warning("Sentence embedding unavailable, falling back to word embedding")
+            self.cachedEmbedding = wordEmbedding
             return wordEmbedding
         }
 
-        logger.error("No NLEmbedding available for English")
+        self.logger.error("No NLEmbedding available for English")
         return nil
     }
 }

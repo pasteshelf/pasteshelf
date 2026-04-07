@@ -18,17 +18,17 @@
 
         public func didLoad(with context: any PluginContext) {
             self.context = context
-            storage = context.storage
-            network = context.network
+            self.storage = context.storage
+            self.network = context.network
             context.logger.info("Notion loaded")
 
             Task { @MainActor in
-                registerActions()
+                self.registerActions()
             }
         }
 
         public func willUnload() {
-            context?.logger.info("Notion unloading")
+            self.context?.logger.info("Notion unloading")
 
             Task { @MainActor in
                 PluginUIAPI.shared.unregisterMenuItems(for: Self.identifier)
@@ -53,7 +53,7 @@
         // MARK: - Settings View
 
         public func settingsView() -> AnyView? {
-            AnyView(NotionSettingsView(storage: storage))
+            AnyView(NotionSettingsView(storage: self.storage))
         }
 
         // MARK: Internal
@@ -69,7 +69,7 @@
 
         /// Transforms content (used internally by plugin system)
         func transform(content: PluginClipboardContent) async throws -> PluginClipboardContent? {
-            try await sendToNotion(content)
+            try await self.sendToNotion(content)
         }
 
         /// Checks if content type is supported (used internally by plugin system)
@@ -88,11 +88,11 @@
         // MARK: - Settings
 
         private var apiKey: String? {
-            storage?.string(forKey: "apiKey")
+            self.storage?.string(forKey: "apiKey")
         }
 
         private var defaultPageId: String? {
-            storage?.string(forKey: "defaultPageId")
+            self.storage?.string(forKey: "defaultPageId")
         }
 
         // MARK: - Action Registration
@@ -126,13 +126,13 @@
             }
 
             // Build content blocks
-            let blocks = buildBlocks(from: content)
+            let blocks = self.buildBlocks(from: content)
 
             // Append blocks to page
             let requestBody = NotionAppendRequest(children: blocks)
 
             guard let apiURL = URL(string: "https://api.notion.com/v1/blocks/\(pageId)/children") else {
-                throw PluginError.executionFailed("Invalid Notion API URL")
+                return nil
             }
             var request = URLRequest(url: apiURL)
             request.httpMethod = "PATCH"
@@ -295,23 +295,23 @@
                 Section("API Configuration") {
                     HStack {
                         Group {
-                            if showApiKey {
-                                TextField("Integration Token", text: $apiKey)
+                            if self.showApiKey {
+                                TextField("Integration Token", text: self.$apiKey)
                             } else {
-                                SecureField("Integration Token", text: $apiKey)
+                                SecureField("Integration Token", text: self.$apiKey)
                             }
                         }
                         .textFieldStyle(.roundedBorder)
 
                         Button {
-                            showApiKey.toggle()
+                            self.showApiKey.toggle()
                         } label: {
-                            Image(systemName: showApiKey ? "eye.slash" : "eye")
+                            Image(systemName: self.showApiKey ? "eye.slash" : "eye")
                         }
                         .buttonStyle(.plain)
                     }
-                    .onChange(of: apiKey) { _, newValue in
-                        storage?.setString(newValue, forKey: "apiKey")
+                    .onChange(of: self.apiKey) { _, newValue in
+                        self.storage?.setString(newValue, forKey: "apiKey")
                     }
 
                     Link(
@@ -323,10 +323,10 @@
                 }
 
                 Section("Default Page") {
-                    TextField("Page ID", text: $pageId)
+                    TextField("Page ID", text: self.$pageId)
                         .textFieldStyle(.roundedBorder)
-                        .onChange(of: pageId) { _, newValue in
-                            storage?.setString(newValue, forKey: "defaultPageId")
+                        .onChange(of: self.pageId) { _, newValue in
+                            self.storage?.setString(newValue, forKey: "defaultPageId")
                         }
 
                     Text("Find the page ID in the URL after opening a page (the 32-character string).")
@@ -341,8 +341,8 @@
                 }
             }
             .onAppear {
-                apiKey = storage?.string(forKey: "apiKey") ?? ""
-                pageId = storage?.string(forKey: "defaultPageId") ?? ""
+                self.apiKey = self.storage?.string(forKey: "apiKey") ?? ""
+                self.pageId = self.storage?.string(forKey: "defaultPageId") ?? ""
             }
         }
 

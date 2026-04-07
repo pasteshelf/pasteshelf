@@ -61,20 +61,20 @@ final class SecurityLockService: ObservableObject {
         let settings = SettingsManager.shared.security
 
         if settings.requireBiometricAuth {
-            if !isLocked {
-                isLocked = true
+            if !self.isLocked {
+                self.isLocked = true
             }
-            logger.info("Security lock: biometric auth required")
+            self.logger.info("Security lock: biometric auth required")
         } else {
-            isLocked = false
+            self.isLocked = false
         }
 
         // Auto-lock timeout (0 = disabled)
         if settings.autoLockTimeout > 0 {
-            startTimeoutTimer(timeoutSeconds: settings.autoLockTimeout)
-            logger.info("Security lock: auto-lock timeout set to \(settings.autoLockTimeout)s")
+            self.startTimeoutTimer(timeoutSeconds: settings.autoLockTimeout)
+            self.logger.info("Security lock: auto-lock timeout set to \(settings.autoLockTimeout)s")
         } else {
-            stopTimeoutTimer()
+            self.stopTimeoutTimer()
         }
     }
 
@@ -88,18 +88,18 @@ final class SecurityLockService: ObservableObject {
         let settings = SettingsManager.shared.security
 
         guard settings.requireBiometricAuth else {
-            isLocked = false
+            self.isLocked = false
             return true
         }
 
-        isAuthenticating = true
+        self.isAuthenticating = true
         defer { isAuthenticating = false }
 
         let success = await performBiometricAuth()
         if success {
-            isLocked = false
-            lastActivityTimestamp = Date()
-            logger.info("Security lock: unlocked via biometric auth")
+            self.isLocked = false
+            self.lastActivityTimestamp = Date()
+            self.logger.info("Security lock: unlocked via biometric auth")
         }
         return success
     }
@@ -109,15 +109,15 @@ final class SecurityLockService: ObservableObject {
         guard SettingsManager.shared.security.requireBiometricAuth else {
             return
         }
-        isLocked = true
-        logger.info("Security lock: application locked")
+        self.isLocked = true
+        self.logger.info("Security lock: application locked")
     }
 
     // MARK: - Activity Tracking
 
     /// Records user activity to reset the inactivity timeout.
     func recordActivity() {
-        lastActivityTimestamp = Date()
+        self.lastActivityTimestamp = Date()
     }
 
     // MARK: Private
@@ -138,11 +138,11 @@ final class SecurityLockService: ObservableObject {
     // MARK: - Timeout Timer
 
     private func startTimeoutTimer(timeoutSeconds: Int) {
-        stopTimeoutTimer()
+        self.stopTimeoutTimer()
 
         let timeoutInterval = TimeInterval(timeoutSeconds)
 
-        timeoutTimer = Timer.scheduledTimer(
+        self.timeoutTimer = Timer.scheduledTimer(
             withTimeInterval: Self.timeoutCheckInterval,
             repeats: true
         ) { [weak self] _ in
@@ -153,14 +153,14 @@ final class SecurityLockService: ObservableObject {
                 guard SettingsManager.shared.security.requireBiometricAuth else {
                     return
                 }
-                guard !isLocked else {
+                guard !self.isLocked else {
                     return
                 }
 
-                let elapsed = Date().timeIntervalSince(lastActivityTimestamp)
+                let elapsed = Date().timeIntervalSince(self.lastActivityTimestamp)
                 if elapsed >= timeoutInterval {
-                    lock()
-                    logger.info(
+                    self.lock()
+                    self.logger.info(
                         "Security lock: auto-locked after \(Int(elapsed))s of inactivity"
                     )
                 }
@@ -169,8 +169,8 @@ final class SecurityLockService: ObservableObject {
     }
 
     private func stopTimeoutTimer() {
-        timeoutTimer?.invalidate()
-        timeoutTimer = nil
+        self.timeoutTimer?.invalidate()
+        self.timeoutTimer = nil
     }
 
     // MARK: - Biometric Authentication
@@ -180,9 +180,9 @@ final class SecurityLockService: ObservableObject {
         var error: NSError?
 
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
-            logger.warning("Biometric auth not available: \(error?.localizedDescription ?? "unknown")")
+            self.logger.warning("Biometric auth not available: \(error?.localizedDescription ?? "unknown")")
             // Fall back to device passcode if biometrics unavailable
-            return await performDeviceOwnerAuth(context: context)
+            return await self.performDeviceOwnerAuth(context: context)
         }
 
         do {
@@ -191,7 +191,7 @@ final class SecurityLockService: ObservableObject {
                 localizedReason: "Authenticate to access PasteShelf clipboard data"
             )
         } catch {
-            logger.warning("Biometric auth failed: \(error.localizedDescription)")
+            self.logger.warning("Biometric auth failed: \(error.localizedDescription)")
             return false
         }
     }
@@ -205,7 +205,7 @@ final class SecurityLockService: ObservableObject {
                 localizedReason: "Authenticate to access PasteShelf clipboard data"
             )
         } catch {
-            logger.warning("Device owner auth failed: \(error.localizedDescription)")
+            self.logger.warning("Device owner auth failed: \(error.localizedDescription)")
             return false
         }
     }

@@ -33,7 +33,7 @@ final class ContentParser: ContentParsing, Sendable {
 
     func parse(_ pasteboard: NSPasteboard) -> ClipboardContent? {
         // Get available types sorted by priority
-        let availableTypes = getAvailableTypes(from: pasteboard)
+        let availableTypes = self.getAvailableTypes(from: pasteboard)
 
         guard !availableTypes.isEmpty else {
             Logger.clipboard.debug("No supported content types in pasteboard")
@@ -49,13 +49,13 @@ final class ContentParser: ContentParsing, Sendable {
         content.availableTypes = availableTypes
 
         // Extract all representations
-        extractTextContent(from: pasteboard, into: &content)
-        extractImageContent(from: pasteboard, into: &content)
-        extractDocumentContent(from: pasteboard, into: &content)
-        extractURLContent(from: pasteboard, into: &content)
+        self.extractTextContent(from: pasteboard, into: &content)
+        self.extractImageContent(from: pasteboard, into: &content)
+        self.extractDocumentContent(from: pasteboard, into: &content)
+        self.extractURLContent(from: pasteboard, into: &content)
 
         // Refine primary type based on extracted content
-        refineContentType(&content)
+        self.refineContentType(&content)
 
         // Ensure we have at least some content
         guard !content.isEmpty else {
@@ -64,7 +64,7 @@ final class ContentParser: ContentParsing, Sendable {
         }
 
         // Compute content hash
-        content.contentHash = deduplicator.computeHash(for: content)
+        content.contentHash = self.deduplicator.computeHash(for: content)
 
         Logger.clipboard.debug(
             "Parsed content: type=\(primaryType.displayName), types=\(availableTypes.count)"
@@ -84,7 +84,7 @@ final class ContentParser: ContentParsing, Sendable {
         case .richText:
             content.rtfData = pasteboard.data(forType: .rtf)
             // Also extract plain text for preview
-            extractPlainTextFromRTF(pasteboard, into: &content)
+            self.extractPlainTextFromRTF(pasteboard, into: &content)
 
         case .html:
             content.html = pasteboard.string(forType: .html)
@@ -94,23 +94,23 @@ final class ContentParser: ContentParsing, Sendable {
         case .png,
              .jpeg,
              .tiff:
-            extractImageContent(from: pasteboard, into: &content)
+            self.extractImageContent(from: pasteboard, into: &content)
 
         case .pdf:
             content.pdfData = pasteboard.data(forType: .pdf)
 
         case .fileURL:
-            extractFileURLs(from: pasteboard, into: &content)
+            self.extractFileURLs(from: pasteboard, into: &content)
 
         case .url:
-            extractWebURL(from: pasteboard, into: &content)
+            self.extractWebURL(from: pasteboard, into: &content)
         }
 
         guard !content.isEmpty else {
             return nil
         }
 
-        content.contentHash = deduplicator.computeHash(for: content)
+        content.contentHash = self.deduplicator.computeHash(for: content)
         return content
     }
 
@@ -202,7 +202,7 @@ final class ContentParser: ContentParsing, Sendable {
             content.rtfData = pasteboard.data(forType: .rtf)
             // Extract plain text from RTF if not already set
             if content.plainText == nil {
-                extractPlainTextFromRTF(pasteboard, into: &content)
+                self.extractPlainTextFromRTF(pasteboard, into: &content)
             }
         }
 
@@ -229,7 +229,7 @@ final class ContentParser: ContentParsing, Sendable {
         }
 
         // Process the image
-        let processed = imageProcessor.process(image)
+        let processed = self.imageProcessor.process(image)
         content.imageData = processed.data
         content.thumbnailData = processed.thumbnail
         content.imageWidth = processed.width
@@ -247,11 +247,11 @@ final class ContentParser: ContentParsing, Sendable {
     private func extractURLContent(from pasteboard: NSPasteboard, into content: inout ClipboardContent) {
         // File URLs
         if content.availableTypes.contains(.fileURL) {
-            extractFileURLs(from: pasteboard, into: &content)
+            self.extractFileURLs(from: pasteboard, into: &content)
         }
 
         // Web URLs
-        extractWebURL(from: pasteboard, into: &content)
+        self.extractWebURL(from: pasteboard, into: &content)
     }
 
     private func extractFileURLs(from pasteboard: NSPasteboard, into content: inout ClipboardContent) {
@@ -303,7 +303,7 @@ final class ContentParser: ContentParsing, Sendable {
 
         // If primary is plain text and content is a valid URL, upgrade to URL type
         if content.primaryType == .plainText,
-           content.url != nil || isURL(content.plainText)
+           content.url != nil || self.isURL(content.plainText)
         {
             if content.url == nil, let text = content.plainText,
                let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines))

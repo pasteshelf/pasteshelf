@@ -57,7 +57,7 @@ struct FuzzyMatcher {
     ///   - query: The query to match against
     /// - Returns: True if the strings are similar enough
     func matches(_ source: String, query: String) -> Bool {
-        similarity(source, query) >= threshold
+        self.similarity(source, query) >= self.threshold
     }
 
     /// Calculates similarity between two strings
@@ -66,8 +66,8 @@ struct FuzzyMatcher {
     ///   - query: The query string
     /// - Returns: Similarity score from 0.0 (no match) to 1.0 (exact match)
     func similarity(_ source: String, _ query: String) -> Double {
-        let s1 = normalizeStrings ? source.searchNormalized : source.lowercased()
-        let s2 = normalizeStrings ? query.searchNormalized : query.lowercased()
+        let s1 = self.normalizeStrings ? source.searchNormalized : source.lowercased()
+        let s2 = self.normalizeStrings ? query.searchNormalized : query.lowercased()
 
         // Exact match
         if s1 == s2 {
@@ -80,12 +80,12 @@ struct FuzzyMatcher {
         }
 
         // If query is too long, skip fuzzy matching
-        if s2.count > maxQueryLength {
+        if s2.count > self.maxQueryLength {
             return 0.0
         }
 
         // Calculate Levenshtein distance
-        let distance = levenshteinDistance(s1, s2)
+        let distance = self.levenshteinDistance(s1, s2)
         let maxLength = max(s1.count, s2.count)
 
         // Convert distance to similarity (0.0 to 1.0)
@@ -98,11 +98,11 @@ struct FuzzyMatcher {
     ///   - query: The query to find
     /// - Returns: FuzzyMatch result if found, nil otherwise
     func findBestMatch(in source: String, for query: String) -> FuzzyMatch? {
-        let s1 = normalizeStrings ? source.searchNormalized : source.lowercased()
-        let s2 = normalizeStrings ? query.searchNormalized : query.lowercased()
+        let s1 = self.normalizeStrings ? source.searchNormalized : source.lowercased()
+        let s2 = self.normalizeStrings ? query.searchNormalized : query.lowercased()
 
         // Skip if query is too long
-        if s2.count > maxQueryLength {
+        if s2.count > self.maxQueryLength {
             return nil
         }
 
@@ -115,8 +115,8 @@ struct FuzzyMatcher {
             .filter { !$0.isEmpty }
 
         for (wordIndex, word) in words.enumerated() {
-            let sim = similarity(word, s2)
-            if sim >= threshold, sim > bestSimilarity {
+            let sim = self.similarity(word, s2)
+            if sim >= self.threshold, sim > bestSimilarity {
                 bestSimilarity = sim
 
                 // Find the position of this word in the original string
@@ -133,8 +133,8 @@ struct FuzzyMatcher {
 
         // Also check if query matches a substring of the whole text
         if bestMatch == nil {
-            let overallSimilarity = similarity(source, query)
-            if overallSimilarity >= threshold {
+            let overallSimilarity = self.similarity(source, query)
+            if overallSimilarity >= self.threshold {
                 let startIndex = source.startIndex
                 let endIndex = source.index(startIndex, offsetBy: min(query.count, source.count))
                 bestMatch = FuzzyMatch(
@@ -160,10 +160,10 @@ struct FuzzyMatcher {
         for query: String,
         maxMatches: Int = 10
     ) -> [FuzzyMatch] {
-        let s2 = normalizeStrings ? query.searchNormalized : query.lowercased()
+        let s2 = self.normalizeStrings ? query.searchNormalized : query.lowercased()
 
         // Skip if query is too long
-        if s2.count > maxQueryLength {
+        if s2.count > self.maxQueryLength {
             return []
         }
 
@@ -174,10 +174,10 @@ struct FuzzyMatcher {
             .filter { !$0.isEmpty }
 
         for (wordIndex, word) in words.enumerated() {
-            let wordNormalized = normalizeStrings ? word.searchNormalized : word.lowercased()
-            let sim = similarity(wordNormalized, s2)
+            let wordNormalized = self.normalizeStrings ? word.searchNormalized : word.lowercased()
+            let sim = self.similarity(wordNormalized, s2)
 
-            if sim >= threshold {
+            if sim >= self.threshold {
                 if let range = findWordRange(word, at: wordIndex, in: source) {
                     matches.append(FuzzyMatch(
                         matchedText: String(source[range]),
@@ -215,7 +215,7 @@ struct FuzzyMatcher {
 
         // Ensure s1 is the shorter string for space optimization
         if len1 > len2 {
-            return levenshteinDistance(s2, s1)
+            return self.levenshteinDistance(s2, s1)
         }
 
         let s1Array = Array(s1)
@@ -289,8 +289,8 @@ struct FuzzyMatcher {
             if currentWordIndex == wordIndex {
                 let foundWord = String(source[wordStart ..< wordEnd])
                 // Verify it matches (accounting for normalization)
-                let normalizedFound = normalizeStrings ? foundWord.searchNormalized : foundWord.lowercased()
-                let normalizedTarget = normalizeStrings ? word.searchNormalized : word.lowercased()
+                let normalizedFound = self.normalizeStrings ? foundWord.searchNormalized : foundWord.lowercased()
+                let normalizedTarget = self.normalizeStrings ? word.searchNormalized : word.lowercased()
 
                 if normalizedFound == normalizedTarget || foundWord == word {
                     return wordStart ..< wordEnd
@@ -323,7 +323,7 @@ struct FuzzyMatch {
 
     /// Whether this is a high-quality match (similarity >= 0.8)
     var isHighQuality: Bool {
-        similarity >= 0.8
+        self.similarity >= 0.8
     }
 }
 

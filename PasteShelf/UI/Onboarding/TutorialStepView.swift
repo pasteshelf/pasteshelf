@@ -48,11 +48,11 @@ struct TutorialStepView: View {
                     .foregroundStyle(.secondary)
 
                 VStack(spacing: 8) {
-                    shortcutRow(keys: "⌘ ⇧ V", description: "Open clipboard panel")
-                    shortcutRow(keys: "↑ ↓", description: "Navigate items")
-                    shortcutRow(keys: "⏎", description: "Paste selected item")
-                    shortcutRow(keys: "⌘ F", description: "Search clipboard")
-                    shortcutRow(keys: "⌘ S", description: "Toggle favorite")
+                    self.shortcutRow(keys: "⌘ ⇧ V", description: "Open clipboard panel")
+                    self.shortcutRow(keys: "↑ ↓", description: "Navigate items")
+                    self.shortcutRow(keys: "⏎", description: "Paste selected item")
+                    self.shortcutRow(keys: "⌘ F", description: "Search clipboard")
+                    self.shortcutRow(keys: "⌘ S", description: "Toggle favorite")
                 }
             }
             .padding(16)

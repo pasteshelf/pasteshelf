@@ -50,7 +50,7 @@ struct CollectionEditorView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            headerView
+            self.headerView
 
             Divider()
 
@@ -58,17 +58,17 @@ struct CollectionEditorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Basic info section
-                    basicInfoSection
+                    self.basicInfoSection
 
                     Divider()
 
                     // Collection type section
-                    typeSection
+                    self.typeSection
 
                     // Rules section (only for automatic collections)
-                    if isAutomatic {
+                    if self.isAutomatic {
                         Divider()
-                        rulesSection
+                        self.rulesSection
                     }
                 }
                 .padding(20)
@@ -77,7 +77,7 @@ struct CollectionEditorView: View {
             Divider()
 
             // Footer
-            footerView
+            self.footerView
         }
         .frame(width: 500, height: 520)
     }
@@ -119,7 +119,7 @@ struct CollectionEditorView: View {
 
     private var headerView: some View {
         HStack {
-            Text(collection == nil ? "New Collection" : "Edit Collection")
+            Text(self.collection == nil ? "New Collection" : "Edit Collection")
                 .font(.headline)
             Spacer()
         }
@@ -140,7 +140,7 @@ struct CollectionEditorView: View {
                 Text("Name")
                     .frame(width: 60, alignment: .trailing)
                     .foregroundStyle(.secondary)
-                TextField("Collection name", text: $name)
+                TextField("Collection name", text: self.$name)
                     .textFieldStyle(.roundedBorder)
             }
 
@@ -151,7 +151,7 @@ struct CollectionEditorView: View {
                     .foregroundStyle(.secondary)
                     .padding(.top, 4)
 
-                iconPickerGrid
+                self.iconPickerGrid
             }
 
             // Color picker
@@ -160,27 +160,27 @@ struct CollectionEditorView: View {
                     .frame(width: 60, alignment: .trailing)
                     .foregroundStyle(.secondary)
 
-                colorPickerRow
+                self.colorPickerRow
             }
         }
     }
 
     private var iconPickerGrid: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.fixed(32), spacing: 8), count: 8), spacing: 8) {
-            ForEach(availableIcons, id: \.self) { iconName in
+            ForEach(self.availableIcons, id: \.self) { iconName in
                 Button {
-                    icon = iconName
+                    self.icon = iconName
                 } label: {
                     Image(systemName: iconName)
                         .font(.system(size: 14))
                         .frame(width: 28, height: 28)
                         .background(
                             RoundedRectangle(cornerRadius: 6)
-                                .fill(icon == iconName ? Color.accentColor.opacity(0.2) : Color.clear)
+                                .fill(self.icon == iconName ? Color.accentColor.opacity(0.2) : Color.clear)
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
-                                .stroke(icon == iconName ? Color.accentColor : Color.clear, lineWidth: 1)
+                                .stroke(self.icon == iconName ? Color.accentColor : Color.clear, lineWidth: 1)
                         )
                 }
                 .buttonStyle(.plain)
@@ -190,16 +190,16 @@ struct CollectionEditorView: View {
 
     private var colorPickerRow: some View {
         HStack(spacing: 8) {
-            ForEach(availableColors, id: \.self) { hex in
+            ForEach(self.availableColors, id: \.self) { hex in
                 Button {
-                    colorHex = hex
+                    self.colorHex = hex
                 } label: {
                     Circle()
                         .fill(Color(hex: hex) ?? .blue)
                         .frame(width: 24, height: 24)
                         .overlay(
                             Circle()
-                                .stroke(colorHex == hex ? Color.primary : Color.clear, lineWidth: 2)
+                                .stroke(self.colorHex == hex ? Color.primary : Color.clear, lineWidth: 2)
                         )
                 }
                 .buttonStyle(.plain)
@@ -218,7 +218,7 @@ struct CollectionEditorView: View {
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
 
-            Picker("Type", selection: $isAutomatic) {
+            Picker("Type", selection: self.$isAutomatic) {
                 HStack {
                     Image(systemName: "sparkles")
                     Text("Smart Collection")
@@ -233,7 +233,7 @@ struct CollectionEditorView: View {
             }
             .pickerStyle(.radioGroup)
 
-            Text(isAutomatic
+            Text(self.isAutomatic
                 ? "Items are automatically added based on rules"
                 : "Manually drag items to add them to this collection")
                 .font(.system(size: 11))
@@ -250,7 +250,7 @@ struct CollectionEditorView: View {
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
 
-            RuleBuilderView(rules: $rules)
+            RuleBuilderView(rules: self.$rules)
         }
     }
 
@@ -261,15 +261,15 @@ struct CollectionEditorView: View {
             Spacer()
 
             Button("Cancel") {
-                onCancel()
+                self.onCancel()
             }
             .keyboardShortcut(.cancelAction)
 
-            Button(collection == nil ? "Create" : "Save") {
-                saveCollection()
+            Button(self.collection == nil ? "Create" : "Save") {
+                self.saveCollection()
             }
             .keyboardShortcut(.defaultAction)
-            .disabled(name.isEmpty)
+            .disabled(self.name.isEmpty)
         }
         .padding()
     }
@@ -277,15 +277,15 @@ struct CollectionEditorView: View {
     private func saveCollection() {
         let model = CollectionDisplayModel(
             id: collection?.id ?? UUID(),
-            name: name,
-            icon: icon,
-            colorHex: colorHex,
-            isAutomatic: isAutomatic,
-            itemCount: collection?.itemCount ?? 0,
-            sortOrder: collection?.sortOrder ?? 0,
-            rules: isAutomatic ? rules : nil
+            name: self.name,
+            icon: self.icon,
+            colorHex: self.colorHex,
+            isAutomatic: self.isAutomatic,
+            itemCount: self.collection?.itemCount ?? 0,
+            sortOrder: self.collection?.sortOrder ?? 0,
+            rules: self.isAutomatic ? self.rules : nil
         )
-        onSave(model)
+        self.onSave(model)
     }
 }
 

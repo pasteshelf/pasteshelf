@@ -49,11 +49,11 @@ struct FilterChipsView: View {
                     FilterChip(
                         title: "Favorites",
                         icon: "star.fill",
-                        isSelected: favoritesOnly,
+                        isSelected: self.favoritesOnly,
                         selectedColor: .orange
                     ) {
-                        favoritesOnly.toggle()
-                        onFavoritesToggle?()
+                        self.favoritesOnly.toggle()
+                        self.onFavoritesToggle?()
                     }
 
                     if !ContentTypeFilter.allCases.isEmpty {
@@ -66,14 +66,14 @@ struct FilterChipsView: View {
                         FilterChip(
                             title: filter.displayName,
                             icon: filter.icon,
-                            isSelected: selectedContentType == filter
+                            isSelected: self.selectedContentType == filter
                         ) {
-                            if selectedContentType == filter {
-                                selectedContentType = nil
+                            if self.selectedContentType == filter {
+                                self.selectedContentType = nil
                             } else {
-                                selectedContentType = filter
+                                self.selectedContentType = filter
                             }
-                            onContentTypeToggle?(filter)
+                            self.onContentTypeToggle?(filter)
                         }
                     }
                 }
@@ -82,20 +82,20 @@ struct FilterChipsView: View {
             }
 
             // Second row: Tag filters (only if tags exist and setting is enabled)
-            if showTagFilters, !availableTags.isEmpty {
+            if self.showTagFilters, !self.availableTags.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
-                        ForEach(availableTags) { tag in
+                        ForEach(self.availableTags) { tag in
                             FilterChip(
                                 title: tag.name,
                                 icon: "tag",
-                                isSelected: selectedTagIds.contains(tag.id),
+                                isSelected: self.selectedTagIds.contains(tag.id),
                                 selectedColor: tag.color
                             ) {
-                                if selectedTagIds.contains(tag.id) {
-                                    selectedTagIds.remove(tag.id)
+                                if self.selectedTagIds.contains(tag.id) {
+                                    self.selectedTagIds.remove(tag.id)
                                 } else {
-                                    selectedTagIds.insert(tag.id)
+                                    self.selectedTagIds.insert(tag.id)
                                 }
                             }
                         }
@@ -132,21 +132,21 @@ struct FilterChip: View {
     // MARK: - Body
 
     var body: some View {
-        Button(action: action) {
+        Button(action: self.action) {
             HStack(spacing: 4) {
-                Image(systemName: icon)
+                Image(systemName: self.icon)
                     .font(.system(size: 10, weight: .medium))
-                Text(title)
+                Text(self.title)
                     .font(.system(size: 11, weight: .medium))
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(background)
-            .foregroundStyle(foregroundColor)
+            .background(self.background)
+            .foregroundStyle(self.foregroundColor)
             .clipShape(Capsule())
             .overlay(
                 Capsule()
-                    .stroke(borderColor, lineWidth: 1)
+                    .stroke(self.borderColor, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -155,15 +155,15 @@ struct FilterChip: View {
     // MARK: Private
 
     private var background: Color {
-        isSelected ? selectedColor.opacity(0.15) : Color.clear
+        self.isSelected ? self.selectedColor.opacity(0.15) : Color.clear
     }
 
     private var foregroundColor: Color {
-        isSelected ? selectedColor : .secondary
+        self.isSelected ? self.selectedColor : .secondary
     }
 
     private var borderColor: Color {
-        isSelected ? selectedColor.opacity(0.3) : Color.secondary.opacity(0.3)
+        self.isSelected ? self.selectedColor.opacity(0.3) : Color.secondary.opacity(0.3)
     }
 }
 
@@ -182,25 +182,25 @@ struct CompactFilterChipsView: View {
             // Favorites
             CompactFilterChip(
                 icon: "star.fill",
-                isSelected: favoritesOnly,
+                isSelected: self.favoritesOnly,
                 selectedColor: .orange
             ) {
-                favoritesOnly.toggle()
-                onFavoritesToggle?()
+                self.favoritesOnly.toggle()
+                self.onFavoritesToggle?()
             }
 
             // Content types
             ForEach(ContentTypeFilter.allCases) { filter in
                 CompactFilterChip(
                     icon: filter.icon,
-                    isSelected: selectedContentType == filter
+                    isSelected: self.selectedContentType == filter
                 ) {
-                    if selectedContentType == filter {
-                        selectedContentType = nil
+                    if self.selectedContentType == filter {
+                        self.selectedContentType = nil
                     } else {
-                        selectedContentType = filter
+                        self.selectedContentType = filter
                     }
-                    onContentTypeToggle?(filter)
+                    self.onContentTypeToggle?(filter)
                 }
             }
         }
@@ -217,23 +217,23 @@ struct CompactFilterChip: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: icon)
+        Button(action: self.action) {
+            Image(systemName: self.icon)
                 .font(.system(size: 11, weight: .medium))
                 .frame(width: 24, height: 24)
-                .background(isSelected ? selectedColor.opacity(0.15) : Color.clear)
-                .foregroundStyle(isSelected ? selectedColor : .secondary)
+                .background(self.isSelected ? self.selectedColor.opacity(0.15) : Color.clear)
+                .foregroundStyle(self.isSelected ? self.selectedColor : .secondary)
                 .clipShape(Circle())
                 .overlay(
                     Circle()
                         .stroke(
-                            isSelected ? selectedColor.opacity(0.3) : Color.secondary.opacity(0.2),
+                            self.isSelected ? self.selectedColor.opacity(0.3) : Color.secondary.opacity(0.2),
                             lineWidth: 1
                         )
                 )
         }
         .buttonStyle(.plain)
-        .help(icon)
+        .help(self.icon)
     }
 }
 
@@ -245,16 +245,16 @@ struct ActiveFilterSummaryView: View {
     var onClear: (() -> Void)?
 
     var body: some View {
-        if activeFilters.hasActiveFilters {
+        if self.activeFilters.hasActiveFilters {
             HStack(spacing: 4) {
-                Text(activeFilters.description)
+                Text(self.activeFilters.description)
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
 
-                if onClear != nil {
+                if self.onClear != nil {
                     Button(
-                        action: { onClear?() },
+                        action: { self.onClear?() },
                         label: {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 10))
@@ -282,9 +282,9 @@ struct ActiveFilterSummaryView: View {
                     Text("Standard Filter Chips")
                         .font(.caption).foregroundStyle(.secondary)
                     FilterChipsView(
-                        selectedContentType: $selectedType,
-                        favoritesOnly: $favoritesOnly,
-                        selectedTagIds: $selectedTagIds
+                        selectedContentType: self.$selectedType,
+                        favoritesOnly: self.$favoritesOnly,
+                        selectedTagIds: self.$selectedTagIds
                     )
                     .background(Color(nsColor: .controlBackgroundColor))
 
@@ -300,8 +300,8 @@ struct ActiveFilterSummaryView: View {
                     Text("Compact Filter Chips")
                         .font(.caption).foregroundStyle(.secondary)
                     CompactFilterChipsView(
-                        selectedContentType: $selectedType,
-                        favoritesOnly: $favoritesOnly
+                        selectedContentType: self.$selectedType,
+                        favoritesOnly: self.$favoritesOnly
                     )
 
                     Text("Active Filter Summary")

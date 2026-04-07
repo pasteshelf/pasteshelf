@@ -192,12 +192,12 @@ struct SearchResult: Identifiable, Equatable {
 
     /// Whether this result has highlighted matches
     var hasHighlights: Bool {
-        !matchRanges.isEmpty
+        !self.matchRanges.isEmpty
     }
 
     /// Primary match range (first match)
     var primaryMatchRange: MatchRange? {
-        matchRanges.first
+        self.matchRanges.first
     }
 
     // MARK: - Equatable
@@ -225,12 +225,12 @@ struct MatchRange: Equatable, Hashable {
 
     /// End index (exclusive)
     var end: Int {
-        start + length
+        self.start + self.length
     }
 
     /// Creates a Range<String.Index> for a given string
     func range(in string: String) -> Range<String.Index>? {
-        guard start >= 0,
+        guard self.start >= 0,
               let startIndex = string.index(string.startIndex, offsetBy: start, limitedBy: string.endIndex),
               let endIndex = string.index(startIndex, offsetBy: length, limitedBy: string.endIndex)
         else {

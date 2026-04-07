@@ -15,10 +15,10 @@ struct SyncController: RouteCollection {
 
     func boot(routes: any RoutesBuilder) throws {
         let sync = routes.grouped("api", "v1", "sync")
-        sync.post("push", use: push)
-        sync.post("pull", use: pull)
-        sync.get("status", use: status)
-        sync.post("reset", use: reset)
+        sync.post("push", use: self.push)
+        sync.post("pull", use: self.pull)
+        sync.get("status", use: self.status)
+        sync.post("reset", use: self.reset)
     }
 
     // MARK: - Push Changes
@@ -196,7 +196,7 @@ struct SyncController: RouteCollection {
 
         // Update the device's sync token
         if let deviceID = authUser.deviceID {
-            try await updateSyncToken(
+            try await self.updateSyncToken(
                 userID: authUser.id,
                 deviceID: deviceID,
                 tokenValue: newToken,

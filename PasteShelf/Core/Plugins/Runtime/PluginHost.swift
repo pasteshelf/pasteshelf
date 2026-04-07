@@ -19,7 +19,7 @@
         // MARK: - Initialization
 
         private init() {
-            logger.info("PluginHost initialized")
+            self.logger.info("PluginHost initialized")
         }
 
         // MARK: Internal
@@ -34,7 +34,7 @@
         var allResourceUsage: [String: PluginResourceUsage] {
             get async {
                 var usage: [String: PluginResourceUsage] = [:]
-                for (pluginId, sandbox) in sandboxes {
+                for (pluginId, sandbox) in self.sandboxes {
                     usage[pluginId] = await sandbox.resourceUsage
                 }
                 return usage
@@ -52,7 +52,7 @@
             // Create sandbox with appropriate config
             let sandboxConfig = sandboxConfig(for: bundle)
             let sandbox = PluginSandbox(pluginId: pluginId, config: sandboxConfig)
-            sandboxes[pluginId] = sandbox
+            self.sandboxes[pluginId] = sandbox
 
             // Create context
             let context = PluginContextImpl(
@@ -60,25 +60,25 @@
                 bundle: bundle,
                 sandbox: sandbox
             )
-            contexts[pluginId] = context
+            self.contexts[pluginId] = context
 
-            logger.debug("Created host environment for plugin: \(pluginId)")
+            self.logger.debug("Created host environment for plugin: \(pluginId)")
             return context
         }
 
         /// Destroys the host environment for a plugin
         /// - Parameter pluginId: The plugin identifier
         func destroyEnvironment(for pluginId: String) {
-            sandboxes.removeValue(forKey: pluginId)
-            contexts.removeValue(forKey: pluginId)
-            logger.debug("Destroyed host environment for plugin: \(pluginId)")
+            self.sandboxes.removeValue(forKey: pluginId)
+            self.contexts.removeValue(forKey: pluginId)
+            self.logger.debug("Destroyed host environment for plugin: \(pluginId)")
         }
 
         /// Gets the context for a loaded plugin
         /// - Parameter pluginId: The plugin identifier
         /// - Returns: The plugin context, or nil if not loaded
         func context(for pluginId: String) -> PluginContextImpl? {
-            contexts[pluginId]
+            self.contexts[pluginId]
         }
 
         // MARK: - Action Execution
@@ -99,11 +99,11 @@
             }
 
             guard let action = item.action else {
-                logger.warning("Menu item '\(item.title)' has no action")
+                self.logger.warning("Menu item '\(item.title)' has no action")
                 return nil
             }
 
-            logger.debug("Executing action '\(item.title)' for plugin \(pluginId)")
+            self.logger.debug("Executing action '\(item.title)' for plugin \(pluginId)")
 
             do {
                 return try await sandbox.execute {
@@ -130,7 +130,7 @@
                 throw PluginHostError.pluginNotLoaded(pluginId)
             }
 
-            logger.debug("Executing transform for plugin \(pluginId)")
+            self.logger.debug("Executing transform for plugin \(pluginId)")
 
             do {
                 return try await sandbox.execute {
@@ -144,11 +144,11 @@
 
         /// Checks resource limits for all plugins
         func checkAllResourceLimits() async {
-            for (pluginId, sandbox) in sandboxes {
+            for (pluginId, sandbox) in self.sandboxes {
                 do {
                     try await sandbox.checkResourceLimits()
                 } catch {
-                    logger.warning("Plugin \(pluginId) exceeded resource limits: \(error.localizedDescription)")
+                    self.logger.warning("Plugin \(pluginId) exceeded resource limits: \(error.localizedDescription)")
                     // Could disable the plugin here if needed
                 }
             }

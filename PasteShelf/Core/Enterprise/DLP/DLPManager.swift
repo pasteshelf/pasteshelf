@@ -84,14 +84,14 @@ final class DLPManager: ObservableObject {
     ///
     /// `nil` until `configure()` has been called.
     var violationStorage: DLPViolationStoring? {
-        storageService
+        self.storageService
     }
 
     /// The `DLPRuleStoring` backend, exposed for direct access if needed.
     ///
     /// `nil` until `configure()` has been called.
     var ruleStorage: DLPRuleStoring? {
-        storageService
+        self.storageService
     }
 
     // MARK: - Configuration
@@ -102,19 +102,19 @@ final class DLPManager: ObservableObject {
     /// The method loads rules from storage and enables DLP evaluation.
     func configure() {
         let storage = DLPViolationStorageService()
-        storageService = storage
+        self.storageService = storage
 
         let engine = DLPRuleEngine()
-        ruleEngine = engine
+        self.ruleEngine = engine
 
-        isEnabled = true
-        logger.info("DLPManager configured and enabled")
+        self.isEnabled = true
+        self.logger.info("DLPManager configured and enabled")
 
         // Load rules asynchronously and install defaults if this is a fresh launch
         Task {
-            await loadRules()
-            await installDefaultRulesIfNeeded()
-            await loadRecentViolations()
+            await self.loadRules()
+            await self.installDefaultRulesIfNeeded()
+            await self.loadRecentViolations()
         }
     }
 
@@ -122,9 +122,9 @@ final class DLPManager: ObservableObject {
     ///
     /// Call this when the MDM profile sets `dlpEnabled` to `false` mid-session.
     func disable() {
-        isEnabled = false
-        ruleEngine = nil
-        logger.info("DLPManager disabled")
+        self.isEnabled = false
+        self.ruleEngine = nil
+        self.logger.info("DLPManager disabled")
     }
 
     // MARK: - Evaluation
@@ -140,11 +140,11 @@ final class DLPManager: ObservableObject {
     /// - Parameter content: The clipboard content to evaluate.
     /// - Returns: A `DLPEvaluationResult` with violations and outcome flags.
     func evaluate(_ content: ClipboardContent, sourceApp: SourceApp? = nil) async -> DLPEvaluationResult {
-        guard isEnabled, let engine = ruleEngine else {
+        guard self.isEnabled, let engine = ruleEngine else {
             return .clean
         }
 
-        let activeRules = rules.filter(\.isEnabled)
+        let activeRules = self.rules.filter(\.isEnabled)
         guard !activeRules.isEmpty else {
             return .clean
         }
@@ -161,7 +161,7 @@ final class DLPManager: ObservableObject {
 
         if result.hasViolations {
             // Persist violations and log audit events
-            await recordViolations(result.violations)
+            await self.recordViolations(result.violations)
 
             // Post notification for alert UI
             for violation in result.violations
@@ -193,11 +193,11 @@ final class DLPManager: ObservableObject {
 
         do {
             let entities = try await storage.loadRules()
-            rules = entities.compactMap { $0.toDomainModel() }
-            logger.debug("Loaded \(rules.count) DLP rules from storage")
+            self.rules = entities.compactMap { $0.toDomainModel() }
+            self.logger.debug("Loaded \(self.rules.count) DLP rules from storage")
         } catch {
-            logger.error("Failed to load DLP rules: \(error.localizedDescription)")
-            lastError = .storageFailure(error.localizedDescription)
+            self.logger.error("Failed to load DLP rules: \(error.localizedDescription)")
+            self.lastError = .storageFailure(error.localizedDescription)
         }
     }
 
@@ -211,7 +211,7 @@ final class DLPManager: ObservableObject {
         }
 
         try await storage.saveRule(rule)
-        await loadRules()
+        await self.loadRules()
 
         // Log rule creation as audit event
         await AuditManager.shared.logPolicyEvent(
@@ -220,7 +220,7 @@ final class DLPManager: ObservableObject {
             detail: ["dlpAction": "ruleCreated", "ruleName": rule.name]
         )
 
-        logger.info("Added DLP rule: \(rule.name)")
+        self.logger.info("Added DLP rule: \(rule.name)")
     }
 
     /// Updates an existing DLP rule in storage and refreshes the in-memory rule set.
@@ -233,9 +233,9 @@ final class DLPManager: ObservableObject {
         }
 
         try await storage.updateRule(rule)
-        await loadRules()
+        await self.loadRules()
 
-        logger.info("Updated DLP rule: \(rule.name)")
+        self.logger.info("Updated DLP rule: \(rule.name)")
     }
 
     /// Deletes a DLP rule from storage and refreshes the in-memory rule set.
@@ -248,7 +248,7 @@ final class DLPManager: ObservableObject {
         }
 
         try await storage.deleteRule(id: id)
-        await loadRules()
+        await self.loadRules()
 
         // Log rule deletion as audit event
         await AuditManager.shared.logPolicyEvent(
@@ -257,7 +257,7 @@ final class DLPManager: ObservableObject {
             detail: ["dlpAction": "ruleDeleted"]
         )
 
-        logger.info("Deleted DLP rule: \(id)")
+        self.logger.info("Deleted DLP rule: \(id)")
     }
 
     /// Installs the default DLP rules into storage if no rules exist yet.
@@ -265,7 +265,7 @@ final class DLPManager: ObservableObject {
     /// This is called during first-time setup to populate the rule store with
     /// sensible defaults derived from `DLPDefaultPatterns`.
     func installDefaultRulesIfNeeded() async {
-        guard rules.isEmpty, let storage = storageService else {
+        guard self.rules.isEmpty, let storage = storageService else {
             return
         }
 
@@ -274,12 +274,12 @@ final class DLPManager: ObservableObject {
             do {
                 try await storage.saveRule(rule)
             } catch {
-                logger.error("Failed to install default DLP rule '\(rule.name)': \(error.localizedDescription)")
+                self.logger.error("Failed to install default DLP rule '\(rule.name)': \(error.localizedDescription)")
             }
         }
 
-        await loadRules()
-        logger.info("Installed \(defaults.count) default DLP rules")
+        await self.loadRules()
+        self.logger.info("Installed \(defaults.count) default DLP rules")
     }
 
     /// Applies a server-pushed DLP policy, replacing local rules with admin-managed rules.
@@ -297,11 +297,11 @@ final class DLPManager: ObservableObject {
             do {
                 try await storage.saveRule(rule)
             } catch {
-                logger.error("Failed to apply DLP policy rule '\(rule.name)': \(error.localizedDescription)")
+                self.logger.error("Failed to apply DLP policy rule '\(rule.name)': \(error.localizedDescription)")
             }
         }
 
-        await loadRules()
+        await self.loadRules()
 
         await AuditManager.shared.logPolicyEvent(
             action: .policyApplied,
@@ -312,7 +312,7 @@ final class DLPManager: ObservableObject {
             ]
         )
 
-        logger.info("Applied DLP policy with \(policy.rules.count) rules")
+        self.logger.info("Applied DLP policy with \(policy.rules.count) rules")
     }
 
     // MARK: - Violation Access
@@ -327,13 +327,13 @@ final class DLPManager: ObservableObject {
             let entities = try await storage.fetchViolations(
                 from: nil,
                 to: nil,
-                limit: recentViolationsLimit
+                limit: self.recentViolationsLimit
             )
-            recentViolations = entities.compactMap { $0.toDomainModel() }
-            logger.debug("Loaded \(recentViolations.count) recent DLP violations")
+            self.recentViolations = entities.compactMap { $0.toDomainModel() }
+            self.logger.debug("Loaded \(self.recentViolations.count) recent DLP violations")
         } catch {
-            logger.error("Failed to load DLP violations: \(error.localizedDescription)")
-            lastError = .storageFailure(error.localizedDescription)
+            self.logger.error("Failed to load DLP violations: \(error.localizedDescription)")
+            self.lastError = .storageFailure(error.localizedDescription)
         }
     }
 
@@ -369,8 +369,8 @@ final class DLPManager: ObservableObject {
 
         let count = try await storage.pruneExpired(retentionDays: retentionDays)
         if count > 0 {
-            await loadRecentViolations()
-            logger.info("Pruned \(count) expired DLP violations")
+            await self.loadRecentViolations()
+            self.logger.info("Pruned \(count) expired DLP violations")
         }
         return count
     }
@@ -402,11 +402,11 @@ final class DLPManager: ObservableObject {
             do {
                 try await storage.save(violation)
             } catch {
-                logger.error("Failed to save DLP violation: \(error.localizedDescription)")
+                self.logger.error("Failed to save DLP violation: \(error.localizedDescription)")
             }
         }
 
         // Refresh the in-memory list
-        await loadRecentViolations()
+        await self.loadRecentViolations()
     }
 }

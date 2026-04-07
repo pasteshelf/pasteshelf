@@ -69,18 +69,18 @@ extension DLPRuleEntity {
         isAdminManaged: Bool = false
     ) {
         self.init(context: context)
-        id = rule.id
-        name = rule.name
-        isEnabled = rule.isEnabled
-        patternCategory = rule.patternCategory.rawValue
-        pattern = rule.pattern
-        severity = rule.severity.rawValue.description
-        createdAt = rule.createdAt
-        updatedAt = rule.updatedAt
+        self.id = rule.id
+        self.name = rule.name
+        self.isEnabled = rule.isEnabled
+        self.patternCategory = rule.patternCategory.rawValue
+        self.pattern = rule.pattern
+        self.severity = rule.severity.rawValue.description
+        self.createdAt = rule.createdAt
+        self.updatedAt = rule.updatedAt
         self.isAdminManaged = isAdminManaged
 
         let actionRawValues = rule.actions.map(\.rawValue)
-        actionsJSON = try? JSONEncoder().encode(actionRawValues)
+        self.actionsJSON = try? JSONEncoder().encode(actionRawValues)
     }
 
     // MARK: - Domain Model Conversion
@@ -114,13 +114,13 @@ extension DLPRuleEntity {
         return DLPRule(
             id: id,
             name: name,
-            isEnabled: isEnabled,
+            isEnabled: self.isEnabled,
             patternCategory: patternCategory,
             pattern: pattern,
             severity: severity,
             actions: actions,
-            createdAt: createdAt ?? Date(),
-            updatedAt: updatedAt ?? Date()
+            createdAt: self.createdAt ?? Date(),
+            updatedAt: self.updatedAt ?? Date()
         )
     }
 }
@@ -132,7 +132,7 @@ extension DLPRuleEntity {
     ///
     /// - Returns: A configured `NSFetchRequest` returning all stored `DLPRuleEntity` records.
     static func allRulesFetchRequest() -> NSFetchRequest<DLPRuleEntity> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \DLPRuleEntity.createdAt, ascending: true),
         ]
@@ -145,7 +145,7 @@ extension DLPRuleEntity {
     ///
     /// - Returns: A configured `NSFetchRequest` targeting `isEnabled == YES` rules.
     static func enabledRulesFetchRequest() -> NSFetchRequest<DLPRuleEntity> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(format: "isEnabled == YES")
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \DLPRuleEntity.createdAt, ascending: true),
@@ -158,7 +158,7 @@ extension DLPRuleEntity {
     /// - Parameter category: The `DLPPatternCategory` to filter by.
     /// - Returns: A configured `NSFetchRequest` for rules of the given category, sorted by creation date.
     static func rulesFetchRequest(for category: DLPPatternCategory) -> NSFetchRequest<DLPRuleEntity> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(format: "patternCategory == %@", category.rawValue)
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \DLPRuleEntity.createdAt, ascending: true),

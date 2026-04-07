@@ -51,7 +51,7 @@ extension EmbeddingCache {
 
     /// Sets the embedding from a Double array
     func setEmbeddingVector(_ vector: [Double]) {
-        embedding = EmbeddingManager.serializeEmbedding(vector)
+        self.embedding = EmbeddingManager.serializeEmbedding(vector)
     }
 }
 

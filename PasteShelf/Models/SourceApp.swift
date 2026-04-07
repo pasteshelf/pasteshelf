@@ -76,7 +76,7 @@ struct SourceApp: Equatable {
         guard let frontApp = NSWorkspace.shared.frontmostApplication else {
             return nil
         }
-        return from(runningApp: frontApp)
+        return self.from(runningApp: frontApp)
     }
 }
 

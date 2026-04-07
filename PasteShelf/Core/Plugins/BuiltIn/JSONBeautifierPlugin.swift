@@ -18,17 +18,17 @@
 
         public func didLoad(with context: any PluginContext) {
             self.context = context
-            storage = context.storage
+            self.storage = context.storage
             context.logger.info("JSON Beautifier loaded")
 
             // Register transformers
             Task { @MainActor in
-                registerTransformers()
+                self.registerTransformers()
             }
         }
 
         public func willUnload() {
-            context?.logger.info("JSON Beautifier unloading")
+            self.context?.logger.info("JSON Beautifier unloading")
 
             // Unregister transformers
             Task { @MainActor in
@@ -66,7 +66,7 @@
         // MARK: - Settings View
 
         public func settingsView() -> AnyView? {
-            AnyView(JSONBeautifierSettingsView(storage: storage))
+            AnyView(JSONBeautifierSettingsView(storage: self.storage))
         }
 
         // MARK: Internal
@@ -83,7 +83,7 @@
         /// Transforms content (used internally by plugin system)
         @MainActor
         func transform(content: PluginClipboardContent) async throws -> PluginClipboardContent? {
-            try formatJSON(content)
+            try self.formatJSON(content)
         }
 
         /// Checks if content type is supported (used internally by plugin system)
@@ -101,12 +101,12 @@
         // MARK: - Settings
 
         private var indentSize: Int {
-            let size = storage?.integer(forKey: "indentSize") ?? 4
+            let size = self.storage?.integer(forKey: "indentSize") ?? 4
             return size > 0 ? size : 4
         }
 
         private var sortKeys: Bool {
-            storage?.bool(forKey: "sortKeys") ?? true
+            self.storage?.bool(forKey: "sortKeys") ?? true
         }
 
         // MARK: - Transformer Registration
@@ -164,7 +164,7 @@
             }
 
             var options: JSONSerialization.WritingOptions = [.prettyPrinted]
-            if sortKeys {
+            if self.sortKeys {
                 options.insert(.sortedKeys)
             }
 
@@ -175,8 +175,8 @@
             }
 
             // Apply custom indent size if not 2
-            if indentSize != 2 {
-                formattedString = adjustIndentation(formattedString, size: indentSize)
+            if self.indentSize != 2 {
+                formattedString = self.adjustIndentation(formattedString, size: self.indentSize)
             }
 
             let result = PluginClipboardContent(text: formattedString)
@@ -268,26 +268,26 @@
 
         var body: some View {
             Form {
-                Picker("Indent Size", selection: $indentSize) {
+                Picker("Indent Size", selection: self.$indentSize) {
                     Text("2 spaces").tag(2)
                     Text("4 spaces").tag(4)
                     Text("Tab").tag(0)
                 }
-                .onChange(of: indentSize) { _, newValue in
-                    storage?.setInteger(newValue, forKey: "indentSize")
+                .onChange(of: self.indentSize) { _, newValue in
+                    self.storage?.setInteger(newValue, forKey: "indentSize")
                 }
 
-                Toggle("Sort Keys Alphabetically", isOn: $sortKeys)
-                    .onChange(of: sortKeys) { _, newValue in
-                        storage?.setBool(newValue, forKey: "sortKeys")
+                Toggle("Sort Keys Alphabetically", isOn: self.$sortKeys)
+                    .onChange(of: self.sortKeys) { _, newValue in
+                        self.storage?.setBool(newValue, forKey: "sortKeys")
                     }
             }
             .onAppear {
-                indentSize = storage?.integer(forKey: "indentSize") ?? 2
-                if indentSize == 0 {
-                    indentSize = 2
+                self.indentSize = self.storage?.integer(forKey: "indentSize") ?? 2
+                if self.indentSize == 0 {
+                    self.indentSize = 2
                 }
-                sortKeys = storage?.bool(forKey: "sortKeys") ?? true
+                self.sortKeys = self.storage?.bool(forKey: "sortKeys") ?? true
             }
         }
 

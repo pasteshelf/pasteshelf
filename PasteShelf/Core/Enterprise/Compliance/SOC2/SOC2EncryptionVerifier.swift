@@ -32,38 +32,38 @@ enum SOC2EncryptionVerifier {
         var findings: [ComplianceFinding] = []
 
         // Check CoreData / data protection layer
-        let coreDataFinding = verifyCoreDataEncryption()
+        let coreDataFinding = self.verifyCoreDataEncryption()
         findings.append(coreDataFinding)
 
         // Check Keychain security (audit key + sync key)
-        let auditKeychainFinding = verifyKeychainKey(
-            tag: auditKeyTag,
+        let auditKeychainFinding = self.verifyKeychainKey(
+            tag: self.auditKeyTag,
             category: "Keychain Security",
             description: "AES-256-GCM audit log encryption key"
         )
         findings.append(auditKeychainFinding)
 
-        let syncKeychainFinding = verifyKeychainKey(
-            tag: syncKeyTag,
+        let syncKeychainFinding = self.verifyKeychainKey(
+            tag: self.syncKeyTag,
             category: "Keychain Security",
             description: "AES-256-GCM sync data encryption key"
         )
         findings.append(syncKeychainFinding)
 
         // Check audit log encryption
-        let auditLogFinding = verifyAuditLogEncryption()
+        let auditLogFinding = self.verifyAuditLogEncryption()
         findings.append(auditLogFinding)
 
         // Check sync transport encryption (TLS 1.2+ via ATS)
-        let transportFinding = verifySyncTransportEncryption()
+        let transportFinding = self.verifySyncTransportEncryption()
         findings.append(transportFinding)
 
         // Check at-rest disk encryption (FileVault)
-        let atRestFinding = verifyAtRestEncryption()
+        let atRestFinding = self.verifyAtRestEncryption()
         findings.append(atRestFinding)
 
         // Check key management practices
-        let keyManagementFinding = verifyKeyManagement()
+        let keyManagementFinding = self.verifyKeyManagement()
         findings.append(keyManagementFinding)
 
         // Derive per-domain booleans from findings
@@ -81,7 +81,7 @@ enum SOC2EncryptionVerifier {
 
         let totalCount = findings.count
         let summary = "\(overallScore)% (\(passingCount)/\(totalCount) checks passed)"
-        logger.info("SOC2 encryption verification complete — score: \(summary)")
+        self.logger.info("SOC2 encryption verification complete — score: \(summary)")
 
         return SOC2EncryptionReport(
             findings: findings,
@@ -114,7 +114,7 @@ enum SOC2EncryptionVerifier {
     /// macOS with FileVault enabled). This is an OS-level guarantee — we
     /// record a static pass and note the dependency on FileVault being active.
     private static func verifyCoreDataEncryption() -> ComplianceFinding {
-        logger.debug("CoreData encryption verified via Apple platform data-protection APIs")
+        self.logger.debug("CoreData encryption verified via Apple platform data-protection APIs")
         return ComplianceFinding(
             category: "CoreData Encryption",
             status: .pass,
@@ -134,14 +134,14 @@ enum SOC2EncryptionVerifier {
         let status = SecItemCopyMatching(query as CFDictionary, nil)
 
         if status == errSecSuccess {
-            logger.debug("Keychain key present for \(description)")
+            self.logger.debug("Keychain key present for \(description)")
             return ComplianceFinding(
                 category: category,
                 status: .pass,
                 description: "\(description) is present in Keychain"
             )
         } else {
-            logger.warning("Keychain key NOT found for \(description) (OSStatus: \(status))")
+            self.logger.warning("Keychain key NOT found for \(description) (OSStatus: \(status))")
             return ComplianceFinding(
                 category: category,
                 status: .fail,
@@ -154,17 +154,17 @@ enum SOC2EncryptionVerifier {
 
     /// Verifies that the audit log encryption key exists in the Keychain.
     private static func verifyAuditLogEncryption() -> ComplianceFinding {
-        let exists = keychainKeyExists(tag: auditKeyTag)
+        let exists = self.keychainKeyExists(tag: self.auditKeyTag)
 
         if exists {
-            logger.debug("Audit log encryption key is present")
+            self.logger.debug("Audit log encryption key is present")
             return ComplianceFinding(
                 category: "Audit Log Encryption",
                 status: .pass,
                 description: "Audit log detail payloads are encrypted with AES-256-GCM"
             )
         } else {
-            logger.warning("Audit log encryption key is missing")
+            self.logger.warning("Audit log encryption key is missing")
             return ComplianceFinding(
                 category: "Audit Log Encryption",
                 status: .fail,
@@ -180,7 +180,7 @@ enum SOC2EncryptionVerifier {
     /// This is a static pass — ATS is a compile-time / plist-level guarantee for
     /// all URLSession traffic used by the sync subsystem.
     private static func verifySyncTransportEncryption() -> ComplianceFinding {
-        logger.debug("Sync transport encryption verified via App Transport Security (ATS/TLS 1.2+)")
+        self.logger.debug("Sync transport encryption verified via App Transport Security (ATS/TLS 1.2+)")
         return ComplianceFinding(
             category: "Sync Transport Encryption",
             status: .pass,
@@ -212,14 +212,14 @@ enum SOC2EncryptionVerifier {
                 process.waitUntilExit()
 
                 if process.terminationStatus == 0 {
-                    logger.debug("FileVault at-rest encryption is active")
+                    self.logger.debug("FileVault at-rest encryption is active")
                     return ComplianceFinding(
                         category: "At-Rest Encryption",
                         status: .pass,
                         description: "FileVault full-disk encryption is active, protecting all data at rest"
                     )
                 } else {
-                    logger.warning("FileVault at-rest encryption is NOT active")
+                    self.logger.warning("FileVault at-rest encryption is NOT active")
                     return ComplianceFinding(
                         category: "At-Rest Encryption",
                         status: .fail,
@@ -228,7 +228,7 @@ enum SOC2EncryptionVerifier {
                     )
                 }
             } catch {
-                logger.warning("Unable to determine FileVault status: \(error.localizedDescription)")
+                self.logger.warning("Unable to determine FileVault status: \(error.localizedDescription)")
                 return ComplianceFinding(
                     category: "At-Rest Encryption",
                     status: .warning,
@@ -242,19 +242,19 @@ enum SOC2EncryptionVerifier {
     /// Verifies key management practices by confirming all required keys are present
     /// and available for rotation.
     private static func verifyKeyManagement() -> ComplianceFinding {
-        let auditKeyExists = keychainKeyExists(tag: auditKeyTag)
-        let syncKeyExists = keychainKeyExists(tag: syncKeyTag)
+        let auditKeyExists = self.keychainKeyExists(tag: self.auditKeyTag)
+        let syncKeyExists = self.keychainKeyExists(tag: self.syncKeyTag)
 
         switch (auditKeyExists, syncKeyExists) {
         case (true, true):
-            logger.debug("Key management check passed — all encryption keys are present")
+            self.logger.debug("Key management check passed — all encryption keys are present")
             return ComplianceFinding(
                 category: "Key Management",
                 status: .pass,
                 description: "All encryption keys are present in Keychain and available for rotation"
             )
         case (false, false):
-            logger.warning("Key management check failed — both encryption keys are missing")
+            self.logger.warning("Key management check failed — both encryption keys are missing")
             return ComplianceFinding(
                 category: "Key Management",
                 status: .fail,
@@ -264,7 +264,7 @@ enum SOC2EncryptionVerifier {
                     + "subsystems to generate managed keys"
             )
         default:
-            logger.warning("Key management check warning — one encryption key is missing")
+            self.logger.warning("Key management check warning — one encryption key is missing")
             return ComplianceFinding(
                 category: "Key Management",
                 status: .warning,

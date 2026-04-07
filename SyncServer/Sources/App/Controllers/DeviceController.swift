@@ -13,9 +13,9 @@ import Vapor
 struct DeviceController: RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
         let devices = routes.grouped("api", "v1", "devices")
-        devices.post("register", use: register)
-        devices.get(use: list)
-        devices.delete(":deviceId", use: remove)
+        devices.post("register", use: self.register)
+        devices.get(use: self.list)
+        devices.delete(":deviceId", use: self.remove)
     }
 
     // MARK: - Register Device

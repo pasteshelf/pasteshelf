@@ -15,14 +15,14 @@ final class FloatingPanelUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
 
-        app = XCUIApplication()
+        self.app = XCUIApplication()
         // Skip onboarding for panel tests
-        app.launchArguments.append("--skip-onboarding")
-        app.launch()
+        self.app.launchArguments.append("--skip-onboarding")
+        self.app.launch()
     }
 
     override func tearDownWithError() throws {
-        app = nil
+        self.app = nil
     }
 
     // MARK: - Panel Visibility Tests
@@ -34,17 +34,17 @@ final class FloatingPanelUITests: XCTestCase {
         // since keyboard shortcuts require accessibility permissions
 
         // Use menu bar to show panel
-        let menuBarItem = app.menuBars.statusItems.firstMatch
+        let menuBarItem = self.app.menuBars.statusItems.firstMatch
         if menuBarItem.exists {
             menuBarItem.click()
 
             // Look for Show Panel option
-            let showPanel = app.menuItems["Show Clipboard Panel"]
+            let showPanel = self.app.menuItems["Show Clipboard Panel"]
             if showPanel.waitForExistence(timeout: 2) {
                 showPanel.click()
 
                 // Panel should appear
-                let panel = app.windows["Clipboard History"]
+                let panel = self.app.windows["Clipboard History"]
                 XCTAssertTrue(panel.waitForExistence(timeout: 2))
             }
         }
@@ -52,9 +52,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testPanelShowsClipboardHistory() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -66,9 +66,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testPanelHasSearchField() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -81,9 +81,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testPanelHasFilterChips() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -106,9 +106,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testKeyboardNavigationUpDown() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -123,9 +123,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testEscapeClosesPanel() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -140,9 +140,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testCmdFocusesSearchField() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -158,9 +158,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testSearchFiltersItems() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -182,9 +182,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testClearSearchButton() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -209,9 +209,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testFilterByContentType() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -228,9 +228,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testToggleFavoritesFilter() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -249,9 +249,9 @@ final class FloatingPanelUITests: XCTestCase {
 
     @MainActor
     func testEmptyStateDisplays() {
-        showPanel()
+        self.showPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 2) else {
             XCTSkip("Panel not available")
             return
@@ -269,11 +269,11 @@ final class FloatingPanelUITests: XCTestCase {
 
     private func showPanel() {
         // Try to show panel via menu bar
-        let menuBarItem = app.menuBars.statusItems.firstMatch
+        let menuBarItem = self.app.menuBars.statusItems.firstMatch
         if menuBarItem.exists {
             menuBarItem.click()
 
-            let showPanel = app.menuItems["Show Clipboard Panel"]
+            let showPanel = self.app.menuItems["Show Clipboard Panel"]
             if showPanel.waitForExistence(timeout: 2) {
                 showPanel.click()
             }

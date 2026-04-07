@@ -25,9 +25,9 @@ final class OnboardingViewModel: ObservableObject {
 
     init() {
         #if !APP_STORE
-            checkAccessibilityPermission()
+            self.checkAccessibilityPermission()
         #endif
-        Task { await checkNotificationPermission() }
+        Task { await self.checkNotificationPermission() }
     }
 
     deinit {
@@ -67,18 +67,18 @@ final class OnboardingViewModel: ObservableObject {
     /// Check if onboarding should be shown
     static func shouldShowOnboarding() -> Bool {
         let defaults = UserDefaults.standard
-        let hasCompleted = defaults.bool(forKey: onboardingCompletedKey)
-        let savedVersion = defaults.integer(forKey: onboardingVersionKey)
+        let hasCompleted = defaults.bool(forKey: self.onboardingCompletedKey)
+        let savedVersion = defaults.integer(forKey: self.onboardingVersionKey)
 
         // Show if never completed or version is outdated
-        return !hasCompleted || savedVersion < currentOnboardingVersion
+        return !hasCompleted || savedVersion < self.currentOnboardingVersion
     }
 
     /// Reset onboarding (for testing)
     static func resetOnboarding() {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: onboardingCompletedKey)
-        defaults.removeObject(forKey: onboardingVersionKey)
+        defaults.removeObject(forKey: self.onboardingCompletedKey)
+        defaults.removeObject(forKey: self.onboardingVersionKey)
     }
 
     /// Mark onboarding as complete
@@ -86,45 +86,45 @@ final class OnboardingViewModel: ObservableObject {
         let defaults = UserDefaults.standard
         defaults.set(true, forKey: Self.onboardingCompletedKey)
         defaults.set(Self.currentOnboardingVersion, forKey: Self.onboardingVersionKey)
-        isComplete = true
-        stopPermissionChecking()
-        stopNotificationChecking()
-        logger.info("Onboarding completed")
+        self.isComplete = true
+        self.stopPermissionChecking()
+        self.stopNotificationChecking()
+        self.logger.info("Onboarding completed")
     }
 
     /// Move to the next step
     func nextStep() {
         if let next = currentStep.next {
-            currentStep = next
-            logger.debug("Moved to step: \(next.title)")
+            self.currentStep = next
+            self.logger.debug("Moved to step: \(next.title)")
 
             #if !APP_STORE
                 if next == .permissions {
-                    startPermissionChecking()
+                    self.startPermissionChecking()
                 }
             #endif
             if next == .notifications {
-                startNotificationChecking()
+                self.startNotificationChecking()
             }
         } else {
-            completeOnboarding()
+            self.completeOnboarding()
         }
     }
 
     /// Move to the previous step
     func previousStep() {
         if let previous = currentStep.previous {
-            currentStep = previous
-            logger.debug("Moved back to step: \(previous.title)")
+            self.currentStep = previous
+            self.logger.debug("Moved back to step: \(previous.title)")
         }
     }
 
     /// Skip the current step if allowed
     func skipStep() {
-        guard currentStep.isSkippable else {
+        guard self.currentStep.isSkippable else {
             return
         }
-        nextStep()
+        self.nextStep()
     }
 
     /// Check accessibility permission status
@@ -132,12 +132,12 @@ final class OnboardingViewModel: ObservableObject {
         #if !APP_STORE
             #if DEBUG
                 if CommandLine.arguments.contains("--bypass-permissions") {
-                    hasAccessibilityPermission = true
+                    self.hasAccessibilityPermission = true
                     return
                 }
             #endif
-            hasAccessibilityPermission = AXIsProcessTrusted()
-            logger.debug("Accessibility permission: \(hasAccessibilityPermission)")
+            self.hasAccessibilityPermission = AXIsProcessTrusted()
+            self.logger.debug("Accessibility permission: \(self.hasAccessibilityPermission)")
         #endif
     }
 
@@ -157,16 +157,16 @@ final class OnboardingViewModel: ObservableObject {
                 }
             }
 
-            hasAccessibilityPermission = trusted
-            logger.info("Requested accessibility permission, trusted: \(trusted)")
+            self.hasAccessibilityPermission = trusted
+            self.logger.info("Requested accessibility permission, trusted: \(trusted)")
         #endif
     }
 
     /// Start periodic permission checking
     func startPermissionChecking() {
         #if !APP_STORE
-            stopPermissionChecking()
-            permissionCheckTimer = Timer.scheduledTimer(
+            self.stopPermissionChecking()
+            self.permissionCheckTimer = Timer.scheduledTimer(
                 withTimeInterval: 1.0,
                 repeats: true
             ) { [weak self] _ in
@@ -179,8 +179,8 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Stop periodic permission checking
     func stopPermissionChecking() {
-        permissionCheckTimer?.invalidate()
-        permissionCheckTimer = nil
+        self.permissionCheckTimer?.invalidate()
+        self.permissionCheckTimer = nil
     }
 
     // MARK: - Notification Permission
@@ -188,8 +188,8 @@ final class OnboardingViewModel: ObservableObject {
     /// Check notification permission status
     func checkNotificationPermission() async {
         let settings = await UNUserNotificationCenter.current().notificationSettings()
-        hasNotificationPermission = settings.authorizationStatus == .authorized
-        logger.debug("Notification permission: \(hasNotificationPermission)")
+        self.hasNotificationPermission = settings.authorizationStatus == .authorized
+        self.logger.debug("Notification permission: \(self.hasNotificationPermission)")
     }
 
     /// Request notification permission
@@ -202,22 +202,22 @@ final class OnboardingViewModel: ObservableObject {
                 do {
                     let granted = try await UNUserNotificationCenter.current()
                         .requestAuthorization(options: [.alert, .sound, .badge])
-                    hasNotificationPermission = granted
-                    logger.info("Requested notification permission, granted: \(granted)")
+                    self.hasNotificationPermission = granted
+                    self.logger.info("Requested notification permission, granted: \(granted)")
                 } catch {
-                    logger.error("Failed to request notification permission: \(error.localizedDescription)")
+                    self.logger.error("Failed to request notification permission: \(error.localizedDescription)")
                 }
             } else {
                 // Previously denied — open System Settings
-                openNotificationSettings()
+                self.openNotificationSettings()
             }
         }
     }
 
     /// Start periodic notification permission checking
     func startNotificationChecking() {
-        stopNotificationChecking()
-        notificationCheckTimer = Timer.scheduledTimer(
+        self.stopNotificationChecking()
+        self.notificationCheckTimer = Timer.scheduledTimer(
             withTimeInterval: 1.0,
             repeats: true
         ) { [weak self] _ in
@@ -229,8 +229,8 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Stop periodic notification permission checking
     func stopNotificationChecking() {
-        notificationCheckTimer?.invalidate()
-        notificationCheckTimer = nil
+        self.notificationCheckTimer?.invalidate()
+        self.notificationCheckTimer = nil
     }
 
     // MARK: Private

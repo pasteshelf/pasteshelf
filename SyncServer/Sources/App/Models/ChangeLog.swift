@@ -14,13 +14,13 @@ final class ChangeLog: Model, Content, @unchecked Sendable {
         sourceDevice: String? = nil,
         syncRecordID: UUID? = nil
     ) {
-        $user.id = userID
+        self.$user.id = userID
         self.entityID = entityID
         self.entityType = entityType
         self.changeType = changeType
         self.sourceDevice = sourceDevice
         if let syncRecordID {
-            $syncRecord.id = syncRecordID
+            self.$syncRecord.id = syncRecordID
         }
     }
 

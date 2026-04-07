@@ -69,14 +69,14 @@ extension AutomationRuleEntity {
         priority: Int32 = 100
     ) {
         self.init(context: context)
-        id = UUID()
+        self.id = UUID()
         self.name = name
         self.triggerType = triggerType
         self.isEnabled = isEnabled
         self.priority = priority
-        createdAt = Date()
-        modifiedAt = Date()
-        executionCount = 0
+        self.createdAt = Date()
+        self.modifiedAt = Date()
+        self.executionCount = 0
     }
 }
 
@@ -85,7 +85,7 @@ extension AutomationRuleEntity {
 extension AutomationRuleEntity {
     /// Fetches all enabled rules ordered by priority
     static func enabledRulesFetchRequest() -> NSFetchRequest<AutomationRuleEntity> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(format: "isEnabled == YES")
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \AutomationRuleEntity.priority, ascending: true),
@@ -96,7 +96,7 @@ extension AutomationRuleEntity {
 
     /// Fetches all rules for a specific trigger type
     static func rulesForTriggerFetchRequest(triggerType: String) -> NSFetchRequest<AutomationRuleEntity> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(
             format: "isEnabled == YES AND triggerType == %@",
             triggerType
@@ -110,7 +110,7 @@ extension AutomationRuleEntity {
 
     /// Fetches all rules ordered by priority
     static func allRulesFetchRequest() -> NSFetchRequest<AutomationRuleEntity> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \AutomationRuleEntity.priority, ascending: true),
             NSSortDescriptor(keyPath: \AutomationRuleEntity.createdAt, ascending: true),
@@ -153,53 +153,53 @@ extension AutomationRuleEntity {
         }
 
         // Parse conditions (reusing CollectionRules)
-        let conditions = CollectionRules.fromJSON(conditionsJSON) ?? CollectionRules()
+        let conditions = CollectionRules.fromJSON(self.conditionsJSON) ?? CollectionRules()
 
         // Parse actions
-        let actions = [AutomationAction].fromJSON(actionsJSON) ?? []
+        let actions = [AutomationAction].fromJSON(self.actionsJSON) ?? []
 
         return AutomationRule(
             id: id,
             name: name,
-            isEnabled: isEnabled,
+            isEnabled: self.isEnabled,
             trigger: trigger,
             conditions: conditions,
             actions: actions,
-            priority: priority,
-            createdAt: createdAt ?? Date(),
-            modifiedAt: modifiedAt ?? Date(),
-            lastExecutedAt: lastExecutedAt,
-            executionCount: executionCount
+            priority: self.priority,
+            createdAt: self.createdAt ?? Date(),
+            modifiedAt: self.modifiedAt ?? Date(),
+            lastExecutedAt: self.lastExecutedAt,
+            executionCount: self.executionCount
         )
     }
 
     /// Updates this entity from an AutomationRule model
     func update(from rule: AutomationRule) {
-        id = rule.id
-        name = rule.name
-        isEnabled = rule.isEnabled
-        triggerType = rule.trigger.rawType
-        priority = rule.priority
-        createdAt = rule.createdAt
-        modifiedAt = Date()
-        lastExecutedAt = rule.lastExecutedAt
-        executionCount = rule.executionCount
+        self.id = rule.id
+        self.name = rule.name
+        self.isEnabled = rule.isEnabled
+        self.triggerType = rule.trigger.rawType
+        self.priority = rule.priority
+        self.createdAt = rule.createdAt
+        self.modifiedAt = Date()
+        self.lastExecutedAt = rule.lastExecutedAt
+        self.executionCount = rule.executionCount
 
         // Serialize trigger value if schedule
         if case let .schedule(cron) = rule.trigger {
             if let cronData = try? JSONEncoder().encode(cron),
                let cronString = String(data: cronData, encoding: .utf8)
             {
-                triggerValue = cronString
+                self.triggerValue = cronString
             }
         } else {
-            triggerValue = nil
+            self.triggerValue = nil
         }
 
         // Serialize conditions
-        conditionsJSON = rule.conditions.toJSON()
+        self.conditionsJSON = rule.conditions.toJSON()
 
         // Serialize actions
-        actionsJSON = rule.actions.toJSON()
+        self.actionsJSON = rule.actions.toJSON()
     }
 }

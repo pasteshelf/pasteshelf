@@ -125,15 +125,15 @@ struct DateGroupedSection<Item: Identifiable>: Identifiable {
     let items: [Item]
 
     var id: String {
-        group.id
+        self.group.id
     }
 
     var isEmpty: Bool {
-        items.isEmpty
+        self.items.isEmpty
     }
 
     var count: Int {
-        items.count
+        self.items.count
     }
 }
 

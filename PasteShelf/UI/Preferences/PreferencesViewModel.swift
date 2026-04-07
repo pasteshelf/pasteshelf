@@ -28,36 +28,36 @@ final class PreferencesViewModel: ObservableObject {
         let settings = settingsManager.settings
 
         // General
-        launchAtLogin = settings.general.launchAtLogin
-        showInDock = settings.general.showInDock
-        historyLimit = settings.general.historyLimit
-        captureTextContent = settings.general.captureTextContent
-        captureImageContent = settings.general.captureImageContent
-        captureFileContent = settings.general.captureFileContent
-        captureLinkContent = settings.general.captureLinkContent
+        self.launchAtLogin = settings.general.launchAtLogin
+        self.showInDock = settings.general.showInDock
+        self.historyLimit = settings.general.historyLimit
+        self.captureTextContent = settings.general.captureTextContent
+        self.captureImageContent = settings.general.captureImageContent
+        self.captureFileContent = settings.general.captureFileContent
+        self.captureLinkContent = settings.general.captureLinkContent
 
         // Privacy
-        autoDeleteEnabled = settings.privacy.autoDeleteEnabled
-        autoDeleteDays = settings.privacy.autoDeleteDays
-        isMonitoringPaused = settings.privacy.isMonitoringPaused
+        self.autoDeleteEnabled = settings.privacy.autoDeleteEnabled
+        self.autoDeleteDays = settings.privacy.autoDeleteDays
+        self.isMonitoringPaused = settings.privacy.isMonitoringPaused
 
-        excludedAppBundleIds = settings.privacy.excludedAppBundleIds
-        sensitiveDetectionEnabled = settings.privacy.sensitiveDetectionEnabled
-        enabledSensitiveCategories = settings.privacy.enabledSensitiveCategories
+        self.excludedAppBundleIds = settings.privacy.excludedAppBundleIds
+        self.sensitiveDetectionEnabled = settings.privacy.sensitiveDetectionEnabled
+        self.enabledSensitiveCategories = settings.privacy.enabledSensitiveCategories
 
         // Appearance
-        theme = settings.appearance.theme
-        panelWidth = settings.appearance.panelWidth
-        previewLines = settings.appearance.previewLines
-        showThumbnails = settings.appearance.showThumbnails
-        compactMode = settings.appearance.compactMode
-        showTagFilters = settings.appearance.showTagFilters
+        self.theme = settings.appearance.theme
+        self.panelWidth = settings.appearance.panelWidth
+        self.previewLines = settings.appearance.previewLines
+        self.showThumbnails = settings.appearance.showThumbnails
+        self.compactMode = settings.appearance.compactMode
+        self.showTagFilters = settings.appearance.showTagFilters
 
         // Shortcuts
-        globalHotkey = settings.shortcuts.globalHotkey
-        quickPasteEnabled = settings.shortcuts.quickPasteEnabled
+        self.globalHotkey = settings.shortcuts.globalHotkey
+        self.quickPasteEnabled = settings.shortcuts.quickPasteEnabled
 
-        setupBindings()
+        self.setupBindings()
     }
 
     // MARK: Internal
@@ -70,127 +70,127 @@ final class PreferencesViewModel: ObservableObject {
     // MARK: - General Settings
 
     @Published var launchAtLogin: Bool {
-        didSet { updateGeneral() }
+        didSet { self.updateGeneral() }
     }
 
     @Published var showInDock: Bool {
-        didSet { updateGeneral() }
+        didSet { self.updateGeneral() }
     }
 
     @Published var historyLimit: HistoryLimit {
-        didSet { updateGeneral() }
+        didSet { self.updateGeneral() }
     }
 
     @Published var captureTextContent: Bool {
-        didSet { updateGeneral() }
+        didSet { self.updateGeneral() }
     }
 
     @Published var captureImageContent: Bool {
-        didSet { updateGeneral() }
+        didSet { self.updateGeneral() }
     }
 
     @Published var captureFileContent: Bool {
-        didSet { updateGeneral() }
+        didSet { self.updateGeneral() }
     }
 
     @Published var captureLinkContent: Bool {
-        didSet { updateGeneral() }
+        didSet { self.updateGeneral() }
     }
 
     // MARK: - Privacy Settings
 
     @Published var autoDeleteEnabled: Bool {
-        didSet { updatePrivacy() }
+        didSet { self.updatePrivacy() }
     }
 
     @Published var autoDeleteDays: Int {
-        didSet { updatePrivacy() }
+        didSet { self.updatePrivacy() }
     }
 
     @Published var isMonitoringPaused: Bool {
-        didSet { updatePrivacy() }
+        didSet { self.updatePrivacy() }
     }
 
     @Published var excludedAppBundleIds: [String] {
-        didSet { updatePrivacy() }
+        didSet { self.updatePrivacy() }
     }
 
     @Published var sensitiveDetectionEnabled: Bool {
-        didSet { updatePrivacy() }
+        didSet { self.updatePrivacy() }
     }
 
     @Published var enabledSensitiveCategories: Set<SensitivePatterns.SensitiveCategory> {
-        didSet { updatePrivacy() }
+        didSet { self.updatePrivacy() }
     }
 
     // MARK: - Appearance Settings
 
     @Published var theme: AppTheme {
-        didSet { updateAppearance() }
+        didSet { self.updateAppearance() }
     }
 
     @Published var panelWidth: PanelWidth {
-        didSet { updateAppearance() }
+        didSet { self.updateAppearance() }
     }
 
     @Published var previewLines: Int {
-        didSet { updateAppearance() }
+        didSet { self.updateAppearance() }
     }
 
     @Published var showThumbnails: Bool {
-        didSet { updateAppearance() }
+        didSet { self.updateAppearance() }
     }
 
     @Published var compactMode: Bool {
-        didSet { updateAppearance() }
+        didSet { self.updateAppearance() }
     }
 
     @Published var showTagFilters: Bool {
-        didSet { updateAppearance() }
+        didSet { self.updateAppearance() }
     }
 
     // MARK: - Shortcuts Settings
 
     @Published var globalHotkey: StoredHotkey {
-        didSet { updateShortcuts() }
+        didSet { self.updateShortcuts() }
     }
 
     @Published var quickPasteEnabled: Bool {
-        didSet { updateShortcuts() }
+        didSet { self.updateShortcuts() }
     }
 
     /// Resets all settings to defaults
     func resetToDefaults() {
-        settingsManager.resetToDefaults()
-        logger.info("Settings reset to defaults")
+        self.settingsManager.resetToDefaults()
+        self.logger.info("Settings reset to defaults")
     }
 
     /// Adds an app to the exclusion list
     func addExcludedApp(_ bundleId: String) {
-        guard !excludedAppBundleIds.contains(bundleId) else {
+        guard !self.excludedAppBundleIds.contains(bundleId) else {
             return
         }
-        excludedAppBundleIds.append(bundleId)
+        self.excludedAppBundleIds.append(bundleId)
     }
 
     /// Removes an app from the exclusion list
     func removeExcludedApp(_ bundleId: String) {
-        excludedAppBundleIds.removeAll { $0 == bundleId }
+        self.excludedAppBundleIds.removeAll { $0 == bundleId }
     }
 
     /// Toggles a sensitive data detection category on or off
     func toggleSensitiveCategory(_ category: SensitivePatterns.SensitiveCategory) {
-        if enabledSensitiveCategories.contains(category) {
-            enabledSensitiveCategories.remove(category)
+        if self.enabledSensitiveCategories.contains(category) {
+            self.enabledSensitiveCategories.remove(category)
         } else {
-            enabledSensitiveCategories.insert(category)
+            self.enabledSensitiveCategories.insert(category)
         }
     }
 
     /// Clears clipboard history (keeps favorites)
     func clearHistory() {
         Task {
-            await storageManager.deleteAllItems(keepFavorites: true)
+            await self.storageManager.deleteAllItems(keepFavorites: true)
             NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
         }
     }
@@ -213,79 +213,79 @@ final class PreferencesViewModel: ObservableObject {
 
     private func setupBindings() {
         // Observe external settings changes
-        settingsManager.$settings
+        self.settingsManager.$settings
             .dropFirst()
             .sink { [weak self] settings in
                 self?.syncFromSettings(settings)
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 
     // MARK: - Update Methods
 
     private func updateGeneral() {
-        guard !isUpdating else {
+        guard !self.isUpdating else {
             return
         }
 
         // Apply launch at login change immediately
-        let previousLaunchAtLogin = settingsManager.general.launchAtLogin
-        if launchAtLogin != previousLaunchAtLogin {
-            LaunchAtLoginManager.shared.setEnabled(launchAtLogin)
+        let previousLaunchAtLogin = self.settingsManager.general.launchAtLogin
+        if self.launchAtLogin != previousLaunchAtLogin {
+            LaunchAtLoginManager.shared.setEnabled(self.launchAtLogin)
         }
 
         // Apply dock visibility change immediately
-        let previousShowInDock = settingsManager.general.showInDock
-        if showInDock != previousShowInDock {
-            DockVisibilityManager.shared.setVisible(showInDock)
+        let previousShowInDock = self.settingsManager.general.showInDock
+        if self.showInDock != previousShowInDock {
+            DockVisibilityManager.shared.setVisible(self.showInDock)
         }
 
-        settingsManager.general = GeneralSettings(
-            launchAtLogin: launchAtLogin,
-            showInDock: showInDock,
-            historyLimit: historyLimit,
-            captureTextContent: captureTextContent,
-            captureImageContent: captureImageContent,
-            captureFileContent: captureFileContent,
-            captureLinkContent: captureLinkContent
+        self.settingsManager.general = GeneralSettings(
+            launchAtLogin: self.launchAtLogin,
+            showInDock: self.showInDock,
+            historyLimit: self.historyLimit,
+            captureTextContent: self.captureTextContent,
+            captureImageContent: self.captureImageContent,
+            captureFileContent: self.captureFileContent,
+            captureLinkContent: self.captureLinkContent
         )
     }
 
     private func updatePrivacy() {
-        guard !isUpdating else {
+        guard !self.isUpdating else {
             return
         }
 
         // Write to SettingsManager; AppDelegate.handleSettingsChange() drives monitor
         // state via setMonitoringPaused() when it receives .settingsDidChange.
-        settingsManager.privacy = PrivacySettings(
-            autoDeleteEnabled: autoDeleteEnabled,
-            autoDeleteDays: autoDeleteDays,
-            isMonitoringPaused: isMonitoringPaused,
-            excludedAppBundleIds: excludedAppBundleIds,
-            sensitiveDetectionEnabled: sensitiveDetectionEnabled,
-            enabledSensitiveCategories: enabledSensitiveCategories
+        self.settingsManager.privacy = PrivacySettings(
+            autoDeleteEnabled: self.autoDeleteEnabled,
+            autoDeleteDays: self.autoDeleteDays,
+            isMonitoringPaused: self.isMonitoringPaused,
+            excludedAppBundleIds: self.excludedAppBundleIds,
+            sensitiveDetectionEnabled: self.sensitiveDetectionEnabled,
+            enabledSensitiveCategories: self.enabledSensitiveCategories
         )
     }
 
     private func updateAppearance() {
-        guard !isUpdating else {
+        guard !self.isUpdating else {
             return
         }
 
         // Apply theme change immediately
-        let previousTheme = settingsManager.appearance.theme
-        if theme != previousTheme {
-            applyTheme(theme)
+        let previousTheme = self.settingsManager.appearance.theme
+        if self.theme != previousTheme {
+            self.applyTheme(self.theme)
         }
 
-        settingsManager.appearance = AppearanceSettings(
-            theme: theme,
-            panelWidth: panelWidth,
-            previewLines: previewLines,
-            showThumbnails: showThumbnails,
-            compactMode: compactMode,
-            showTagFilters: showTagFilters
+        self.settingsManager.appearance = AppearanceSettings(
+            theme: self.theme,
+            panelWidth: self.panelWidth,
+            previewLines: self.previewLines,
+            showThumbnails: self.showThumbnails,
+            compactMode: self.compactMode,
+            showTagFilters: self.showTagFilters
         )
     }
 
@@ -298,61 +298,61 @@ final class PreferencesViewModel: ObservableObject {
         case .dark:
             NSApp.appearance = NSAppearance(named: .darkAqua)
         }
-        logger.debug("Theme applied: \(theme.rawValue)")
+        self.logger.debug("Theme applied: \(theme.rawValue)")
     }
 
     private func updateShortcuts() {
-        guard !isUpdating else {
+        guard !self.isUpdating else {
             return
         }
 
         // Notify about hotkey change so AppDelegate can update registration
-        let previousHotkey = settingsManager.shortcuts.globalHotkey
-        if globalHotkey != previousHotkey {
-            logger.info("Global hotkey changed to: \(globalHotkey.displayString)")
+        let previousHotkey = self.settingsManager.shortcuts.globalHotkey
+        if self.globalHotkey != previousHotkey {
+            self.logger.info("Global hotkey changed to: \(self.globalHotkey.displayString)")
         }
 
-        settingsManager.shortcuts = ShortcutsSettings(
-            globalHotkey: globalHotkey,
-            quickPasteEnabled: quickPasteEnabled
+        self.settingsManager.shortcuts = ShortcutsSettings(
+            globalHotkey: self.globalHotkey,
+            quickPasteEnabled: self.quickPasteEnabled
         )
     }
 
     // MARK: - Sync
 
     private func syncFromSettings(_ settings: AppSettings) {
-        isUpdating = true
+        self.isUpdating = true
         defer { isUpdating = false }
 
         // General
-        launchAtLogin = settings.general.launchAtLogin
-        showInDock = settings.general.showInDock
-        historyLimit = settings.general.historyLimit
-        captureTextContent = settings.general.captureTextContent
-        captureImageContent = settings.general.captureImageContent
-        captureFileContent = settings.general.captureFileContent
-        captureLinkContent = settings.general.captureLinkContent
+        self.launchAtLogin = settings.general.launchAtLogin
+        self.showInDock = settings.general.showInDock
+        self.historyLimit = settings.general.historyLimit
+        self.captureTextContent = settings.general.captureTextContent
+        self.captureImageContent = settings.general.captureImageContent
+        self.captureFileContent = settings.general.captureFileContent
+        self.captureLinkContent = settings.general.captureLinkContent
 
         // Privacy
-        autoDeleteEnabled = settings.privacy.autoDeleteEnabled
-        autoDeleteDays = settings.privacy.autoDeleteDays
-        isMonitoringPaused = settings.privacy.isMonitoringPaused
+        self.autoDeleteEnabled = settings.privacy.autoDeleteEnabled
+        self.autoDeleteDays = settings.privacy.autoDeleteDays
+        self.isMonitoringPaused = settings.privacy.isMonitoringPaused
 
-        excludedAppBundleIds = settings.privacy.excludedAppBundleIds
-        sensitiveDetectionEnabled = settings.privacy.sensitiveDetectionEnabled
-        enabledSensitiveCategories = settings.privacy.enabledSensitiveCategories
+        self.excludedAppBundleIds = settings.privacy.excludedAppBundleIds
+        self.sensitiveDetectionEnabled = settings.privacy.sensitiveDetectionEnabled
+        self.enabledSensitiveCategories = settings.privacy.enabledSensitiveCategories
 
         // Appearance
-        theme = settings.appearance.theme
-        panelWidth = settings.appearance.panelWidth
-        previewLines = settings.appearance.previewLines
-        showThumbnails = settings.appearance.showThumbnails
-        compactMode = settings.appearance.compactMode
-        showTagFilters = settings.appearance.showTagFilters
+        self.theme = settings.appearance.theme
+        self.panelWidth = settings.appearance.panelWidth
+        self.previewLines = settings.appearance.previewLines
+        self.showThumbnails = settings.appearance.showThumbnails
+        self.compactMode = settings.appearance.compactMode
+        self.showTagFilters = settings.appearance.showTagFilters
 
         // Shortcuts
-        globalHotkey = settings.shortcuts.globalHotkey
-        quickPasteEnabled = settings.shortcuts.quickPasteEnabled
+        self.globalHotkey = settings.shortcuts.globalHotkey
+        self.quickPasteEnabled = settings.shortcuts.quickPasteEnabled
     }
 }
 

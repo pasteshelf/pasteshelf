@@ -63,17 +63,17 @@ final class SSOManager: ObservableObject {
             throw SSOError.configurationInvalid("Provider '\(provider.name)' is disabled")
         }
 
-        isAuthenticating = true
-        lastError = nil
+        self.isAuthenticating = true
+        self.lastError = nil
 
         defer { isAuthenticating = false }
 
         do {
             let session = try await performAuthentication(with: provider)
             try await sessionStore?.save(session)
-            currentSession = session
+            self.currentSession = session
 
-            logger.info("SSO authentication successful for user: \(session.userId)")
+            self.logger.info("SSO authentication successful for user: \(session.userId)")
 
             await AuditManager.shared.logAuthEvent(
                 action: .ssoLogin,
@@ -91,8 +91,8 @@ final class SSOManager: ObservableObject {
             throw error
         } catch {
             let ssoError = SSOError.authenticationFailed(error.localizedDescription)
-            lastError = ssoError
-            await logAuthFailure(provider: provider, error: error)
+            self.lastError = ssoError
+            await self.logAuthFailure(provider: provider, error: error)
             throw ssoError
         }
     }
@@ -109,7 +109,7 @@ final class SSOManager: ObservableObject {
             throw SSOError.notConfigured
         }
 
-        return try await authenticate(with: provider)
+        return try await self.authenticate(with: provider)
     }
 
     // MARK: - Session Management
@@ -122,9 +122,9 @@ final class SSOManager: ObservableObject {
 
         guard session.isValid else {
             // Clean up expired session
-            try await sessionStore?.delete(for: providerId)
-            if currentSession?.providerId == providerId {
-                currentSession = nil
+            try await self.sessionStore?.delete(for: providerId)
+            if self.currentSession?.providerId == providerId {
+                self.currentSession = nil
             }
             return nil
         }
@@ -145,17 +145,17 @@ final class SSOManager: ObservableObject {
             return
         }
 
-        guard oidcTokenManager.needsRefresh(session) else {
+        guard self.oidcTokenManager.needsRefresh(session) else {
             return
         }
 
         do {
             let refreshed = try await oidcTokenManager.refreshTokens(session: session, config: oidcConfig)
-            try await sessionStore?.save(refreshed)
-            currentSession = refreshed
-            logger.info("OIDC tokens refreshed for session: \(session.id)")
+            try await self.sessionStore?.save(refreshed)
+            self.currentSession = refreshed
+            self.logger.info("OIDC tokens refreshed for session: \(session.id)")
         } catch {
-            logger.error("Token refresh failed: \(error.localizedDescription)")
+            self.logger.error("Token refresh failed: \(error.localizedDescription)")
             // Don't clear session — it may still be valid, just can't refresh
 
             // Audit: log token refresh failure
@@ -178,8 +178,8 @@ final class SSOManager: ObservableObject {
         }
 
         guard session.isValid else {
-            currentSession = nil
-            try await sessionStore?.delete(for: session.providerId)
+            self.currentSession = nil
+            try await self.sessionStore?.delete(for: session.providerId)
             return false
         }
 
@@ -191,11 +191,11 @@ final class SSOManager: ObservableObject {
     /// Signs out from the current SSO session
     func logout() async throws {
         guard let session = currentSession else {
-            logger.info("No active session to log out")
+            self.logger.info("No active session to log out")
             return
         }
 
-        logger.info("Starting SSO logout for session: \(session.id)")
+        self.logger.info("Starting SSO logout for session: \(session.id)")
 
         // Determine the provider type and delegate logout
         if let providerStore,
@@ -203,17 +203,17 @@ final class SSOManager: ObservableObject {
         {
             switch provider.type {
             case .saml:
-                try await samlAuthenticator.logout(session: session)
+                try await self.samlAuthenticator.logout(session: session)
             case .oidc:
-                try await oidcAuthenticator.logout(session: session)
+                try await self.oidcAuthenticator.logout(session: session)
             }
         }
 
         // Clear local session
-        try await sessionStore?.delete(for: session.providerId)
-        currentSession = nil
+        try await self.sessionStore?.delete(for: session.providerId)
+        self.currentSession = nil
 
-        logger.info("SSO logout completed")
+        self.logger.info("SSO logout completed")
 
         // Audit: log successful SSO logout
         await AuditManager.shared.logAuthEvent(
@@ -227,9 +227,9 @@ final class SSOManager: ObservableObject {
 
     /// Signs out from all SSO sessions
     func logoutAll() async throws {
-        try await sessionStore?.deleteAll()
-        currentSession = nil
-        logger.info("All SSO sessions cleared")
+        try await self.sessionStore?.deleteAll()
+        self.currentSession = nil
+        self.logger.info("All SSO sessions cleared")
     }
 
     // MARK: Private
@@ -243,17 +243,17 @@ final class SSOManager: ObservableObject {
     private func performAuthentication(with provider: IdentityProvider) async throws -> SSOSession {
         switch provider.type {
         case .saml:
-            logger.info("Starting SAML authentication with '\(provider.name)'")
-            return try await samlAuthenticator.authenticate(config: provider)
+            self.logger.info("Starting SAML authentication with '\(provider.name)'")
+            return try await self.samlAuthenticator.authenticate(config: provider)
         case .oidc:
-            logger.info("Starting OIDC authentication with '\(provider.name)'")
-            return try await oidcAuthenticator.authenticate(config: provider)
+            self.logger.info("Starting OIDC authentication with '\(provider.name)'")
+            return try await self.oidcAuthenticator.authenticate(config: provider)
         }
     }
 
     /// Logs a failed SSO authentication attempt to the audit trail.
     private func logAuthFailure(provider: IdentityProvider, error: Error) async {
-        logger.error("SSO authentication failed: \(error.localizedDescription)")
+        self.logger.error("SSO authentication failed: \(error.localizedDescription)")
         await AuditManager.shared.logAuthEvent(
             action: .loginFailure,
             severity: .warning,

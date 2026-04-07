@@ -41,7 +41,7 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         // Reload hash cache when items are deleted so they can be re-copied
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(handleHistoryChanged),
+            selector: #selector(self.handleHistoryChanged),
             name: .clipboardHistoryChanged,
             object: nil
         )
@@ -72,18 +72,18 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     // MARK: - ClipboardMonitoring
 
     func startMonitoring() {
-        guard !isMonitoring else {
+        guard !self.isMonitoring else {
             Logger.clipboard.debug("Monitoring already active")
             return
         }
 
         // Initialize with current change count
-        lastChangeCount = pasteboard.changeCount
+        self.lastChangeCount = self.pasteboard.changeCount
 
         // Load recent hashes for deduplication, then start timer
         Task {
             if let storage {
-                recentHashes = await storage.fetchRecentHashes(limit: duplicateCheckLimit)
+                self.recentHashes = await storage.fetchRecentHashes(limit: self.duplicateCheckLimit)
             }
 
             // Start polling timer after hashes are loaded
@@ -94,39 +94,39 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     }
 
     func stopMonitoring() {
-        timer?.invalidate()
-        timer = nil
-        isMonitoring = false
+        self.timer?.invalidate()
+        self.timer = nil
+        self.isMonitoring = false
         Logger.clipboard.info("Clipboard monitoring stopped")
     }
 
     /// Pauses monitoring temporarily
     func pause() {
-        isPaused = true
+        self.isPaused = true
         Logger.clipboard.info("Clipboard monitoring paused")
     }
 
     /// Resumes monitoring after pause
     func resume() {
-        isPaused = false
+        self.isPaused = false
         // Reset change count to avoid capturing changes made while paused
-        lastChangeCount = pasteboard.changeCount
+        self.lastChangeCount = self.pasteboard.changeCount
         Logger.clipboard.info("Clipboard monitoring resumed")
     }
 
     /// Triggers a manual capture (for testing)
     func captureNow() {
-        captureCurrentContent()
+        self.captureCurrentContent()
     }
 
     /// Updates the sensitive data detector (called when settings change)
     func updateSensitiveDetector(_ detector: SensitiveDataDetecting) {
-        sensitiveDetector = detector
+        self.sensitiveDetector = detector
     }
 
     /// Clears the recent hashes cache
     func clearHashCache() {
-        recentHashes.removeAll()
+        self.recentHashes.removeAll()
     }
 
     /// Reloads recent hashes from storage
@@ -134,7 +134,7 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         guard let storage else {
             return
         }
-        recentHashes = await storage.fetchRecentHashes(limit: duplicateCheckLimit)
+        self.recentHashes = await storage.fetchRecentHashes(limit: self.duplicateCheckLimit)
     }
 
     // MARK: Private
@@ -176,14 +176,14 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     @objc
     private func handleHistoryChanged() {
         // Clear immediately so the timer doesn't see stale hashes before reload completes
-        recentHashes.removeAll()
-        Task { await reloadHashCache() }
+        self.recentHashes.removeAll()
+        Task { await self.reloadHashCache() }
     }
 
     /// Starts the polling timer (called after hash cache is loaded)
     private func startPollingTimer() {
         timer = Timer.scheduledTimer(
-            withTimeInterval: pollInterval,
+            withTimeInterval: self.pollInterval,
             repeats: true
         ) { [weak self] _ in
             Task { @MainActor in
@@ -201,15 +201,15 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
 
     /// Checks for clipboard changes (called by timer)
     private func checkForChanges() {
-        guard !isPaused else {
+        guard !self.isPaused else {
             return
         }
 
-        let currentCount = pasteboard.changeCount
+        let currentCount = self.pasteboard.changeCount
 
-        if currentCount != lastChangeCount {
-            lastChangeCount = currentCount
-            captureCurrentContent()
+        if currentCount != self.lastChangeCount {
+            self.lastChangeCount = currentCount
+            self.captureCurrentContent()
         }
     }
 
@@ -218,7 +218,7 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         // Check exclusions first
-        if handleExclusions() {
+        if self.handleExclusions() {
             return
         }
 
@@ -228,17 +228,17 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         }
 
         // Process the content
-        let (mutableContent, sourceApp) = processContent(content)
+        let (mutableContent, sourceApp) = self.processContent(content)
 
         // Finalize capture
-        finalizeCapture(mutableContent, sourceApp: sourceApp, startTime: startTime)
+        self.finalizeCapture(mutableContent, sourceApp: sourceApp, startTime: startTime)
     }
 
     private func handleExclusions() -> Bool {
-        let (shouldExclude, reason) = exclusionManager.shouldExcludeCurrentCapture()
+        let (shouldExclude, reason) = self.exclusionManager.shouldExcludeCurrentCapture()
         if shouldExclude, let reason {
-            metrics.excludedCount += 1
-            delegate?.clipboardMonitor(self, didExcludeContentWithReason: reason)
+            self.metrics.excludedCount += 1
+            self.delegate?.clipboardMonitor(self, didExcludeContentWithReason: reason)
             Logger.clipboard.debug("Capture excluded: \(String(describing: reason))")
             return true
         }
@@ -247,21 +247,21 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
 
     private func parseAndValidateContent() -> ClipboardContent? {
         guard let content = contentParser.parse(pasteboard) else {
-            metrics.excludedCount += 1
-            delegate?.clipboardMonitor(self, didExcludeContentWithReason: .emptyContent)
+            self.metrics.excludedCount += 1
+            self.delegate?.clipboardMonitor(self, didExcludeContentWithReason: .emptyContent)
             return nil
         }
 
         if !SettingsManager.shared.general.shouldCapture(content.primaryType) {
-            metrics.excludedCount += 1
-            delegate?.clipboardMonitor(self, didExcludeContentWithReason: .contentTypeDisabled)
+            self.metrics.excludedCount += 1
+            self.delegate?.clipboardMonitor(self, didExcludeContentWithReason: .contentTypeDisabled)
             Logger.clipboard.debug("Content type disabled: \(content.primaryType.displayName)")
             return nil
         }
 
         if let hash = content.contentHash, recentHashes.contains(hash) {
-            metrics.duplicateCount += 1
-            delegate?.clipboardMonitor(self, didExcludeContentWithReason: .duplicate)
+            self.metrics.duplicateCount += 1
+            self.delegate?.clipboardMonitor(self, didExcludeContentWithReason: .duplicate)
             Logger.clipboard.debug("Duplicate content detected")
             return nil
         }
@@ -271,7 +271,7 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
 
     private func processContent(_ content: ClipboardContent) -> (ClipboardContent, SourceApp?) {
         var mutableContent = content
-        let sensitiveResult = sensitiveDetector.analyze(content)
+        let sensitiveResult = self.sensitiveDetector.analyze(content)
         mutableContent.isSensitive = sensitiveResult.isSensitive
         mutableContent.sensitiveTypes = Array(sensitiveResult.uniqueTypes)
 
@@ -299,19 +299,19 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         Task {
             let saved = await saveToStorageAsync(content, sourceApp: sourceApp)
             if saved {
-                metrics.updateAverageCaptureTime(captureTime)
-                metrics.lastCaptureTime = Date()
-                metrics.captureCount += 1
-                updateRecentHashes(with: content.contentHash)
-                delegate?.clipboardMonitor(self, didCapture: content, from: sourceApp)
+                self.metrics.updateAverageCaptureTime(captureTime)
+                self.metrics.lastCaptureTime = Date()
+                self.metrics.captureCount += 1
+                self.updateRecentHashes(with: content.contentHash)
+                self.delegate?.clipboardMonitor(self, didCapture: content, from: sourceApp)
 
                 // Enforce history limit asynchronously after successful save
                 await self.enforceHistoryLimit()
             } else {
-                metrics.errorCount += 1
-                metrics.lastError = ClipboardMonitorError.storageFailed
+                self.metrics.errorCount += 1
+                self.metrics.lastError = ClipboardMonitorError.storageFailed
                 Logger.clipboard.error("Failed to save clipboard content to storage")
-                delegate?.clipboardMonitor(self, didEncounterError: ClipboardMonitorError.storageFailed)
+                self.delegate?.clipboardMonitor(self, didEncounterError: ClipboardMonitorError.storageFailed)
             }
         }
     }
@@ -320,9 +320,9 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         guard let hash else {
             return
         }
-        recentHashes.insert(hash, at: 0)
-        if recentHashes.count > duplicateCheckLimit {
-            recentHashes.removeLast()
+        self.recentHashes.insert(hash, at: 0)
+        if self.recentHashes.count > self.duplicateCheckLimit {
+            self.recentHashes.removeLast()
         }
     }
 
@@ -340,7 +340,7 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
         let deleted = await StorageManager.shared.deleteItemsExceedingLimit(limit, keepFavorites: true)
         if deleted > 0 {
             // Reload hash cache so trimmed items can be re-copied if needed
-            await reloadHashCache()
+            await self.reloadHashCache()
             Logger.clipboard.debug("History limit enforced: \(deleted) items trimmed")
         }
     }
@@ -391,26 +391,26 @@ struct ClipboardMonitorMetrics {
 
     /// Average capture time in milliseconds
     var averageCaptureTimeMs: Double {
-        averageCaptureTime * 1000
+        self.averageCaptureTime * 1000
     }
 
     /// Total items processed (captures + duplicates + excluded)
     var totalProcessed: Int {
-        captureCount + duplicateCount + excludedCount
+        self.captureCount + self.duplicateCount + self.excludedCount
     }
 
     /// Duplicate rate as percentage
     var duplicateRate: Double {
-        guard totalProcessed > 0 else {
+        guard self.totalProcessed > 0 else {
             return 0
         }
-        return Double(duplicateCount) / Double(totalProcessed) * 100
+        return Double(self.duplicateCount) / Double(self.totalProcessed) * 100
     }
 
     /// Updates the running average capture time
     mutating func updateAverageCaptureTime(_ time: TimeInterval) {
-        sampleCount += 1
-        averageCaptureTime += (time - averageCaptureTime) / Double(sampleCount)
+        self.sampleCount += 1
+        self.averageCaptureTime += (time - self.averageCaptureTime) / Double(self.sampleCount)
     }
 
     // MARK: Private

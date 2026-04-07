@@ -36,7 +36,7 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
     // swiftlint:disable:next function_body_length
     func search(query: String, options: SearchOptions) async -> [SearchResult] {
         // Cancel any existing search
-        await cancelSearch()
+        await self.cancelSearch()
 
         // Trim and validate query
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -51,7 +51,7 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
                 return []
             }
 
-            logger.debug("Starting OCR search for: \(trimmedQuery)")
+            self.logger.debug("Starting OCR search for: \(trimmedQuery)")
 
             // Fetch candidate image items
             let candidateIds = await fetchCandidateImageItemIds(options: options)
@@ -61,7 +61,7 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
             }
 
             guard !candidateIds.isEmpty else {
-                logger.debug("No image items found for OCR search")
+                self.logger.debug("No image items found for OCR search")
                 return []
             }
 
@@ -73,7 +73,7 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
             }
 
             guard !ocrTexts.isEmpty else {
-                logger.debug("No OCR texts found for candidates")
+                self.logger.debug("No OCR texts found for candidates")
                 return []
             }
 
@@ -93,13 +93,13 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
                 }
 
                 // Calculate relevance score based on match quality
-                let relevanceScore = calculateRelevanceScore(
+                let relevanceScore = self.calculateRelevanceScore(
                     query: queryLower,
                     ocrText: ocrTextLower
                 )
 
                 // Find match ranges in OCR text
-                let matchRanges = findMatchRanges(query: trimmedQuery, in: ocrText)
+                let matchRanges = self.findMatchRanges(query: trimmedQuery, in: ocrText)
 
                 let result = SearchResult(
                     id: itemId,
@@ -116,22 +116,22 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
                 .sorted { $0.relevanceScore > $1.relevanceScore }
                 .prefix(options.limit)
 
-            logger.debug("OCR search completed: \(sortedResults.count) results")
+            self.logger.debug("OCR search completed: \(sortedResults.count) results")
             return Array(sortedResults)
         }
 
-        lock.lock()
-        currentSearchTask = task
-        lock.unlock()
+        self.lock.lock()
+        self.currentSearchTask = task
+        self.lock.unlock()
 
         return await task.value
     }
 
     func cancelSearch() async {
-        lock.lock()
-        currentSearchTask?.cancel()
-        currentSearchTask = nil
-        lock.unlock()
+        self.lock.lock()
+        self.currentSearchTask?.cancel()
+        self.currentSearchTask = nil
+        self.lock.unlock()
     }
 
     // MARK: Private

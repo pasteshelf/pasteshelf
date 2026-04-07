@@ -18,7 +18,7 @@ struct AppearanceTabView: View {
     var body: some View {
         Form {
             Section {
-                Picker("Theme", selection: $viewModel.theme) {
+                Picker("Theme", selection: self.$viewModel.theme) {
                     ForEach(AppTheme.allCases) { theme in
                         Text(theme.displayName).tag(theme)
                     }
@@ -36,7 +36,7 @@ struct AppearanceTabView: View {
             }
 
             Section {
-                Picker("Panel width", selection: $viewModel.panelWidth) {
+                Picker("Panel width", selection: self.$viewModel.panelWidth) {
                     ForEach(PanelWidth.allCases) { width in
                         Text(width.displayName).tag(width)
                     }
@@ -44,11 +44,11 @@ struct AppearanceTabView: View {
                 .accessibilityLabel("Panel width")
                 .accessibilityHint("Width of the clipboard history panel")
 
-                Toggle("Compact mode", isOn: $viewModel.compactMode)
+                Toggle("Compact mode", isOn: self.$viewModel.compactMode)
                     .accessibilityLabel("Compact mode")
                     .accessibilityHint("When enabled, items are displayed more compactly")
 
-                Toggle("Show tag filters", isOn: $viewModel.showTagFilters)
+                Toggle("Show tag filters", isOn: self.$viewModel.showTagFilters)
                     .accessibilityLabel("Show tag filters")
                     .accessibilityHint("When enabled, tag filter chips are shown below the content type filters")
             } header: {
@@ -60,16 +60,16 @@ struct AppearanceTabView: View {
                     Text("Preview lines")
                     Spacer()
                     Stepper(
-                        "\(viewModel.previewLines)",
-                        value: $viewModel.previewLines,
+                        "\(self.viewModel.previewLines)",
+                        value: self.$viewModel.previewLines,
                         in: 1 ... 5
                     )
                     .accessibilityLabel("Preview lines")
-                    .accessibilityValue("\(viewModel.previewLines) lines")
+                    .accessibilityValue("\(self.viewModel.previewLines) lines")
                     .accessibilityHint("Number of lines to show in text previews")
                 }
 
-                Toggle("Show image thumbnails", isOn: $viewModel.showThumbnails)
+                Toggle("Show image thumbnails", isOn: self.$viewModel.showThumbnails)
                     .accessibilityLabel("Show image thumbnails")
                     .accessibilityHint("When enabled, image previews are shown for copied images")
             } header: {

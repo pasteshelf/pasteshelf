@@ -38,9 +38,9 @@
                 directories.append(systemPlugins)
             }
 
-            pluginDirectories = directories
+            self.pluginDirectories = directories
 
-            logger.debug("Plugin directories: \(directories.map(\.path).joined(separator: ", "))")
+            self.logger.debug("Plugin directories: \(directories.map(\.path).joined(separator: ", "))")
         }
 
         // MARK: Internal
@@ -70,9 +70,9 @@
                         withIntermediateDirectories: true,
                         attributes: nil
                     )
-                    logger.info("Created plugins directory at \(pluginsDir.path)")
+                    self.logger.info("Created plugins directory at \(pluginsDir.path)")
                 } catch {
-                    logger.error("Failed to create plugins directory: \(error.localizedDescription)")
+                    self.logger.error("Failed to create plugins directory: \(error.localizedDescription)")
                     return nil
                 }
             }
@@ -90,24 +90,24 @@
 
             // Discover bundled plugins first
             if let bundledDir = bundledPluginsDirectory {
-                let bundled = discoverPlugins(in: bundledDir)
+                let bundled = self.discoverPlugins(in: bundledDir)
                 for bundle in bundled where !seenIdentifiers.contains(bundle.manifest.identifier) {
                     discoveredBundles.append(bundle)
                     seenIdentifiers.insert(bundle.manifest.identifier)
                 }
-                logger.debug("Discovered \(bundled.count) bundled plugins")
+                self.logger.debug("Discovered \(bundled.count) bundled plugins")
             }
 
             // Discover user/system plugins (may override bundled)
-            for directory in pluginDirectories {
-                let plugins = discoverPlugins(in: directory)
+            for directory in self.pluginDirectories {
+                let plugins = self.discoverPlugins(in: directory)
                 for bundle in plugins {
                     // User plugins override bundled plugins with same identifier
                     if let existingIndex = discoveredBundles.firstIndex(
                         where: { $0.manifest.identifier == bundle.manifest.identifier }
                     ) {
                         discoveredBundles[existingIndex] = bundle
-                        logger.debug("User plugin overrides bundled: \(bundle.manifest.identifier)")
+                        self.logger.debug("User plugin overrides bundled: \(bundle.manifest.identifier)")
                     } else if !seenIdentifiers.contains(bundle.manifest.identifier) {
                         discoveredBundles.append(bundle)
                         seenIdentifiers.insert(bundle.manifest.identifier)
@@ -115,7 +115,7 @@
                 }
             }
 
-            logger.info("Discovered \(discoveredBundles.count) total plugins")
+            self.logger.info("Discovered \(discoveredBundles.count) total plugins")
             return discoveredBundles
         }
 
@@ -125,7 +125,7 @@
         func loadPluginBundle(at url: URL) -> PluginBundle? {
             do {
                 let bundle = try PluginBundle(url: url)
-                logger.debug("Loaded plugin bundle: \(bundle.manifest.name) (\(bundle.manifest.identifier))")
+                self.logger.debug("Loaded plugin bundle: \(bundle.manifest.name) (\(bundle.manifest.identifier))")
                 return bundle
             } catch let error as PluginLoadError {
                 logger
@@ -135,7 +135,7 @@
                     )
                 return nil
             } catch {
-                logger
+                self.logger
                     .error("Unexpected error loading plugin at \(url.lastPathComponent): \(error.localizedDescription)")
                 return nil
             }
@@ -166,13 +166,13 @@
             if FileManager.default.fileExists(atPath: destinationURL.path) {
                 // Remove existing version
                 try FileManager.default.removeItem(at: destinationURL)
-                logger.info("Removed existing plugin: \(bundle.manifest.identifier)")
+                self.logger.info("Removed existing plugin: \(bundle.manifest.identifier)")
             }
 
             // Copy plugin to plugins directory
             do {
                 try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
-                logger.info("Installed plugin: \(bundle.manifest.name) to \(destinationURL.path)")
+                self.logger.info("Installed plugin: \(bundle.manifest.name) to \(destinationURL.path)")
             } catch {
                 throw PluginInstallError.copyFailed(error)
             }
@@ -204,7 +204,7 @@
             // Remove the bundle
             do {
                 try FileManager.default.removeItem(at: bundle.bundleURL)
-                logger.info("Uninstalled plugin: \(pluginId)")
+                self.logger.info("Uninstalled plugin: \(pluginId)")
             } catch {
                 throw PluginInstallError.deleteFailed(error)
             }
@@ -214,7 +214,7 @@
         /// - Parameter pluginId: The plugin identifier
         /// - Returns: The plugin bundle if found
         func findPlugin(byId pluginId: String) -> PluginBundle? {
-            discoverPlugins().first { $0.manifest.identifier == pluginId }
+            self.discoverPlugins().first { $0.manifest.identifier == pluginId }
         }
 
         // MARK: - File System Watching
@@ -224,13 +224,13 @@
         /// - Returns: A dispatch source to keep alive, or nil if setup failed
         func watchForChanges(handler: @escaping () -> Void) -> DispatchSourceFileSystemObject? {
             guard let pluginsDir = userPluginsDirectory else {
-                logger.warning("Cannot watch plugins directory - not available")
+                self.logger.warning("Cannot watch plugins directory - not available")
                 return nil
             }
 
             let fileDescriptor = open(pluginsDir.path, O_EVTONLY)
             guard fileDescriptor >= 0 else {
-                logger.error("Failed to open plugins directory for watching")
+                self.logger.error("Failed to open plugins directory for watching")
                 return nil
             }
 
@@ -249,7 +249,7 @@
             }
 
             source.resume()
-            logger.debug("Watching plugins directory for changes")
+            self.logger.debug("Watching plugins directory for changes")
 
             return source
         }
@@ -279,7 +279,7 @@
 
             // Check if directory exists
             guard fm.fileExists(atPath: directory.path) else {
-                logger.debug("Plugin directory does not exist: \(directory.path)")
+                self.logger.debug("Plugin directory does not exist: \(directory.path)")
                 return []
             }
 
@@ -289,7 +289,7 @@
                 includingPropertiesForKeys: [.isDirectoryKey],
                 options: [.skipsHiddenFiles]
             ) else {
-                logger.warning("Failed to enumerate plugin directory: \(directory.path)")
+                self.logger.warning("Failed to enumerate plugin directory: \(directory.path)")
                 return []
             }
 
@@ -298,11 +298,11 @@
                 url.pathExtension == PluginBundle.bundleExtension
             }
 
-            logger.debug("Found \(pluginURLs.count) plugin bundles in \(directory.lastPathComponent)")
+            self.logger.debug("Found \(pluginURLs.count) plugin bundles in \(directory.lastPathComponent)")
 
             // Load each bundle
             return pluginURLs.compactMap { url in
-                loadPluginBundle(at: url)
+                self.loadPluginBundle(at: url)
             }
         }
     }

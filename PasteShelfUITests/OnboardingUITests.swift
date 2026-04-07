@@ -15,22 +15,22 @@ final class OnboardingUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
 
-        app = XCUIApplication()
+        self.app = XCUIApplication()
         // Reset onboarding state for testing
-        app.launchArguments.append("--reset-onboarding")
-        app.launchArguments.append("--bypass-permissions")
-        app.launch()
+        self.app.launchArguments.append("--reset-onboarding")
+        self.app.launchArguments.append("--bypass-permissions")
+        self.app.launch()
     }
 
     override func tearDownWithError() throws {
-        app = nil
+        self.app = nil
     }
 
     // MARK: - Welcome Step Tests
 
     @MainActor
     func testWelcomeScreenDisplaysCorrectly() {
-        let window = app.windows["Welcome to PasteShelf"]
+        let window = self.app.windows["Welcome to PasteShelf"]
 
         // Check welcome screen elements
         XCTAssertTrue(window.staticTexts["Welcome to PasteShelf"].exists)
@@ -49,7 +49,7 @@ final class OnboardingUITests: XCTestCase {
     #if !APP_STORE
         @MainActor
         func testContinueFromWelcomeToPermissions() {
-            let window = app.windows["Welcome to PasteShelf"]
+            let window = self.app.windows["Welcome to PasteShelf"]
 
             // Click Continue
             window.buttons["Continue"].click()
@@ -63,7 +63,7 @@ final class OnboardingUITests: XCTestCase {
 
         @MainActor
         func testPermissionsScreenDisplaysCorrectly() {
-            let window = app.windows["Welcome to PasteShelf"]
+            let window = self.app.windows["Welcome to PasteShelf"]
 
             // Navigate to permissions
             window.buttons["Continue"].click()
@@ -78,7 +78,7 @@ final class OnboardingUITests: XCTestCase {
 
         @MainActor
         func testBackButtonReturnsToWelcome() {
-            let window = app.windows["Welcome to PasteShelf"]
+            let window = self.app.windows["Welcome to PasteShelf"]
 
             // Navigate to permissions
             window.buttons["Continue"].click()
@@ -95,7 +95,7 @@ final class OnboardingUITests: XCTestCase {
     #else
         @MainActor
         func testContinueFromWelcomeToNotifications() {
-            let window = app.windows["Welcome to PasteShelf"]
+            let window = self.app.windows["Welcome to PasteShelf"]
 
             // Click Continue — App Store skips Permissions, goes to Notifications
             window.buttons["Continue"].click()
@@ -110,9 +110,9 @@ final class OnboardingUITests: XCTestCase {
     @MainActor
     func testTutorialScreenDisplaysCorrectly() {
         // Skip to tutorial (requires accessibility permission to be granted)
-        navigateToTutorial()
+        self.navigateToTutorial()
 
-        let window = app.windows["Welcome to PasteShelf"]
+        let window = self.app.windows["Welcome to PasteShelf"]
 
         // Check tutorial elements
         XCTAssertTrue(window.staticTexts["Quick Tour"].waitForExistence(timeout: 2))
@@ -121,9 +121,9 @@ final class OnboardingUITests: XCTestCase {
 
     @MainActor
     func testTutorialCanBeSkipped() {
-        navigateToTutorial()
+        self.navigateToTutorial()
 
-        let window = app.windows["Welcome to PasteShelf"]
+        let window = self.app.windows["Welcome to PasteShelf"]
 
         // Skip button should exist
         let skipButton = window.buttons["Skip"]
@@ -141,9 +141,9 @@ final class OnboardingUITests: XCTestCase {
 
     @MainActor
     func testHotkeySetupScreenDisplaysCorrectly() {
-        navigateToHotkeySetup()
+        self.navigateToHotkeySetup()
 
-        let window = app.windows["Welcome to PasteShelf"]
+        let window = self.app.windows["Welcome to PasteShelf"]
 
         // Check hotkey setup elements
         XCTAssertTrue(window.staticTexts["Set Your Hotkey"].waitForExistence(timeout: 2))
@@ -153,9 +153,9 @@ final class OnboardingUITests: XCTestCase {
 
     @MainActor
     func testHotkeyPresetButtons() {
-        navigateToHotkeySetup()
+        self.navigateToHotkeySetup()
 
-        let window = app.windows["Welcome to PasteShelf"]
+        let window = self.app.windows["Welcome to PasteShelf"]
 
         // Check preset buttons
         let cmdShiftV = window.buttons["⌘ ⇧ V"]
@@ -166,9 +166,9 @@ final class OnboardingUITests: XCTestCase {
 
     @MainActor
     func testCompleteOnboarding() {
-        navigateToHotkeySetup()
+        self.navigateToHotkeySetup()
 
-        let window = app.windows["Welcome to PasteShelf"]
+        let window = self.app.windows["Welcome to PasteShelf"]
 
         // Click Get Started to complete
         let getStartedButton = window.buttons["Get Started"]
@@ -184,7 +184,7 @@ final class OnboardingUITests: XCTestCase {
 
     @MainActor
     func testProgressIndicatorUpdates() {
-        let window = app.windows["Welcome to PasteShelf"]
+        let window = self.app.windows["Welcome to PasteShelf"]
 
         // Move to step 2
         window.buttons["Continue"].click()
@@ -203,7 +203,7 @@ final class OnboardingUITests: XCTestCase {
     // MARK: - Helper Methods
 
     private func navigateToTutorial() {
-        let window = app.windows["Welcome to PasteShelf"]
+        let window = self.app.windows["Welcome to PasteShelf"]
 
         window.buttons["Continue"].click() // Welcome -> next step
 
@@ -222,9 +222,9 @@ final class OnboardingUITests: XCTestCase {
     }
 
     private func navigateToHotkeySetup() {
-        navigateToTutorial()
+        self.navigateToTutorial()
 
-        let window = app.windows["Welcome to PasteShelf"]
+        let window = self.app.windows["Welcome to PasteShelf"]
 
         // Wait for tutorial
         _ = window.staticTexts["Quick Tour"].waitForExistence(timeout: 2)

@@ -32,16 +32,16 @@ final class FloatingPanelController: NSObject {
 
     init(storageManager: StorageManager = .shared) {
         self.storageManager = storageManager
-        viewModel = FloatingPanelViewModel(storageManager: storageManager)
+        self.viewModel = FloatingPanelViewModel(storageManager: storageManager)
         super.init()
 
-        viewModel.restorePreviousAppFocus = { [weak self] in
+        self.viewModel.restorePreviousAppFocus = { [weak self] in
             self?.restorePreviousAppFocus()
         }
 
-        setupPanel()
-        setupBindings()
-        setupSettingsObserver()
+        self.setupPanel()
+        self.setupBindings()
+        self.setupSettingsObserver()
     }
 
     // MARK: Internal
@@ -52,13 +52,13 @@ final class FloatingPanelController: NSObject {
     /// Reference to clipboard monitor for paste operations
     weak var clipboardMonitor: ClipboardMonitor? {
         didSet {
-            viewModel.clipboardMonitor = clipboardMonitor
+            self.viewModel.clipboardMonitor = self.clipboardMonitor
         }
     }
 
     /// Whether the panel is currently visible
     var isVisible: Bool {
-        panel?.isVisible ?? false
+        self.panel?.isVisible ?? false
     }
 
     // MARK: - Visibility
@@ -70,7 +70,7 @@ final class FloatingPanelController: NSObject {
             if SecurityLockService.shared.isLocked {
                 let unlocked = await SecurityLockService.shared.unlock()
                 guard unlocked else {
-                    logger.debug("Panel show blocked by security lock")
+                    self.logger.debug("Panel show blocked by security lock")
                     return
                 }
             }
@@ -79,7 +79,7 @@ final class FloatingPanelController: NSObject {
             if HIPAAAccessControlService.shared.isLocked {
                 let unlocked = await HIPAAAccessControlService.shared.unlock()
                 guard unlocked else {
-                    logger.debug("Panel show blocked by HIPAA lock")
+                    self.logger.debug("Panel show blocked by HIPAA lock")
                     return
                 }
             }
@@ -88,21 +88,21 @@ final class FloatingPanelController: NSObject {
             SecurityLockService.shared.recordActivity()
             HIPAAAccessControlService.shared.recordActivity()
 
-            await viewModel.show()
+            await self.viewModel.show()
         }
     }
 
     /// Hides the floating panel
     func hide() {
-        viewModel.hide()
+        self.viewModel.hide()
     }
 
     /// Toggles panel visibility
     func toggle() {
-        if isVisible {
-            hide()
+        if self.isVisible {
+            self.hide()
         } else {
-            show()
+            self.show()
         }
     }
 
@@ -129,29 +129,29 @@ final class FloatingPanelController: NSObject {
 
         switch event.keyCode {
         case 125: // Down arrow
-            viewModel.selectNext()
+            self.viewModel.selectNext()
             return true
         case 126: // Up arrow
-            viewModel.selectPrevious()
+            self.viewModel.selectPrevious()
             return true
         case 36: // Return/Enter
             Task {
-                await viewModel.pasteSelected()
+                await self.viewModel.pasteSelected()
             }
             return true
         case 53: // Escape
-            hide()
+            self.hide()
             return true
         case 51: // Delete/Backspace
             Task {
-                await viewModel.deleteSelected()
+                await self.viewModel.deleteSelected()
             }
             return true
         default:
             // Check for Cmd+S (favorite)
             if event.modifierFlags.contains(.command), event.keyCode == 1 {
                 Task {
-                    await viewModel.toggleFavorite()
+                    await self.viewModel.toggleFavorite()
                 }
                 return true
             }
@@ -160,10 +160,10 @@ final class FloatingPanelController: NSObject {
                let number = numberFromKeyCode(event.keyCode), number >= 1, number <= 9
             {
                 let index = number - 1
-                if index < viewModel.items.count {
-                    viewModel.select(at: index)
+                if index < self.viewModel.items.count {
+                    self.viewModel.select(at: index)
                     Task {
-                        await viewModel.pasteSelected()
+                        await self.viewModel.pasteSelected()
                     }
                 }
                 return true
@@ -219,7 +219,7 @@ final class FloatingPanelController: NSObject {
         )
 
         guard let panel else {
-            logger.error("Failed to create panel")
+            self.logger.error("Failed to create panel")
             return
         }
 
@@ -246,12 +246,12 @@ final class FloatingPanelController: NSObject {
         // Set up window delegate
         panel.delegate = self
 
-        logger.info("Floating panel created")
+        self.logger.info("Floating panel created")
     }
 
     private func setupBindings() {
         // Observe visibility changes in viewmodel
-        viewModel.$isVisible
+        self.viewModel.$isVisible
             .dropFirst()
             .sink { [weak self] visible in
                 if visible {
@@ -260,7 +260,7 @@ final class FloatingPanelController: NSObject {
                     self?.hidePanel()
                 }
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 
     private func setupSettingsObserver() {
@@ -270,7 +270,7 @@ final class FloatingPanelController: NSObject {
             .sink { [weak self] _ in
                 self?.updatePanelSize()
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 
     private func updatePanelSize() {
@@ -278,7 +278,7 @@ final class FloatingPanelController: NSObject {
             return
         }
 
-        let newWidth = panelWidth
+        let newWidth = self.panelWidth
         var frame = panel.frame
         let widthDiff = newWidth - frame.width
 
@@ -287,7 +287,7 @@ final class FloatingPanelController: NSObject {
         frame.size.width = newWidth
 
         panel.setFrame(frame, display: true, animate: true)
-        logger.debug("Panel size updated to width: \(newWidth)")
+        self.logger.debug("Panel size updated to width: \(newWidth)")
     }
 
     private func showPanel() {
@@ -298,11 +298,11 @@ final class FloatingPanelController: NSObject {
         // Capture the frontmost app BEFORE showing the panel
         let frontmost = NSWorkspace.shared.frontmostApplication
         if frontmost?.bundleIdentifier != Bundle.main.bundleIdentifier {
-            previousApp = frontmost
+            self.previousApp = frontmost
         }
 
         // Position panel in center of main screen
-        positionPanelCentered()
+        self.positionPanelCentered()
 
         // Show and order front
         panel.makeKeyAndOrderFront(nil)
@@ -310,15 +310,15 @@ final class FloatingPanelController: NSObject {
         // Activate without stealing focus from other apps
         NSApp.activate(ignoringOtherApps: true)
 
-        logger.debug("Panel shown")
+        self.logger.debug("Panel shown")
     }
 
     private func hidePanel() {
-        guard panel?.isVisible == true else {
+        guard self.panel?.isVisible == true else {
             return
         }
-        panel?.orderOut(nil)
-        logger.debug("Panel hidden")
+        self.panel?.orderOut(nil)
+        self.logger.debug("Panel hidden")
     }
 
     // MARK: - Positioning
@@ -385,10 +385,10 @@ final class FloatingPanelController: NSObject {
 extension FloatingPanelController: NSWindowDelegate {
     func windowDidResignKey(_ notification: Notification) {
         // Hide panel when it loses focus
-        hide()
+        self.hide()
     }
 
     func windowWillClose(_ notification: Notification) {
-        viewModel.isVisible = false
+        self.viewModel.isVisible = false
     }
 }

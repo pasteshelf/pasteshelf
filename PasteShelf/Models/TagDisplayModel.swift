@@ -24,12 +24,12 @@ struct TagDisplayModel: Identifiable, Hashable {
 
     /// SwiftUI Color from hex string
     var color: Color {
-        Color(hex: colorHex) ?? .blue
+        Color(hex: self.colorHex) ?? .blue
     }
 
     /// Whether this is a valid tag
     var isValid: Bool {
-        !name.isEmpty
+        !self.name.isEmpty
     }
 
     static func == (lhs: TagDisplayModel, rhs: TagDisplayModel) -> Bool {
@@ -39,7 +39,7 @@ struct TagDisplayModel: Identifiable, Hashable {
     // MARK: - Hashable
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+        hasher.combine(self.id)
     }
 }
 
@@ -67,7 +67,7 @@ extension TagDisplayModel {
     /// - Parameter tags: Array of CoreData entities
     /// - Returns: Array of display models (invalid tags are filtered out)
     static func from(_ tags: [Tag]) -> [TagDisplayModel] {
-        tags.compactMap { from($0) }
+        tags.compactMap { self.from($0) }
     }
 
     /// Creates display models from an NSSet of CoreData tags
@@ -79,7 +79,7 @@ extension TagDisplayModel {
         else {
             return []
         }
-        return from(tags)
+        return self.from(tags)
     }
 }
 

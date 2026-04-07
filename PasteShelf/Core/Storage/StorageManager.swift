@@ -34,7 +34,7 @@ final class StorageManager: ObservableObject {
 
     /// Main context for UI reads (main queue only)
     var viewContext: NSManagedObjectContext {
-        persistenceController.container.viewContext
+        self.persistenceController.container.viewContext
     }
 
     /// Creates a StorageManager for testing with in-memory store
@@ -46,14 +46,14 @@ final class StorageManager: ObservableObject {
 
     /// Creates a new background context for write operations
     func newBackgroundContext() -> NSManagedObjectContext {
-        persistenceController.newBackgroundContext()
+        self.persistenceController.newBackgroundContext()
     }
 
     /// Performs work on a background context and saves
     /// - Parameter block: The work to perform on the background context
     /// - Returns: True if save succeeded, false otherwise
     func performBackgroundTask<T>(_ block: @escaping (NSManagedObjectContext) throws -> T) async throws -> T {
-        let context = newBackgroundContext()
+        let context = self.newBackgroundContext()
 
         return try await context.perform {
             let result = try block(context)
@@ -70,7 +70,7 @@ final class StorageManager: ObservableObject {
     /// - Parameter block: The work to perform
     /// - Returns: The result, or nil if an error occurred
     func performBackgroundTaskSafe<T>(_ block: @escaping (NSManagedObjectContext) -> T?) async -> T? {
-        let context = newBackgroundContext()
+        let context = self.newBackgroundContext()
 
         return await context.perform {
             let result = block(context)
@@ -98,19 +98,19 @@ final class StorageManager: ObservableObject {
 extension StorageManager: ClipboardItemStoring {
     func save(content: ClipboardContent, from sourceApp: SourceApp?) async -> Bool {
         do {
-            try await performBackgroundTask { context in
+            try await self.performBackgroundTask { context in
                 _ = ClipboardContentMapper.mapToEntities(content, sourceApp: sourceApp, context: context)
             }
-            logger.debug("Saved clipboard item: \(content.id)")
+            self.logger.debug("Saved clipboard item: \(content.id)")
             return true
         } catch {
-            logger.error("Failed to save clipboard item: \(error.localizedDescription)")
+            self.logger.error("Failed to save clipboard item: \(error.localizedDescription)")
             return false
         }
     }
 
     func fetchRecentHashes(limit: Int) async -> [String] {
-        let context = newBackgroundContext()
+        let context = self.newBackgroundContext()
 
         return await context.perform {
             let request = ClipboardItem.fetchRequest()

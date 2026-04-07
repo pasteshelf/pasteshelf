@@ -20,35 +20,35 @@ struct SearchTabView: View {
         Form {
             // Search Settings Section
             Section {
-                searchSettingsSection
+                self.searchSettingsSection
             } header: {
                 Text("Search Settings")
             }
 
             // Semantic Search Section
             Section {
-                semanticSearchSection
+                self.semanticSearchSection
             } header: {
                 Text("Semantic Search")
             }
 
             // Indexing Status Section
             Section {
-                indexingStatusSection
+                self.indexingStatusSection
             } header: {
                 Text("Search Index")
             }
 
             // OCR Search Section
             Section {
-                ocrSearchSection
+                self.ocrSearchSection
             } header: {
                 Text("OCR Search")
             }
 
             // OCR Processing Status Section
             Section {
-                ocrProcessingStatusSection
+                self.ocrProcessingStatusSection
             } header: {
                 Text("Image Text Extraction")
             }
@@ -58,7 +58,7 @@ struct SearchTabView: View {
             await loadIndexedCount()
             await loadOCRProcessedCount()
         }
-        .alert("Clear Search Index", isPresented: $showingClearConfirmation) {
+        .alert("Clear Search Index", isPresented: self.$showingClearConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Clear", role: .destructive) {
                 clearIndex()
@@ -66,7 +66,7 @@ struct SearchTabView: View {
         } message: {
             Text("This will delete all cached embeddings. The index will be rebuilt automatically in the background.")
         }
-        .alert("Clear OCR Cache", isPresented: $showingOCRClearConfirmation) {
+        .alert("Clear OCR Cache", isPresented: self.$showingOCRClearConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Clear", role: .destructive) {
                 clearOCRCache()
@@ -91,19 +91,19 @@ struct SearchTabView: View {
     @State private var ocrProcessedCount: Int = 0
 
     private var semanticSearchEnabled: Bool {
-        settingsManager.search.semanticSearchEnabled
+        self.settingsManager.search.semanticSearchEnabled
     }
 
     private var semanticThreshold: Double {
-        settingsManager.search.semanticThreshold
+        self.settingsManager.search.semanticThreshold
     }
 
     private var ocrSearchEnabled: Bool {
-        settingsManager.search.ocrSearchEnabled
+        self.settingsManager.search.ocrSearchEnabled
     }
 
     private var ocrConfidenceThreshold: Double {
-        settingsManager.search.ocrConfidenceThreshold
+        self.settingsManager.search.ocrConfidenceThreshold
     }
 
     // MARK: - Search Settings Section
@@ -111,9 +111,9 @@ struct SearchTabView: View {
     @ViewBuilder private var searchSettingsSection: some View {
         // Fuzzy matching toggle
         Toggle("Enable Fuzzy Matching", isOn: Binding(
-            get: { settingsManager.search.fuzzyMatchEnabled },
+            get: { self.settingsManager.search.fuzzyMatchEnabled },
             set: { newValue in
-                settingsManager.update { $0.search.fuzzyMatchEnabled = newValue }
+                self.settingsManager.update { $0.search.fuzzyMatchEnabled = newValue }
             }
         ))
 
@@ -127,9 +127,9 @@ struct SearchTabView: View {
     @ViewBuilder private var semanticSearchSection: some View {
         // Enable/Disable Toggle
         Toggle("Enable Semantic Search", isOn: Binding(
-            get: { settingsManager.search.semanticSearchEnabled },
+            get: { self.settingsManager.search.semanticSearchEnabled },
             set: { newValue in
-                settingsManager.update { $0.search.semanticSearchEnabled = newValue }
+                self.settingsManager.update { $0.search.semanticSearchEnabled = newValue }
                 // AppDelegate.handleSettingsChange handles starting/cancelling indexing
             }
         ))
@@ -153,15 +153,15 @@ struct SearchTabView: View {
             HStack {
                 Text("Similarity Threshold")
                 Spacer()
-                Text(String(format: "%.0f%%", semanticThreshold * 100))
+                Text(String(format: "%.0f%%", self.semanticThreshold * 100))
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
 
             Slider(
                 value: Binding(
-                    get: { settingsManager.search.semanticThreshold },
-                    set: { newValue in settingsManager.update { $0.search.semanticThreshold = newValue } }
+                    get: { self.settingsManager.search.semanticThreshold },
+                    set: { newValue in self.settingsManager.update { $0.search.semanticThreshold = newValue } }
                 ),
                 in: 0.3 ... 0.8,
                 step: 0.05
@@ -171,7 +171,7 @@ struct SearchTabView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .disabled(!semanticSearchEnabled)
+        .disabled(!self.semanticSearchEnabled)
     }
 
     // MARK: - OCR Search Section
@@ -179,9 +179,9 @@ struct SearchTabView: View {
     @ViewBuilder private var ocrSearchSection: some View {
         // Enable/Disable Toggle
         Toggle("Enable OCR Search", isOn: Binding(
-            get: { settingsManager.search.ocrSearchEnabled },
+            get: { self.settingsManager.search.ocrSearchEnabled },
             set: { newValue in
-                settingsManager.update { $0.search.ocrSearchEnabled = newValue }
+                self.settingsManager.update { $0.search.ocrSearchEnabled = newValue }
                 // AppDelegate.handleSettingsChange handles starting/cancelling OCR processing
             }
         ))
@@ -203,15 +203,15 @@ struct SearchTabView: View {
             HStack {
                 Text("Confidence Threshold")
                 Spacer()
-                Text(String(format: "%.0f%%", ocrConfidenceThreshold * 100))
+                Text(String(format: "%.0f%%", self.ocrConfidenceThreshold * 100))
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
 
             Slider(
                 value: Binding(
-                    get: { settingsManager.search.ocrConfidenceThreshold },
-                    set: { newValue in settingsManager.update { $0.search.ocrConfidenceThreshold = newValue } }
+                    get: { self.settingsManager.search.ocrConfidenceThreshold },
+                    set: { newValue in self.settingsManager.update { $0.search.ocrConfidenceThreshold = newValue } }
                 ),
                 in: 0.3 ... 0.9,
                 step: 0.05
@@ -221,7 +221,7 @@ struct SearchTabView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .disabled(!ocrSearchEnabled)
+        .disabled(!self.ocrSearchEnabled)
     }
 
     // MARK: - OCR Processing Status Section
@@ -229,25 +229,25 @@ struct SearchTabView: View {
     @ViewBuilder private var ocrProcessingStatusSection: some View {
         // Processing Status
         HStack {
-            Image(systemName: ocrGenerator.isProcessing ? "text.viewfinder" : "checkmark.circle.fill")
+            Image(systemName: self.ocrGenerator.isProcessing ? "text.viewfinder" : "checkmark.circle.fill")
                 .font(.title2)
-                .foregroundStyle(ocrGenerator.isProcessing ? .blue : .green)
-                .symbolEffect(.pulse, isActive: ocrGenerator.isProcessing)
+                .foregroundStyle(self.ocrGenerator.isProcessing ? .blue : .green)
+                .symbolEffect(.pulse, isActive: self.ocrGenerator.isProcessing)
                 .frame(width: 32)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(ocrGenerator.isProcessing ? "Processing Images..." : "Ready")
+                Text(self.ocrGenerator.isProcessing ? "Processing Images..." : "Ready")
                     .font(.headline)
 
-                Text("\(ocrProcessedCount) images processed")
+                Text("\(self.ocrProcessedCount) images processed")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            if ocrGenerator.isProcessing {
-                ProgressView(value: ocrGenerator.progress)
+            if self.ocrGenerator.isProcessing {
+                ProgressView(value: self.ocrGenerator.progress)
                     .progressViewStyle(.circular)
                     .scaleEffect(0.8)
             }
@@ -255,12 +255,12 @@ struct SearchTabView: View {
         .padding(.vertical, 4)
 
         // Progress Details (when processing)
-        if ocrGenerator.isProcessing {
+        if self.ocrGenerator.isProcessing {
             HStack {
                 Text("Progress")
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("\(ocrGenerator.processedCount) / \(ocrGenerator.totalToProcess)")
+                Text("\(self.ocrGenerator.processedCount) / \(self.ocrGenerator.totalToProcess)")
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
@@ -278,20 +278,20 @@ struct SearchTabView: View {
                     Label("Process Images", systemImage: "text.viewfinder")
                 }
             )
-            .disabled(ocrGenerator.isProcessing || !ocrSearchEnabled)
+            .disabled(self.ocrGenerator.isProcessing || !self.ocrSearchEnabled)
 
             Spacer()
 
             Button(
                 role: .destructive,
                 action: {
-                    showingOCRClearConfirmation = true
+                    self.showingOCRClearConfirmation = true
                 },
                 label: {
                     Label("Clear Cache", systemImage: "trash")
                 }
             )
-            .disabled(ocrGenerator.isProcessing)
+            .disabled(self.ocrGenerator.isProcessing)
         }
     }
 
@@ -300,25 +300,25 @@ struct SearchTabView: View {
     @ViewBuilder private var indexingStatusSection: some View {
         // Index Status
         HStack {
-            Image(systemName: embeddingGenerator.isIndexing ? "brain" : "brain.filled.head.profile")
+            Image(systemName: self.embeddingGenerator.isIndexing ? "brain" : "brain.filled.head.profile")
                 .font(.title2)
-                .foregroundStyle(embeddingGenerator.isIndexing ? .blue : .green)
-                .symbolEffect(.pulse, isActive: embeddingGenerator.isIndexing)
+                .foregroundStyle(self.embeddingGenerator.isIndexing ? .blue : .green)
+                .symbolEffect(.pulse, isActive: self.embeddingGenerator.isIndexing)
                 .frame(width: 32)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(embeddingGenerator.isIndexing ? "Indexing..." : "Ready")
+                Text(self.embeddingGenerator.isIndexing ? "Indexing..." : "Ready")
                     .font(.headline)
 
-                Text("\(indexedCount) items indexed")
+                Text("\(self.indexedCount) items indexed")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            if embeddingGenerator.isIndexing {
-                ProgressView(value: embeddingGenerator.progress)
+            if self.embeddingGenerator.isIndexing {
+                ProgressView(value: self.embeddingGenerator.progress)
                     .progressViewStyle(.circular)
                     .scaleEffect(0.8)
             }
@@ -326,12 +326,12 @@ struct SearchTabView: View {
         .padding(.vertical, 4)
 
         // Progress Details (when indexing)
-        if embeddingGenerator.isIndexing {
+        if self.embeddingGenerator.isIndexing {
             HStack {
                 Text("Progress")
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("\(embeddingGenerator.indexedCount) / \(embeddingGenerator.totalToIndex)")
+                Text("\(self.embeddingGenerator.indexedCount) / \(self.embeddingGenerator.totalToIndex)")
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
@@ -349,20 +349,20 @@ struct SearchTabView: View {
                     Label("Rebuild Index", systemImage: "arrow.triangle.2.circlepath")
                 }
             )
-            .disabled(embeddingGenerator.isIndexing || !semanticSearchEnabled)
+            .disabled(self.embeddingGenerator.isIndexing || !self.semanticSearchEnabled)
 
             Spacer()
 
             Button(
                 role: .destructive,
                 action: {
-                    showingClearConfirmation = true
+                    self.showingClearConfirmation = true
                 },
                 label: {
                     Label("Clear Index", systemImage: "trash")
                 }
             )
-            .disabled(embeddingGenerator.isIndexing)
+            .disabled(self.embeddingGenerator.isIndexing)
         }
     }
 }
@@ -371,36 +371,36 @@ struct SearchTabView: View {
 
 private extension SearchTabView {
     func loadIndexedCount() async {
-        indexedCount = await embeddingGenerator.indexedItemCount()
+        self.indexedCount = await self.embeddingGenerator.indexedItemCount()
     }
 
     func loadOCRProcessedCount() async {
-        ocrProcessedCount = await ocrGenerator.processedItemCount()
+        self.ocrProcessedCount = await self.ocrGenerator.processedItemCount()
     }
 
     func startIndexing() async {
-        await embeddingGenerator.clearOutdatedEmbeddings()
-        _ = await embeddingGenerator.indexAllMissingEmbeddings()
-        await loadIndexedCount()
+        await self.embeddingGenerator.clearOutdatedEmbeddings()
+        _ = await self.embeddingGenerator.indexAllMissingEmbeddings()
+        await self.loadIndexedCount()
     }
 
     func startOCRProcessing() async {
-        await ocrGenerator.clearOutdatedOCR()
-        _ = await ocrGenerator.processAllMissingOCR()
-        await loadOCRProcessedCount()
+        await self.ocrGenerator.clearOutdatedOCR()
+        _ = await self.ocrGenerator.processAllMissingOCR()
+        await self.loadOCRProcessedCount()
     }
 
     func clearIndex() {
         Task {
-            await embeddingGenerator.clearAllEmbeddings()
-            indexedCount = 0
+            await self.embeddingGenerator.clearAllEmbeddings()
+            self.indexedCount = 0
         }
     }
 
     func clearOCRCache() {
         Task {
-            await ocrGenerator.clearAllOCR()
-            ocrProcessedCount = 0
+            await self.ocrGenerator.clearAllOCR()
+            self.ocrProcessedCount = 0
         }
     }
 }

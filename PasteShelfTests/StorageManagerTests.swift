@@ -14,11 +14,11 @@ final class StorageManagerTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        storageManager = await MainActor.run { StorageManager.forTesting() }
+        self.storageManager = await MainActor.run { StorageManager.forTesting() }
     }
 
     override func tearDown() async throws {
-        storageManager = nil
+        self.storageManager = nil
         try await super.tearDown()
     }
 
@@ -26,15 +26,15 @@ final class StorageManagerTests: XCTestCase {
 
     @MainActor
     func testStorageManagerCreation() {
-        XCTAssertNotNil(storageManager)
-        XCTAssertNotNil(storageManager.viewContext)
+        XCTAssertNotNil(self.storageManager)
+        XCTAssertNotNil(self.storageManager.viewContext)
     }
 
     @MainActor
     func testBackgroundContextCreation() {
-        let context = storageManager.newBackgroundContext()
+        let context = self.storageManager.newBackgroundContext()
         XCTAssertNotNil(context)
-        XCTAssertNotEqual(context, storageManager.viewContext)
+        XCTAssertNotEqual(context, self.storageManager.viewContext)
     }
 
     // MARK: - Statistics Tests
@@ -60,8 +60,8 @@ final class StorageManagerTests: XCTestCase {
             contentHash: "hash2"
         )
 
-        _ = await storageManager.save(content: textContent, from: nil)
-        _ = await storageManager.save(content: imageContent, from: nil)
+        _ = await self.storageManager.save(content: textContent, from: nil)
+        _ = await self.storageManager.save(content: imageContent, from: nil)
 
         let textCount = await storageManager.itemCount(byContentType: .plainText)
         let imageCount = await storageManager.itemCount(byContentType: .png)

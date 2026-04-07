@@ -24,7 +24,7 @@ final class AutomationViewModel: ObservableObject {
         self.storage = storage
         self.engine = engine
         Task {
-            await loadRules()
+            await self.loadRules()
         }
     }
 
@@ -55,115 +55,115 @@ final class AutomationViewModel: ObservableObject {
 
     /// Filtered rules based on search query
     var filteredRules: [AutomationRule] {
-        if searchQuery.isEmpty {
-            return rules
+        if self.searchQuery.isEmpty {
+            return self.rules
         }
-        return rules.filter { rule in
-            rule.name.localizedCaseInsensitiveContains(searchQuery) ||
-                rule.trigger.displayName.localizedCaseInsensitiveContains(searchQuery)
+        return self.rules.filter { rule in
+            rule.name.localizedCaseInsensitiveContains(self.searchQuery) ||
+                rule.trigger.displayName.localizedCaseInsensitiveContains(self.searchQuery)
         }
     }
 
     /// Count of enabled rules
     var enabledRulesCount: Int {
-        rules.filter(\.isEnabled).count
+        self.rules.filter(\.isEnabled).count
     }
 
     /// Count of disabled rules
     var disabledRulesCount: Int {
-        rules.filter { !$0.isEnabled }.count
+        self.rules.filter { !$0.isEnabled }.count
     }
 
     // MARK: - Public Methods
 
     /// Load all automation rules
     func loadRules() async {
-        isLoading = true
+        self.isLoading = true
         defer { isLoading = false }
 
         do {
-            rules = try await storage.fetchAllRules()
-            logger.info("Loaded \(rules.count) automation rules")
+            self.rules = try await self.storage.fetchAllRules()
+            self.logger.info("Loaded \(self.rules.count) automation rules")
         } catch {
-            errorMessage = "Failed to load rules: \(error.localizedDescription)"
-            logger.error("Failed to load rules: \(error.localizedDescription)")
+            self.errorMessage = "Failed to load rules: \(error.localizedDescription)"
+            self.logger.error("Failed to load rules: \(error.localizedDescription)")
         }
     }
 
     /// Create a new rule
     func createRule(_ rule: AutomationRule) async {
         do {
-            try await storage.createRule(rule)
-            engine.invalidateRuleCache()
-            await loadRules()
-            logger.info("Created rule: \(rule.name)")
+            try await self.storage.createRule(rule)
+            self.engine.invalidateRuleCache()
+            await self.loadRules()
+            self.logger.info("Created rule: \(rule.name)")
         } catch {
-            errorMessage = "Failed to create rule: \(error.localizedDescription)"
-            logger.error("Failed to create rule: \(error.localizedDescription)")
+            self.errorMessage = "Failed to create rule: \(error.localizedDescription)"
+            self.logger.error("Failed to create rule: \(error.localizedDescription)")
         }
     }
 
     /// Update an existing rule
     func updateRule(_ rule: AutomationRule) async {
         do {
-            try await storage.updateRule(rule)
-            engine.invalidateRuleCache()
-            await loadRules()
-            logger.info("Updated rule: \(rule.name)")
+            try await self.storage.updateRule(rule)
+            self.engine.invalidateRuleCache()
+            await self.loadRules()
+            self.logger.info("Updated rule: \(rule.name)")
         } catch {
-            errorMessage = "Failed to update rule: \(error.localizedDescription)"
-            logger.error("Failed to update rule: \(error.localizedDescription)")
+            self.errorMessage = "Failed to update rule: \(error.localizedDescription)"
+            self.logger.error("Failed to update rule: \(error.localizedDescription)")
         }
     }
 
     /// Delete a rule
     func deleteRule(_ rule: AutomationRule) async {
         do {
-            try await storage.deleteRule(id: rule.id)
-            engine.invalidateRuleCache()
-            await loadRules()
-            logger.info("Deleted rule: \(rule.name)")
+            try await self.storage.deleteRule(id: rule.id)
+            self.engine.invalidateRuleCache()
+            await self.loadRules()
+            self.logger.info("Deleted rule: \(rule.name)")
         } catch {
-            errorMessage = "Failed to delete rule: \(error.localizedDescription)"
-            logger.error("Failed to delete rule: \(error.localizedDescription)")
+            self.errorMessage = "Failed to delete rule: \(error.localizedDescription)"
+            self.logger.error("Failed to delete rule: \(error.localizedDescription)")
         }
     }
 
     /// Delete multiple rules
     func deleteRules(_ rules: [AutomationRule]) async {
         for rule in rules {
-            await deleteRule(rule)
+            await self.deleteRule(rule)
         }
     }
 
     /// Toggle rule enabled state
     func toggleRule(_ rule: AutomationRule) async {
         do {
-            try await storage.toggleRule(id: rule.id)
-            engine.invalidateRuleCache()
-            await loadRules()
-            logger.info("Toggled rule: \(rule.name) -> \(!rule.isEnabled)")
+            try await self.storage.toggleRule(id: rule.id)
+            self.engine.invalidateRuleCache()
+            await self.loadRules()
+            self.logger.info("Toggled rule: \(rule.name) -> \(!rule.isEnabled)")
         } catch {
-            errorMessage = "Failed to toggle rule: \(error.localizedDescription)"
-            logger.error("Failed to toggle rule: \(error.localizedDescription)")
+            self.errorMessage = "Failed to toggle rule: \(error.localizedDescription)"
+            self.logger.error("Failed to toggle rule: \(error.localizedDescription)")
         }
     }
 
     /// Move a rule to a new position (reorder)
     func moveRule(from source: IndexSet, to destination: Int) async {
-        var reorderedRules = rules
+        var reorderedRules = self.rules
         reorderedRules.move(fromOffsets: source, toOffset: destination)
 
         // Update priorities based on new order
         for (index, rule) in reorderedRules.enumerated() {
             do {
-                try await storage.updatePriority(id: rule.id, priority: Int32(index * 10))
+                try await self.storage.updatePriority(id: rule.id, priority: Int32(index * 10))
             } catch {
-                logger.error("Failed to update rule priority: \(error.localizedDescription)")
+                self.logger.error("Failed to update rule priority: \(error.localizedDescription)")
             }
         }
 
-        await loadRules()
+        await self.loadRules()
     }
 
     /// Duplicate a rule
@@ -175,31 +175,31 @@ final class AutomationViewModel: ObservableObject {
             trigger: rule.trigger,
             conditions: rule.conditions,
             actions: rule.actions,
-            priority: Int32(rules.count * 10)
+            priority: Int32(self.rules.count * 10)
         )
 
-        await createRule(duplicatedRule)
+        await self.createRule(duplicatedRule)
     }
 
     /// Start editing a rule
     func startEditing(_ rule: AutomationRule) {
-        selectedRule = rule
-        isEditing = true
-        isCreating = false
+        self.selectedRule = rule
+        self.isEditing = true
+        self.isCreating = false
     }
 
     /// Start creating a new rule
     func startCreating() {
-        selectedRule = AutomationRule.empty()
-        isEditing = true
-        isCreating = true
+        self.selectedRule = AutomationRule.empty()
+        self.isEditing = true
+        self.isCreating = true
     }
 
     /// Cancel editing
     func cancelEditing() {
-        selectedRule = nil
-        isEditing = false
-        isCreating = false
+        self.selectedRule = nil
+        self.isEditing = false
+        self.isCreating = false
     }
 
     /// Save the current rule being edited
@@ -208,18 +208,18 @@ final class AutomationViewModel: ObservableObject {
             return
         }
 
-        if isCreating {
-            await createRule(rule)
+        if self.isCreating {
+            await self.createRule(rule)
         } else {
-            await updateRule(rule)
+            await self.updateRule(rule)
         }
 
-        cancelEditing()
+        self.cancelEditing()
     }
 
     /// Clear error message
     func clearError() {
-        errorMessage = nil
+        self.errorMessage = nil
     }
 
     // MARK: Private

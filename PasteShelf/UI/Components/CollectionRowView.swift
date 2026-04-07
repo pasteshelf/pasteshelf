@@ -27,18 +27,18 @@ struct CollectionRowView: View {
     var body: some View {
         HStack(spacing: 10) {
             // Icon
-            iconView
+            self.iconView
 
             // Name
             VStack(alignment: .leading, spacing: 2) {
-                Text(collection.name)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(isSelected ? .primary : .primary)
+                Text(self.collection.name)
+                    .font(.system(size: 13, weight: self.isSelected ? .semibold : .regular))
+                    .foregroundStyle(self.isSelected ? .primary : .primary)
                     .lineLimit(1)
 
                 // Subtitle showing item count
-                if collection.itemCount > 0 {
-                    Text("\(collection.itemCount) items")
+                if self.collection.itemCount > 0 {
+                    Text("\(self.collection.itemCount) items")
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                 }
@@ -47,7 +47,7 @@ struct CollectionRowView: View {
             Spacer()
 
             // Automatic indicator
-            if collection.isAutomatic {
+            if self.collection.isAutomatic {
                 Image(systemName: "sparkles")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
@@ -56,17 +56,17 @@ struct CollectionRowView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(backgroundView)
+        .background(self.backgroundView)
         .contentShape(Rectangle())
         .onTapGesture {
-            onSelect()
+            self.onSelect()
         }
         .onHover { hovering in
-            isHovered = hovering
+            self.isHovered = hovering
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityLabel(self.accessibilityLabel)
+        .accessibilityAddTraits(self.isSelected ? .isSelected : [])
     }
 
     // MARK: Private
@@ -78,9 +78,9 @@ struct CollectionRowView: View {
     // MARK: - Accessibility
 
     private var accessibilityLabel: String {
-        var label = collection.name
-        label += ", \(collection.itemCount) items"
-        if collection.isAutomatic {
+        var label = self.collection.name
+        label += ", \(self.collection.itemCount) items"
+        if self.collection.isAutomatic {
             label += ", smart collection"
         }
         return label
@@ -90,14 +90,14 @@ struct CollectionRowView: View {
 
     private var iconView: some View {
         ZStack {
-            if collection.hasCustomColor {
+            if self.collection.hasCustomColor {
                 RoundedRectangle(cornerRadius: 5)
-                    .fill(collection.color.opacity(0.15))
+                    .fill(self.collection.color.opacity(0.15))
             }
 
-            Image(systemName: collection.icon)
+            Image(systemName: self.collection.icon)
                 .font(.system(size: 14))
-                .foregroundStyle(collection.hasCustomColor ? collection.color : .secondary)
+                .foregroundStyle(self.collection.hasCustomColor ? self.collection.color : .secondary)
         }
         .frame(width: 26, height: 26)
     }
@@ -105,14 +105,14 @@ struct CollectionRowView: View {
     // MARK: - Background View
 
     @ViewBuilder private var backgroundView: some View {
-        if isSelected {
+        if self.isSelected {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.accentColor.opacity(0.15))
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
                         .stroke(Color.accentColor.opacity(0.2), lineWidth: 1)
                 )
-        } else if isHovered {
+        } else if self.isHovered {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.primary.opacity(0.05))
         } else {

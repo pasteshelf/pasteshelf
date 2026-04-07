@@ -24,8 +24,8 @@ final class MDMSettingsViewModel: ObservableObject {
     // MARK: - Initialization
 
     init() {
-        loadState()
-        observeChanges()
+        self.loadState()
+        self.observeChanges()
     }
 
     // MARK: Internal
@@ -49,14 +49,14 @@ final class MDMSettingsViewModel: ObservableObject {
     /// Reads the current MDM configuration and updates all published properties.
     func loadState() {
         let mdm = MDMManager.shared
-        isManaged = mdm.isManaged
-        organizationID = mdm.organizationID
+        self.isManaged = mdm.isManaged
+        self.organizationID = mdm.organizationID
 
-        forcedSettings = mdm.configuration.forcedPreferences
+        self.forcedSettings = mdm.configuration.forcedPreferences
             .sorted { $0.key.displayName < $1.key.displayName }
             .map { (key: $0.key, value: $0.value) }
 
-        defaultSettings = mdm.configuration.defaultPreferences
+        self.defaultSettings = mdm.configuration.defaultPreferences
             .sorted { $0.key.displayName < $1.key.displayName }
             .map { (key: $0.key, value: $0.value) }
     }
@@ -75,6 +75,6 @@ final class MDMSettingsViewModel: ObservableObject {
             .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.loadState() }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 }

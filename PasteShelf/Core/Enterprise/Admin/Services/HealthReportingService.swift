@@ -47,13 +47,13 @@ final class HealthReportingService: HealthReporting {
     ///
     /// - Parameter interval: The time interval in seconds between successive report submissions.
     func startReporting(interval: TimeInterval) {
-        stopReporting()
-        reportTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+        self.stopReporting()
+        self.reportTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             Task { [weak self] in
                 try? await self?.reportNow()
             }
         }
-        logger.info("Health reporting started (interval: \(interval)s)")
+        self.logger.info("Health reporting started (interval: \(interval)s)")
     }
 
     /// Stops the recurring health report submission timer.
@@ -62,8 +62,8 @@ final class HealthReportingService: HealthReporting {
     /// `startReporting(interval:)` is called again. Any report currently in flight is
     /// not affected.
     func stopReporting() {
-        reportTimer?.invalidate()
-        reportTimer = nil
+        self.reportTimer?.invalidate()
+        self.reportTimer = nil
     }
 
     /// Immediately generates and submits a device health report outside the regular schedule.
@@ -78,9 +78,9 @@ final class HealthReportingService: HealthReporting {
             throw AdminError.notEnrolled
         }
 
-        let report = buildHealthReport(deviceId: registration.deviceId)
-        try await apiClient.submitHealthReport(report)
-        logger.info("Health report submitted for device \(registration.deviceId)")
+        let report = self.buildHealthReport(deviceId: registration.deviceId)
+        try await self.apiClient.submitHealthReport(report)
+        self.logger.info("Health report submitted for device \(registration.deviceId)")
     }
 
     // MARK: Private

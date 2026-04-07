@@ -73,18 +73,18 @@ extension AuditLogEntry {
         encryptedDetail: Data?
     ) {
         self.init(context: context)
-        id = event.id
-        timestamp = event.timestamp
-        eventCategory = event.category.rawValue
-        action = event.action.rawValue
-        severity = event.severity.rawValue
-        userId = event.userId
-        deviceId = event.deviceId
-        resourceType = event.resourceType
-        resourceId = event.resourceId
+        self.id = event.id
+        self.timestamp = event.timestamp
+        self.eventCategory = event.category.rawValue
+        self.action = event.action.rawValue
+        self.severity = event.severity.rawValue
+        self.userId = event.userId
+        self.deviceId = event.deviceId
+        self.resourceType = event.resourceType
+        self.resourceId = event.resourceId
         self.encryptedDetail = encryptedDetail
-        isSynced = false
-        syncedAt = nil
+        self.isSynced = false
+        self.syncedAt = nil
     }
 }
 
@@ -99,7 +99,7 @@ extension AuditLogEntry {
     /// - Parameter limit: The maximum number of unsynced entries to return.
     /// - Returns: A configured `NSFetchRequest` targeting `isSynced == NO` entries.
     static func unsyncedFetchRequest(limit: Int) -> NSFetchRequest<AuditLogEntry> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(format: "isSynced == NO")
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \AuditLogEntry.timestamp, ascending: true),
@@ -122,7 +122,7 @@ extension AuditLogEntry {
         from: Date?,
         to: Date?
     ) -> NSFetchRequest<AuditLogEntry> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
 
         var predicates: [NSPredicate] = []
 
@@ -154,7 +154,7 @@ extension AuditLogEntry {
     /// - Parameter olderThan: The cutoff date. Entries with `timestamp < olderThan` are returned.
     /// - Returns: A configured `NSFetchRequest` targeting entries that are eligible for deletion.
     static func retentionCleanupFetchRequest(olderThan cutoff: Date) -> NSFetchRequest<AuditLogEntry> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(format: "timestamp < %@", cutoff as NSDate)
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \AuditLogEntry.timestamp, ascending: true),

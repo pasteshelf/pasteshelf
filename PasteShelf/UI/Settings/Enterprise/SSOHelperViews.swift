@@ -17,26 +17,26 @@ struct ProviderListRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: provider.type == .saml ? "key.fill" : "lock.shield.fill")
+            Image(systemName: self.provider.type == .saml ? "key.fill" : "lock.shield.fill")
                 .font(.body)
-                .foregroundStyle(provider.isEnabled ? Color.accentColor : Color.secondary)
+                .foregroundStyle(self.provider.isEnabled ? Color.accentColor : Color.secondary)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(provider.name)
+                Text(self.provider.name)
                     .font(.body)
                     .lineLimit(1)
 
-                ProviderTypeBadge(type: provider.type)
+                ProviderTypeBadge(type: self.provider.type)
             }
 
             Spacer()
 
             // Status dot
             Circle()
-                .fill(statusColor)
+                .fill(self.statusColor)
                 .frame(width: 8, height: 8)
-                .help(statusHelp)
+                .help(self.statusHelp)
         }
         .padding(.vertical, 3)
     }
@@ -44,17 +44,17 @@ struct ProviderListRow: View {
     // MARK: Private
 
     private var statusColor: Color {
-        if !provider.isConfigured {
+        if !self.provider.isConfigured {
             return .orange
         }
-        return provider.isEnabled ? .green : .secondary
+        return self.provider.isEnabled ? .green : .secondary
     }
 
     private var statusHelp: String {
-        if !provider.isConfigured {
+        if !self.provider.isConfigured {
             return "Incomplete configuration"
         }
-        return provider.isEnabled ? "Active" : "Disabled"
+        return self.provider.isEnabled ? "Active" : "Disabled"
     }
 }
 
@@ -66,19 +66,19 @@ struct ProviderTypeBadge: View {
     let type: IdentityProviderType
 
     var body: some View {
-        Text(type.displayName)
+        Text(self.type.displayName)
             .font(.caption2)
             .fontWeight(.medium)
             .padding(.horizontal, 5)
             .padding(.vertical, 2)
-            .background(badgeColor.opacity(0.15), in: Capsule())
-            .foregroundStyle(badgeColor)
+            .background(self.badgeColor.opacity(0.15), in: Capsule())
+            .foregroundStyle(self.badgeColor)
     }
 
     // MARK: Private
 
     private var badgeColor: Color {
-        switch type {
+        switch self.type {
         case .saml: .blue
         case .oidc: .purple
         }
@@ -96,9 +96,9 @@ struct ConnectionStatusBadge: View {
     var body: some View {
         HStack(spacing: 4) {
             Circle()
-                .fill(dotColor)
+                .fill(self.dotColor)
                 .frame(width: 7, height: 7)
-            Text(label)
+            Text(self.label)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -107,17 +107,17 @@ struct ConnectionStatusBadge: View {
     // MARK: Private
 
     private var dotColor: Color {
-        if !isConfigured {
+        if !self.isConfigured {
             return .orange
         }
-        return isEnabled ? .green : .secondary
+        return self.isEnabled ? .green : .secondary
     }
 
     private var label: String {
-        if !isConfigured {
+        if !self.isConfigured {
             return "Incomplete"
         }
-        return isEnabled ? "Active" : "Disabled"
+        return self.isEnabled ? "Active" : "Disabled"
     }
 }
 

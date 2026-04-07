@@ -35,12 +35,13 @@ struct PrivacySettings: Codable, Equatable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        autoDeleteEnabled = try container.decode(Bool.self, forKey: .autoDeleteEnabled)
-        autoDeleteDays = try container.decode(Int.self, forKey: .autoDeleteDays)
-        isMonitoringPaused = try container.decode(Bool.self, forKey: .isMonitoringPaused)
-        excludedAppBundleIds = try container.decode([String].self, forKey: .excludedAppBundleIds)
-        sensitiveDetectionEnabled = try container.decodeIfPresent(Bool.self, forKey: .sensitiveDetectionEnabled) ?? true
-        enabledSensitiveCategories = try container.decodeIfPresent(
+        self.autoDeleteEnabled = try container.decode(Bool.self, forKey: .autoDeleteEnabled)
+        self.autoDeleteDays = try container.decode(Int.self, forKey: .autoDeleteDays)
+        self.isMonitoringPaused = try container.decode(Bool.self, forKey: .isMonitoringPaused)
+        self.excludedAppBundleIds = try container.decode([String].self, forKey: .excludedAppBundleIds)
+        self.sensitiveDetectionEnabled = try container
+            .decodeIfPresent(Bool.self, forKey: .sensitiveDetectionEnabled) ?? true
+        self.enabledSensitiveCategories = try container.decodeIfPresent(
             Set<SensitivePatterns.SensitiveCategory>.self,
             forKey: .enabledSensitiveCategories
         ) ?? Set(SensitivePatterns.SensitiveCategory.allCases)

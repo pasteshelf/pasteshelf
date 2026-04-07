@@ -18,24 +18,24 @@ struct ImageProcessorTests {
 
     @Test("Thumbnail is generated for large images")
     func thumbnailIsGeneratedForLargeImages() {
-        let image = createTestImage(width: 1000, height: 800)
-        let result = processor.process(image)
+        let image = self.createTestImage(width: 1000, height: 800)
+        let result = self.processor.process(image)
 
         #expect(result.thumbnail != nil)
     }
 
     @Test("Small images are not upscaled for thumbnail")
     func smallImagesNotUpscaled() {
-        let image = createTestImage(width: 100, height: 100)
-        let thumbnail = processor.generateThumbnail(image)
+        let image = self.createTestImage(width: 100, height: 100)
+        let thumbnail = self.processor.generateThumbnail(image)
 
         #expect(thumbnail != nil)
     }
 
     @Test("Thumbnail respects max dimension")
     func thumbnailRespectsMaxDimension() {
-        let image = createTestImage(width: 1000, height: 500)
-        let result = processor.process(image)
+        let image = self.createTestImage(width: 1000, height: 500)
+        let result = self.processor.process(image)
 
         guard let thumbnailData = result.thumbnail,
               let thumbnail = NSImage(data: thumbnailData)
@@ -51,8 +51,8 @@ struct ImageProcessorTests {
 
     @Test("Thumbnail maintains aspect ratio")
     func thumbnailMaintainsAspectRatio() {
-        let image = createTestImage(width: 1000, height: 500)
-        let result = processor.process(image)
+        let image = self.createTestImage(width: 1000, height: 500)
+        let result = self.processor.process(image)
 
         guard let thumbnailData = result.thumbnail,
               let thumbnail = NSImage(data: thumbnailData)
@@ -72,8 +72,8 @@ struct ImageProcessorTests {
 
     @Test("Dimensions are correctly extracted")
     func dimensionsAreCorrectlyExtracted() {
-        let image = createTestImage(width: 800, height: 600)
-        let result = processor.process(image)
+        let image = self.createTestImage(width: 800, height: 600)
+        let result = self.processor.process(image)
 
         // process() uses image.pixelSize which returns actual pixel dimensions.
         // On Retina (2x) displays, NSImage created via lockFocus will have a
@@ -93,8 +93,8 @@ struct ImageProcessorTests {
 
     @Test("Small images are not compressed")
     func smallImagesNotCompressed() {
-        let image = createTestImage(width: 100, height: 100)
-        let result = processor.process(image)
+        let image = self.createTestImage(width: 100, height: 100)
+        let result = self.processor.process(image)
 
         #expect(!result.isCompressed)
     }
@@ -102,11 +102,11 @@ struct ImageProcessorTests {
     @Test("Compress if needed returns original for small data")
     func compressIfNeededReturnsOriginalForSmallData() {
         let smallData = Data(repeating: 0, count: 1000)
-        let (resultData, isCompressed) = processor.compressIfNeeded(smallData)
+        let (resultData, isCompressed) = self.processor.compressIfNeeded(smallData)
 
         #expect(!isCompressed)
         // Result should be reasonable size (PNG conversion might change it slightly)
-        #expect(resultData.count < processor.maxStorageSize)
+        #expect(resultData.count < self.processor.maxStorageSize)
     }
 
     // MARK: - Configuration Tests

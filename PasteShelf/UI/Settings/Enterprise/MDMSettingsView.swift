@@ -22,7 +22,7 @@ struct MDMSettingsView: View {
     // MARK: - Body
 
     var body: some View {
-        mdmContent
+        self.mdmContent
     }
 
     // MARK: Private
@@ -37,8 +37,8 @@ struct MDMSettingsView: View {
 
             Section("Management Status") {
                 LabeledContent("Status") {
-                    Text(viewModel.isManaged ? "Managed" : "Not Managed")
-                        .foregroundStyle(viewModel.isManaged ? .primary : .secondary)
+                    Text(self.viewModel.isManaged ? "Managed" : "Not Managed")
+                        .foregroundStyle(self.viewModel.isManaged ? .primary : .secondary)
                 }
 
                 if let orgID = viewModel.organizationID {
@@ -53,9 +53,9 @@ struct MDMSettingsView: View {
 
             // MARK: Forced Settings Section
 
-            if !viewModel.forcedSettings.isEmpty {
+            if !self.viewModel.forcedSettings.isEmpty {
                 Section("Locked Settings") {
-                    ForEach(viewModel.forcedSettings, id: \.key) { item in
+                    ForEach(self.viewModel.forcedSettings, id: \.key) { item in
                         LabeledContent {
                             Text(item.value.displayValue)
                                 .foregroundStyle(.secondary)
@@ -73,9 +73,9 @@ struct MDMSettingsView: View {
 
             // MARK: Default Settings Section
 
-            if !viewModel.defaultSettings.isEmpty {
+            if !self.viewModel.defaultSettings.isEmpty {
                 Section("Default Settings") {
-                    ForEach(viewModel.defaultSettings, id: \.key) { item in
+                    ForEach(self.viewModel.defaultSettings, id: \.key) { item in
                         LabeledContent(item.key.displayName) {
                             Text(item.value.displayValue)
                                 .foregroundStyle(.secondary)
@@ -86,7 +86,7 @@ struct MDMSettingsView: View {
 
             // MARK: Empty State (not managed)
 
-            if !viewModel.isManaged {
+            if !self.viewModel.isManaged {
                 Section {
                     VStack(spacing: 8) {
                         Image(systemName: "building.2")

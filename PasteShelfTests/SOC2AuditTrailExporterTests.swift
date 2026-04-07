@@ -18,7 +18,7 @@ struct SOC2AuditTrailHashChainTests {
 
     @Test("Hash chain genesis starts with 'GENESIS' string")
     func genesisHash() {
-        let hash = computeHash(
+        let hash = self.computeHash(
             previousHash: "GENESIS",
             eventId: "test-id",
             timestamp: "2024-01-01T00:00:00Z",
@@ -31,14 +31,14 @@ struct SOC2AuditTrailHashChainTests {
 
     @Test("Hash is deterministic for same inputs")
     func deterministic() {
-        let hash1 = computeHash(
+        let hash1 = self.computeHash(
             previousHash: "GENESIS",
             eventId: "id-1",
             timestamp: "2024-01-01T00:00:00Z",
             action: "copy_captured",
             category: "clipboard"
         )
-        let hash2 = computeHash(
+        let hash2 = self.computeHash(
             previousHash: "GENESIS",
             eventId: "id-1",
             timestamp: "2024-01-01T00:00:00Z",
@@ -50,14 +50,14 @@ struct SOC2AuditTrailHashChainTests {
 
     @Test("Different event IDs produce different hashes")
     func differentEventIds() {
-        let hash1 = computeHash(
+        let hash1 = self.computeHash(
             previousHash: "GENESIS",
             eventId: "id-1",
             timestamp: "2024-01-01T00:00:00Z",
             action: "copy_captured",
             category: "clipboard"
         )
-        let hash2 = computeHash(
+        let hash2 = self.computeHash(
             previousHash: "GENESIS",
             eventId: "id-2",
             timestamp: "2024-01-01T00:00:00Z",
@@ -69,14 +69,14 @@ struct SOC2AuditTrailHashChainTests {
 
     @Test("Different previousHash produces different output hash")
     func differentPreviousHash() {
-        let hash1 = computeHash(
+        let hash1 = self.computeHash(
             previousHash: "GENESIS",
             eventId: "id-1",
             timestamp: "2024-01-01T00:00:00Z",
             action: "copy_captured",
             category: "clipboard"
         )
-        let hash2 = computeHash(
+        let hash2 = self.computeHash(
             previousHash: "abc123",
             eventId: "id-1",
             timestamp: "2024-01-01T00:00:00Z",
@@ -90,7 +90,7 @@ struct SOC2AuditTrailHashChainTests {
     func threeEventChain() {
         var previousHash = "GENESIS"
 
-        let hash1 = computeHash(
+        let hash1 = self.computeHash(
             previousHash: previousHash,
             eventId: "event-1",
             timestamp: "2024-01-01T00:00:00Z",
@@ -99,7 +99,7 @@ struct SOC2AuditTrailHashChainTests {
         )
         previousHash = hash1
 
-        let hash2 = computeHash(
+        let hash2 = self.computeHash(
             previousHash: previousHash,
             eventId: "event-2",
             timestamp: "2024-01-01T00:01:00Z",
@@ -108,7 +108,7 @@ struct SOC2AuditTrailHashChainTests {
         )
         previousHash = hash2
 
-        let hash3 = computeHash(
+        let hash3 = self.computeHash(
             previousHash: previousHash,
             eventId: "event-3",
             timestamp: "2024-01-01T00:02:00Z",
@@ -131,7 +131,7 @@ struct SOC2AuditTrailHashChainTests {
     func tamperingDetection() {
         var previousHash = "GENESIS"
 
-        let hash1 = computeHash(
+        let hash1 = self.computeHash(
             previousHash: previousHash,
             eventId: "event-1",
             timestamp: "2024-01-01T00:00:00Z",
@@ -140,7 +140,7 @@ struct SOC2AuditTrailHashChainTests {
         )
         previousHash = hash1
 
-        let hash2 = computeHash(
+        let hash2 = self.computeHash(
             previousHash: previousHash,
             eventId: "event-2",
             timestamp: "2024-01-01T00:01:00Z",
@@ -149,7 +149,7 @@ struct SOC2AuditTrailHashChainTests {
         )
 
         // Now recompute hash2 with tampered action — should produce different hash
-        let tamperedHash2 = computeHash(
+        let tamperedHash2 = self.computeHash(
             previousHash: previousHash,
             eventId: "event-2",
             timestamp: "2024-01-01T00:01:00Z",
@@ -162,7 +162,7 @@ struct SOC2AuditTrailHashChainTests {
 
     @Test("SHA-256 output is lowercase hex")
     func lowercaseHex() {
-        let hash = computeHash(
+        let hash = self.computeHash(
             previousHash: "GENESIS",
             eventId: "id-1",
             timestamp: "2024-01-01T00:00:00Z",
@@ -175,7 +175,7 @@ struct SOC2AuditTrailHashChainTests {
 
     @Test("Empty event fields produce valid hash")
     func emptyFields() {
-        let hash = computeHash(
+        let hash = self.computeHash(
             previousHash: "GENESIS",
             eventId: "",
             timestamp: "",
@@ -277,7 +277,7 @@ struct ComplianceErrorTests {
         let message: String
 
         var errorDescription: String? {
-            message
+            self.message
         }
     }
 }

@@ -29,8 +29,8 @@ final class AuditLogViewModel: ObservableObject {
 
     /// Creates the view model and wires up Combine publishers for filter auto-reload.
     init() {
-        setupFilterObservation()
-        Task { await loadEvents() }
+        self.setupFilterObservation()
+        Task { await self.loadEvents() }
     }
 
     // MARK: Internal
@@ -72,20 +72,20 @@ final class AuditLogViewModel: ObservableObject {
     /// are silently skipped rather than surfacing a hard error.
     func loadEvents() async {
         guard let storage = AuditManager.shared.storage else {
-            events = []
+            self.events = []
             return
         }
 
-        isLoading = true
-        errorMessage = nil
+        self.isLoading = true
+        self.errorMessage = nil
         defer { isLoading = false }
 
         do {
             let entries = try await storage.fetchEvents(
-                category: selectedCategory,
-                from: dateRangeStart,
-                to: dateRangeEnd,
-                limit: fetchLimit
+                category: self.selectedCategory,
+                from: self.dateRangeStart,
+                to: self.dateRangeEnd,
+                limit: self.fetchLimit
             )
 
             var displayItems: [AuditLogDisplayItem] = []
@@ -95,7 +95,7 @@ final class AuditLogViewModel: ObservableObject {
                 do {
                     detail = try storage.decryptDetail(for: entry)
                 } catch {
-                    logger
+                    self.logger
                         .warning(
                             "Could not decrypt detail for entry \(String(describing: entry.id)): \(error.localizedDescription)"
                         )
@@ -107,26 +107,26 @@ final class AuditLogViewModel: ObservableObject {
                 }
             }
 
-            events = displayItems
-            decryptionFailureCount = failures
-            logger.info("Audit log viewer loaded \(displayItems.count) events")
+            self.events = displayItems
+            self.decryptionFailureCount = failures
+            self.logger.info("Audit log viewer loaded \(displayItems.count) events")
         } catch {
-            errorMessage = error.localizedDescription
-            logger.error("Failed to load audit events: \(error.localizedDescription)")
+            self.errorMessage = error.localizedDescription
+            self.logger.error("Failed to load audit events: \(error.localizedDescription)")
         }
     }
 
     /// Resets all filter fields to their default (unfiltered) values.
     func clearFilters() {
-        selectedCategory = nil
-        dateRangeStart = nil
-        dateRangeEnd = nil
+        self.selectedCategory = nil
+        self.dateRangeStart = nil
+        self.dateRangeEnd = nil
     }
 
     /// Persists a new retention window via AuditManager.
     func updateRetentionDays(_ days: Int) {
         AuditManager.shared.updateRetentionDays(days)
-        retentionDays = days
+        self.retentionDays = days
     }
 
     /// Exports the currently displayed events as a CSV file.
@@ -134,18 +134,18 @@ final class AuditLogViewModel: ObservableObject {
     /// Writes the CSV to a temporary file, then presents an `NSSavePanel` for the
     /// user to choose the destination. The temporary file is deleted after the copy.
     func exportAsCSV() {
-        let csvString = buildCSV()
+        let csvString = self.buildCSV()
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("audit_log_\(Date().timeIntervalSince1970).csv")
 
         do {
             try csvString.write(to: tempURL, atomically: true, encoding: .utf8)
         } catch {
-            errorMessage = "Failed to write CSV file: \(error.localizedDescription)"
+            self.errorMessage = "Failed to write CSV file: \(error.localizedDescription)"
             return
         }
 
-        presentSavePanel(sourceURL: tempURL, suggestedFilename: "audit_log.csv", fileExtension: "csv")
+        self.presentSavePanel(sourceURL: tempURL, suggestedFilename: "audit_log.csv", fileExtension: "csv")
     }
 
     /// Exports the currently displayed events as a JSON file.
@@ -153,15 +153,15 @@ final class AuditLogViewModel: ObservableObject {
     /// Writes the JSON array to a temporary file, then presents an `NSSavePanel` for
     /// the user to choose the destination. The temporary file is deleted after the copy.
     func exportAsJSON() {
-        let jsonObjects = events.map { item -> [String: Any] in
-            buildJSONObject(for: item)
+        let jsonObjects = self.events.map { item -> [String: Any] in
+            self.buildJSONObject(for: item)
         }
 
         let jsonData: Data
         do {
             jsonData = try JSONSerialization.data(withJSONObject: jsonObjects, options: [.prettyPrinted, .sortedKeys])
         } catch {
-            errorMessage = "Failed to serialize events as JSON: \(error.localizedDescription)"
+            self.errorMessage = "Failed to serialize events as JSON: \(error.localizedDescription)"
             return
         }
 
@@ -171,11 +171,11 @@ final class AuditLogViewModel: ObservableObject {
         do {
             try jsonData.write(to: tempURL, options: .atomic)
         } catch {
-            errorMessage = "Failed to write JSON file: \(error.localizedDescription)"
+            self.errorMessage = "Failed to write JSON file: \(error.localizedDescription)"
             return
         }
 
-        presentSavePanel(sourceURL: tempURL, suggestedFilename: "audit_log.json", fileExtension: "json")
+        self.presentSavePanel(sourceURL: tempURL, suggestedFilename: "audit_log.json", fileExtension: "json")
     }
 
     // MARK: Private
@@ -201,9 +201,9 @@ final class AuditLogViewModel: ObservableObject {
     /// Wires Combine publishers on the three filter properties so that any change
     /// triggers a debounced reload after 0.3 seconds.
     private func setupFilterObservation() {
-        let categoryPublisher = $selectedCategory.map { _ in () }.eraseToAnyPublisher()
-        let startPublisher = $dateRangeStart.map { _ in () }.eraseToAnyPublisher()
-        let endPublisher = $dateRangeEnd.map { _ in () }.eraseToAnyPublisher()
+        let categoryPublisher = self.$selectedCategory.map { _ in () }.eraseToAnyPublisher()
+        let startPublisher = self.$dateRangeStart.map { _ in () }.eraseToAnyPublisher()
+        let endPublisher = self.$dateRangeEnd.map { _ in () }.eraseToAnyPublisher()
 
         Publishers.MergeMany(categoryPublisher, startPublisher, endPublisher)
             .dropFirst()
@@ -212,10 +212,10 @@ final class AuditLogViewModel: ObservableObject {
                 guard let self else {
                     return
                 }
-                loadTask?.cancel()
-                loadTask = Task { await self.loadEvents() }
+                self.loadTask?.cancel()
+                self.loadTask = Task { await self.loadEvents() }
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 
     /// Presents a modal `NSSavePanel` configured for the given file type.
@@ -258,9 +258,9 @@ final class AuditLogViewModel: ObservableObject {
 
     private func buildCSV() -> String {
         let isoFormatter = ISO8601DateFormatter()
-        var lines: [String] = [Self.csvColumns.map(csvEscape).joined(separator: ",")]
+        var lines: [String] = [Self.csvColumns.map(self.csvEscape).joined(separator: ",")]
 
-        for item in events {
+        for item in self.events {
             let detailJSON: String = if let data = try? JSONSerialization.data(
                 withJSONObject: item.detail,
                 options: .sortedKeys
@@ -282,7 +282,7 @@ final class AuditLogViewModel: ObservableObject {
                 item.resourceType ?? "",
                 item.resourceId ?? "",
                 detailJSON,
-            ].map(csvEscape).joined(separator: ",")
+            ].map(self.csvEscape).joined(separator: ",")
 
             lines.append(row)
         }

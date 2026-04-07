@@ -11,18 +11,18 @@
                 updaterDelegate: nil,
                 userDriverDelegate: nil
             )
-            updater = controller.updater
+            self.updater = controller.updater
             controller.startUpdater()
         }
 
         // MARK: Internal
 
         var canCheckForUpdates: Bool {
-            updater.canCheckForUpdates
+            self.updater.canCheckForUpdates
         }
 
         func checkForUpdates() {
-            updater.checkForUpdates()
+            self.updater.checkForUpdates()
         }
 
         // MARK: Private

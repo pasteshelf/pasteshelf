@@ -47,8 +47,8 @@ struct StoredHotkey: Codable, Equatable {
 
     /// Creates from HotkeyConfiguration
     init(from config: HotkeyConfiguration) {
-        keyCode = config.keyCode
-        modifiers = config.modifiers
+        self.keyCode = config.keyCode
+        self.modifiers = config.modifiers
     }
 
     init(keyCode: UInt32, modifiers: UInt32) {
@@ -82,13 +82,13 @@ struct StoredHotkey: Codable, Equatable {
 
     /// Converts to HotkeyConfiguration
     var toHotkeyConfiguration: HotkeyConfiguration {
-        HotkeyConfiguration(keyCode: keyCode, modifiers: modifiers)
+        HotkeyConfiguration(keyCode: self.keyCode, modifiers: self.modifiers)
     }
 
     // MARK: - Display
 
     /// Human-readable representation of the hotkey
     var displayString: String {
-        toHotkeyConfiguration.displayString
+        self.toHotkeyConfiguration.displayString
     }
 }

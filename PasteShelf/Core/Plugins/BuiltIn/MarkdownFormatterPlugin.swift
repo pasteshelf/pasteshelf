@@ -21,12 +21,12 @@
             context.logger.info("Markdown Formatter loaded")
 
             Task { @MainActor in
-                registerTransformers()
+                self.registerTransformers()
             }
         }
 
         public func willUnload() {
-            context?.logger.info("Markdown Formatter unloading")
+            self.context?.logger.info("Markdown Formatter unloading")
 
             Task { @MainActor in
                 PluginTransformAPI.shared.unregisterTransformers(for: Self.identifier)
@@ -75,7 +75,7 @@
         func transform(content: PluginClipboardContent) async throws -> PluginClipboardContent? {
             // Default transform: HTML to Markdown if HTML present
             if content.html != nil {
-                return try await htmlToMarkdown(content)
+                return try await self.htmlToMarkdown(content)
             }
             return nil
         }
@@ -138,7 +138,7 @@
                 return nil
             }
 
-            let markdown = convertHTMLToMarkdown(html)
+            let markdown = self.convertHTMLToMarkdown(html)
 
             let result = PluginClipboardContent(text: markdown)
             result.metadata["convertedFromHTML"] = true
@@ -156,7 +156,7 @@
                 return nil
             }
 
-            let formatted = formatTable(text)
+            let formatted = self.formatTable(text)
 
             let result = PluginClipboardContent(text: formatted)
             result.metadata["tableFormatted"] = true
@@ -169,7 +169,7 @@
                 return nil
             }
 
-            let stripped = removeMarkdownFormatting(text)
+            let stripped = self.removeMarkdownFormatting(text)
 
             let result = PluginClipboardContent(text: stripped)
             result.metadata["markdownStripped"] = true
@@ -267,7 +267,7 @@
             result = result.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
 
             // Decode HTML entities
-            result = decodeHTMLEntities(result)
+            result = self.decodeHTMLEntities(result)
 
             // Clean up whitespace
             result = result.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
@@ -328,7 +328,7 @@
                 } else {
                     if inTable, !tableLines.isEmpty {
                         // Output formatted table
-                        resultLines.append(contentsOf: formatTableLines(tableLines, maxWidths: maxWidths))
+                        resultLines.append(contentsOf: self.formatTableLines(tableLines, maxWidths: maxWidths))
                         tableLines = []
                         maxWidths = []
                         inTable = false
@@ -339,7 +339,7 @@
 
             // Handle table at end
             if !tableLines.isEmpty {
-                resultLines.append(contentsOf: formatTableLines(tableLines, maxWidths: maxWidths))
+                resultLines.append(contentsOf: self.formatTableLines(tableLines, maxWidths: maxWidths))
             }
 
             return resultLines.joined(separator: "\n")

@@ -23,7 +23,7 @@ struct DLPSettingsView: View {
     // MARK: - Body
 
     var body: some View {
-        dlpContent
+        self.dlpContent
     }
 
     // MARK: Private
@@ -34,73 +34,73 @@ struct DLPSettingsView: View {
 
     private var dlpContent: some View {
         Form {
-            rulesSection
-            violationsSection
-            exportSection
-            quickActionsSection
+            self.rulesSection
+            self.violationsSection
+            self.exportSection
+            self.quickActionsSection
         }
         .formStyle(.grouped)
         .alert("Error", isPresented: Binding(
-            get: { viewModel.errorMessage != nil },
+            get: { self.viewModel.errorMessage != nil },
             set: { newValue in
                 if !newValue {
-                    viewModel.errorMessage = nil
+                    self.viewModel.errorMessage = nil
                 }
             }
         )) {
-            Button("OK") { viewModel.errorMessage = nil }
+            Button("OK") { self.viewModel.errorMessage = nil }
         } message: {
             if let message = viewModel.errorMessage {
                 Text(message)
             }
         }
-        .sheet(isPresented: $viewModel.showingRuleEditor) {
+        .sheet(isPresented: self.$viewModel.showingRuleEditor) {
             DLPRuleEditorView(
-                isPresented: $viewModel.showingRuleEditor,
-                rule: viewModel.editingRule
+                isPresented: self.$viewModel.showingRuleEditor,
+                rule: self.viewModel.editingRule
             ) { savedRule in
-                Task { await viewModel.saveRule(savedRule) }
+                Task { await self.viewModel.saveRule(savedRule) }
             }
         }
-        .sheet(isPresented: $viewModel.showingPatternTest) {
-            DLPPatternTestView(isPresented: $viewModel.showingPatternTest)
+        .sheet(isPresented: self.$viewModel.showingPatternTest) {
+            DLPPatternTestView(isPresented: self.$viewModel.showingPatternTest)
         }
     }
 
     // MARK: - Rules Section
 
     private var rulesSection: some View {
-        Section("DLP Rules (\(viewModel.rules.count))") {
-            if viewModel.isLoading {
+        Section("DLP Rules (\(self.viewModel.rules.count))") {
+            if self.viewModel.isLoading {
                 HStack {
                     Spacer()
                     ProgressView()
                         .padding(.vertical, 8)
                     Spacer()
                 }
-            } else if viewModel.rules.isEmpty {
+            } else if self.viewModel.rules.isEmpty {
                 Text("No DLP rules configured")
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 8)
 
                 Button("Install Default Rules") {
-                    Task { await viewModel.installDefaults() }
+                    Task { await self.viewModel.installDefaults() }
                 }
             } else {
-                ForEach(viewModel.rules) { rule in
+                ForEach(self.viewModel.rules) { rule in
                     DLPRuleRowView(rule: rule) {
-                        Task { await viewModel.toggleRule(rule) }
+                        Task { await self.viewModel.toggleRule(rule) }
                     } onEdit: {
-                        viewModel.editingRule = rule
-                        viewModel.showingRuleEditor = true
+                        self.viewModel.editingRule = rule
+                        self.viewModel.showingRuleEditor = true
                     }
                 }
                 .onDelete { indexSet in
-                    let rulesToDelete = indexSet.map { viewModel.rules[$0] }
+                    let rulesToDelete = indexSet.map { self.viewModel.rules[$0] }
                     Task {
                         for rule in rulesToDelete {
-                            await viewModel.deleteRule(rule)
+                            await self.viewModel.deleteRule(rule)
                         }
                     }
                 }
@@ -108,12 +108,12 @@ struct DLPSettingsView: View {
 
             HStack(spacing: 12) {
                 Button("Add Rule") {
-                    viewModel.editingRule = nil
-                    viewModel.showingRuleEditor = true
+                    self.viewModel.editingRule = nil
+                    self.viewModel.showingRuleEditor = true
                 }
 
                 Button("Test Pattern") {
-                    viewModel.showingPatternTest = true
+                    self.viewModel.showingPatternTest = true
                 }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)
@@ -125,14 +125,14 @@ struct DLPSettingsView: View {
     // MARK: - Violations Section
 
     private var violationsSection: some View {
-        Section("Recent Violations (\(viewModel.recentViolations.count))") {
-            if viewModel.recentViolations.isEmpty {
+        Section("Recent Violations (\(self.viewModel.recentViolations.count))") {
+            if self.viewModel.recentViolations.isEmpty {
                 Text("No violations recorded")
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 8)
             } else {
-                ForEach(viewModel.recentViolations) { violation in
+                ForEach(self.viewModel.recentViolations) { violation in
                     ViolationRowView(violation: violation)
                 }
             }
@@ -145,14 +145,14 @@ struct DLPSettingsView: View {
         Section("Export") {
             HStack(spacing: 12) {
                 Button("Export Violations as CSV") {
-                    viewModel.exportViolationsAsCSV()
+                    self.viewModel.exportViolationsAsCSV()
                 }
-                .disabled(viewModel.recentViolations.isEmpty)
+                .disabled(self.viewModel.recentViolations.isEmpty)
 
                 Button("Export Violations as JSON") {
-                    viewModel.exportViolationsAsJSON()
+                    self.viewModel.exportViolationsAsJSON()
                 }
-                .disabled(viewModel.recentViolations.isEmpty)
+                .disabled(self.viewModel.recentViolations.isEmpty)
             }
         }
     }
@@ -162,7 +162,7 @@ struct DLPSettingsView: View {
     private var quickActionsSection: some View {
         Section("Quick Actions") {
             Button("Install Default Rules") {
-                Task { await viewModel.installDefaults() }
+                Task { await self.viewModel.installDefaults() }
             }
         }
     }
@@ -185,27 +185,27 @@ private struct DLPRuleRowView: View {
     var body: some View {
         HStack(spacing: 10) {
             Toggle("", isOn: Binding(
-                get: { rule.isEnabled },
-                set: { _ in onToggle() }
+                get: { self.rule.isEnabled },
+                set: { _ in self.onToggle() }
             ))
             .labelsHidden()
             .toggleStyle(.switch)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(rule.name)
+                Text(self.rule.name)
                     .font(.body)
 
                 HStack(spacing: 6) {
-                    categoryBadge
-                    severityBadge
-                    actionsBadge
+                    self.categoryBadge
+                    self.severityBadge
+                    self.actionsBadge
                 }
             }
 
             Spacer()
 
             Button("Edit") {
-                onEdit()
+                self.onEdit()
             }
             .buttonStyle(.borderless)
             .foregroundStyle(.secondary)
@@ -219,7 +219,7 @@ private struct DLPRuleRowView: View {
     // MARK: Subviews
 
     private var categoryBadge: some View {
-        Text(rule.patternCategory.displayName)
+        Text(self.rule.patternCategory.displayName)
             .font(.caption2)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -228,16 +228,16 @@ private struct DLPRuleRowView: View {
     }
 
     private var severityBadge: some View {
-        Text(severityDisplayName(rule.severity))
+        Text(self.severityDisplayName(self.rule.severity))
             .font(.caption2)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(severityColor(rule.severity).opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
-            .foregroundStyle(severityColor(rule.severity))
+            .background(self.severityColor(self.rule.severity).opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
+            .foregroundStyle(self.severityColor(self.rule.severity))
     }
 
     private var actionsBadge: some View {
-        Text(rule.actions.map(\.rawValue).joined(separator: ", "))
+        Text(self.rule.actions.map(\.rawValue).joined(separator: ", "))
             .font(.caption2)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -292,14 +292,14 @@ private struct ViolationRowView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            severityIcon
+            self.severityIcon
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(violation.ruleName)
+                Text(self.violation.ruleName)
                     .font(.body)
 
-                if !violation.contentPreview.isEmpty {
-                    Text(violation.contentPreview)
+                if !self.violation.contentPreview.isEmpty {
+                    Text(self.violation.contentPreview)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -308,9 +308,9 @@ private struct ViolationRowView: View {
 
             Spacer()
 
-            actionBadge
+            self.actionBadge
 
-            Text(formattedTimestamp(violation.timestamp))
+            Text(self.formattedTimestamp(self.violation.timestamp))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -322,18 +322,21 @@ private struct ViolationRowView: View {
     // MARK: Subviews
 
     private var severityIcon: some View {
-        Image(systemName: violation.wasBlocked ? "xmark.shield.fill" : "exclamationmark.triangle.fill")
-            .foregroundStyle(violation.wasBlocked ? Color.red : Color.orange)
+        Image(systemName: self.violation.wasBlocked ? "xmark.shield.fill" : "exclamationmark.triangle.fill")
+            .foregroundStyle(self.violation.wasBlocked ? Color.red : Color.orange)
             .imageScale(.small)
     }
 
     private var actionBadge: some View {
-        Text(violation.actionTaken.rawValue)
+        Text(self.violation.actionTaken.rawValue)
             .font(.caption2)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(actionColor(violation.actionTaken).opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
-            .foregroundStyle(actionColor(violation.actionTaken))
+            .background(
+                self.actionColor(self.violation.actionTaken).opacity(0.15),
+                in: RoundedRectangle(cornerRadius: 4)
+            )
+            .foregroundStyle(self.actionColor(self.violation.actionTaken))
     }
 
     // MARK: Helpers

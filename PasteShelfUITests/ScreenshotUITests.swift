@@ -20,35 +20,35 @@ final class ScreenshotUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
 
-        app = XCUIApplication()
+        self.app = XCUIApplication()
 
         // Skip onboarding for screenshot tests
-        app.launchArguments.append("--skip-onboarding")
+        self.app.launchArguments.append("--skip-onboarding")
 
         // Enable screenshot mode with sample data
-        app.launchArguments.append("--screenshot-mode")
+        self.app.launchArguments.append("--screenshot-mode")
 
         // Set locale from environment if provided
         if let testLocale = ProcessInfo.processInfo.environment["SCREENSHOT_LOCALE"] {
-            locale = testLocale
-            app.launchArguments.append("-AppleLanguages")
-            app.launchArguments.append("(\(locale))")
+            self.locale = testLocale
+            self.app.launchArguments.append("-AppleLanguages")
+            self.app.launchArguments.append("(\(self.locale))")
         }
 
         // Set appearance from environment if provided
         if let appearance = ProcessInfo.processInfo.environment["SCREENSHOT_APPEARANCE"] {
             if appearance == "dark" {
-                ScreenshotHelper.setAppearance(darkMode: true, app: app)
+                ScreenshotHelper.setAppearance(darkMode: true, app: self.app)
             } else {
-                ScreenshotHelper.setAppearance(darkMode: false, app: app)
+                ScreenshotHelper.setAppearance(darkMode: false, app: self.app)
             }
         }
 
-        app.launch()
+        self.app.launch()
     }
 
     override func tearDownWithError() throws {
-        app = nil
+        self.app = nil
     }
 
     // MARK: - Screenshot 1: Floating Panel Overview
@@ -58,10 +58,10 @@ final class ScreenshotUITests: XCTestCase {
     @MainActor
     func testScreenshot1_FloatingPanelOverview() {
         // Open the floating panel via menu bar
-        showFloatingPanel()
+        self.showFloatingPanel()
 
         // Wait for panel to appear and populate
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 5) else {
             XCTSkip("Floating panel not available for screenshot")
             return
@@ -77,7 +77,7 @@ final class ScreenshotUITests: XCTestCase {
         // Capture the screenshot
         ScreenshotHelper.captureScreenshot(
             name: .floatingPanelOverview,
-            locale: locale,
+            locale: self.locale,
             testCase: self
         )
     }
@@ -89,9 +89,9 @@ final class ScreenshotUITests: XCTestCase {
     @MainActor
     func testScreenshot2_SearchInAction() {
         // Open the floating panel
-        showFloatingPanel()
+        self.showFloatingPanel()
 
-        let panel = app.windows["Clipboard History"]
+        let panel = self.app.windows["Clipboard History"]
         guard panel.waitForExistence(timeout: 5) else {
             XCTSkip("Floating panel not available for screenshot")
             return
@@ -122,7 +122,7 @@ final class ScreenshotUITests: XCTestCase {
         // Capture the screenshot with search active
         ScreenshotHelper.captureScreenshot(
             name: .searchInAction,
-            locale: locale,
+            locale: self.locale,
             testCase: self
         )
     }
@@ -134,9 +134,9 @@ final class ScreenshotUITests: XCTestCase {
     @MainActor
     func testScreenshot3_PreferencesPrivacy() {
         // Open Preferences via menu bar
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 5) else {
             XCTSkip("Preferences window not available for screenshot")
             return
@@ -160,7 +160,7 @@ final class ScreenshotUITests: XCTestCase {
         // Capture the screenshot
         ScreenshotHelper.captureScreenshot(
             name: .preferencesPrivacy,
-            locale: locale,
+            locale: self.locale,
             testCase: self
         )
     }
@@ -173,7 +173,7 @@ final class ScreenshotUITests: XCTestCase {
     @MainActor
     func testScreenshot4_MenuBarIntegration() {
         // Click the menu bar item to open dropdown
-        let menuBarItem = app.menuBars.statusItems.firstMatch
+        let menuBarItem = self.app.menuBars.statusItems.firstMatch
         guard menuBarItem.exists else {
             XCTSkip("Menu bar item not available for screenshot")
             return
@@ -183,7 +183,7 @@ final class ScreenshotUITests: XCTestCase {
         ScreenshotHelper.waitForUI()
 
         // Wait for menu to appear
-        let showPanelItem = app.menuItems["Show Clipboard Panel"]
+        let showPanelItem = self.app.menuItems["Show Clipboard Panel"]
         guard showPanelItem.waitForExistence(timeout: 3) else {
             XCTSkip("Menu dropdown not available for screenshot")
             return
@@ -193,12 +193,12 @@ final class ScreenshotUITests: XCTestCase {
         // Note: This captures the full screen including the menu
         ScreenshotHelper.captureScreenshot(
             name: .menuBarIntegration,
-            locale: locale,
+            locale: self.locale,
             testCase: self
         )
 
         // Dismiss the menu
-        app.typeKey(.escape, modifierFlags: [])
+        self.app.typeKey(.escape, modifierFlags: [])
     }
 
     // MARK: - Screenshot 5: Keyboard Shortcuts
@@ -208,9 +208,9 @@ final class ScreenshotUITests: XCTestCase {
     @MainActor
     func testScreenshot5_KeyboardShortcuts() {
         // Open Preferences via menu bar
-        openPreferences()
+        self.openPreferences()
 
-        let prefsWindow = app.windows["PasteShelf Preferences"]
+        let prefsWindow = self.app.windows["PasteShelf Preferences"]
         guard prefsWindow.waitForExistence(timeout: 5) else {
             XCTSkip("Preferences window not available for screenshot")
             return
@@ -234,7 +234,7 @@ final class ScreenshotUITests: XCTestCase {
         // Capture the screenshot
         ScreenshotHelper.captureScreenshot(
             name: .keyboardShortcuts,
-            locale: locale,
+            locale: self.locale,
             testCase: self
         )
     }
@@ -246,24 +246,24 @@ final class ScreenshotUITests: XCTestCase {
     @MainActor
     func testAllScreenshots() throws {
         // Run each screenshot test in order
-        try testScreenshot1_FloatingPanelOverview()
+        try self.testScreenshot1_FloatingPanelOverview()
 
         // Reset app state between screenshots
-        app.terminate()
-        app.launch()
-        try testScreenshot2_SearchInAction()
+        self.app.terminate()
+        self.app.launch()
+        try self.testScreenshot2_SearchInAction()
 
-        app.terminate()
-        app.launch()
-        try testScreenshot3_PreferencesPrivacy()
+        self.app.terminate()
+        self.app.launch()
+        try self.testScreenshot3_PreferencesPrivacy()
 
-        app.terminate()
-        app.launch()
-        try testScreenshot4_MenuBarIntegration()
+        self.app.terminate()
+        self.app.launch()
+        try self.testScreenshot4_MenuBarIntegration()
 
-        app.terminate()
-        app.launch()
-        try testScreenshot5_KeyboardShortcuts()
+        self.app.terminate()
+        self.app.launch()
+        try self.testScreenshot5_KeyboardShortcuts()
     }
 
     // MARK: - Dark Mode Screenshots (Optional)
@@ -272,12 +272,12 @@ final class ScreenshotUITests: XCTestCase {
     @MainActor
     func testAllScreenshots_DarkMode() throws {
         // Terminate and relaunch with dark mode
-        app.terminate()
-        ScreenshotHelper.setAppearance(darkMode: true, app: app)
-        locale = "en_dark" // Mark as dark mode variant
-        app.launch()
+        self.app.terminate()
+        ScreenshotHelper.setAppearance(darkMode: true, app: self.app)
+        self.locale = "en_dark" // Mark as dark mode variant
+        self.app.launch()
 
-        try testAllScreenshots()
+        try self.testAllScreenshots()
     }
 
     // MARK: Private
@@ -286,11 +286,11 @@ final class ScreenshotUITests: XCTestCase {
 
     /// Opens the floating clipboard panel via menu bar.
     private func showFloatingPanel() {
-        let menuBarItem = app.menuBars.statusItems.firstMatch
+        let menuBarItem = self.app.menuBars.statusItems.firstMatch
         if menuBarItem.exists {
             menuBarItem.click()
 
-            let showPanel = app.menuItems["Show Clipboard Panel"]
+            let showPanel = self.app.menuItems["Show Clipboard Panel"]
             if showPanel.waitForExistence(timeout: 2) {
                 showPanel.click()
             }
@@ -299,11 +299,11 @@ final class ScreenshotUITests: XCTestCase {
 
     /// Opens the Preferences window via menu bar.
     private func openPreferences() {
-        let menuBarItem = app.menuBars.statusItems.firstMatch
+        let menuBarItem = self.app.menuBars.statusItems.firstMatch
         if menuBarItem.exists {
             menuBarItem.click()
 
-            let prefsMenuItem = app.menuItems["Preferences..."]
+            let prefsMenuItem = self.app.menuItems["Preferences..."]
             if prefsMenuItem.waitForExistence(timeout: 2) {
                 prefsMenuItem.click()
             }

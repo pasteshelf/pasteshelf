@@ -80,17 +80,17 @@ struct AutomationRule: Codable, Equatable, Identifiable {
 
     /// Whether this rule has any conditions defined
     var hasConditions: Bool {
-        !conditions.isEmpty
+        !self.conditions.isEmpty
     }
 
     /// Whether this rule has any actions defined
     var hasActions: Bool {
-        !actions.isEmpty
+        !self.actions.isEmpty
     }
 
     /// Whether this rule is complete and valid
     var isValid: Bool {
-        !name.isEmpty && hasActions
+        !self.name.isEmpty && self.hasActions
     }
 
     // MARK: - Mutation Helpers
@@ -257,21 +257,21 @@ struct AutomationRuleDisplayModel: Identifiable {
     // MARK: Lifecycle
 
     init(from rule: AutomationRule) {
-        id = rule.id
-        name = rule.name
-        isEnabled = rule.isEnabled
-        triggerDescription = rule.trigger.displayName
-        triggerIcon = rule.trigger.iconName
-        conditionCount = rule.conditions.conditions.count
-        actionCount = rule.actions.count
-        executionCount = rule.executionCount
+        self.id = rule.id
+        self.name = rule.name
+        self.isEnabled = rule.isEnabled
+        self.triggerDescription = rule.trigger.displayName
+        self.triggerIcon = rule.trigger.iconName
+        self.conditionCount = rule.conditions.conditions.count
+        self.actionCount = rule.actions.count
+        self.executionCount = rule.executionCount
 
         if let lastExecuted = rule.lastExecutedAt {
             let formatter = RelativeDateTimeFormatter()
             formatter.unitsStyle = .abbreviated
-            lastExecutedDescription = formatter.localizedString(for: lastExecuted, relativeTo: Date())
+            self.lastExecutedDescription = formatter.localizedString(for: lastExecuted, relativeTo: Date())
         } else {
-            lastExecutedDescription = nil
+            self.lastExecutedDescription = nil
         }
     }
 

@@ -25,9 +25,9 @@
                 // Master toggle
                 HStack {
                     Toggle("Enable Plugin System", isOn: Binding(
-                        get: { settingsManager.enterprise.pluginsEnabled },
+                        get: { self.settingsManager.enterprise.pluginsEnabled },
                         set: { newValue in
-                            settingsManager.update { $0.enterprise.pluginsEnabled = newValue }
+                            self.settingsManager.update { $0.enterprise.pluginsEnabled = newValue }
                         }
                     ))
                     .toggleStyle(.switch)
@@ -37,19 +37,19 @@
 
                 Divider()
 
-                if settingsManager.enterprise.pluginsEnabled {
+                if self.settingsManager.enterprise.pluginsEnabled {
                     HSplitView {
                         // Plugin list
-                        pluginList
+                        self.pluginList
                             .frame(minWidth: 200, maxWidth: 300)
 
                         // Plugin detail
                         if let pluginId = selectedPluginId,
                            let plugin = viewModel.plugins.first(where: { $0.id == pluginId })
                         {
-                            pluginDetail(plugin)
+                            self.pluginDetail(plugin)
                         } else {
-                            emptyState
+                            self.emptyState
                         }
                     }
                 } else {
@@ -70,14 +70,14 @@
             }
             .frame(minHeight: 400)
             .onAppear {
-                viewModel.loadPlugins()
+                self.viewModel.loadPlugins()
             }
             .onReceive(PluginManager.shared.$isInitialized) { _ in
-                viewModel.loadPlugins()
+                self.viewModel.loadPlugins()
             }
-            .sheet(isPresented: $showingInstallSheet) {
+            .sheet(isPresented: self.$showingInstallSheet) {
                 PluginInstallSheet { url in
-                    viewModel.installPlugin(from: url)
+                    self.viewModel.installPlugin(from: url)
                 }
             }
         }
@@ -98,7 +98,7 @@
                         .font(.headline)
                     Spacer()
                     Button {
-                        showingInstallSheet = true
+                        self.showingInstallSheet = true
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -110,19 +110,19 @@
                 Divider()
 
                 // Plugin list
-                List(selection: $selectedPluginId) {
-                    ForEach(viewModel.plugins) { plugin in
-                        PluginListRow(plugin: plugin, viewModel: viewModel)
+                List(selection: self.$selectedPluginId) {
+                    ForEach(self.viewModel.plugins) { plugin in
+                        PluginListRow(plugin: plugin, viewModel: self.viewModel)
                             .tag(plugin.id)
                     }
                 }
                 .listStyle(.sidebar)
 
                 // Status bar
-                if !viewModel.plugins.isEmpty {
+                if !self.viewModel.plugins.isEmpty {
                     Divider()
                     HStack {
-                        Text("\(viewModel.activeCount) of \(viewModel.plugins.count) active")
+                        Text("\(self.viewModel.activeCount) of \(self.viewModel.plugins.count) active")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Spacer()
@@ -151,7 +151,7 @@
                     .frame(maxWidth: 300)
 
                 Button("Install Plugin...") {
-                    showingInstallSheet = true
+                    self.showingInstallSheet = true
                 }
                 .buttonStyle(.borderedProminent)
             }
@@ -163,19 +163,19 @@
         private func pluginDetail(_ plugin: LoadedPlugin) -> some View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    pluginDetailHeader(plugin)
-                    pluginDetailErrorBanner(plugin)
-                    permissionsSection(plugin)
+                    self.pluginDetailHeader(plugin)
+                    self.pluginDetailErrorBanner(plugin)
+                    self.permissionsSection(plugin)
                     if !plugin.bundle.manifest.categories.isEmpty {
-                        categoriesSection(plugin)
+                        self.categoriesSection(plugin)
                     }
-                    if !viewModel.actions(for: plugin.id).isEmpty {
-                        actionsSection(plugin)
+                    if !self.viewModel.actions(for: plugin.id).isEmpty {
+                        self.actionsSection(plugin)
                     }
                     if let settingsView = viewModel.settingsView(for: plugin.id) {
                         GroupBox("Settings") { settingsView }
                     }
-                    infoSection(plugin)
+                    self.infoSection(plugin)
                     Spacer()
                 }
                 .padding()
@@ -204,7 +204,7 @@
                     }
                 }
                 Spacer()
-                Toggle("", isOn: viewModel.binding(for: plugin.id))
+                Toggle("", isOn: self.viewModel.binding(for: plugin.id))
                     .toggleStyle(.switch).labelsHidden()
             }
             .padding()
@@ -239,7 +239,7 @@
                         ForEach(Array(plugin.bundle.manifest.requiredPermissions), id: \.self) { permission in
                             HStack {
                                 Image(systemName: permission.iconName)
-                                    .foregroundColor(permissionColor(permission.riskLevel))
+                                    .foregroundColor(self.permissionColor(permission.riskLevel))
                                 VStack(alignment: .leading) {
                                     Text(permission.displayName)
                                         .font(.callout)
@@ -248,7 +248,7 @@
                                         .foregroundStyle(.secondary)
                                 }
                                 Spacer()
-                                if viewModel.hasPermission(permission, for: plugin.id) {
+                                if self.viewModel.hasPermission(permission, for: plugin.id) {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(.green)
                                 }
@@ -282,7 +282,7 @@
         private func actionsSection(_ plugin: LoadedPlugin) -> some View {
             GroupBox("Actions") {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(viewModel.actions(for: plugin.id), id: \.id) { action in
+                    ForEach(self.viewModel.actions(for: plugin.id), id: \.id) { action in
                         HStack {
                             if let iconName = action.iconName {
                                 Image(systemName: iconName)
@@ -354,23 +354,23 @@
 
         var body: some View {
             HStack(spacing: 12) {
-                Image(nsImage: plugin.bundle.icon)
+                Image(nsImage: self.plugin.bundle.icon)
                     .resizable()
                     .frame(width: 32, height: 32)
                     .cornerRadius(6)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(plugin.bundle.manifest.name)
+                    Text(self.plugin.bundle.manifest.name)
                         .font(.body)
 
-                    Text(stateText)
+                    Text(self.stateText)
                         .font(.caption)
-                        .foregroundStyle(stateColor)
+                        .foregroundStyle(self.stateColor)
                 }
 
                 Spacer()
 
-                Toggle("", isOn: viewModel.binding(for: plugin.id))
+                Toggle("", isOn: self.viewModel.binding(for: self.plugin.id))
                     .toggleStyle(.switch)
                     .labelsHidden()
                     .controlSize(.small)
@@ -381,7 +381,7 @@
         // MARK: Private
 
         private var stateText: String {
-            switch plugin.state {
+            switch self.plugin.state {
             case .active: "Active"
             case .disabled: "Disabled"
             case .failed: "Failed"
@@ -391,7 +391,7 @@
         }
 
         private var stateColor: Color {
-            switch plugin.state {
+            switch self.plugin.state {
             case .active: .green
             case .failed: .red
             default: .secondary
@@ -407,10 +407,10 @@
 
         var body: some View {
             HStack {
-                Text(label)
+                Text(self.label)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text(value)
+                Text(self.value)
             }
             .font(.callout)
         }
@@ -424,12 +424,12 @@
         var spacing: CGFloat
 
         func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout Void) -> CGSize {
-            let result = arrangeSubviews(proposal: proposal, subviews: subviews)
+            let result = self.arrangeSubviews(proposal: proposal, subviews: subviews)
             return CGSize(width: proposal.width ?? result.width, height: result.height)
         }
 
         func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache _: inout Void) {
-            let result = arrangeSubviews(proposal: proposal, subviews: subviews)
+            let result = self.arrangeSubviews(proposal: proposal, subviews: subviews)
 
             for (index, placement) in result.placements.enumerated() {
                 subviews[index].place(
@@ -466,13 +466,13 @@
 
                 if currentX + size.width > maxWidth, currentX > 0 {
                     currentX = 0
-                    currentY += rowHeight + spacing
+                    currentY += rowHeight + self.spacing
                     rowHeight = 0
                 }
 
                 placements.append(Placement(x: currentX, y: currentY, size: size))
                 rowHeight = max(rowHeight, size.height)
-                currentX += size.width + spacing
+                currentX += size.width + self.spacing
                 totalWidth = max(totalWidth, currentX)
             }
 
@@ -495,7 +495,7 @@
             VStack(spacing: 20) {
                 Image(systemName: "arrow.down.doc")
                     .font(.system(size: 48))
-                    .foregroundColor(isDragging ? Color.accentColor : Color.secondary)
+                    .foregroundColor(self.isDragging ? Color.accentColor : Color.secondary)
 
                 Text("Install Plugin")
                     .font(.title2)
@@ -507,18 +507,18 @@
 
                 HStack(spacing: 16) {
                     Button("Browse...") {
-                        browseForPlugin()
+                        self.browseForPlugin()
                     }
 
                     Button("Cancel") {
-                        dismiss()
+                        self.dismiss()
                     }
                 }
             }
             .padding(40)
             .frame(width: 400)
-            .onDrop(of: [.fileURL], isTargeted: $isDragging) { providers in
-                handleDrop(providers)
+            .onDrop(of: [.fileURL], isTargeted: self.$isDragging) { providers in
+                self.handleDrop(providers)
             }
         }
 
@@ -537,8 +537,8 @@
             panel.canChooseDirectories = false
 
             if panel.runModal() == .OK, let url = panel.url {
-                onInstall(url)
-                dismiss()
+                self.onInstall(url)
+                self.dismiss()
             }
         }
 
@@ -556,8 +556,8 @@
                 }
 
                 DispatchQueue.main.async {
-                    onInstall(url)
-                    dismiss()
+                    self.onInstall(url)
+                    self.dismiss()
                 }
             }
 
@@ -572,11 +572,11 @@
         @Published var plugins: [LoadedPlugin] = []
 
         var activeCount: Int {
-            plugins.filter { $0.state == .active }.count
+            self.plugins.filter { $0.state == .active }.count
         }
 
         func loadPlugins() {
-            plugins = PluginManager.shared.allPlugins
+            self.plugins = PluginManager.shared.allPlugins
         }
 
         func binding(for pluginId: String) -> Binding<Bool> {
@@ -615,7 +615,7 @@
                 do {
                     _ = try PluginLoader.shared.installPlugin(from: url)
                     await PluginManager.shared.refreshPlugins()
-                    loadPlugins()
+                    self.loadPlugins()
                 } catch {
                     Logger.plugins.error("Failed to install plugin: \(error.localizedDescription)")
                 }

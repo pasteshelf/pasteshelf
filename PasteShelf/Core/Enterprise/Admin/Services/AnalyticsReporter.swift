@@ -45,9 +45,9 @@ final class AnalyticsReporter {
 
     /// The number of events currently waiting to be flushed to the admin console.
     var pendingCount: Int {
-        lock.lock()
+        self.lock.lock()
         defer { lock.unlock() }
-        return pendingEvents.count
+        return self.pendingEvents.count
     }
 
     // MARK: - Tracking
@@ -77,20 +77,21 @@ final class AnalyticsReporter {
             metadata: metadata
         )
 
-        lock.lock()
-        pendingEvents.append(event)
-        let shouldFlush = pendingEvents.count >= batchSize
-        lock.unlock()
+        self.lock.lock()
+        self.pendingEvents.append(event)
+        let shouldFlush = self.pendingEvents.count >= self.batchSize
+        self.lock.unlock()
 
-        logger.debug("Tracked event '\(eventType.rawValue)' for device '\(deviceId)'. Pending: \(pendingCount).")
+        self.logger
+            .debug("Tracked event '\(eventType.rawValue)' for device '\(deviceId)'. Pending: \(self.pendingCount).")
 
         if shouldFlush {
-            logger.info("Batch size threshold reached (\(batchSize)). Triggering async flush.")
+            self.logger.info("Batch size threshold reached (\(self.batchSize)). Triggering async flush.")
             Task {
                 do {
-                    try await flush()
+                    try await self.flush()
                 } catch {
-                    logger.error("Auto-flush after batch threshold failed: \(error.localizedDescription)")
+                    self.logger.error("Auto-flush after batch threshold failed: \(error.localizedDescription)")
                 }
             }
         }
@@ -108,31 +109,31 @@ final class AnalyticsReporter {
     /// - Throws: `AdminError.networkError` on transport failure, or
     ///   `AdminError.serverError` if the server returns a non-success status code.
     func flush() async throws {
-        lock.lock()
-        guard !pendingEvents.isEmpty else {
-            lock.unlock()
-            logger.debug("Flush called with no pending events — skipping.")
+        self.lock.lock()
+        guard !self.pendingEvents.isEmpty else {
+            self.lock.unlock()
+            self.logger.debug("Flush called with no pending events — skipping.")
             return
         }
-        let eventsToSubmit = pendingEvents
-        pendingEvents = []
-        lock.unlock()
+        let eventsToSubmit = self.pendingEvents
+        self.pendingEvents = []
+        self.lock.unlock()
 
-        logger.info("Flushing \(eventsToSubmit.count) analytics event(s) to admin console.")
+        self.logger.info("Flushing \(eventsToSubmit.count) analytics event(s) to admin console.")
 
         do {
-            try await apiClient.submitAnalyticsEvents(eventsToSubmit)
-            logger.info("Successfully submitted \(eventsToSubmit.count) analytics event(s).")
+            try await self.apiClient.submitAnalyticsEvents(eventsToSubmit)
+            self.logger.info("Successfully submitted \(eventsToSubmit.count) analytics event(s).")
         } catch {
             let errorDesc = error.localizedDescription
             let count = eventsToSubmit.count
-            logger.error(
+            self.logger.error(
                 "Failed to submit analytics events: \(errorDesc). Re-queuing \(count) event(s)."
             )
             // Restore events to the front of the pending queue (best effort).
-            lock.lock()
-            pendingEvents = eventsToSubmit + pendingEvents
-            lock.unlock()
+            self.lock.lock()
+            self.pendingEvents = eventsToSubmit + self.pendingEvents
+            self.lock.unlock()
             throw error
         }
     }
@@ -145,12 +146,12 @@ final class AnalyticsReporter {
     /// The timer fires every `flushInterval` seconds and submits all accumulated
     /// events to the admin console asynchronously.
     func startAutoFlush() {
-        stopAutoFlush()
-        flushTimer = Timer.scheduledTimer(withTimeInterval: flushInterval, repeats: true) { [weak self] _ in
+        self.stopAutoFlush()
+        self.flushTimer = Timer.scheduledTimer(withTimeInterval: self.flushInterval, repeats: true) { [weak self] _ in
             guard let self else {
                 return
             }
-            logger.debug("Auto-flush timer fired.")
+            self.logger.debug("Auto-flush timer fired.")
             Task {
                 do {
                     try await self.flush()
@@ -159,7 +160,7 @@ final class AnalyticsReporter {
                 }
             }
         }
-        logger.info("Auto-flush timer started with interval \(flushInterval)s.")
+        self.logger.info("Auto-flush timer started with interval \(self.flushInterval)s.")
     }
 
     /// Stops the periodic auto-flush timer.
@@ -167,9 +168,9 @@ final class AnalyticsReporter {
     /// After calling this method no further automatic flushes occur until
     /// `startAutoFlush()` is called again. In-flight flushes are not affected.
     func stopAutoFlush() {
-        flushTimer?.invalidate()
-        flushTimer = nil
-        logger.debug("Auto-flush timer stopped.")
+        self.flushTimer?.invalidate()
+        self.flushTimer = nil
+        self.logger.debug("Auto-flush timer stopped.")
     }
 
     // MARK: Private

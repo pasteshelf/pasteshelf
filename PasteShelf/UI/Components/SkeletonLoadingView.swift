@@ -17,19 +17,19 @@ struct SkeletonItemRow: View {
         HStack(spacing: 12) {
             // Icon placeholder
             RoundedRectangle(cornerRadius: 6)
-                .fill(shimmerGradient)
+                .fill(self.shimmerGradient)
                 .frame(width: 32, height: 32)
 
             VStack(alignment: .leading, spacing: 6) {
                 // Title placeholder
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(shimmerGradient)
+                    .fill(self.shimmerGradient)
                     .frame(height: 12)
                     .frame(maxWidth: 200)
 
                 // Subtitle placeholder
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(shimmerGradient)
+                    .fill(self.shimmerGradient)
                     .frame(height: 10)
                     .frame(maxWidth: 120)
             }
@@ -39,14 +39,14 @@ struct SkeletonItemRow: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .onAppear {
-            guard !reduceMotion else {
+            guard !self.reduceMotion else {
                 return
             }
             withAnimation(
                 .easeInOut(duration: 1.5)
                     .repeatForever(autoreverses: true)
             ) {
-                isAnimating = true
+                self.isAnimating = true
             }
         }
         .accessibilityLabel("Loading clipboard items")
@@ -59,8 +59,8 @@ struct SkeletonItemRow: View {
     private var reduceMotion
 
     private var shimmerGradient: LinearGradient {
-        let baseOpacity = reduceMotion ? 0.2 : (isAnimating ? 0.3 : 0.15)
-        let endOpacity = reduceMotion ? 0.2 : (isAnimating ? 0.15 : 0.3)
+        let baseOpacity = self.reduceMotion ? 0.2 : (self.isAnimating ? 0.3 : 0.15)
+        let endOpacity = self.reduceMotion ? 0.2 : (self.isAnimating ? 0.15 : 0.3)
 
         return LinearGradient(
             gradient: Gradient(colors: [
@@ -89,7 +89,7 @@ struct SkeletonLoadingView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(0 ..< rowCount, id: \.self) { _ in
+            ForEach(0 ..< self.rowCount, id: \.self) { _ in
                 SkeletonItemRow()
                 Divider()
                     .padding(.leading, 56)

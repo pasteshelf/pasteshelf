@@ -160,7 +160,7 @@ extension StorageManager {
     ///   - rules: The new collection rules
     /// - Returns: True if update succeeded
     func updateCollectionRules(_ id: UUID, rules: CollectionRules) async -> Bool {
-        await updateCollection(id, rules: rules)
+        await self.updateCollection(id, rules: rules)
     }
 
     /// Updates a collection's sort order
@@ -232,7 +232,7 @@ extension StorageManager {
             return await fetchRecentItems(limit: limit, predicate: predicate)
         } else {
             // Manual collection - fetch directly related items
-            return await fetchItemsInManualCollection(collection, limit: limit)
+            return await self.fetchItemsInManualCollection(collection, limit: limit)
         }
     }
 

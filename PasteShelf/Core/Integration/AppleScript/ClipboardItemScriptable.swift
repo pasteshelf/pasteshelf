@@ -22,12 +22,12 @@ class ClipboardItemScriptable: NSObject {
 
     init(item: ClipboardItem) {
         self.item = item
-        itemID = item.id
+        self.itemID = item.id
         super.init()
     }
 
     init(id: UUID) {
-        itemID = id
+        self.itemID = id
         super.init()
     }
 
@@ -58,7 +58,7 @@ class ClipboardItemScriptable: NSObject {
 
     /// Unique identifier as a string
     @objc var uniqueID: String {
-        itemID?.uuidString ?? ""
+        self.itemID?.uuidString ?? ""
     }
 
     /// Text content of the item
@@ -138,7 +138,7 @@ class ClipboardItemScriptable: NSObject {
             return firstLine
         }
 
-        return contentType
+        return self.contentType
     }
 
     // MARK: Private

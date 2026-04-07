@@ -19,10 +19,10 @@
 
         init(pluginId: String) {
             self.pluginId = pluginId
-            keyPrefix = "Plugin.\(pluginId)."
+            self.keyPrefix = "Plugin.\(pluginId)."
 
             // Use standard user defaults with prefixed keys
-            defaults = UserDefaults.standard
+            self.defaults = UserDefaults.standard
 
             // Create plugin storage directory
             if let appSupport = FileManager.default.urls(
@@ -40,14 +40,15 @@
                     withIntermediateDirectories: true,
                     attributes: nil
                 )
-                storageDirectory = pluginDir
+                self.storageDirectory = pluginDir
             } else {
-                storageDirectory = nil
+                self.storageDirectory = nil
             }
 
             super.init()
 
-            Logger.plugins.debug("[\(self.pluginId)] Storage initialized at \(storageDirectory?.path ?? "memory-only")")
+            Logger.plugins
+                .debug("[\(self.pluginId)] Storage initialized at \(self.storageDirectory?.path ?? "memory-only")")
         }
 
         // MARK: Public
@@ -55,79 +56,79 @@
         // MARK: - String Storage
 
         public func string(forKey key: String) -> String? {
-            defaults.string(forKey: prefixedKey(key))
+            self.defaults.string(forKey: self.prefixedKey(key))
         }
 
         public func setString(_ value: String?, forKey key: String) {
             if let value {
-                defaults.set(value, forKey: prefixedKey(key))
+                self.defaults.set(value, forKey: self.prefixedKey(key))
             } else {
-                defaults.removeObject(forKey: prefixedKey(key))
+                self.defaults.removeObject(forKey: self.prefixedKey(key))
             }
         }
 
         // MARK: - Data Storage
 
         public func data(forKey key: String) -> Data? {
-            defaults.data(forKey: prefixedKey(key))
+            self.defaults.data(forKey: self.prefixedKey(key))
         }
 
         public func setData(_ value: Data?, forKey key: String) {
             if let value {
-                defaults.set(value, forKey: prefixedKey(key))
+                self.defaults.set(value, forKey: self.prefixedKey(key))
             } else {
-                defaults.removeObject(forKey: prefixedKey(key))
+                self.defaults.removeObject(forKey: self.prefixedKey(key))
             }
         }
 
         // MARK: - Boolean Storage
 
         public func bool(forKey key: String) -> Bool {
-            defaults.bool(forKey: prefixedKey(key))
+            self.defaults.bool(forKey: self.prefixedKey(key))
         }
 
         public func setBool(_ value: Bool, forKey key: String) {
-            defaults.set(value, forKey: prefixedKey(key))
+            self.defaults.set(value, forKey: self.prefixedKey(key))
         }
 
         // MARK: - Integer Storage
 
         public func integer(forKey key: String) -> Int {
-            defaults.integer(forKey: prefixedKey(key))
+            self.defaults.integer(forKey: self.prefixedKey(key))
         }
 
         public func setInteger(_ value: Int, forKey key: String) {
-            defaults.set(value, forKey: prefixedKey(key))
+            self.defaults.set(value, forKey: self.prefixedKey(key))
         }
 
         // MARK: - Double Storage
 
         public func double(forKey key: String) -> Double {
-            defaults.double(forKey: prefixedKey(key))
+            self.defaults.double(forKey: self.prefixedKey(key))
         }
 
         public func setDouble(_ value: Double, forKey key: String) {
-            defaults.set(value, forKey: prefixedKey(key))
+            self.defaults.set(value, forKey: self.prefixedKey(key))
         }
 
         // MARK: - Object Removal
 
         public func removeObject(forKey key: String) {
-            defaults.removeObject(forKey: prefixedKey(key))
+            self.defaults.removeObject(forKey: self.prefixedKey(key))
         }
 
         // MARK: - Clear All
 
         public func clear() {
             // Find and remove all keys with this plugin's prefix
-            let allKeys = defaults.dictionaryRepresentation().keys
-            let pluginKeys = allKeys.filter { $0.hasPrefix(keyPrefix) }
+            let allKeys = self.defaults.dictionaryRepresentation().keys
+            let pluginKeys = allKeys.filter { $0.hasPrefix(self.keyPrefix) }
 
             for key in pluginKeys {
-                defaults.removeObject(forKey: key)
+                self.defaults.removeObject(forKey: key)
             }
 
-            Logger.plugins.info("[\(pluginId)] Cleared \(pluginKeys.count) storage keys")
+            Logger.plugins.info("[\(self.pluginId)] Cleared \(pluginKeys.count) storage keys")
 
             // Clear file storage if exists
             if let storageDir = storageDirectory {
@@ -144,7 +145,7 @@
 
         /// Gets the URL to the plugin's storage directory
         var directory: URL? {
-            storageDirectory
+            self.storageDirectory
         }
 
         // MARK: - File Storage (Extended)
@@ -156,7 +157,7 @@
         /// - Returns: URL to the written file, or nil on failure
         func writeFile(_ data: Data, filename: String) -> URL? {
             guard let storageDir = storageDirectory else {
-                Logger.plugins.warning("[\(pluginId)] No storage directory available")
+                Logger.plugins.warning("[\(self.pluginId)] No storage directory available")
                 return nil
             }
 
@@ -170,7 +171,8 @@
                 try data.write(to: fileURL)
                 return fileURL
             } catch {
-                Logger.plugins.error("[\(pluginId)] Failed to write file \(sanitized): \(error.localizedDescription)")
+                Logger.plugins
+                    .error("[\(self.pluginId)] Failed to write file \(sanitized): \(error.localizedDescription)")
                 return nil
             }
         }
@@ -235,7 +237,7 @@
         // MARK: - Key Management
 
         private func prefixedKey(_ key: String) -> String {
-            keyPrefix + key
+            self.keyPrefix + key
         }
     }
 

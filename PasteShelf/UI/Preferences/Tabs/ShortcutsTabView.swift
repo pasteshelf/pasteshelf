@@ -24,13 +24,13 @@ struct ShortcutsTabView: View {
                     Text("Show/Hide Panel")
                     Spacer()
                     HotkeyRecorderView(
-                        hotkey: $viewModel.globalHotkey,
-                        isRecording: $isRecording
+                        hotkey: self.$viewModel.globalHotkey,
+                        isRecording: self.$isRecording
                     )
                     .frame(width: 150)
                 }
                 .accessibilityLabel("Global hotkey")
-                .accessibilityValue(viewModel.globalHotkey.displayString)
+                .accessibilityValue(self.viewModel.globalHotkey.displayString)
                 .accessibilityHint("Click to record a new hotkey")
             } header: {
                 Text("Global Hotkey")
@@ -41,7 +41,7 @@ struct ShortcutsTabView: View {
             }
 
             Section {
-                Toggle("Enable quick paste (\u{2318}1-9)", isOn: $viewModel.quickPasteEnabled)
+                Toggle("Enable quick paste (\u{2318}1-9)", isOn: self.$viewModel.quickPasteEnabled)
                     .accessibilityLabel("Enable quick paste")
                     .accessibilityHint("When enabled, press Command plus a number to paste that item")
             } header: {
@@ -88,16 +88,16 @@ struct ShortcutRow: View {
 
     var body: some View {
         HStack {
-            Text(shortcut)
+            Text(self.shortcut)
                 .font(.system(.body, design: .monospaced))
                 .foregroundColor(.primary)
                 .frame(width: 80, alignment: .leading)
-            Text(description)
+            Text(self.description)
                 .foregroundColor(.secondary)
             Spacer()
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(shortcut): \(description)")
+        .accessibilityLabel("\(self.shortcut): \(self.description)")
     }
 }
 

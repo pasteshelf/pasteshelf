@@ -34,7 +34,7 @@ final class PolicySyncService: PolicySyncing {
     init(apiClient: AdminAPIProviding, deviceId: @escaping () -> String?) {
         self.apiClient = apiClient
         self.deviceId = deviceId
-        cachedPolicy = Self.loadCachedPolicy()
+        self.cachedPolicy = Self.loadCachedPolicy()
     }
 
     // MARK: Internal
@@ -42,7 +42,7 @@ final class PolicySyncService: PolicySyncing {
     // MARK: - PolicySyncing
 
     var currentPolicy: AdminPolicy? {
-        cachedPolicy
+        self.cachedPolicy
     }
 
     func fetchLatestPolicy() async throws -> AdminPolicy {
@@ -51,17 +51,17 @@ final class PolicySyncService: PolicySyncing {
         }
 
         let policy = try await apiClient.fetchPolicy(for: id)
-        cachedPolicy = policy
+        self.cachedPolicy = policy
         Self.saveCachedPolicy(policy)
-        logger.info("Fetched policy '\(policy.name)' v\(policy.version)")
+        self.logger.info("Fetched policy '\(policy.name)' v\(policy.version)")
         return policy
     }
 
     func applyPolicy(_ policy: AdminPolicy, to settings: inout AppSettings) {
-        applyHistoryLimits(policy.historyLimits, to: &settings)
-        applyExcludedApps(policy.excludedApps, to: &settings)
-        applySyncSettings(policy.syncSettings, to: &settings)
-        applyEncryptionRequirements(policy.encryptionRequirements, to: &settings)
+        self.applyHistoryLimits(policy.historyLimits, to: &settings)
+        self.applyExcludedApps(policy.excludedApps, to: &settings)
+        self.applySyncSettings(policy.syncSettings, to: &settings)
+        self.applyEncryptionRequirements(policy.encryptionRequirements, to: &settings)
     }
 
     // MARK: - Polling
@@ -74,8 +74,8 @@ final class PolicySyncService: PolicySyncing {
     ///
     /// - Parameter interval: The time interval in seconds between polls.
     func startPolling(interval: TimeInterval) {
-        stopPolling()
-        pollingTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+        self.stopPolling()
+        self.pollingTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             Task { [weak self] in
                 do {
                     _ = try await self?.fetchLatestPolicy()
@@ -84,13 +84,13 @@ final class PolicySyncService: PolicySyncing {
                 }
             }
         }
-        logger.info("Policy polling started (interval: \(interval)s)")
+        self.logger.info("Policy polling started (interval: \(interval)s)")
     }
 
     /// Stops periodic policy polling.
     func stopPolling() {
-        pollingTimer?.invalidate()
-        pollingTimer = nil
+        self.pollingTimer?.invalidate()
+        self.pollingTimer = nil
     }
 
     // MARK: Private
@@ -111,7 +111,7 @@ final class PolicySyncService: PolicySyncing {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         if let data = try? encoder.encode(policy) {
-            UserDefaults.standard.set(data, forKey: cachedPolicyKey)
+            UserDefaults.standard.set(data, forKey: self.cachedPolicyKey)
         }
     }
 
@@ -137,7 +137,7 @@ final class PolicySyncService: PolicySyncing {
         }
 
         if let maxItems = policy.maxItems {
-            settings.general.historyLimit = closestHistoryLimit(to: maxItems)
+            settings.general.historyLimit = self.closestHistoryLimit(to: maxItems)
         }
 
         if let maxDays = policy.maxDays, maxDays > 0 {
@@ -177,7 +177,7 @@ final class PolicySyncService: PolicySyncing {
 
         let syncEnabled = settings.enterprise.cloudSyncEnabled
         let localOnly = settings.enterprise.localStorageOnly
-        logger.debug("Sync policy applied (cloudSyncEnabled: \(syncEnabled), localStorageOnly: \(localOnly))")
+        self.logger.debug("Sync policy applied (cloudSyncEnabled: \(syncEnabled), localStorageOnly: \(localOnly))")
     }
 
     /// Applies encryption requirements sub-policy to settings.
@@ -193,7 +193,7 @@ final class PolicySyncService: PolicySyncing {
         }
 
         let biometric = settings.security.requireBiometricAuth
-        logger.debug("Encryption policy applied (requireBiometricAuth: \(biometric))")
+        self.logger.debug("Encryption policy applied (requireBiometricAuth: \(biometric))")
     }
 
     // MARK: - History Limit Mapping

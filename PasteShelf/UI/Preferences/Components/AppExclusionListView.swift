@@ -19,10 +19,10 @@ struct AppExclusionListView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            ForEach(bundleIds, id: \.self) { bundleId in
+            ForEach(self.bundleIds, id: \.self) { bundleId in
                 ExcludedAppRow(
                     bundleId: bundleId
-                ) { onRemove(bundleId) }
+                ) { self.onRemove(bundleId) }
             }
         }
     }
@@ -48,22 +48,22 @@ struct ExcludedAppRow: View {
                     .foregroundColor(.secondary)
             }
 
-            Text(appName.isEmpty ? bundleId : appName)
+            Text(self.appName.isEmpty ? self.bundleId : self.appName)
                 .font(.system(size: 12))
                 .lineLimit(1)
 
             Spacer()
 
-            Button(action: onRemove) {
+            Button(action: self.onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundColor(.secondary)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Remove \(appName.isEmpty ? bundleId : appName) from exclusion list")
+            .accessibilityLabel("Remove \(self.appName.isEmpty ? self.bundleId : self.appName) from exclusion list")
         }
         .padding(.vertical, 2)
         .onAppear {
-            loadAppInfo()
+            self.loadAppInfo()
         }
     }
 
@@ -77,19 +77,19 @@ struct ExcludedAppRow: View {
 
         // Try to find the app by bundle ID
         if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleId) {
-            appIcon = workspace.icon(forFile: appURL.path)
+            self.appIcon = workspace.icon(forFile: appURL.path)
 
             if let bundle = Bundle(url: appURL),
                let name = bundle.infoDictionary?["CFBundleName"] as? String
                ?? bundle.infoDictionary?["CFBundleDisplayName"] as? String
             {
-                appName = name
+                self.appName = name
             } else {
-                appName = appURL.deletingPathExtension().lastPathComponent
+                self.appName = appURL.deletingPathExtension().lastPathComponent
             }
         } else {
             // App not found, show bundle ID
-            appName = bundleId
+            self.appName = self.bundleId
         }
     }
 }

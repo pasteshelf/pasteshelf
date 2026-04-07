@@ -24,12 +24,12 @@ final class GDPRConsentManager: ObservableObject {
     // MARK: - Initialization
 
     private init() {
-        loadConsentStatuses()
+        self.loadConsentStatuses()
     }
 
     /// Designated initializer for dependency injection in tests.
     init(context: NSManagedObjectContext) {
-        loadConsentStatuses(in: context)
+        self.loadConsentStatuses(in: context)
     }
 
     // MARK: Internal
@@ -60,7 +60,7 @@ final class GDPRConsentManager: ObservableObject {
     /// - Parameter category: The data processing category to check.
     /// - Returns: `true` if the user has granted consent, `false` otherwise.
     func isConsentGranted(for category: GDPRConsentCategory) -> Bool {
-        consentStatuses[category] ?? false
+        self.consentStatuses[category] ?? false
     }
 
     /// Grants consent for the given category.
@@ -70,7 +70,7 @@ final class GDPRConsentManager: ObservableObject {
     ///
     /// - Parameter category: The data processing category to grant consent for.
     func grantConsent(for category: GDPRConsentCategory) async {
-        await updateConsent(for: category, granted: true)
+        await self.updateConsent(for: category, granted: true)
     }
 
     /// Revokes consent for the given category.
@@ -80,7 +80,7 @@ final class GDPRConsentManager: ObservableObject {
     ///
     /// - Parameter category: The data processing category to revoke consent for.
     func revokeConsent(for category: GDPRConsentCategory) async {
-        await updateConsent(for: category, granted: false)
+        await self.updateConsent(for: category, granted: false)
     }
 
     /// Returns all consent records sorted by category.
@@ -134,7 +134,7 @@ final class GDPRConsentManager: ObservableObject {
                 statuses[category] = record.isGranted
             }
         }
-        consentStatuses = statuses
+        self.consentStatuses = statuses
     }
 
     private func updateConsent(for category: GDPRConsentCategory, granted: Bool) async {
@@ -164,7 +164,7 @@ final class GDPRConsentManager: ObservableObject {
         }
 
         // Update published state
-        consentStatuses[category] = granted
+        self.consentStatuses[category] = granted
 
         // Log the consent change
         await AuditManager.shared.logComplianceEvent(
@@ -172,10 +172,10 @@ final class GDPRConsentManager: ObservableObject {
             detail: [
                 "category": category.rawValue,
                 "granted": granted ? "true" : "false",
-                "version": consentVersion,
+                "version": self.consentVersion,
             ]
         )
 
-        logger.info("GDPR consent \(granted ? "granted" : "revoked") for \(category.rawValue)")
+        self.logger.info("GDPR consent \(granted ? "granted" : "revoked") for \(category.rawValue)")
     }
 }

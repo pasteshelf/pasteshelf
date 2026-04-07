@@ -21,7 +21,7 @@ final class LaunchAtLoginManager: ObservableObject {
     // MARK: - Initialization
 
     private init() {
-        refreshStatus()
+        self.refreshStatus()
     }
 
     // MARK: Internal
@@ -44,18 +44,18 @@ final class LaunchAtLoginManager: ObservableObject {
     @discardableResult
     func setEnabled(_ enabled: Bool) -> Bool {
         if #available(macOS 13.0, *) {
-            setEnabledModern(enabled)
+            self.setEnabledModern(enabled)
         } else {
-            setEnabledLegacy(enabled)
+            self.setEnabledLegacy(enabled)
         }
     }
 
     /// Refreshes the current status
     func refreshStatus() {
         if #available(macOS 13.0, *) {
-            refreshStatusModern()
+            self.refreshStatusModern()
         } else {
-            refreshStatusLegacy()
+            self.refreshStatusLegacy()
         }
     }
 
@@ -75,40 +75,40 @@ final class LaunchAtLoginManager: ObservableObject {
         do {
             if enabled {
                 try SMAppService.mainApp.register()
-                logger.info("Registered for launch at login")
+                self.logger.info("Registered for launch at login")
             } else {
                 try SMAppService.mainApp.unregister()
-                logger.info("Unregistered from launch at login")
+                self.logger.info("Unregistered from launch at login")
             }
-            isEnabled = enabled
+            self.isEnabled = enabled
             return true
         } catch {
-            logger.error("Failed to set launch at login: \(error.localizedDescription)")
+            self.logger.error("Failed to set launch at login: \(error.localizedDescription)")
             return false
         }
     }
 
     @available(macOS 13.0, *)
     private func refreshStatusModern() {
-        isEnabled = SMAppService.mainApp.status == .enabled
-        logger.debug("Launch at login status: \(isEnabled)")
+        self.isEnabled = SMAppService.mainApp.status == .enabled
+        self.logger.debug("Launch at login status: \(self.isEnabled)")
     }
 
     // MARK: - Legacy Implementation (macOS 12 and earlier)
 
     private func setEnabledLegacy(_ enabled: Bool) -> Bool {
         guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
-            logger.error("Failed to get bundle identifier")
+            self.logger.error("Failed to get bundle identifier")
             return false
         }
 
         let result = SMLoginItemSetEnabled(bundleIdentifier as CFString, enabled)
 
         if result {
-            isEnabled = enabled
-            logger.info("Set launch at login (legacy): \(enabled)")
+            self.isEnabled = enabled
+            self.logger.info("Set launch at login (legacy): \(enabled)")
         } else {
-            logger.error("Failed to set launch at login (legacy)")
+            self.logger.error("Failed to set launch at login (legacy)")
         }
 
         return result
@@ -117,7 +117,7 @@ final class LaunchAtLoginManager: ObservableObject {
     private func refreshStatusLegacy() {
         // Legacy API doesn't provide a way to check status
         // We rely on the last known state from UserDefaults
-        isEnabled = SettingsManager.shared.general.launchAtLogin
+        self.isEnabled = SettingsManager.shared.general.launchAtLogin
     }
 }
 
@@ -153,9 +153,9 @@ final class DockVisibilityManager {
         let success = NSApp.setActivationPolicy(policy)
 
         if success {
-            logger.info("Dock visibility set to: \(visible)")
+            self.logger.info("Dock visibility set to: \(visible)")
         } else {
-            logger.error("Failed to set dock visibility")
+            self.logger.error("Failed to set dock visibility")
         }
     }
 

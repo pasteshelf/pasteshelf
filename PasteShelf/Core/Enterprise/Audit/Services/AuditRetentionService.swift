@@ -48,24 +48,24 @@ final class AuditRetentionService {
     /// since the last cleanup (or if no cleanup has ever been recorded), a pass is
     /// triggered immediately on the first timer fire.
     func start() {
-        stop()
-        cleanupTimer = Timer.scheduledTimer(
+        self.stop()
+        self.cleanupTimer = Timer.scheduledTimer(
             withTimeInterval: Self.cleanupInterval,
             repeats: true
         ) { [weak self] _ in
             guard let self else {
                 return
             }
-            logger.debug("Audit retention timer fired — checking for expired entries")
+            self.logger.debug("Audit retention timer fired — checking for expired entries")
             Task {
                 _ = await self.runIfDue()
             }
         }
-        logger.info("Audit retention service started (retentionDays: \(configuration.retentionDays))")
+        self.logger.info("Audit retention service started (retentionDays: \(self.configuration.retentionDays))")
 
         // Run an initial check at startup without waiting for the first timer fire.
         Task {
-            _ = await runIfDue()
+            _ = await self.runIfDue()
         }
     }
 
@@ -74,9 +74,9 @@ final class AuditRetentionService {
     /// After calling this method, no further automatic pruning passes are scheduled
     /// until `start()` is called again.
     func stop() {
-        cleanupTimer?.invalidate()
-        cleanupTimer = nil
-        logger.debug("Audit retention service stopped")
+        self.cleanupTimer?.invalidate()
+        self.cleanupTimer = nil
+        self.logger.debug("Audit retention service stopped")
     }
 
     /// Updates the retention configuration used for future pruning passes.
@@ -86,8 +86,8 @@ final class AuditRetentionService {
     ///
     /// - Parameter newConfiguration: The replacement retention policy.
     func updateConfiguration(_ newConfiguration: AuditRetentionConfiguration) {
-        configuration = newConfiguration
-        logger
+        self.configuration = newConfiguration
+        self.logger
             .info(
                 // swiftlint:disable:next line_length
                 "Audit retention configuration updated to \(newConfiguration.retentionDays) days (immutable: \(newConfiguration.isImmutable))"
@@ -101,18 +101,19 @@ final class AuditRetentionService {
     /// - Returns: The number of entries that were pruned, or `0` if pruning failed.
     @discardableResult
     func runNow() async -> Int {
-        guard !configuration.isImmutable else {
-            logger.info("Audit retention: pruning skipped — immutable retention policy active (HIPAA)")
+        guard !self.configuration.isImmutable else {
+            self.logger.info("Audit retention: pruning skipped — immutable retention policy active (HIPAA)")
             return 0
         }
-        logger.info("Audit retention: running manual pruning pass (retentionDays: \(configuration.retentionDays))")
+        self.logger
+            .info("Audit retention: running manual pruning pass (retentionDays: \(self.configuration.retentionDays))")
         do {
-            let count = try await storage.pruneExpired(retentionDays: configuration.retentionDays)
+            let count = try await storage.pruneExpired(retentionDays: self.configuration.retentionDays)
             UserDefaults.standard.set(Date(), forKey: Self.lastCleanupKey)
-            logger.info("Audit retention: pruned \(count) expired entries")
+            self.logger.info("Audit retention: pruned \(count) expired entries")
             return count
         } catch {
-            logger.error("Audit retention: pruning failed — \(error.localizedDescription)")
+            self.logger.error("Audit retention: pruning failed — \(error.localizedDescription)")
             return 0
         }
     }
@@ -155,10 +156,10 @@ final class AuditRetentionService {
         }
 
         guard isDue else {
-            logger.debug("Audit retention: cleanup not yet due — skipping")
+            self.logger.debug("Audit retention: cleanup not yet due — skipping")
             return 0
         }
 
-        return await runNow()
+        return await self.runNow()
     }
 }

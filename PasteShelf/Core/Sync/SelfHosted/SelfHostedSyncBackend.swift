@@ -35,12 +35,12 @@ final class SelfHostedSyncBackend: SyncBackend {
             nil
         }
 
-        apiClient = SelfHostedAPIClient(configuration: configuration, urlSessionDelegate: sessionDelegate)
-        webSocketClient = SelfHostedWebSocketClient(configuration: configuration)
+        self.apiClient = SelfHostedAPIClient(configuration: configuration, urlSessionDelegate: sessionDelegate)
+        self.webSocketClient = SelfHostedWebSocketClient(configuration: configuration)
 
         // Use a stable device ID (persisted in UserDefaults)
-        deviceID = Self.resolveDeviceID()
-        deviceName = Host.current().localizedName ?? "Mac"
+        self.deviceID = Self.resolveDeviceID()
+        self.deviceName = Host.current().localizedName ?? "Mac"
     }
 
     // MARK: Internal
@@ -48,14 +48,14 @@ final class SelfHostedSyncBackend: SyncBackend {
     // MARK: - SyncBackend Protocol
 
     func checkAvailability() async throws -> SyncBackendStatus {
-        guard configuration.serverURL != nil else {
+        guard self.configuration.serverURL != nil else {
             return .unavailable(reason: "No server URL configured")
         }
 
         do {
             let health = try await apiClient.healthCheck()
             if health.status == "ok" || health.status == "degraded" {
-                if configuration.apiKey != nil {
+                if self.configuration.apiKey != nil {
                     return .available
                 }
                 return .authenticationRequired
@@ -67,21 +67,21 @@ final class SelfHostedSyncBackend: SyncBackend {
     }
 
     func setup() async throws {
-        logger.info("Setting up self-hosted sync backend")
+        self.logger.info("Setting up self-hosted sync backend")
 
         // Register device with the sync server
-        _ = try await apiClient.registerDevice(
-            deviceID: deviceID,
-            deviceName: deviceName,
+        _ = try await self.apiClient.registerDevice(
+            deviceID: self.deviceID,
+            deviceName: self.deviceName,
             osVersion: ProcessInfo.processInfo.operatingSystemVersionString,
             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         )
 
-        logger.info("Device registered with self-hosted server: \(deviceID)")
+        self.logger.info("Device registered with self-hosted server: \(self.deviceID)")
     }
 
     func pushChanges(_ changes: [SyncChange]) async throws -> SyncPushResult {
-        logger.info("Pushing \(changes.count) changes to self-hosted server")
+        self.logger.info("Pushing \(changes.count) changes to self-hosted server")
 
         // Convert SyncChange to API payloads
         let payloads = changes.map { change -> SyncChangePayload in
@@ -95,7 +95,7 @@ final class SelfHostedSyncBackend: SyncBackend {
             )
         }
 
-        let result = try await apiClient.pushChanges(payloads, deviceID: deviceID)
+        let result = try await apiClient.pushChanges(payloads, deviceID: self.deviceID)
 
         // Convert API conflicts to SyncConflict
         let conflicts = result.conflicts.map { conflict -> SyncConflict in
@@ -115,7 +115,7 @@ final class SelfHostedSyncBackend: SyncBackend {
     }
 
     func pullChanges(sinceToken: Data?) async throws -> SyncPullResult {
-        logger.info("Pulling changes from self-hosted server")
+        self.logger.info("Pulling changes from self-hosted server")
 
         // Convert opaque Data token to string
         let tokenString = sinceToken.flatMap { String(data: $0, encoding: .utf8) }
@@ -157,7 +157,7 @@ final class SelfHostedSyncBackend: SyncBackend {
     }
 
     func deleteRecord(entityID: UUID) async throws {
-        logger.info("Deleting record \(entityID) on self-hosted server")
+        self.logger.info("Deleting record \(entityID) on self-hosted server")
 
         // Push a deletion change
         let payload = SyncChangePayload(
@@ -168,15 +168,15 @@ final class SelfHostedSyncBackend: SyncBackend {
             isDeleted: true,
             clientVersion: nil
         )
-        _ = try await apiClient.pushChanges([payload], deviceID: deviceID)
+        _ = try await self.apiClient.pushChanges([payload], deviceID: self.deviceID)
     }
 
     func subscribeToChanges(handler: @escaping @Sendable (SyncNotification) -> Void) async throws {
-        logger.info("Subscribing to self-hosted sync notifications")
-        notificationHandler = handler
+        self.logger.info("Subscribing to self-hosted sync notifications")
+        self.notificationHandler = handler
 
         // Set up WebSocket notification handling
-        webSocketClient.onNotification = { [weak self] wsNotification in
+        self.webSocketClient.onNotification = { [weak self] wsNotification in
             guard let self else {
                 return
             }
@@ -205,21 +205,21 @@ final class SelfHostedSyncBackend: SyncBackend {
 
         // Connect WebSocket if we have an API key (used as token for WS auth)
         if let apiKey = configuration.apiKey {
-            webSocketClient.connect(token: apiKey, deviceID: deviceID)
+            self.webSocketClient.connect(token: apiKey, deviceID: self.deviceID)
         }
     }
 
     func teardown() async throws {
-        logger.info("Tearing down self-hosted sync backend")
+        self.logger.info("Tearing down self-hosted sync backend")
 
         // Disconnect WebSocket
-        webSocketClient.disconnect()
+        self.webSocketClient.disconnect()
 
         // Unregister device
         do {
-            try await apiClient.removeDevice(deviceID: deviceID)
+            try await self.apiClient.removeDevice(deviceID: self.deviceID)
         } catch {
-            logger.warning("Failed to unregister device: \(error.localizedDescription)")
+            self.logger.warning("Failed to unregister device: \(error.localizedDescription)")
         }
     }
 
@@ -249,7 +249,7 @@ final class SelfHostedSyncBackend: SyncBackend {
             return existing
         }
         let newID = UUID().uuidString
-        UserDefaults.standard.set(newID, forKey: deviceIDKey)
+        UserDefaults.standard.set(newID, forKey: self.deviceIDKey)
         return newID
     }
 }

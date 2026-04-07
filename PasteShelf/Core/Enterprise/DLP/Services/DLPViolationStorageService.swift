@@ -41,7 +41,7 @@ final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @un
     /// - Parameter violation: The `DLPViolation` to persist.
     /// - Throws: `DLPError.storageFailure` if the CoreData save fails.
     func save(_ violation: DLPViolation) async throws {
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
         try await context.perform {
             _ = DLPViolationEntity(context: context, violation: violation)
 
@@ -68,7 +68,7 @@ final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @un
     /// - Returns: An array of `DLPViolationEntity` managed objects matching the filters.
     /// - Throws: `DLPError.storageFailure` if the CoreData fetch fails.
     func fetchViolations(from: Date?, to: Date?, limit: Int) async throws -> [DLPViolationEntity] {
-        let viewContext = persistenceController.container.viewContext
+        let viewContext = self.persistenceController.container.viewContext
         return try await viewContext.perform {
             let request = DLPViolationEntity.violationsFetchRequest(from: from, to: to)
             request.fetchLimit = limit
@@ -97,11 +97,11 @@ final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @un
             value: -retentionDays,
             to: Date()
         ) else {
-            logger.error("Failed to compute retention cutoff date for \(retentionDays) days")
+            self.logger.error("Failed to compute retention cutoff date for \(retentionDays) days")
             throw DLPError.storageFailure("Failed to compute retention cutoff date")
         }
 
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
         return try await context.perform {
             let request = DLPViolationEntity.retentionCleanupFetchRequest(olderThan: cutoff)
             let violations: [DLPViolationEntity]
@@ -141,7 +141,7 @@ final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @un
     /// - Returns: An array of `DLPRuleEntity` managed objects.
     /// - Throws: `DLPError.storageFailure` if the CoreData fetch fails.
     func loadRules() async throws -> [DLPRuleEntity] {
-        let viewContext = persistenceController.container.viewContext
+        let viewContext = self.persistenceController.container.viewContext
         return try await viewContext.perform {
             let request = DLPRuleEntity.allRulesFetchRequest()
             do {
@@ -162,7 +162,7 @@ final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @un
     /// - Parameter rule: The `DLPRule` to persist.
     /// - Throws: `DLPError.storageFailure` if the CoreData save fails.
     func saveRule(_ rule: DLPRule) async throws {
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
         try await context.perform {
             _ = DLPRuleEntity(context: context, rule: rule)
 
@@ -184,7 +184,7 @@ final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @un
     /// - Throws: `DLPError.ruleNotFound` if no rule exists with the given ID,
     ///   or `DLPError.storageFailure` if the CoreData delete fails.
     func deleteRule(id: UUID) async throws {
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
         try await context.perform {
             let request = DLPRuleEntity.fetchRequest()
             request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -226,7 +226,7 @@ final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @un
     /// - Throws: `DLPError.ruleNotFound` if no matching rule is found,
     ///   or `DLPError.storageFailure` if the CoreData save fails.
     func updateRule(_ rule: DLPRule) async throws {
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
         try await context.perform {
             let request = DLPRuleEntity.fetchRequest()
             request.predicate = NSPredicate(format: "id == %@", rule.id as CVarArg)

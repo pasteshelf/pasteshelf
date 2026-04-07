@@ -72,22 +72,22 @@ struct CollectionDisplayModel: Identifiable, Hashable {
 
     /// Whether this collection has a custom color
     var hasCustomColor: Bool {
-        colorHex != nil
+        self.colorHex != nil
     }
 
     /// Whether this is a valid collection
     var isValid: Bool {
-        !name.isEmpty
+        !self.name.isEmpty
     }
 
     /// Description of the collection type
     var typeDescription: String {
-        isAutomatic ? "Smart Collection" : "Manual Collection"
+        self.isAutomatic ? "Smart Collection" : "Manual Collection"
     }
 
     /// Summary of rules (for automatic collections)
     var rulesSummary: String? {
-        guard isAutomatic, let rules, !rules.isEmpty else {
+        guard self.isAutomatic, let rules, !rules.isEmpty else {
             return nil
         }
 
@@ -108,7 +108,7 @@ struct CollectionDisplayModel: Identifiable, Hashable {
     // MARK: - Hashable
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+        hasher.combine(self.id)
     }
 }
 
@@ -149,7 +149,7 @@ extension CollectionDisplayModel {
     /// - Parameter collections: Array of CoreData entities
     /// - Returns: Array of display models (invalid collections are filtered out)
     static func from(_ collections: [SmartCollection]) -> [CollectionDisplayModel] {
-        collections.compactMap { from($0) }
+        collections.compactMap { self.from($0) }
     }
 
     /// Creates a new model for editing with updated properties
@@ -163,7 +163,7 @@ extension CollectionDisplayModel {
         rules: CollectionRules? = nil
     ) -> CollectionDisplayModel {
         CollectionDisplayModel(
-            id: id,
+            id: self.id,
             name: name ?? self.name,
             icon: icon ?? self.icon,
             colorHex: colorHex ?? self.colorHex,

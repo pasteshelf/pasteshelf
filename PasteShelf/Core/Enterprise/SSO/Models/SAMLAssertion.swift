@@ -42,7 +42,7 @@ struct SAMLAssertion: Codable, Equatable {
 
     /// The user's email from attribute statements
     var email: String? {
-        findAttribute(
+        self.findAttribute(
             named: "email",
             "mail",
             "emailAddress",
@@ -52,7 +52,7 @@ struct SAMLAssertion: Codable, Equatable {
 
     /// The user's first name from attribute statements
     var firstName: String? {
-        findAttribute(
+        self.findAttribute(
             named: "firstName",
             "givenName",
             "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
@@ -61,7 +61,7 @@ struct SAMLAssertion: Codable, Equatable {
 
     /// The user's last name from attribute statements
     var lastName: String? {
-        findAttribute(
+        self.findAttribute(
             named: "lastName",
             "surname",
             "sn",
@@ -71,17 +71,22 @@ struct SAMLAssertion: Codable, Equatable {
 
     /// The user's display name
     var displayName: String? {
-        findAttribute(named: "displayName", "name", "cn", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
+        self.findAttribute(
+            named: "displayName",
+            "name",
+            "cn",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+        )
     }
 
     /// User's group memberships
     var groups: [String] {
-        findAttributes(named: "groups", "memberOf", "http://schemas.xmlsoap.org/claims/Group")
+        self.findAttributes(named: "groups", "memberOf", "http://schemas.xmlsoap.org/claims/Group")
     }
 
     /// User's unique identifier (usually email or UPN)
     var userId: String {
-        subject.nameID
+        self.subject.nameID
     }
 
     // MARK: - Validation
@@ -89,15 +94,15 @@ struct SAMLAssertion: Codable, Equatable {
     /// Checks if the assertion is currently valid (within time bounds)
     func isValid(clockSkewTolerance: TimeInterval = 300) -> Bool {
         let now = Date()
-        let adjustedNotBefore = conditions.notBefore.addingTimeInterval(-clockSkewTolerance)
-        let adjustedNotOnOrAfter = conditions.notOnOrAfter.addingTimeInterval(clockSkewTolerance)
+        let adjustedNotBefore = self.conditions.notBefore.addingTimeInterval(-clockSkewTolerance)
+        let adjustedNotOnOrAfter = self.conditions.notOnOrAfter.addingTimeInterval(clockSkewTolerance)
 
         return now >= adjustedNotBefore && now < adjustedNotOnOrAfter
     }
 
     /// Checks if the assertion is intended for the given audience
     func isIntendedFor(audience: String) -> Bool {
-        conditions.audienceRestrictions.contains { $0.audiences.contains(audience) }
+        self.conditions.audienceRestrictions.contains { $0.audiences.contains(audience) }
     }
 
     // MARK: Private
@@ -105,7 +110,7 @@ struct SAMLAssertion: Codable, Equatable {
     // MARK: - Private Helpers
 
     private func findAttribute(named names: String...) -> String? {
-        for statement in attributeStatements {
+        for statement in self.attributeStatements {
             for attribute in statement.attributes {
                 if names.contains(attribute.name) || names.contains(attribute.friendlyName ?? "") {
                     return attribute.values.first
@@ -117,7 +122,7 @@ struct SAMLAssertion: Codable, Equatable {
 
     private func findAttributes(named names: String...) -> [String] {
         var result: [String] = []
-        for statement in attributeStatements {
+        for statement in self.attributeStatements {
             for attribute in statement.attributes {
                 if names.contains(attribute.name) || names.contains(attribute.friendlyName ?? "") {
                     result.append(contentsOf: attribute.values)

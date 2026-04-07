@@ -25,18 +25,18 @@
             self.sandbox = sandbox
 
             // Create storage
-            storage = PluginStorageImpl(pluginId: pluginId)
+            self.storage = PluginStorageImpl(pluginId: pluginId)
 
             // Create logger
-            logger = PluginLogger(pluginId: pluginId)
+            self.logger = PluginLogger(pluginId: pluginId)
 
             // Initialize permissions from manager
-            grantedPermissions = PluginManager.shared.grantedPermissions(for: pluginId)
+            self.grantedPermissions = PluginManager.shared.grantedPermissions(for: pluginId)
 
             super.init()
 
             // Initialize APIs based on permissions
-            initializeAPIs()
+            self.initializeAPIs()
         }
 
         // MARK: Public
@@ -53,11 +53,11 @@
         }
 
         public var network: (any PluginNetwork)? {
-            _network
+            self._network
         }
 
         public var clipboard: (any PluginClipboardAccess)? {
-            _clipboard
+            self._clipboard
         }
 
         // MARK: - Permission Management
@@ -67,18 +67,18 @@
         @objc(requestPermission:completionHandler:)
         public func requestPermission(_ permissionString: String) async -> Bool {
             guard let permission = PluginPermission(rawValue: permissionString) else {
-                Logger.plugins.warning("[\(pluginId)] Unknown permission requested: \(permissionString)")
+                Logger.plugins.warning("[\(self.pluginId)] Unknown permission requested: \(permissionString)")
                 return false
             }
 
             // Check if already granted
-            if grantedPermissions.contains(permission) {
+            if self.grantedPermissions.contains(permission) {
                 return true
             }
 
             // Check if permission was declared in manifest
-            guard bundle.manifest.requiredPermissions.contains(permission) else {
-                Logger.plugins.warning("[\(pluginId)] Requested undeclared permission: \(permissionString)")
+            guard self.bundle.manifest.requiredPermissions.contains(permission) else {
+                Logger.plugins.warning("[\(self.pluginId)] Requested undeclared permission: \(permissionString)")
                 return false
             }
 
@@ -87,10 +87,10 @@
             let granted = await showPermissionDialog(for: permission)
 
             if granted {
-                grantedPermissions.insert(permission)
-                PluginManager.shared.grantPermission(permission, to: pluginId)
-                initializeAPIs() // Reinitialize with new permissions
-                Logger.plugins.info("[\(pluginId)] Permission granted: \(permissionString)")
+                self.grantedPermissions.insert(permission)
+                PluginManager.shared.grantPermission(permission, to: self.pluginId)
+                self.initializeAPIs() // Reinitialize with new permissions
+                Logger.plugins.info("[\(self.pluginId)] Permission granted: \(permissionString)")
             }
 
             return granted
@@ -102,7 +102,7 @@
             guard let permission = PluginPermission(rawValue: permissionString) else {
                 return false
             }
-            return grantedPermissions.contains(permission)
+            return self.grantedPermissions.contains(permission)
         }
 
         // MARK: Private
@@ -124,16 +124,16 @@
 
         private func initializeAPIs() {
             // Network API
-            if grantedPermissions.contains(.network) {
-                _network = PluginNetworkImpl(pluginId: pluginId, sandbox: sandbox)
+            if self.grantedPermissions.contains(.network) {
+                self._network = PluginNetworkImpl(pluginId: self.pluginId, sandbox: self.sandbox)
             }
 
             // Clipboard API
-            if grantedPermissions.contains(.clipboardRead) || grantedPermissions.contains(.clipboardWrite) {
-                _clipboard = PluginClipboardAccessImpl(
-                    pluginId: pluginId,
-                    canRead: grantedPermissions.contains(.clipboardRead),
-                    canWrite: grantedPermissions.contains(.clipboardWrite)
+            if self.grantedPermissions.contains(.clipboardRead) || self.grantedPermissions.contains(.clipboardWrite) {
+                self._clipboard = PluginClipboardAccessImpl(
+                    pluginId: self.pluginId,
+                    canRead: self.grantedPermissions.contains(.clipboardRead),
+                    canWrite: self.grantedPermissions.contains(.clipboardWrite)
                 )
             }
         }
@@ -146,7 +146,7 @@
             // For now, we auto-grant permissions that were declared in the manifest
             // The user already reviewed these during plugin installation
 
-            Logger.plugins.debug("[\(pluginId)] Auto-granting declared permission: \(permission.rawValue)")
+            Logger.plugins.debug("[\(self.pluginId)] Auto-granting declared permission: \(permission.rawValue)")
             return true
         }
     }
@@ -176,7 +176,7 @@
             let config = URLSessionConfiguration.default
             config.timeoutIntervalForRequest = 30
             config.timeoutIntervalForResource = 60
-            session = URLSession(configuration: config)
+            self.session = URLSession(configuration: config)
 
             super.init()
         }
@@ -185,10 +185,10 @@
 
         public func request(_ request: URLRequest) async throws -> (Data, URLResponse) {
             // Validate request against sandbox policy
-            try await sandbox.validateNetworkRequest(request)
+            try await self.sandbox.validateNetworkRequest(request)
 
             // Execute with timeout from sandbox
-            return try await sandbox.execute {
+            return try await self.sandbox.execute {
                 try await self.session.data(for: request)
             }
         }
@@ -217,7 +217,7 @@
             super.init()
 
             if canRead {
-                subscribeToClipboardChanges()
+                self.subscribeToClipboardChanges()
             }
         }
 
@@ -230,8 +230,8 @@
         // MARK: Public
 
         public func recentItems(limit: Int) async -> [PluginClipboardContent] {
-            guard canRead else {
-                Logger.plugins.warning("[\(pluginId)] Attempted clipboard read without permission")
+            guard self.canRead else {
+                Logger.plugins.warning("[\(self.pluginId)] Attempted clipboard read without permission")
                 return []
             }
 
@@ -243,8 +243,8 @@
         }
 
         public func currentContent() -> PluginClipboardContent? {
-            guard canRead else {
-                Logger.plugins.warning("[\(pluginId)] Attempted clipboard read without permission")
+            guard self.canRead else {
+                Logger.plugins.warning("[\(self.pluginId)] Attempted clipboard read without permission")
                 return nil
             }
 
@@ -279,8 +279,8 @@
         }
 
         public func writeToClipboard(_ content: PluginClipboardContent) {
-            guard canWrite else {
-                Logger.plugins.warning("[\(pluginId)] Attempted clipboard write without permission")
+            guard self.canWrite else {
+                Logger.plugins.warning("[\(self.pluginId)] Attempted clipboard write without permission")
                 return
             }
 
@@ -300,7 +300,7 @@
                 pasteboard.setData(imageData, forType: .png)
             }
 
-            Logger.plugins.debug("[\(pluginId)] Wrote to clipboard")
+            Logger.plugins.debug("[\(self.pluginId)] Wrote to clipboard")
         }
 
         // MARK: Internal
@@ -318,7 +318,7 @@
         private var clipboardObserver: NSObjectProtocol?
 
         private func subscribeToClipboardChanges() {
-            clipboardObserver = NotificationCenter.default.addObserver(
+            self.clipboardObserver = NotificationCenter.default.addObserver(
                 forName: .clipboardContentCaptured,
                 object: nil,
                 queue: .main
@@ -330,7 +330,7 @@
                     return
                 }
 
-                let pluginContent = convertClipboardToPluginContent(content)
+                let pluginContent = self.convertClipboardToPluginContent(content)
                 handler(pluginContent)
             }
         }

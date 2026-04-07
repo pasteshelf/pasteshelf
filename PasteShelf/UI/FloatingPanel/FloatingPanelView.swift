@@ -26,20 +26,20 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
     var body: some View {
         HStack(spacing: 0) {
             // Collections sidebar (togglable)
-            if viewModel.showCollectionsSidebar {
+            if self.viewModel.showCollectionsSidebar {
                 CollectionsSidebarView(
-                    collections: viewModel.collections,
-                    selectedCollectionId: $viewModel.selectedCollectionId,
+                    collections: self.viewModel.collections,
+                    selectedCollectionId: self.$viewModel.selectedCollectionId,
                     onEdit: { collection in
-                        viewModel.editingCollection = collection
-                        viewModel.showCollectionEditor = true
+                        self.viewModel.editingCollection = collection
+                        self.viewModel.showCollectionEditor = true
                     },
                     onDelete: { collection in
-                        Task { await viewModel.deleteCollection(collection) }
+                        Task { await self.viewModel.deleteCollection(collection) }
                     },
                     onCreate: {
-                        viewModel.editingCollection = nil
-                        viewModel.showCollectionEditor = true
+                        self.viewModel.editingCollection = nil
+                        self.viewModel.showCollectionEditor = true
                     }
                 )
                 .frame(width: 180)
@@ -50,49 +50,49 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
             // Main content
             VStack(spacing: 0) {
                 // Header with title
-                headerView
+                self.headerView
 
                 // Search field
-                searchFieldView
+                self.searchFieldView
 
                 // Filter chips
-                filterChipsView
+                self.filterChipsView
 
                 Divider()
 
                 // Content with animations
                 Group {
-                    if viewModel.isLoading {
-                        loadingView
-                    } else if viewModel.items.isEmpty {
-                        emptyStateView
+                    if self.viewModel.isLoading {
+                        self.loadingView
+                    } else if self.viewModel.items.isEmpty {
+                        self.emptyStateView
                     } else {
-                        itemListView
+                        self.itemListView
                     }
                 }
-                .animation(.easeInOut(duration: 0.2), value: viewModel.isLoading)
-                .animation(.easeInOut(duration: 0.2), value: viewModel.items.count)
+                .animation(.easeInOut(duration: 0.2), value: self.viewModel.isLoading)
+                .animation(.easeInOut(duration: 0.2), value: self.viewModel.items.count)
             }
         }
-        .sheet(isPresented: $viewModel.showCollectionEditor) {
+        .sheet(isPresented: self.$viewModel.showCollectionEditor) {
             CollectionEditorView(
-                collection: viewModel.editingCollection,
+                collection: self.viewModel.editingCollection,
                 onSave: { model in
                     Task {
-                        if viewModel.editingCollection != nil {
-                            await viewModel.updateCollection(model)
+                        if self.viewModel.editingCollection != nil {
+                            await self.viewModel.updateCollection(model)
                         } else {
-                            await viewModel.createCollection(model)
+                            await self.viewModel.createCollection(model)
                         }
                     }
-                    viewModel.showCollectionEditor = false
+                    self.viewModel.showCollectionEditor = false
                 },
                 onCancel: {
-                    viewModel.showCollectionEditor = false
+                    self.viewModel.showCollectionEditor = false
                 }
             )
         }
-        .frame(width: settingsManager.appearance.panelWidth.width, height: 520)
+        .frame(width: self.settingsManager.appearance.panelWidth.width, height: 520)
         .background(
             VisualEffectView(material: .popover, blendingMode: .behindWindow)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -104,68 +104,68 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
         .contentShape(RoundedRectangle(cornerRadius: 12))
         .focusable()
         .focusEffectDisabled()
-        .focused($isFocused)
+        .focused(self.$isFocused)
         .onAppear {
-            isFocused = true
+            self.isFocused = true
         }
         .onKeyPress(keys: [.downArrow]) { _ in
-            viewModel.selectNext()
+            self.viewModel.selectNext()
             return .handled
         }
         .onKeyPress(keys: [.upArrow]) { _ in
-            viewModel.selectPrevious()
+            self.viewModel.selectPrevious()
             return .handled
         }
         .onKeyPress(keys: [.return]) { _ in
             Task {
-                await viewModel.pasteSelected()
+                await self.viewModel.pasteSelected()
             }
             return .handled
         }
         .onKeyPress(keys: [.escape]) { _ in
-            if viewModel.isSearchActive {
-                viewModel.clearSearch()
+            if self.viewModel.isSearchActive {
+                self.viewModel.clearSearch()
                 return .handled
             }
-            viewModel.hide()
+            self.viewModel.hide()
             return .handled
         }
         .onKeyPress(keys: [.delete]) { _ in
-            guard !isSearchFocused else {
+            guard !self.isSearchFocused else {
                 return .ignored
             }
             Task {
-                await viewModel.deleteSelected()
+                await self.viewModel.deleteSelected()
             }
             return .handled
         }
         .onKeyPress(characters: CharacterSet(charactersIn: "\u{08}\u{7F}"), phases: .down) { _ in
-            guard !isSearchFocused else {
+            guard !self.isSearchFocused else {
                 return .ignored
             }
             Task {
-                await viewModel.deleteSelected()
+                await self.viewModel.deleteSelected()
             }
             return .handled
         }
         .onKeyPress(characters: .decimalDigits, phases: .down) { press in
-            guard !isSearchFocused else {
+            guard !self.isSearchFocused else {
                 return .ignored
             }
-            guard settingsManager.shortcuts.quickPasteEnabled,
+            guard self.settingsManager.shortcuts.quickPasteEnabled,
                   let digit = press.characters.first?.wholeNumberValue,
                   digit >= 1, digit <= 9
             else {
                 return .ignored
             }
             let index = digit - 1
-            guard index < viewModel.items.count else {
+            guard index < self.viewModel.items.count else {
                 return .ignored
             }
-            viewModel.select(at: index)
+            self.viewModel.select(at: index)
             if press.modifiers.contains(.command) {
                 Task {
-                    await viewModel.pasteSelected()
+                    await self.viewModel.pasteSelected()
                 }
             }
             return .handled
@@ -175,7 +175,7 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
                 return .ignored
             }
             Task {
-                await viewModel.toggleFavorite()
+                await self.viewModel.toggleFavorite()
             }
             return .handled
         }
@@ -183,7 +183,7 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
             guard press.modifiers.contains(.command) else {
                 return .ignored
             }
-            isSearchFocused = true
+            self.isSearchFocused = true
             return .handled
         }
     }
@@ -205,7 +205,7 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
                 .foregroundColor(.primary)
 
             // Semantic search indicator
-            if viewModel.isSemanticSearchActive {
+            if self.viewModel.isSemanticSearchActive {
                 HStack(spacing: 3) {
                     Image(systemName: "brain")
                         .font(.caption2)
@@ -231,12 +231,12 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-            } else if viewModel.isSearchActive {
-                Text("\(viewModel.items.count) results")
+            } else if self.viewModel.isSearchActive {
+                Text("\(self.viewModel.items.count) results")
                     .font(.caption)
                     .foregroundColor(.secondary)
             } else {
-                Text("\(viewModel.items.count) items")
+                Text("\(self.viewModel.items.count) items")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -249,17 +249,17 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
 
     private var searchFieldView: some View {
         SearchFieldView(
-            text: $viewModel.searchQuery,
+            text: self.$viewModel.searchQuery,
             placeholder: "Search clipboard...",
             onSubmit: {
                 // Optional: do something on enter
             },
             onClear: {
-                viewModel.clearSearch()
+                self.viewModel.clearSearch()
             },
             autoFocus: false
         )
-        .focused($isSearchFocused)
+        .focused(self.$isSearchFocused)
         .padding(.horizontal, 12)
         .padding(.bottom, 6)
     }
@@ -269,35 +269,35 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
     private var filterChipsView: some View {
         FilterChipsView(
             selectedContentType: Binding(
-                get: { viewModel.activeFilters.contentTypeFilter },
+                get: { self.viewModel.activeFilters.contentTypeFilter },
                 set: { newValue in
                     Task {
                         if let filter = newValue {
-                            await viewModel.toggleContentTypeFilter(filter)
+                            await self.viewModel.toggleContentTypeFilter(filter)
                         } else if let current = viewModel.activeFilters.contentTypeFilter {
-                            await viewModel.toggleContentTypeFilter(current)
+                            await self.viewModel.toggleContentTypeFilter(current)
                         }
                     }
                 }
             ),
             favoritesOnly: Binding(
-                get: { viewModel.activeFilters.favoritesOnly },
+                get: { self.viewModel.activeFilters.favoritesOnly },
                 set: { _ in
                     Task {
-                        await viewModel.toggleFavoritesFilter()
+                        await self.viewModel.toggleFavoritesFilter()
                     }
                 }
             ),
-            availableTags: viewModel.availableTags,
-            showTagFilters: settingsManager.appearance.showTagFilters,
+            availableTags: self.viewModel.availableTags,
+            showTagFilters: self.settingsManager.appearance.showTagFilters,
             selectedTagIds: Binding(
-                get: { viewModel.activeFilters.selectedTagIds },
+                get: { self.viewModel.activeFilters.selectedTagIds },
                 set: { newValue in
-                    let old = viewModel.activeFilters.selectedTagIds
+                    let old = self.viewModel.activeFilters.selectedTagIds
                     let toggled = newValue.symmetricDifference(old)
                     if let tagId = toggled.first {
                         Task {
-                            await viewModel.toggleTagFilter(tagId)
+                            await self.viewModel.toggleTagFilter(tagId)
                         }
                     }
                 }
@@ -316,14 +316,14 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
 
     private var emptyStateView: some View {
         Group {
-            if viewModel.isSearchActive {
+            if self.viewModel.isSearchActive {
                 EmptyStateView.noSearchResults {
-                    viewModel.clearSearch()
+                    self.viewModel.clearSearch()
                 }
-            } else if viewModel.activeFilters.hasActiveFilters {
+            } else if self.viewModel.activeFilters.hasActiveFilters {
                 EmptyStateView.noFilteredResults {
                     Task {
-                        await viewModel.clearAllFilters()
+                        await self.viewModel.clearAllFilters()
                     }
                 }
             } else {
@@ -338,19 +338,19 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
     private var itemListView: some View {
         ScrollViewReader { proxy in
             ScrollView(showsIndicators: false) {
-                if viewModel.shouldShowGroupedView {
+                if self.viewModel.shouldShowGroupedView {
                     // Grouped by date
-                    groupedItemsContent
+                    self.groupedItemsContent
                 } else {
                     // Flat list (search results or no grouping)
-                    flatItemsContent
+                    self.flatItemsContent
                 }
             }
-            .onChange(of: viewModel.selectedIndex) { _, newIndex in
-                guard newIndex >= 0, newIndex < viewModel.items.count else {
+            .onChange(of: self.viewModel.selectedIndex) { _, newIndex in
+                guard newIndex >= 0, newIndex < self.viewModel.items.count else {
                     return
                 }
-                let item = viewModel.items[newIndex]
+                let item = self.viewModel.items[newIndex]
                 let itemId = item.id
                 withAnimation {
                     proxy.scrollTo(itemId, anchor: .center)
@@ -359,7 +359,7 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
                 // Announce to VoiceOver
                 AccessibilityAnnouncement.announceSelection(
                     at: newIndex,
-                    of: viewModel.items.count,
+                    of: self.viewModel.items.count,
                     item: item.displayText
                 )
             }
@@ -370,10 +370,10 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
 
     private var groupedItemsContent: some View {
         LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-            ForEach(viewModel.groupedItems) { section in
+            ForEach(self.viewModel.groupedItems) { section in
                 Section {
                     ForEach(section.items) { item in
-                        itemRow(for: item)
+                        self.itemRow(for: item)
                     }
                 } header: {
                     DateGroupHeaderView(
@@ -390,8 +390,8 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
 
     private var flatItemsContent: some View {
         LazyVStack(spacing: 2) {
-            ForEach(Array(viewModel.items.enumerated()), id: \.element.id) { index, item in
-                itemRow(for: item, index: index)
+            ForEach(Array(self.viewModel.items.enumerated()), id: \.element.id) { index, item in
+                self.itemRow(for: item, index: index)
             }
         }
         .padding(.vertical, 4)
@@ -403,10 +403,10 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
         for item: ClipboardItemDisplayModel,
         index: Int? = nil
     ) -> some View {
-        let actualIndex = index ?? viewModel.items.firstIndex { $0.id == item.id } ?? 0
-        let matchRanges = viewModel.matchRanges(for: item.id)
+        let actualIndex = index ?? self.viewModel.items.firstIndex { $0.id == item.id } ?? 0
+        let matchRanges = self.viewModel.matchRanges(for: item.id)
 
-        return buildItemRow(
+        return self.buildItemRow(
             item: item,
             actualIndex: actualIndex,
             matchRanges: matchRanges
@@ -423,21 +423,21 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
             return ClipboardItemRow(
                 item: item,
                 index: actualIndex,
-                isSelected: viewModel.selectedIndex == actualIndex,
+                isSelected: self.viewModel.selectedIndex == actualIndex,
                 searchHighlights: matchRanges,
-                searchQuery: viewModel.isSearchActive ? viewModel.searchQuery : nil,
-                onSelect: { viewModel.select(at: actualIndex) },
-                onPaste: { Task { await viewModel.paste(item: item) } },
+                searchQuery: self.viewModel.isSearchActive ? self.viewModel.searchQuery : nil,
+                onSelect: { self.viewModel.select(at: actualIndex) },
+                onPaste: { Task { await self.viewModel.paste(item: item) } },
                 onCopyOCRText: item.hasOCRText ? {
-                    Task { await viewModel.copyOCRText(for: item) }
+                    Task { await self.viewModel.copyOCRText(for: item) }
                 } : nil,
-                onDelete: { Task { await viewModel.delete(item: item) } },
+                onDelete: { Task { await self.viewModel.delete(item: item) } },
                 onToggleFavorite: {
-                    Task { await viewModel.toggleFavorite(for: item) }
+                    Task { await self.viewModel.toggleFavorite(for: item) }
                 },
                 onPluginAction: { menuItem, pluginId in
                     Task {
-                        await viewModel.executePluginAction(
+                        await self.viewModel.executePluginAction(
                             menuItem: menuItem,
                             pluginId: pluginId,
                             for: item
@@ -449,17 +449,17 @@ struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
             return ClipboardItemRow(
                 item: item,
                 index: actualIndex,
-                isSelected: viewModel.selectedIndex == actualIndex,
+                isSelected: self.viewModel.selectedIndex == actualIndex,
                 searchHighlights: matchRanges,
-                searchQuery: viewModel.isSearchActive ? viewModel.searchQuery : nil,
-                onSelect: { viewModel.select(at: actualIndex) },
-                onPaste: { Task { await viewModel.paste(item: item) } },
+                searchQuery: self.viewModel.isSearchActive ? self.viewModel.searchQuery : nil,
+                onSelect: { self.viewModel.select(at: actualIndex) },
+                onPaste: { Task { await self.viewModel.paste(item: item) } },
                 onCopyOCRText: item.hasOCRText ? {
-                    Task { await viewModel.copyOCRText(for: item) }
+                    Task { await self.viewModel.copyOCRText(for: item) }
                 } : nil,
-                onDelete: { Task { await viewModel.delete(item: item) } },
+                onDelete: { Task { await self.viewModel.delete(item: item) } },
                 onToggleFavorite: {
-                    Task { await viewModel.toggleFavorite(for: item) }
+                    Task { await self.viewModel.toggleFavorite(for: item) }
                 }
             )
         #endif

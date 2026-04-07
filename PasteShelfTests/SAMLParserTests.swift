@@ -444,7 +444,7 @@ struct SAMLAssertionTests {
     @Test("isValid returns true when current time is within assertion time bounds")
     func isValid_currentTimeWithinBounds_returnsTrue() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-300),
             notOnOrAfter: now.addingTimeInterval(3600)
         )
@@ -454,7 +454,7 @@ struct SAMLAssertionTests {
     @Test("isValid returns false when assertion has expired")
     func isValid_expiredAssertion_returnsFalse() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-7200),
             notOnOrAfter: now.addingTimeInterval(-3600)
         )
@@ -466,7 +466,7 @@ struct SAMLAssertionTests {
         let now = Date()
         // notBefore is far in the future; even with default 300s clock skew
         // the assertion should still be invalid if notBefore > now + tolerance
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(600),
             notOnOrAfter: now.addingTimeInterval(7200)
         )
@@ -478,7 +478,7 @@ struct SAMLAssertionTests {
     func isValid_clockSkewTolerance_allowsSlightlyEarlyAssertion() {
         let now = Date()
         // notBefore is 200 seconds in the future — within default 300s tolerance
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(200),
             notOnOrAfter: now.addingTimeInterval(7200)
         )
@@ -489,7 +489,7 @@ struct SAMLAssertionTests {
     func isValid_clockSkewTolerance_allowsSlightlyExpiredAssertion() {
         let now = Date()
         // notOnOrAfter was 200 seconds ago — within default 300s tolerance
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-3600),
             notOnOrAfter: now.addingTimeInterval(-200)
         )
@@ -499,7 +499,7 @@ struct SAMLAssertionTests {
     @Test("isValid returns false when expired beyond clock skew tolerance")
     func isValid_expiredBeyondTolerance_returnsFalse() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-7200),
             notOnOrAfter: now.addingTimeInterval(-400)
         )
@@ -511,7 +511,7 @@ struct SAMLAssertionTests {
     @Test("isIntendedFor returns true when audience matches")
     func isIntendedFor_matchingAudience_returnsTrue() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-60),
             notOnOrAfter: now.addingTimeInterval(3600),
             audience: "https://sp.example.com"
@@ -522,7 +522,7 @@ struct SAMLAssertionTests {
     @Test("isIntendedFor returns false when audience does not match")
     func isIntendedFor_nonMatchingAudience_returnsFalse() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-60),
             notOnOrAfter: now.addingTimeInterval(3600),
             audience: "https://sp.example.com"
@@ -533,7 +533,7 @@ struct SAMLAssertionTests {
     @Test("isIntendedFor is case sensitive")
     func isIntendedFor_casesDiffer_returnsFalse() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-60),
             notOnOrAfter: now.addingTimeInterval(3600),
             audience: "https://sp.example.com"
@@ -547,7 +547,7 @@ struct SAMLAssertionTests {
     @Test("email convenience property returns email from attribute statements")
     func email_withEmailAttribute_returnsEmail() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-60),
             notOnOrAfter: now.addingTimeInterval(3600),
             email: "john.doe@example.com"
@@ -558,7 +558,7 @@ struct SAMLAssertionTests {
     @Test("firstName convenience property returns first name from attribute statements")
     func firstName_withFirstNameAttribute_returnsFirstName() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-60),
             notOnOrAfter: now.addingTimeInterval(3600),
             firstName: "John"
@@ -569,7 +569,7 @@ struct SAMLAssertionTests {
     @Test("lastName convenience property returns last name from attribute statements")
     func lastName_withLastNameAttribute_returnsLastName() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-60),
             notOnOrAfter: now.addingTimeInterval(3600),
             lastName: "Doe"
@@ -580,7 +580,7 @@ struct SAMLAssertionTests {
     @Test("groups convenience property returns all group values")
     func groups_withGroupsAttribute_returnsAllGroups() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-60),
             notOnOrAfter: now.addingTimeInterval(3600),
             groups: ["admin", "engineers", "users"]
@@ -595,7 +595,7 @@ struct SAMLAssertionTests {
     @Test("userId returns subject nameID")
     func userId_returnsNameID() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-60),
             notOnOrAfter: now.addingTimeInterval(3600),
             email: "specific-user@example.com"
@@ -606,7 +606,7 @@ struct SAMLAssertionTests {
     @Test("displayName returns nil when no displayName attribute exists")
     func displayName_noDisplayNameAttribute_returnsNil() {
         let now = Date()
-        let assertion = makeAssertion(
+        let assertion = self.makeAssertion(
             notBefore: now.addingTimeInterval(-60),
             notOnOrAfter: now.addingTimeInterval(3600)
         )
@@ -699,7 +699,7 @@ struct SAMLResponseTests {
 
     @Test("validate returns success for valid response")
     func validate_validResponse_returnsSuccess() {
-        let response = makeValidResponse()
+        let response = self.makeValidResponse()
         let result = response.validate(
             expectedDestination: "https://sp.example.com/acs",
             expectedRequestId: "_request789",
@@ -711,7 +711,7 @@ struct SAMLResponseTests {
 
     @Test("validate returns failure when status is not success")
     func validate_failedStatus_returnsAuthenticationFailed() {
-        let response = makeValidResponse(statusCode: .authnFailed)
+        let response = self.makeValidResponse(statusCode: .authnFailed)
         let result = response.validate(
             expectedDestination: "https://sp.example.com/acs",
             expectedRequestId: nil,
@@ -731,7 +731,7 @@ struct SAMLResponseTests {
 
     @Test("validate returns failure when destination does not match")
     func validate_wrongDestination_returnsInvalidDestination() {
-        let response = makeValidResponse(destination: "https://sp.example.com/acs")
+        let response = self.makeValidResponse(destination: "https://sp.example.com/acs")
         let result = response.validate(
             expectedDestination: "https://other.example.com/acs",
             expectedRequestId: nil,
@@ -751,7 +751,7 @@ struct SAMLResponseTests {
 
     @Test("validate returns failure when InResponseTo does not match")
     func validate_wrongInResponseTo_returnsInvalidInResponseTo() {
-        let response = makeValidResponse(inResponseTo: "_actual_request_id")
+        let response = self.makeValidResponse(inResponseTo: "_actual_request_id")
         let result = response.validate(
             expectedDestination: "https://sp.example.com/acs",
             expectedRequestId: "_different_request_id",
@@ -772,7 +772,7 @@ struct SAMLResponseTests {
     @Test("validate returns failure when assertion has expired")
     func validate_expiredAssertion_returnsAssertionExpired() {
         let now = Date()
-        let response = makeValidResponse(
+        let response = self.makeValidResponse(
             notBefore: now.addingTimeInterval(-7200),
             notOnOrAfter: now.addingTimeInterval(-3600)
         )
@@ -791,7 +791,7 @@ struct SAMLResponseTests {
 
     @Test("validate returns failure when audience does not match")
     func validate_wrongAudience_returnsInvalidAudience() {
-        let response = makeValidResponse(audience: "https://sp.example.com")
+        let response = self.makeValidResponse(audience: "https://sp.example.com")
         let result = response.validate(
             expectedDestination: "https://sp.example.com/acs",
             expectedRequestId: nil,
@@ -836,7 +836,7 @@ struct SAMLResponseTests {
 
     @Test("validate passes when expectedRequestId is nil (not checking InResponseTo)")
     func validate_nilExpectedRequestId_doesNotCheckInResponseTo() {
-        let response = makeValidResponse(inResponseTo: "_some_request")
+        let response = self.makeValidResponse(inResponseTo: "_some_request")
         let result = response.validate(
             expectedDestination: "https://sp.example.com/acs",
             expectedRequestId: nil,
@@ -849,32 +849,32 @@ struct SAMLResponseTests {
 
     @Test("isSuccess returns true when status code is success")
     func isSuccess_successStatus_returnsTrue() {
-        let response = makeValidResponse(statusCode: .success)
+        let response = self.makeValidResponse(statusCode: .success)
         #expect(response.isSuccess)
     }
 
     @Test("isSuccess returns false when status code is not success")
     func isSuccess_nonSuccessStatus_returnsFalse() {
-        let response = makeValidResponse(statusCode: .authnFailed)
+        let response = self.makeValidResponse(statusCode: .authnFailed)
         #expect(!response.isSuccess)
     }
 
     @Test("errorMessage returns nil on successful response")
     func errorMessage_successStatus_returnsNil() {
-        let response = makeValidResponse(statusCode: .success)
+        let response = self.makeValidResponse(statusCode: .success)
         #expect(response.errorMessage == nil)
     }
 
     @Test("errorMessage returns display name on failed response")
     func errorMessage_failedStatus_returnsDisplayName() {
-        let response = makeValidResponse(statusCode: .authnFailed)
+        let response = self.makeValidResponse(statusCode: .authnFailed)
         #expect(response.errorMessage != nil)
         #expect(response.errorMessage == SAMLStatusCode.authnFailed.displayName)
     }
 
     @Test("primaryAssertion returns first assertion")
     func primaryAssertion_withAssertions_returnsFirstAssertion() {
-        let response = makeValidResponse()
+        let response = self.makeValidResponse()
         #expect(response.primaryAssertion != nil)
         #expect(response.primaryAssertion?.id == "_assertion")
     }

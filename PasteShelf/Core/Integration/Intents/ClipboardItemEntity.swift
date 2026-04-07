@@ -41,14 +41,14 @@ struct ClipboardItemEntity: AppEntity, Identifiable {
 
     /// Creates an entity from a CoreData ClipboardItem
     init(from item: ClipboardItem) {
-        id = item.id ?? UUID()
-        displayTitle = Self.generateTitle(from: item)
-        contentType = ContentType(rawValue: item.contentType ?? "")?.displayName ?? "Unknown"
-        sourceApp = item.sourceAppName
-        timestamp = item.timestamp ?? Date()
-        isFavorite = item.isFavorite
-        isSensitive = item.isSensitive
-        preview = item.plainTextPreview
+        self.id = item.id ?? UUID()
+        self.displayTitle = Self.generateTitle(from: item)
+        self.contentType = ContentType(rawValue: item.contentType ?? "")?.displayName ?? "Unknown"
+        self.sourceApp = item.sourceAppName
+        self.timestamp = item.timestamp ?? Date()
+        self.isFavorite = item.isFavorite
+        self.isSensitive = item.isSensitive
+        self.preview = item.plainTextPreview
     }
 
     // MARK: Internal
@@ -90,21 +90,21 @@ struct ClipboardItemEntity: AppEntity, Identifiable {
 
     var displayRepresentation: DisplayRepresentation {
         let subtitle: String = if let sourceApp {
-            "\(contentType) from \(sourceApp)"
+            "\(self.contentType) from \(sourceApp)"
         } else {
-            contentType
+            self.contentType
         }
 
         return DisplayRepresentation(
-            title: LocalizedStringResource(stringLiteral: displayTitle),
+            title: LocalizedStringResource(stringLiteral: self.displayTitle),
             subtitle: LocalizedStringResource(stringLiteral: subtitle),
-            image: .init(systemName: iconName)
+            image: .init(systemName: self.iconName)
         )
     }
 
     /// SF Symbol icon based on content type
     var iconName: String {
-        switch contentType.lowercased() {
+        switch self.contentType.lowercased() {
         case "text",
              "plain text":
             "doc.text"

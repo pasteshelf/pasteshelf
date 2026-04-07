@@ -162,7 +162,7 @@ enum AutomationAction: Codable, Equatable, Identifiable {
 
     /// Human-readable display name
     var displayName: String {
-        actionType.displayName
+        self.actionType.displayName
     }
 
     /// Description of what this action does
@@ -199,13 +199,13 @@ enum AutomationAction: Codable, Equatable, Identifiable {
 
     /// SF Symbol icon for the action
     var iconName: String {
-        actionType.iconName
+        self.actionType.iconName
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(actionType.rawValue, forKey: .type)
-        try container.encode(id, forKey: .id)
+        try container.encode(self.actionType.rawValue, forKey: .type)
+        try container.encode(self.id, forKey: .id)
 
         switch self {
         case let .transform(_, preset):

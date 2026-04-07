@@ -34,9 +34,9 @@
                 DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                     self?.performPaste()
                 }
-                return hasAccessibilityPermission
+                return self.hasAccessibilityPermission
             } else {
-                return performPaste()
+                return self.performPaste()
             }
         }
 
@@ -49,14 +49,14 @@
         /// Simulates typing a string (for future use)
         /// - Parameter text: The text to type
         func simulateTyping(_ text: String) {
-            guard hasAccessibilityPermission else {
-                logger.warning("Accessibility permission not granted")
+            guard self.hasAccessibilityPermission else {
+                self.logger.warning("Accessibility permission not granted")
                 return
             }
 
             for character in text {
                 if let keyCode = keyCode(for: character) {
-                    simulateKey(keyCode: keyCode, shift: character.isUppercase)
+                    self.simulateKey(keyCode: keyCode, shift: character.isUppercase)
                 }
             }
         }
@@ -80,9 +80,9 @@
 
         @discardableResult
         private func performPaste() -> Bool {
-            guard hasAccessibilityPermission else {
-                logger.warning("Accessibility permission not granted - requesting permission")
-                requestAccessibilityPermission()
+            guard self.hasAccessibilityPermission else {
+                self.logger.warning("Accessibility permission not granted - requesting permission")
+                self.requestAccessibilityPermission()
                 return false
             }
 
@@ -91,13 +91,13 @@
 
             // Create key down event for Cmd+V
             guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: Self.vKeyCode, keyDown: true) else {
-                logger.error("Failed to create key down event")
+                self.logger.error("Failed to create key down event")
                 return false
             }
 
             // Create key up event for Cmd+V
             guard let keyUp = CGEvent(keyboardEventSource: source, virtualKey: Self.vKeyCode, keyDown: false) else {
-                logger.error("Failed to create key up event")
+                self.logger.error("Failed to create key up event")
                 return false
             }
 
@@ -109,7 +109,7 @@
             keyDown.post(tap: .cghidEventTap)
             keyUp.post(tap: .cghidEventTap)
 
-            logger.debug("Paste keystroke simulated (Cmd+V)")
+            self.logger.debug("Paste keystroke simulated (Cmd+V)")
             return true
         }
 

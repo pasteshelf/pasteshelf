@@ -8,8 +8,8 @@ final class APIKey: Model, Content, @unchecked Sendable {
 
     init(id: UUID? = nil, userID: UUID, deviceID: UUID, keyHash: String, keyPrefix: String, expiresAt: Date? = nil) {
         self.id = id
-        $user.id = userID
-        $device.id = deviceID
+        self.$user.id = userID
+        self.$device.id = deviceID
         self.keyHash = keyHash
         self.keyPrefix = keyPrefix
         self.expiresAt = expiresAt
@@ -30,7 +30,7 @@ final class APIKey: Model, Content, @unchecked Sendable {
 
     /// Whether this API key is currently valid.
     var isActive: Bool {
-        if revokedAt != nil {
+        if self.revokedAt != nil {
             return false
         }
         if let expires = expiresAt, expires < Date() {

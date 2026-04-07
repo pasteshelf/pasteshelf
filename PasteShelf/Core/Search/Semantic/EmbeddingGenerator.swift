@@ -44,15 +44,15 @@ final class EmbeddingGenerator: ObservableObject {
 
     /// Progress percentage (0.0 to 1.0)
     var progress: Double {
-        guard totalToIndex > 0 else {
+        guard self.totalToIndex > 0 else {
             return 0.0
         }
-        return Double(indexedCount) / Double(totalToIndex)
+        return Double(self.indexedCount) / Double(self.totalToIndex)
     }
 
     /// Whether semantic search is available
     var isAvailable: Bool {
-        embeddingManager.isAvailable
+        self.embeddingManager.isAvailable
     }
 
     /// Creates an EmbeddingGenerator for testing
@@ -68,8 +68,8 @@ final class EmbeddingGenerator: ObservableObject {
     @discardableResult
     func generateEmbedding(for itemId: UUID) async -> Bool {
         // Check if embedding manager is available
-        guard embeddingManager.isAvailable else {
-            logger.warning("Embedding manager not available")
+        guard self.embeddingManager.isAvailable else {
+            self.logger.warning("Embedding manager not available")
             return false
         }
 
@@ -94,8 +94,8 @@ final class EmbeddingGenerator: ObservableObject {
         }
 
         // Check if embedding already exists
-        if await storageManager.fetchEmbedding(for: itemId) != nil {
-            logger.debug("Embedding already exists for item: \(itemId)")
+        if await self.storageManager.fetchEmbedding(for: itemId) != nil {
+            self.logger.debug("Embedding already exists for item: \(itemId)")
             return true
         }
 
@@ -106,13 +106,13 @@ final class EmbeddingGenerator: ObservableObject {
                 text: text,
                 embedding: existingEmbedding
             )
-            logger.debug("Reused existing embedding for item: \(itemId)")
+            self.logger.debug("Reused existing embedding for item: \(itemId)")
             return saved
         }
 
         // Generate new embedding
         guard let embedding = embeddingManager.generateEmbedding(for: text) else {
-            logger.warning("Failed to generate embedding for item: \(itemId)")
+            self.logger.warning("Failed to generate embedding for item: \(itemId)")
             return false
         }
 
@@ -124,7 +124,7 @@ final class EmbeddingGenerator: ObservableObject {
         )
 
         if saved {
-            logger.debug("Generated embedding for item: \(itemId)")
+            self.logger.debug("Generated embedding for item: \(itemId)")
         }
 
         return saved
@@ -137,23 +137,23 @@ final class EmbeddingGenerator: ObservableObject {
     @discardableResult
     func indexAllMissingEmbeddings() async -> Int { // swiftlint:disable:this function_body_length
         // Check if already indexing
-        guard !isIndexing else {
-            logger.debug("Indexing already in progress")
+        guard !self.isIndexing else {
+            self.logger.debug("Indexing already in progress")
             return 0
         }
 
         // Check if embedding manager is available
-        guard embeddingManager.isAvailable else {
-            logger.warning("Embedding manager not available")
+        guard self.embeddingManager.isAvailable else {
+            self.logger.warning("Embedding manager not available")
             return 0
         }
 
         // Cancel any existing task
-        indexingTask?.cancel()
+        self.indexingTask?.cancel()
 
-        isIndexing = true
-        indexedCount = 0
-        totalToIndex = 0
+        self.isIndexing = true
+        self.indexedCount = 0
+        self.totalToIndex = 0
 
         let task = Task<Int, Never>(priority: .background) { [weak self] in
             guard let self else {
@@ -168,7 +168,7 @@ final class EmbeddingGenerator: ObservableObject {
             while !Task.isCancelled {
                 // Fetch a batch of recent items
                 let items = await storageManager.fetchRecentItems(
-                    limit: batchSize,
+                    limit: self.batchSize,
                     offset: offset
                 )
 
@@ -181,13 +181,13 @@ final class EmbeddingGenerator: ObservableObject {
                 let missingIds = await storageManager.findItemsWithoutEmbeddings(from: itemIds)
 
                 if missingIds.isEmpty {
-                    offset += batchSize
+                    offset += self.batchSize
                     continue
                 }
 
                 // Update progress
                 await MainActor.run {
-                    totalToIndex += missingIds.count
+                    self.totalToIndex += missingIds.count
                 }
 
                 // Process items without embeddings
@@ -200,36 +200,36 @@ final class EmbeddingGenerator: ObservableObject {
                     if success {
                         totalIndexed += 1
                         await MainActor.run {
-                            indexedCount += 1
+                            self.indexedCount += 1
                         }
                     }
 
                     // Check session limit
-                    if totalIndexed >= maxItemsPerSession {
-                        logger.info("Reached session limit: \(totalIndexed) items indexed")
+                    if totalIndexed >= self.maxItemsPerSession {
+                        self.logger.info("Reached session limit: \(totalIndexed) items indexed")
                         break
                     }
                 }
 
-                if totalIndexed >= maxItemsPerSession {
+                if totalIndexed >= self.maxItemsPerSession {
                     break
                 }
 
-                offset += batchSize
+                offset += self.batchSize
 
                 // Brief delay between batches to avoid overwhelming the system
-                try? await Task.sleep(for: .milliseconds(batchDelayMs))
+                try? await Task.sleep(for: .milliseconds(self.batchDelayMs))
             }
 
             await MainActor.run {
-                isIndexing = false
+                self.isIndexing = false
             }
 
-            logger.info("Indexing completed: \(totalIndexed) items indexed")
+            self.logger.info("Indexing completed: \(totalIndexed) items indexed")
             return totalIndexed
         }
 
-        indexingTask = task
+        self.indexingTask = task
         return await task.value
     }
 
@@ -237,25 +237,25 @@ final class EmbeddingGenerator: ObservableObject {
 
     /// Cancels the current indexing operation
     func cancelIndexing() {
-        indexingTask?.cancel()
-        indexingTask = nil
-        isIndexing = false
+        self.indexingTask?.cancel()
+        self.indexingTask = nil
+        self.isIndexing = false
     }
 
     /// Clears all embeddings and resets progress
     func clearAllEmbeddings() async {
-        cancelIndexing()
+        self.cancelIndexing()
         let deleted = await storageManager.deleteAllEmbeddings()
-        logger.info("Cleared \(deleted) embeddings")
-        indexedCount = 0
-        totalToIndex = 0
+        self.logger.info("Cleared \(deleted) embeddings")
+        self.indexedCount = 0
+        self.totalToIndex = 0
     }
 
     /// Deletes outdated embeddings (different version)
     func clearOutdatedEmbeddings() async {
         let deleted = await storageManager.deleteOutdatedEmbeddings()
         if deleted > 0 {
-            logger.info("Cleared \(deleted) outdated embeddings")
+            self.logger.info("Cleared \(deleted) outdated embeddings")
         }
     }
 
@@ -263,7 +263,7 @@ final class EmbeddingGenerator: ObservableObject {
 
     /// Returns the number of indexed items
     func indexedItemCount() async -> Int {
-        await storageManager.embeddingCount()
+        await self.storageManager.embeddingCount()
     }
 
     // MARK: Private
@@ -320,7 +320,7 @@ final class EmbeddingGenerator: ObservableObject {
 
         // Check for duplicate text (reuse existing embedding)
         if let existingEmbedding = await storageManager.findEmbeddingByTextHash(text) {
-            return await storageManager.saveEmbedding(
+            return await self.storageManager.saveEmbedding(
                 for: itemId,
                 text: text,
                 embedding: existingEmbedding
@@ -333,7 +333,7 @@ final class EmbeddingGenerator: ObservableObject {
         }
 
         // Save embedding
-        return await storageManager.saveEmbedding(
+        return await self.storageManager.saveEmbedding(
             for: itemId,
             text: text,
             embedding: embedding

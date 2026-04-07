@@ -37,37 +37,37 @@ struct ClipboardItemRow: View {
 
     var body: some View {
         ClipboardItemView(
-            item: item,
-            searchHighlights: searchHighlights,
-            searchQuery: searchQuery
+            item: self.item,
+            searchHighlights: self.searchHighlights,
+            searchQuery: self.searchQuery
         )
-        .background(backgroundView)
+        .background(self.backgroundView)
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
-            onPaste()
+            self.onPaste()
         }
         .onTapGesture(count: 1) {
-            onSelect()
+            self.onSelect()
         }
         .onHover { hovering in
-            isHovered = hovering
+            self.isHovered = hovering
         }
         .overlay(alignment: .topTrailing) {
-            quickActionOverlay
-                .padding(.top, settingsManager.appearance.compactMode ? 25 : 30)
+            self.quickActionOverlay
+                .padding(.top, self.settingsManager.appearance.compactMode ? 25 : 30)
         }
         .contextMenu {
-            contextMenuContent
+            self.contextMenuContent
         }
         .task {
             let tags = await StorageManager.shared.fetchTags()
-            availableTags = TagDisplayModel.from(tags)
-            assignedTagIds = await StorageManager.shared.fetchTagIds(forItemId: item.id)
+            self.availableTags = TagDisplayModel.from(tags)
+            self.assignedTagIds = await StorageManager.shared.fetchTagIds(forItemId: self.item.id)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityLabel)
+        .accessibilityLabel(self.accessibilityLabel)
         .accessibilityHint("Double-click to paste")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityAddTraits(self.isSelected ? .isSelected : [])
     }
 
     // MARK: Private
@@ -79,18 +79,18 @@ struct ClipboardItemRow: View {
     // MARK: - Accessibility
 
     private var accessibilityLabel: String {
-        var label = item.displayText
+        var label = self.item.displayText
 
-        if item.isSensitive {
+        if self.item.isSensitive {
             label += ", sensitive content"
         }
 
-        if item.isFavorite {
+        if self.item.isFavorite {
             label += ", favorite"
         }
 
-        label += ", from \(item.sourceAppName ?? "unknown app")"
-        label += ", \(item.relativeTimestamp)"
+        label += ", from \(self.item.sourceAppName ?? "unknown app")"
+        label += ", \(self.item.relativeTimestamp)"
 
         return label
     }
@@ -100,13 +100,13 @@ struct ClipboardItemRow: View {
     @ViewBuilder private var contextMenuContent: some View {
         // Paste
         Button {
-            onPaste()
+            self.onPaste()
         } label: {
             Label("Paste", systemImage: "doc.on.clipboard")
         }
 
         // Copy OCR text (only for images with OCR)
-        if item.hasOCRText, let onCopyOCR = onCopyOCRText {
+        if self.item.hasOCRText, let onCopyOCR = onCopyOCRText {
             Button {
                 onCopyOCR()
             } label: {
@@ -121,7 +121,7 @@ struct ClipboardItemRow: View {
             Button {
                 onFavorite()
             } label: {
-                if item.isFavorite {
+                if self.item.isFavorite {
                     Label("Remove from Favorites", systemImage: "star.slash")
                 } else {
                     Label("Add to Favorites", systemImage: "star")
@@ -130,20 +130,20 @@ struct ClipboardItemRow: View {
         }
 
         // Tags submenu
-        if !availableTags.isEmpty {
+        if !self.availableTags.isEmpty {
             Divider()
 
             Menu {
-                ForEach(availableTags) { tag in
+                ForEach(self.availableTags) { tag in
                     Button {
                         Task {
-                            _ = await StorageManager.shared.toggleTag(tagId: tag.id, onItemId: item.id)
-                            assignedTagIds = await StorageManager.shared.fetchTagIds(forItemId: item.id)
+                            _ = await StorageManager.shared.toggleTag(tagId: tag.id, onItemId: self.item.id)
+                            self.assignedTagIds = await StorageManager.shared.fetchTagIds(forItemId: self.item.id)
                         }
                     } label: {
                         HStack {
                             Text(tag.name)
-                            if assignedTagIds.contains(tag.id) {
+                            if self.assignedTagIds.contains(tag.id) {
                                 Image(systemName: "checkmark")
                             }
                         }
@@ -160,7 +160,7 @@ struct ClipboardItemRow: View {
                 .sorted { ($0.pluginId) < ($1.pluginId) }
                 .filter { pluginId, _ in
                     let types = PluginManager.shared.plugins[pluginId]?.bundle.manifest.supportedContentTypes ?? []
-                    return types.isEmpty || types.contains(item.contentType.rawValue)
+                    return types.isEmpty || types.contains(self.item.contentType.rawValue)
                 }
             if !pluginMenuItems.isEmpty {
                 Divider()
@@ -172,7 +172,7 @@ struct ClipboardItemRow: View {
                         Section(pluginName) {
                             ForEach(items, id: \.actionId) { menuItem in
                                 Button {
-                                    onPluginAction?(menuItem, pluginId)
+                                    self.onPluginAction?(menuItem, pluginId)
                                 } label: {
                                     if let icon = menuItem.iconName {
                                         Label(menuItem.title, systemImage: icon)
@@ -205,14 +205,14 @@ struct ClipboardItemRow: View {
     // MARK: - Background
 
     @ViewBuilder private var backgroundView: some View {
-        if isSelected {
+        if self.isSelected {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.accentColor.opacity(0.15))
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
                         .stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
                 )
-        } else if isHovered {
+        } else if self.isHovered {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.primary.opacity(0.05))
         } else {
@@ -223,10 +223,10 @@ struct ClipboardItemRow: View {
     // MARK: - Quick Actions
 
     @ViewBuilder private var quickActionOverlay: some View {
-        if isSelected || isHovered {
+        if self.isSelected || self.isHovered {
             HStack(spacing: 8) {
                 // Quick paste button
-                Button(action: onPaste) {
+                Button(action: self.onPaste) {
                     Image(systemName: "doc.on.clipboard")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -235,15 +235,15 @@ struct ClipboardItemRow: View {
                 .help("Paste (Enter)")
 
                 // Quick number indicator for keyboard shortcut (if enabled)
-                if settingsManager.shortcuts.quickPasteEnabled, index < 9 {
-                    Text("\(index + 1)")
+                if self.settingsManager.shortcuts.quickPasteEnabled, self.index < 9 {
+                    Text("\(self.index + 1)")
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
                         .frame(width: 16, height: 16)
                         .background(Color.secondary.opacity(0.2))
                         .cornerRadius(4)
-                        .help("Press \(index + 1) to paste")
+                        .help("Press \(self.index + 1) to paste")
                 }
             }
             .padding(.trailing, 12)

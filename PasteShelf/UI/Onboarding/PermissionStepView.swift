@@ -20,7 +20,7 @@ struct PermissionStepView: View {
             Spacer()
 
             // Icon
-            if viewModel.hasAccessibilityPermission {
+            if self.viewModel.hasAccessibilityPermission {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 64))
                     .foregroundStyle(Color.green)
@@ -46,13 +46,13 @@ struct PermissionStepView: View {
             .frame(maxWidth: 380)
 
             // Permission status and action
-            if viewModel.hasAccessibilityPermission {
+            if self.viewModel.hasAccessibilityPermission {
                 Label("Permission granted", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(Color.green)
                     .font(.callout)
             } else {
                 Button("Open Accessibility Settings") {
-                    viewModel.requestAccessibilityPermission()
+                    self.viewModel.requestAccessibilityPermission()
                 }
                 .buttonStyle(.bordered)
 
@@ -68,12 +68,12 @@ struct PermissionStepView: View {
             Spacer()
         }
         .padding(.horizontal, 40)
-        .animation(.easeInOut(duration: 0.3), value: viewModel.hasAccessibilityPermission)
+        .animation(.easeInOut(duration: 0.3), value: self.viewModel.hasAccessibilityPermission)
         .onAppear {
-            viewModel.startPermissionChecking()
+            self.viewModel.startPermissionChecking()
         }
         .onDisappear {
-            viewModel.stopPermissionChecking()
+            self.viewModel.stopPermissionChecking()
         }
     }
 }

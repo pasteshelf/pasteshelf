@@ -110,14 +110,14 @@
         /// - Parameter permission: The permission to request
         /// - Returns: True if permission was granted
         func requestPermission(_ permission: PluginPermission) async -> Bool {
-            await requestPermission(permission.rawValue)
+            await self.requestPermission(permission.rawValue)
         }
 
         /// Checks if a permission is currently granted
         /// - Parameter permission: The permission to check
         /// - Returns: True if the permission is granted
         func hasPermission(_ permission: PluginPermission) -> Bool {
-            hasPermission(permission.rawValue)
+            self.hasPermission(permission.rawValue)
         }
     }
 
@@ -263,22 +263,22 @@
 
         @objc
         public func debug(_ message: String) {
-            log(level: .debug, message: message)
+            self.log(level: .debug, message: message)
         }
 
         @objc
         public func info(_ message: String) {
-            log(level: .info, message: message)
+            self.log(level: .info, message: message)
         }
 
         @objc
         public func warning(_ message: String) {
-            log(level: .warning, message: message)
+            self.log(level: .warning, message: message)
         }
 
         @objc
         public func error(_ message: String) {
-            log(level: .error, message: message)
+            self.log(level: .error, message: message)
         }
 
         // MARK: Private
@@ -318,9 +318,9 @@
         @objc
         public init(text: String) {
             self.text = text
-            contentTypeIdentifier = ContentType.plainText.rawValue
-            timestamp = Date()
-            metadata = [:]
+            self.contentTypeIdentifier = ContentType.plainText.rawValue
+            self.timestamp = Date()
+            self.metadata = [:]
             super.init()
         }
 
@@ -328,10 +328,10 @@
         @objc
         public init(image: NSImage) {
             self.image = image
-            imageData = image.tiffRepresentation
-            contentTypeIdentifier = ContentType.png.rawValue
-            timestamp = Date()
-            metadata = [:]
+            self.imageData = image.tiffRepresentation
+            self.contentTypeIdentifier = ContentType.png.rawValue
+            self.timestamp = Date()
+            self.metadata = [:]
             super.init()
         }
 
@@ -339,19 +339,19 @@
         @objc
         public init(url: URL) {
             self.url = url
-            text = url.absoluteString
-            contentTypeIdentifier = ContentType.url.rawValue
-            timestamp = Date()
-            metadata = [:]
+            self.text = url.absoluteString
+            self.contentTypeIdentifier = ContentType.url.rawValue
+            self.timestamp = Date()
+            self.metadata = [:]
             super.init()
         }
 
         /// Creates empty content
         @objc
         override public init() {
-            contentTypeIdentifier = ContentType.plainText.rawValue
-            timestamp = Date()
-            metadata = [:]
+            self.contentTypeIdentifier = ContentType.plainText.rawValue
+            self.timestamp = Date()
+            self.metadata = [:]
             super.init()
         }
 
@@ -392,7 +392,7 @@
 
         /// Content type enum value
         public var contentType: ContentType? {
-            ContentType(rawValue: contentTypeIdentifier)
+            ContentType(rawValue: self.contentTypeIdentifier)
         }
     }
 
@@ -420,8 +420,8 @@
             self.iconName = iconName
             self.shortcutKey = shortcutKey
             self.isEnabled = isEnabled
-            actionId = UUID()
-            action = nil
+            self.actionId = UUID()
+            self.action = nil
             super.init()
         }
 
@@ -443,7 +443,7 @@
             self.iconName = iconName
             self.shortcutKey = shortcutKey
             self.isEnabled = isEnabled
-            actionId = UUID()
+            self.actionId = UUID()
             self.action = action
             super.init()
         }
@@ -453,10 +453,10 @@
         public init(title: String, iconName: String? = nil, submenuItems: [PluginMenuItem]) {
             self.title = title
             self.iconName = iconName
-            shortcutKey = nil
-            isEnabled = true
+            self.shortcutKey = nil
+            self.isEnabled = true
             self.submenuItems = submenuItems
-            actionId = UUID()
+            self.actionId = UUID()
             super.init()
         }
 
@@ -524,7 +524,7 @@
         // MARK: Lifecycle
 
         init(bundle: PluginBundle, instance: (any PasteShelfPlugin)? = nil, state: PluginState = .discovered) {
-            id = bundle.manifest.identifier
+            self.id = bundle.manifest.identifier
             self.bundle = bundle
             self.instance = instance
             self.state = state

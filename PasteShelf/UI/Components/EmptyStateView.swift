@@ -40,17 +40,17 @@ struct EmptyStateView: View {
             Spacer()
 
             // Icon with subtle animation
-            Image(systemName: icon)
+            Image(systemName: self.icon)
                 .font(.system(size: 56, weight: .light))
                 .foregroundColor(.secondary.opacity(0.5))
                 .accessibilityHidden(true)
 
             VStack(spacing: 6) {
-                Text(title)
+                Text(self.title)
                     .font(.headline)
                     .foregroundColor(.secondary)
 
-                Text(message)
+                Text(self.message)
                     .font(.subheadline)
                     .foregroundColor(.secondary.opacity(0.8))
                     .multilineTextAlignment(.center)
@@ -71,7 +71,7 @@ struct EmptyStateView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title). \(message)")
+        .accessibilityLabel("\(self.title). \(self.message)")
     }
 }
 

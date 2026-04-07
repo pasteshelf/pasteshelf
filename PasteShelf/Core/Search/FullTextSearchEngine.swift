@@ -28,7 +28,7 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
 
     func search(query: String, options: SearchOptions) async -> [SearchResult] {
         // Cancel any existing search
-        await cancelSearch()
+        await self.cancelSearch()
 
         // Trim and validate query
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -44,10 +44,10 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
                 return []
             }
 
-            logger.debug("Starting search for: \(trimmedQuery)")
+            self.logger.debug("Starting search for: \(trimmedQuery)")
 
             // Build the search predicate
-            let predicate = buildPredicate(query: trimmedQuery, options: options)
+            let predicate = self.buildPredicate(query: trimmedQuery, options: options)
 
             // Fetch matching items
             let items = await storageManager.fetchRecentItems(
@@ -58,7 +58,7 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
 
             // Check for cancellation
             if Task.isCancelled {
-                logger.debug("Search cancelled")
+                self.logger.debug("Search cancelled")
                 return []
             }
 
@@ -67,7 +67,7 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
                 guard let id = item.id else {
                     return nil
                 }
-                return createSearchResult(
+                return self.createSearchResult(
                     for: item,
                     query: trimmedQuery,
                     options: options
@@ -77,22 +77,22 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
             // Sort by relevance
             let sortedResults = results.sorted { $0.relevanceScore > $1.relevanceScore }
 
-            logger.debug("Search completed: \(sortedResults.count) results")
+            self.logger.debug("Search completed: \(sortedResults.count) results")
             return sortedResults
         }
 
-        lock.lock()
-        currentSearchTask = task
-        lock.unlock()
+        self.lock.lock()
+        self.currentSearchTask = task
+        self.lock.unlock()
 
         return await task.value
     }
 
     func cancelSearch() async {
-        lock.lock()
-        currentSearchTask?.cancel()
-        currentSearchTask = nil
-        lock.unlock()
+        self.lock.lock()
+        self.currentSearchTask?.cancel()
+        self.currentSearchTask = nil
+        self.lock.unlock()
     }
 
     // MARK: - Simple Text Matching (for testing)
@@ -146,7 +146,7 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
         var predicates: [NSPredicate] = []
 
         // Text search predicate (case-insensitive, diacritic-insensitive)
-        let searchPredicates = buildTextSearchPredicates(query: query)
+        let searchPredicates = self.buildTextSearchPredicates(query: query)
         if !searchPredicates.isEmpty {
             predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: searchPredicates))
         }
@@ -169,7 +169,7 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
 
         // Date range filter
         if let dateRange = options.dateRange {
-            predicates.append(buildDateRangePredicate(dateRange))
+            predicates.append(self.buildDateRangePredicate(dateRange))
         }
 
         // Tag filter

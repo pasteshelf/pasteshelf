@@ -50,7 +50,7 @@ extension ConsentRecord {
     /// - Parameter category: The consent category to look up.
     /// - Returns: A configured fetch request limited to one result.
     static func fetchRequest(forCategory category: String) -> NSFetchRequest<ConsentRecord> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(format: "category == %@", category)
         request.fetchLimit = 1
         return request
@@ -58,7 +58,7 @@ extension ConsentRecord {
 
     /// Returns a fetch request for all consent records sorted by category.
     static func allRecordsFetchRequest() -> NSFetchRequest<ConsentRecord> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \ConsentRecord.category, ascending: true),
         ]

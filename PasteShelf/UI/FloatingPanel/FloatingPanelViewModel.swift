@@ -24,8 +24,8 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
     init(storageManager: StorageManager = .shared, settingsManager: SettingsManager = .shared) {
         self.storageManager = storageManager
         self.settingsManager = settingsManager
-        searchEngine = HybridSearchEngine(storageManager: storageManager)
-        setupSearchDebounce()
+        self.searchEngine = HybridSearchEngine(storageManager: storageManager)
+        self.setupSearchDebounce()
     }
 
     // MARK: Internal
@@ -92,24 +92,24 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
     /// Current search query
     @Published var searchQuery: String = "" {
         didSet {
-            searchQuerySubject.send(searchQuery)
+            self.searchQuerySubject.send(self.searchQuery)
         }
     }
 
     /// Whether search is currently active
     var isSearchActive: Bool {
-        !searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !self.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     /// Whether any filters are active (search or filter chips)
     var hasActiveFilters: Bool {
-        isSearchActive || activeFilters.hasActiveFilters
+        self.isSearchActive || self.activeFilters.hasActiveFilters
     }
 
     /// Currently selected collection ID (nil = All Items)
     @Published var selectedCollectionId: UUID? {
         didSet {
-            Task { await applyCollectionFilter() }
+            Task { await self.applyCollectionFilter() }
         }
     }
 
@@ -118,79 +118,79 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         guard let id = selectedCollectionId else {
             return nil
         }
-        return collections.first { $0.id == id }
+        return self.collections.first { $0.id == id }
     }
 
     /// Items grouped by date for display
     var groupedItems: [DateGroupedSection<ClipboardItemDisplayModel>] {
         // Don't group when searching (search results are sorted by relevance)
-        guard showDateGrouping, !isSearchActive else {
+        guard self.showDateGrouping, !self.isSearchActive else {
             return []
         }
-        return items.groupedByDate()
+        return self.items.groupedByDate()
     }
 
     /// Whether grouped view should be used
     var shouldShowGroupedView: Bool {
-        showDateGrouping && !isSearchActive && !items.isEmpty
+        self.showDateGrouping && !self.isSearchActive && !self.items.isEmpty
     }
 
     /// Whether semantic search is available (system support required)
     var isSemanticSearchAvailable: Bool {
-        searchEngine.isSemanticSearchAvailable
+        self.searchEngine.isSemanticSearchAvailable
     }
 
     // MARK: - Selection
 
     /// Currently selected item, if any
     var selectedItem: ClipboardItemDisplayModel? {
-        guard selectedIndex >= 0, selectedIndex < items.count else {
+        guard self.selectedIndex >= 0, self.selectedIndex < self.items.count else {
             return nil
         }
-        return items[selectedIndex]
+        return self.items[self.selectedIndex]
     }
 
     // MARK: - Data Loading
 
     /// Loads clipboard items from storage
     func loadItems() async {
-        isLoading = true
-        errorMessage = nil
+        self.isLoading = true
+        self.errorMessage = nil
 
         // Build predicate from active filters
-        let predicate = buildFilterPredicate()
+        let predicate = self.buildFilterPredicate()
 
         let clipboardItems = await storageManager.fetchRecentItems(
-            limit: maxItems,
+            limit: self.maxItems,
             predicate: predicate
         )
-        allItems = ClipboardItemDisplayModel.from(clipboardItems)
+        self.allItems = ClipboardItemDisplayModel.from(clipboardItems)
 
         // Load OCR text for image items
-        await loadOCRTextForItems()
+        await self.loadOCRTextForItems()
 
         // If search is active, perform search; otherwise show all items
-        if isSearchActive {
-            await performSearch(query: searchQuery)
+        if self.isSearchActive {
+            await self.performSearch(query: self.searchQuery)
         } else {
-            items = allItems
-            searchResults = [:]
+            self.items = self.allItems
+            self.searchResults = [:]
         }
 
         // Reset selection if needed
-        if selectedIndex >= items.count {
-            selectedIndex = items.isEmpty ? -1 : 0
-        } else if selectedIndex < 0, !items.isEmpty {
-            selectedIndex = 0
+        if self.selectedIndex >= self.items.count {
+            self.selectedIndex = self.items.isEmpty ? -1 : 0
+        } else if self.selectedIndex < 0, !self.items.isEmpty {
+            self.selectedIndex = 0
         }
 
-        isLoading = false
-        logger.debug("Loaded \(items.count) items")
+        self.isLoading = false
+        self.logger.debug("Loaded \(self.items.count) items")
     }
 
     /// Refreshes the items list
     func refresh() async {
-        await loadItems()
+        await self.loadItems()
     }
 
     // MARK: - Search
@@ -201,23 +201,23 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
 
         // Empty query - show all items
         if trimmedQuery.isEmpty {
-            searchState = .idle
-            items = allItems
-            searchResults = [:]
-            isSemanticSearchActive = false
-            resetSelectionIfNeeded()
+            self.searchState = .idle
+            self.items = self.allItems
+            self.searchResults = [:]
+            self.isSemanticSearchActive = false
+            self.resetSelectionIfNeeded()
             return
         }
 
-        searchState = .searching(query: trimmedQuery)
-        logger.debug("Searching for: \(trimmedQuery)")
+        self.searchState = .searching(query: trimmedQuery)
+        self.logger.debug("Searching for: \(trimmedQuery)")
 
         // Build search options from active filters
-        var options = activeFilters.toSearchOptions(limit: maxItems)
+        var options = self.activeFilters.toSearchOptions(limit: self.maxItems)
 
         // Enable semantic search if available and user has enabled it
-        let searchSettings = settingsManager.search
-        options.enableSemanticSearch = searchSettings.semanticSearchEnabled && isSemanticSearchAvailable
+        let searchSettings = self.settingsManager.search
+        options.enableSemanticSearch = searchSettings.semanticSearchEnabled && self.isSemanticSearchAvailable
         options.semanticThreshold = searchSettings.semanticThreshold
 
         // Enable OCR search if user has enabled it
@@ -227,121 +227,121 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         let results = await searchEngine.search(query: trimmedQuery, options: options)
 
         // Check if any results used semantic matching
-        isSemanticSearchActive = results.contains { $0.matchType == .semantic || $0.matchType == .hybrid }
+        self.isSemanticSearchActive = results.contains { $0.matchType == .semantic || $0.matchType == .hybrid }
 
         // Store search results for highlighting
-        searchResults = Dictionary(uniqueKeysWithValues: results.map { ($0.itemId, $0) })
+        self.searchResults = Dictionary(uniqueKeysWithValues: results.map { ($0.itemId, $0) })
 
         // Filter items to only those with search results
         let matchingIds = Set(results.map(\.itemId))
-        items = allItems.filter { matchingIds.contains($0.id) }
+        self.items = self.allItems.filter { matchingIds.contains($0.id) }
 
         // Sort by relevance score
-        items.sort { item1, item2 in
-            let score1 = searchResults[item1.id]?.relevanceScore ?? 0
-            let score2 = searchResults[item2.id]?.relevanceScore ?? 0
+        self.items.sort { item1, item2 in
+            let score1 = self.searchResults[item1.id]?.relevanceScore ?? 0
+            let score2 = self.searchResults[item2.id]?.relevanceScore ?? 0
             return score1 > score2
         }
 
-        searchState = .completed(resultCount: items.count)
-        resetSelectionIfNeeded()
-        logger.debug("Search completed: \(items.count) results")
+        self.searchState = .completed(resultCount: self.items.count)
+        self.resetSelectionIfNeeded()
+        self.logger.debug("Search completed: \(self.items.count) results")
     }
 
     /// Clears the search query
     func clearSearch() {
-        searchQuery = ""
-        searchState = .idle
-        searchResults = [:]
-        items = allItems
-        resetSelectionIfNeeded()
+        self.searchQuery = ""
+        self.searchState = .idle
+        self.searchResults = [:]
+        self.items = self.allItems
+        self.resetSelectionIfNeeded()
     }
 
     /// Gets match ranges for an item (for highlighting)
     func matchRanges(for itemId: UUID) -> [MatchRange] {
-        searchResults[itemId]?.matchRanges ?? []
+        self.searchResults[itemId]?.matchRanges ?? []
     }
 
     /// Gets the search result for an item
     func searchResult(for itemId: UUID) -> SearchResult? {
-        searchResults[itemId]
+        self.searchResults[itemId]
     }
 
     // MARK: - Filtering
 
     /// Applies the current filters and reloads items
     func applyFilters() async {
-        await loadItems()
+        await self.loadItems()
     }
 
     /// Toggles the content type filter
     func toggleContentTypeFilter(_ filter: ContentTypeFilter) async {
-        activeFilters.toggleContentTypeFilter(filter)
-        await loadItems()
+        self.activeFilters.toggleContentTypeFilter(filter)
+        await self.loadItems()
     }
 
     /// Toggles the favorites filter
     func toggleFavoritesFilter() async {
-        activeFilters.toggleFavoritesFilter()
-        await loadItems()
+        self.activeFilters.toggleFavoritesFilter()
+        await self.loadItems()
     }
 
     /// Loads available tags from storage
     func loadAvailableTags() async {
         let tags = await storageManager.fetchTags()
-        availableTags = TagDisplayModel.from(tags)
+        self.availableTags = TagDisplayModel.from(tags)
     }
 
     /// Toggles a tag filter
     func toggleTagFilter(_ tagId: UUID) async {
-        activeFilters.toggleTag(tagId)
-        await loadItems()
+        self.activeFilters.toggleTag(tagId)
+        await self.loadItems()
     }
 
     /// Clears all filters
     func clearAllFilters() async {
-        activeFilters.clearAll()
-        searchQuery = ""
-        await loadItems()
+        self.activeFilters.clearAll()
+        self.searchQuery = ""
+        await self.loadItems()
     }
 
     /// Selects the previous item in the list
     func selectPrevious() {
-        guard !items.isEmpty else {
+        guard !self.items.isEmpty else {
             return
         }
 
-        if selectedIndex <= 0 {
-            selectedIndex = items.count - 1 // Wrap to bottom
+        if self.selectedIndex <= 0 {
+            self.selectedIndex = self.items.count - 1 // Wrap to bottom
         } else {
-            selectedIndex -= 1
+            self.selectedIndex -= 1
         }
     }
 
     /// Selects the next item in the list
     func selectNext() {
-        guard !items.isEmpty else {
+        guard !self.items.isEmpty else {
             return
         }
 
-        if selectedIndex >= items.count - 1 {
-            selectedIndex = 0 // Wrap to top
+        if self.selectedIndex >= self.items.count - 1 {
+            self.selectedIndex = 0 // Wrap to top
         } else {
-            selectedIndex += 1
+            self.selectedIndex += 1
         }
     }
 
     /// Selects an item at a specific index
     func select(at index: Int) {
-        guard index >= 0, index < items.count else {
+        guard index >= 0, index < self.items.count else {
             return
         }
-        selectedIndex = index
+        self.selectedIndex = index
     }
 
     /// Clears the current selection
     func clearSelection() {
-        selectedIndex = -1
+        self.selectedIndex = -1
     }
 
     // MARK: - Paste Actions
@@ -349,106 +349,106 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
     /// Pastes the currently selected item
     func pasteSelected() async {
         guard let item = selectedItem else {
-            logger.warning("No item selected for paste")
+            self.logger.warning("No item selected for paste")
             return
         }
-        await paste(item: item)
+        await self.paste(item: item)
     }
 
     /// Pastes a specific item by ID
     func paste(itemId: UUID) async {
         // Try local items first, then fetch from storage (for menu-bar quick-paste)
         if let item = items.first(where: { $0.id == itemId }) {
-            await paste(item: item)
+            await self.paste(item: item)
         } else if let clipboardItem = await storageManager.fetchItem(byId: itemId) {
             let displayModel = ClipboardItemDisplayModel.from([clipboardItem]).first
             if let item = displayModel {
-                await paste(item: item)
+                await self.paste(item: item)
             } else {
-                logger.warning("Item not found: \(itemId)")
+                self.logger.warning("Item not found: \(itemId)")
             }
         } else {
-            logger.warning("Item not found: \(itemId)")
+            self.logger.warning("Item not found: \(itemId)")
         }
     }
 
     /// Pastes the specified item
     func paste(item: ClipboardItemDisplayModel) async {
-        logger.info("Pasting item: \(item.id)")
+        self.logger.info("Pasting item: \(item.id)")
 
         // Step 1: Pause clipboard monitoring to avoid re-capture
-        clipboardMonitor?.pause()
+        self.clipboardMonitor?.pause()
 
         // Step 2: Copy item content to clipboard
         let success = await copyToClipboard(item: item)
         guard success else {
-            clipboardMonitor?.resume()
-            errorMessage = "Failed to copy item to clipboard"
+            self.clipboardMonitor?.resume()
+            self.errorMessage = "Failed to copy item to clipboard"
             return
         }
 
         // Step 3: Hide the panel
-        isVisible = false
+        self.isVisible = false
 
         // Step 3.5: Restore focus to the previous app
-        restorePreviousAppFocus?()
+        self.restorePreviousAppFocus?()
 
         #if APP_STORE
             // App Store: show "Copied" toast — user presses Cmd+V themselves.
             // Pause monitoring for 2s to avoid re-capturing the user's manual Cmd+V paste.
             CopiedConfirmationWindow.show()
             try? await Task.sleep(for: .milliseconds(2000))
-            clipboardMonitor?.resume()
+            self.clipboardMonitor?.resume()
         #else
             // Direct distribution: simulate Cmd+V paste via Accessibility
             try? await Task.sleep(for: .milliseconds(200))
-            let pasted = pasteSimulator.simulatePaste()
+            let pasted = self.pasteSimulator.simulatePaste()
 
             if !pasted {
-                errorMessage = "Item copied to clipboard. "
+                self.errorMessage = "Item copied to clipboard. "
                     + "Grant Accessibility permission in System Settings to enable auto-paste."
             }
 
             // Resume monitoring after paste completes
             try? await Task.sleep(for: .milliseconds(300))
-            clipboardMonitor?.resume()
+            self.clipboardMonitor?.resume()
         #endif
 
-        logger.info("Paste completed for item: \(item.id)")
+        self.logger.info("Paste completed for item: \(item.id)")
     }
 
     // MARK: - Visibility
 
     /// Shows the panel and loads items
     func show() async {
-        isVisible = true
+        self.isVisible = true
         // Reset search state when showing panel
-        searchQuery = ""
-        searchState = .idle
-        searchResults = [:]
-        await loadAvailableTags()
-        await loadItems()
-        if !items.isEmpty, selectedIndex < 0 {
-            selectedIndex = 0
+        self.searchQuery = ""
+        self.searchState = .idle
+        self.searchResults = [:]
+        await self.loadAvailableTags()
+        await self.loadItems()
+        if !self.items.isEmpty, self.selectedIndex < 0 {
+            self.selectedIndex = 0
         }
     }
 
     /// Hides the panel
     func hide() {
-        isVisible = false
-        clearSelection()
+        self.isVisible = false
+        self.clearSelection()
         // Clear search when hiding
-        searchQuery = ""
-        searchState = .idle
-        searchResults = [:]
+        self.searchQuery = ""
+        self.searchState = .idle
+        self.searchResults = [:]
     }
 
     /// Toggles panel visibility
     func toggle() async {
-        if isVisible {
-            hide()
+        if self.isVisible {
+            self.hide()
         } else {
-            await show()
+            await self.show()
         }
     }
 
@@ -465,8 +465,8 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
             // Update local model
             if let index = items.firstIndex(where: { $0.id == item.id }) {
                 // Reload items to get updated state
-                await loadItems()
-                selectedIndex = index
+                await self.loadItems()
+                self.selectedIndex = index
             }
         }
     }
@@ -478,7 +478,7 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         guard let item = selectedItem else {
             return
         }
-        await delete(item: item)
+        await self.delete(item: item)
     }
 
     /// Deletes a specific item
@@ -487,14 +487,14 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         if success {
             // Remove from local list
             if let index = items.firstIndex(where: { $0.id == item.id }) {
-                items.remove(at: index)
-                allItems.removeAll { $0.id == item.id }
+                self.items.remove(at: index)
+                self.allItems.removeAll { $0.id == item.id }
                 // Adjust selection
-                if selectedIndex >= items.count {
-                    selectedIndex = max(0, items.count - 1)
+                if self.selectedIndex >= self.items.count {
+                    self.selectedIndex = max(0, self.items.count - 1)
                 }
             }
-            logger.debug("Deleted item: \(item.id)")
+            self.logger.debug("Deleted item: \(item.id)")
 
             // Reload dedup cache so deleted items can be re-copied
             NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
@@ -508,12 +508,12 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         let result = await storageManager.toggleFavorite(itemId: item.id)
         if result != nil {
             // Reload items to get updated state
-            await loadItems()
+            await self.loadItems()
             // Try to maintain the same selection position
             if let index = items.firstIndex(where: { $0.id == item.id }) {
-                selectedIndex = index
+                self.selectedIndex = index
             }
-            logger.debug("Toggled favorite for item: \(item.id)")
+            self.logger.debug("Toggled favorite for item: \(item.id)")
         }
     }
 
@@ -522,7 +522,7 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
     /// Copies the OCR-extracted text for an image item to the clipboard
     func copyOCRText(for item: ClipboardItemDisplayModel) async {
         guard let ocrText = item.ocrText, !ocrText.isEmpty else {
-            logger.warning("No OCR text available for item: \(item.id)")
+            self.logger.warning("No OCR text available for item: \(item.id)")
             return
         }
 
@@ -531,7 +531,7 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         pasteboard.clearContents()
         pasteboard.setString(ocrText, forType: .string)
 
-        logger.info("Copied OCR text for item: \(item.id)")
+        self.logger.info("Copied OCR text for item: \(item.id)")
     }
 
     #if !APP_STORE
@@ -545,13 +545,13 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
             for item: ClipboardItemDisplayModel
         ) async {
             guard let clipboardItem = await storageManager.fetchItem(byId: item.id) else {
-                logger.error("Failed to fetch item for plugin action: \(item.id)")
+                self.logger.error("Failed to fetch item for plugin action: \(item.id)")
                 return
             }
 
-            let content = makePluginContent(from: clipboardItem)
+            let content = self.makePluginContent(from: clipboardItem)
 
-            logger.debug("Executing plugin action '\(menuItem.title)' for plugin \(pluginId)")
+            self.logger.debug("Executing plugin action '\(menuItem.title)' for plugin \(pluginId)")
 
             // Find the matching registered transformer and call its closure synchronously
             // on MainActor. We cannot use the async execution paths (PluginHost.executeAction,
@@ -562,7 +562,7 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
             guard let transformer = transformers.first(where: { $0.name == menuItem.title }),
                   let transform = transformer.transform
             else {
-                logger.warning("No transformer found for '\(menuItem.title)' in plugin \(pluginId)")
+                self.logger.warning("No transformer found for '\(menuItem.title)' in plugin \(pluginId)")
                 return
             }
 
@@ -571,23 +571,23 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
 
                 if let result {
                     // Pause monitoring to avoid re-capturing the transformed content
-                    clipboardMonitor?.pause()
+                    self.clipboardMonitor?.pause()
 
-                    writePluginResultToClipboard(result)
-                    logger.info("Plugin action completed: \(menuItem.title) for item \(item.id)")
+                    self.writePluginResultToClipboard(result)
+                    self.logger.info("Plugin action completed: \(menuItem.title) for item \(item.id)")
 
                     // Hide panel, restore focus, and simulate paste (same as normal paste flow)
-                    isVisible = false
-                    restorePreviousAppFocus?()
+                    self.isVisible = false
+                    self.restorePreviousAppFocus?()
 
                     try? await Task.sleep(for: .milliseconds(200))
-                    pasteSimulator.simulatePaste()
+                    self.pasteSimulator.simulatePaste()
 
                     try? await Task.sleep(for: .milliseconds(300))
-                    clipboardMonitor?.resume()
+                    self.clipboardMonitor?.resume()
                 }
             } catch {
-                logger.error("Plugin action failed: \(menuItem.title) — \(error.localizedDescription)")
+                self.logger.error("Plugin action failed: \(menuItem.title) — \(error.localizedDescription)")
             }
         }
 
@@ -660,27 +660,27 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
             }
         }
 
-        collections = displayModels
-        logger.debug("Loaded \(collections.count) collections")
+        self.collections = displayModels
+        self.logger.debug("Loaded \(self.collections.count) collections")
     }
 
     /// Applies the current collection filter and reloads items
     func applyCollectionFilter() async {
         // Clear search when changing collection
-        if isSearchActive {
-            clearSearch()
+        if self.isSearchActive {
+            self.clearSearch()
         }
 
-        await loadItems()
+        await self.loadItems()
     }
 
     /// Creates a new collection
     func createCollection(_ model: CollectionDisplayModel) async {
-        _ = await storageManager.saveCollection(from: model)
-        await loadCollections()
-        showCollectionEditor = false
-        editingCollection = nil
-        logger.debug("Created collection: \(model.name)")
+        _ = await self.storageManager.saveCollection(from: model)
+        await self.loadCollections()
+        self.showCollectionEditor = false
+        self.editingCollection = nil
+        self.logger.debug("Created collection: \(model.name)")
     }
 
     /// Updates an existing collection
@@ -694,16 +694,16 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         )
 
         if success {
-            await loadCollections()
+            await self.loadCollections()
             // Reload items if this is the selected collection
-            if selectedCollectionId == model.id {
-                await loadItems()
+            if self.selectedCollectionId == model.id {
+                await self.loadItems()
             }
         }
 
-        showCollectionEditor = false
-        editingCollection = nil
-        logger.debug("Updated collection: \(model.name)")
+        self.showCollectionEditor = false
+        self.editingCollection = nil
+        self.logger.debug("Updated collection: \(model.name)")
     }
 
     /// Deletes a collection
@@ -711,31 +711,31 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         let success = await storageManager.deleteCollection(collection.id)
         if success {
             // Clear selection if we deleted the selected collection
-            if selectedCollectionId == collection.id {
-                selectedCollectionId = nil
+            if self.selectedCollectionId == collection.id {
+                self.selectedCollectionId = nil
             }
-            await loadCollections()
-            logger.debug("Deleted collection: \(collection.name)")
+            await self.loadCollections()
+            self.logger.debug("Deleted collection: \(collection.name)")
         }
     }
 
     /// Shows the editor for creating a new collection
     func showNewCollectionEditor() {
-        editingCollection = nil
-        showCollectionEditor = true
+        self.editingCollection = nil
+        self.showCollectionEditor = true
     }
 
     /// Shows the editor for editing an existing collection
     func showEditCollectionEditor(_ collection: CollectionDisplayModel) {
-        editingCollection = collection
-        showCollectionEditor = true
+        self.editingCollection = collection
+        self.showCollectionEditor = true
     }
 
     /// Toggles the collections sidebar visibility
     func toggleCollectionsSidebar() {
-        showCollectionsSidebar.toggle()
-        if showCollectionsSidebar {
-            Task { await loadCollections() }
+        self.showCollectionsSidebar.toggle()
+        if self.showCollectionsSidebar {
+            Task { await self.loadCollections() }
         }
     }
 
@@ -754,8 +754,8 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
 
         let success = await storageManager.addItemToCollection(clipboardItem, collection: smartCollection)
         if success {
-            await loadCollections() // Update item counts
-            logger.debug("Added item \(item.id) to collection \(collection.name)")
+            await self.loadCollections() // Update item counts
+            self.logger.debug("Added item \(item.id) to collection \(collection.name)")
         }
     }
 
@@ -773,12 +773,12 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
 
         let success = await storageManager.removeItemFromCollection(clipboardItem, collection: smartCollection)
         if success {
-            await loadCollections()
+            await self.loadCollections()
             // Reload items if viewing this collection
-            if selectedCollectionId == collection.id {
-                await loadItems()
+            if self.selectedCollectionId == collection.id {
+                await self.loadItems()
             }
-            logger.debug("Removed item \(item.id) from collection \(collection.name)")
+            self.logger.debug("Removed item \(item.id) from collection \(collection.name)")
         }
     }
 
@@ -829,8 +829,8 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
 
     /// Sets up debounced search subscription
     private func setupSearchDebounce() {
-        searchQuerySubject
-            .debounce(for: .milliseconds(searchDebounceMs), scheduler: DispatchQueue.main)
+        self.searchQuerySubject
+            .debounce(for: .milliseconds(self.searchDebounceMs), scheduler: DispatchQueue.main)
             .sink { [weak self] query in
                 guard let self else {
                     return
@@ -839,13 +839,13 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
                     await self.performSearch(query: query)
                 }
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 
     /// Loads OCR text for image items and updates display models
     private func loadOCRTextForItems() async {
         // Get IDs of image items
-        let imageItemIds = allItems
+        let imageItemIds = self.allItems
             .filter(\.contentType.isImageType)
             .map(\.id)
 
@@ -857,7 +857,7 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         let ocrTexts = await storageManager.fetchOCRTexts(for: imageItemIds)
 
         // Update display models with OCR text
-        allItems = allItems.map { item in
+        self.allItems = self.allItems.map { item in
             if let ocrText = ocrTexts[item.id] {
                 return item.withOCRText(ocrText)
             }
@@ -890,15 +890,15 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         }
 
         // Favorites filter
-        if activeFilters.favoritesOnly {
+        if self.activeFilters.favoritesOnly {
             predicates.append(NSPredicate(format: "isFavorite == YES"))
         }
 
         // Tag filter
-        if !activeFilters.selectedTagIds.isEmpty {
+        if !self.activeFilters.selectedTagIds.isEmpty {
             predicates.append(NSPredicate(
                 format: "ANY tags.id IN %@",
-                activeFilters.selectedTagIds as CVarArg
+                self.activeFilters.selectedTagIds as CVarArg
             ))
         }
 
@@ -920,10 +920,10 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
 
     /// Resets selection if needed after filtering
     private func resetSelectionIfNeeded() {
-        if selectedIndex >= items.count {
-            selectedIndex = items.isEmpty ? -1 : 0
-        } else if selectedIndex < 0, !items.isEmpty {
-            selectedIndex = 0
+        if self.selectedIndex >= self.items.count {
+            self.selectedIndex = self.items.isEmpty ? -1 : 0
+        } else if self.selectedIndex < 0, !self.items.isEmpty {
+            self.selectedIndex = 0
         }
     }
 
@@ -933,14 +933,14 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         guard let clipboardItem = await storageManager.fetchItem(byId: item.id),
               let contentData = clipboardItem.content
         else {
-            logger.error("Failed to fetch item content: \(item.id)")
+            self.logger.error("Failed to fetch item content: \(item.id)")
             return false
         }
 
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
 
-        writeContentToPasteboard(pasteboard, contentType: item.contentType, contentData: contentData)
+        self.writeContentToPasteboard(pasteboard, contentType: item.contentType, contentData: contentData)
 
         return true
     }
@@ -949,34 +949,34 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
     private func writeContentToPasteboard(
         _ pasteboard: NSPasteboard,
         contentType: ContentType,
-        contentData: ClipboardContent
+        contentData: ClipboardContentData
     ) {
         switch contentType {
         case .plainText:
-            writeTextContent(pasteboard, contentData: contentData)
+            self.writeTextContent(pasteboard, contentData: contentData)
         case .richText:
-            writeRichTextContent(pasteboard, contentData: contentData)
+            self.writeRichTextContent(pasteboard, contentData: contentData)
         case .html:
-            writeHTMLContent(pasteboard, contentData: contentData)
+            self.writeHTMLContent(pasteboard, contentData: contentData)
         case .png,
              .jpeg,
              .tiff:
-            writeImageContent(pasteboard, contentData: contentData)
+            self.writeImageContent(pasteboard, contentData: contentData)
         case .url,
              .fileURL:
-            writeURLContent(pasteboard, contentData: contentData)
+            self.writeURLContent(pasteboard, contentData: contentData)
         case .pdf:
-            writePDFContent(pasteboard, contentData: contentData)
+            self.writePDFContent(pasteboard, contentData: contentData)
         }
     }
 
-    private func writeTextContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+    private func writeTextContent(_ pasteboard: NSPasteboard, contentData: ClipboardContentData) {
         if let text = contentData.textContent {
             pasteboard.setString(text, forType: .string)
         }
     }
 
-    private func writeRichTextContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+    private func writeRichTextContent(_ pasteboard: NSPasteboard, contentData: ClipboardContentData) {
         if let rtfData = contentData.rtfData {
             pasteboard.setData(rtfData, forType: .rtf)
         }
@@ -985,7 +985,7 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         }
     }
 
-    private func writeHTMLContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+    private func writeHTMLContent(_ pasteboard: NSPasteboard, contentData: ClipboardContentData) {
         if let htmlData = contentData.htmlData {
             pasteboard.setData(htmlData, forType: .html)
         }
@@ -994,7 +994,7 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         }
     }
 
-    private func writeImageContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+    private func writeImageContent(_ pasteboard: NSPasteboard, contentData: ClipboardContentData) {
         if let imageData = contentData.imageData,
            let image = NSImage(data: imageData)
         {
@@ -1002,7 +1002,7 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         }
     }
 
-    private func writeURLContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+    private func writeURLContent(_ pasteboard: NSPasteboard, contentData: ClipboardContentData) {
         if let urlString = contentData.textContent,
            let url = URL(string: urlString)
         {
@@ -1010,7 +1010,7 @@ final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this
         }
     }
 
-    private func writePDFContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+    private func writePDFContent(_ pasteboard: NSPasteboard, contentData: ClipboardContentData) {
         if let pdfData = contentData.pdfData {
             pasteboard.setData(pdfData, forType: .pdf)
         }

@@ -52,39 +52,39 @@ struct ActiveFilters: Equatable {
 
     /// Whether any filters are currently active
     var hasActiveFilters: Bool {
-        !searchQuery.isEmpty ||
-            contentTypeFilter != nil ||
-            favoritesOnly ||
-            !selectedTagIds.isEmpty ||
-            dateRange != nil
+        !self.searchQuery.isEmpty ||
+            self.contentTypeFilter != nil ||
+            self.favoritesOnly ||
+            !self.selectedTagIds.isEmpty ||
+            self.dateRange != nil
     }
 
     /// Whether only search is active (no other filters)
     var isSearchOnly: Bool {
-        !searchQuery.isEmpty &&
-            contentTypeFilter == nil &&
-            !favoritesOnly &&
-            selectedTagIds.isEmpty &&
-            dateRange == nil
+        !self.searchQuery.isEmpty &&
+            self.contentTypeFilter == nil &&
+            !self.favoritesOnly &&
+            self.selectedTagIds.isEmpty &&
+            self.dateRange == nil
     }
 
     /// Human-readable description of active filters
     var description: String {
         var parts: [String] = []
 
-        if !searchQuery.isEmpty {
-            parts.append("Search: \"\(searchQuery)\"")
+        if !self.searchQuery.isEmpty {
+            parts.append("Search: \"\(self.searchQuery)\"")
         }
         if let filter = contentTypeFilter {
             parts.append("Type: \(filter.displayName)")
         }
-        if favoritesOnly {
+        if self.favoritesOnly {
             parts.append("Favorites")
         }
-        if !selectedTagIds.isEmpty {
-            parts.append("\(selectedTagIds.count) tag(s)")
+        if !self.selectedTagIds.isEmpty {
+            parts.append("\(self.selectedTagIds.count) tag(s)")
         }
-        if dateRange != nil {
+        if self.dateRange != nil {
             parts.append("Date Range")
         }
 
@@ -95,46 +95,46 @@ struct ActiveFilters: Equatable {
 
     /// Clears all filters
     mutating func clearAll() {
-        searchQuery = ""
-        contentTypeFilter = nil
-        favoritesOnly = false
-        selectedTagIds = []
-        dateRange = nil
+        self.searchQuery = ""
+        self.contentTypeFilter = nil
+        self.favoritesOnly = false
+        self.selectedTagIds = []
+        self.dateRange = nil
     }
 
     /// Clears the search query only
     mutating func clearSearch() {
-        searchQuery = ""
+        self.searchQuery = ""
     }
 
     /// Clears all filters except search
     mutating func clearFiltersKeepSearch() {
-        contentTypeFilter = nil
-        favoritesOnly = false
-        selectedTagIds = []
-        dateRange = nil
+        self.contentTypeFilter = nil
+        self.favoritesOnly = false
+        self.selectedTagIds = []
+        self.dateRange = nil
     }
 
     /// Toggles the favorites filter
     mutating func toggleFavoritesFilter() {
-        favoritesOnly.toggle()
+        self.favoritesOnly.toggle()
     }
 
     /// Sets or toggles a content type filter
     mutating func toggleContentTypeFilter(_ filter: ContentTypeFilter) {
-        if contentTypeFilter == filter {
-            contentTypeFilter = nil
+        if self.contentTypeFilter == filter {
+            self.contentTypeFilter = nil
         } else {
-            contentTypeFilter = filter
+            self.contentTypeFilter = filter
         }
     }
 
     /// Toggles a tag filter
     mutating func toggleTag(_ tagId: UUID) {
-        if selectedTagIds.contains(tagId) {
-            selectedTagIds.remove(tagId)
+        if self.selectedTagIds.contains(tagId) {
+            self.selectedTagIds.remove(tagId)
         } else {
-            selectedTagIds.insert(tagId)
+            self.selectedTagIds.insert(tagId)
         }
     }
 
@@ -146,10 +146,10 @@ struct ActiveFilters: Equatable {
         SearchOptions(
             limit: limit,
             offset: 0,
-            contentTypes: contentTypeFilter?.contentTypes,
-            favoritesOnly: favoritesOnly,
-            tagIds: selectedTagIds.isEmpty ? nil : Array(selectedTagIds),
-            dateRange: dateRange,
+            contentTypes: self.contentTypeFilter?.contentTypes,
+            favoritesOnly: self.favoritesOnly,
+            tagIds: self.selectedTagIds.isEmpty ? nil : Array(self.selectedTagIds),
+            dateRange: self.dateRange,
             fuzzyMatching: SettingsManager.shared.search.fuzzyMatchEnabled,
             fuzzyThreshold: 0.6,
             includeSensitive: true,

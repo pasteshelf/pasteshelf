@@ -38,13 +38,13 @@ struct GeneralSettings: Codable, Equatable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        launchAtLogin = try container.decode(Bool.self, forKey: .launchAtLogin)
-        showInDock = try container.decode(Bool.self, forKey: .showInDock)
-        historyLimit = try container.decode(HistoryLimit.self, forKey: .historyLimit)
-        captureTextContent = try container.decodeIfPresent(Bool.self, forKey: .captureTextContent) ?? true
-        captureImageContent = try container.decodeIfPresent(Bool.self, forKey: .captureImageContent) ?? true
-        captureFileContent = try container.decodeIfPresent(Bool.self, forKey: .captureFileContent) ?? true
-        captureLinkContent = try container.decodeIfPresent(Bool.self, forKey: .captureLinkContent) ?? true
+        self.launchAtLogin = try container.decode(Bool.self, forKey: .launchAtLogin)
+        self.showInDock = try container.decode(Bool.self, forKey: .showInDock)
+        self.historyLimit = try container.decode(HistoryLimit.self, forKey: .historyLimit)
+        self.captureTextContent = try container.decodeIfPresent(Bool.self, forKey: .captureTextContent) ?? true
+        self.captureImageContent = try container.decodeIfPresent(Bool.self, forKey: .captureImageContent) ?? true
+        self.captureFileContent = try container.decodeIfPresent(Bool.self, forKey: .captureFileContent) ?? true
+        self.captureLinkContent = try container.decodeIfPresent(Bool.self, forKey: .captureLinkContent) ?? true
     }
 
     // MARK: Internal
@@ -80,15 +80,15 @@ struct GeneralSettings: Codable, Equatable {
     /// Whether a given content type should be captured based on settings
     func shouldCapture(_ type: ContentType) -> Bool {
         if type.isTextType {
-            return captureTextContent
+            return self.captureTextContent
         }
         if type.isImageType {
-            return captureImageContent
+            return self.captureImageContent
         }
         switch type {
         case .pdf,
-             .fileURL: return captureFileContent
-        case .url: return captureLinkContent
+             .fileURL: return self.captureFileContent
+        case .url: return self.captureLinkContent
         default: return true
         }
     }

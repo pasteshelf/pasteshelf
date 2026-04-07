@@ -51,7 +51,7 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
         }
 
         // Collect individual text fields for per-field scanning
-        let fields = extractFields(from: content)
+        let fields = self.extractFields(from: content)
         let textToScan = fields.map(\.value).joined(separator: "\n")
         guard !textToScan.isEmpty else {
             return .clean
@@ -68,7 +68,7 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
 
         for rule in enabledRules {
             guard let regex = compiledRegex(for: rule.pattern) else {
-                logger.debug("DLP: Skipping rule '\(rule.name)' — invalid pattern")
+                self.logger.debug("DLP: Skipping rule '\(rule.name)' — invalid pattern")
                 continue
             }
 
@@ -84,7 +84,7 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
 
                     let matchedText = String(fieldText[range])
                     let primaryAction = rule.actions.first ?? .logOnly
-                    let redactedPreview = redact(matchedText)
+                    let redactedPreview = self.redact(matchedText)
 
                     let violation = DLPViolation(
                         ruleId: rule.id,
@@ -123,10 +123,10 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
         }
 
         // Deduplicate violations at the same location
-        let uniqueViolations = deduplicateViolations(violations)
+        let uniqueViolations = self.deduplicateViolations(violations)
 
         if !uniqueViolations.isEmpty {
-            logger
+            self.logger
                 .info("DLP: \(uniqueViolations.count) violation(s) found, block=\(shouldBlock), redact=\(shouldRedact)")
         }
 
@@ -189,7 +189,7 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
     /// Returns `nil` if the pattern is invalid. Invalid patterns are logged once and cached
     /// as `nil` to avoid repeated compilation attempts.
     private func compiledRegex(for pattern: String) -> NSRegularExpression? {
-        cacheLock.lock()
+        self.cacheLock.lock()
         defer { cacheLock.unlock() }
 
         if let cached = regexCache[pattern] {
@@ -198,10 +198,10 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
 
         do {
             let regex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
-            regexCache[pattern] = regex
+            self.regexCache[pattern] = regex
             return regex
         } catch {
-            logger.debug("DLP: Invalid regex pattern: \(error.localizedDescription)")
+            self.logger.debug("DLP: Invalid regex pattern: \(error.localizedDescription)")
             return nil
         }
     }

@@ -73,7 +73,7 @@ final class AuditManager: ObservableObject {
     ///
     /// `nil` until `configure(with:)` has been called.
     var storage: AuditLogStoring? {
-        storageService
+        self.storageService
     }
 
     // MARK: - Configuration
@@ -87,32 +87,32 @@ final class AuditManager: ObservableObject {
     /// - Parameter apiClient: The admin console API client used by the sync service.
     func configure(with apiClient: AdminAPIProviding) {
         let storage = AuditLogStorageService()
-        storageService = storage
+        self.storageService = storage
 
         let loggerService = AuditLogger(
             storage: storage,
             deviceIdProvider: { AdminManager.shared.deviceRegistration?.deviceId },
             userIdProvider: { SSOManager.shared.currentSession?.userId }
         )
-        auditLogger = loggerService
+        self.auditLogger = loggerService
 
         let sync = AuditLogSyncService(apiClient: apiClient, storage: storage)
-        syncService = sync
+        self.syncService = sync
 
         // Enforce HIPAA minimum retention when HIPAA compliance mode is active
         // Uses ComplianceManager.isHIPAAActive to respect MDM-pushed HIPAA enablement
-        var activeRetention = retentionConfiguration
+        var activeRetention = self.retentionConfiguration
         if ComplianceManager.shared.isHIPAAActive {
             activeRetention = HIPAARetentionPolicy.validate(activeRetention)
-            retentionConfiguration = activeRetention
+            self.retentionConfiguration = activeRetention
         }
 
         let retention = AuditRetentionService(storage: storage, configuration: activeRetention)
-        retentionService = retention
+        self.retentionService = retention
 
-        isEnabled = true
+        self.isEnabled = true
 
-        logger.info("AuditManager configured and enabled")
+        self.logger.info("AuditManager configured and enabled")
     }
 
     // MARK: - Monitoring
@@ -122,18 +122,18 @@ final class AuditManager: ObservableObject {
     /// Call this after `configure(with:)` when the device has enrolled with the admin console
     /// and monitoring should begin.
     func startMonitoring() {
-        syncService?.startAutoFlush()
-        retentionService?.start()
-        logger.info("Audit monitoring started")
+        self.syncService?.startAutoFlush()
+        self.retentionService?.start()
+        self.logger.info("Audit monitoring started")
     }
 
     /// Stops the auto-flush timer and the daily retention pruning schedule.
     ///
     /// Call this when the admin console session ends or the device is unenrolled.
     func stopMonitoring() {
-        syncService?.stopAutoFlush()
-        retentionService?.stop()
-        logger.info("Audit monitoring stopped")
+        self.syncService?.stopAutoFlush()
+        self.retentionService?.stop()
+        self.logger.info("Audit monitoring stopped")
     }
 
     // MARK: - Logging Entry Points
@@ -149,7 +149,7 @@ final class AuditManager: ObservableObject {
         resourceId: String? = nil,
         detail: [String: String] = [:]
     ) async {
-        await auditLogger?.logClipboardEvent(action: action, resourceId: resourceId, detail: detail)
+        await self.auditLogger?.logClipboardEvent(action: action, resourceId: resourceId, detail: detail)
     }
 
     /// Records a user-action audit event.
@@ -163,7 +163,7 @@ final class AuditManager: ObservableObject {
         resourceId: String? = nil,
         detail: [String: String] = [:]
     ) async {
-        await auditLogger?.logUserAction(action: action, resourceId: resourceId, detail: detail)
+        await self.auditLogger?.logUserAction(action: action, resourceId: resourceId, detail: detail)
     }
 
     /// Records a policy-related audit event.
@@ -177,7 +177,7 @@ final class AuditManager: ObservableObject {
         policyId: String? = nil,
         detail: [String: String] = [:]
     ) async {
-        await auditLogger?.logPolicyEvent(action: action, policyId: policyId, detail: detail)
+        await self.auditLogger?.logPolicyEvent(action: action, policyId: policyId, detail: detail)
     }
 
     /// Records an authentication audit event.
@@ -191,7 +191,7 @@ final class AuditManager: ObservableObject {
         severity: AuditEventSeverity = .info,
         detail: [String: String] = [:]
     ) async {
-        await auditLogger?.logAuthEvent(action: action, severity: severity, detail: detail)
+        await self.auditLogger?.logAuthEvent(action: action, severity: severity, detail: detail)
     }
 
     /// Records a compliance-related audit event.
@@ -210,7 +210,7 @@ final class AuditManager: ObservableObject {
         detail: [String: String] = [:]
     ) async {
         // Route through AuditLogger so compliance events receive HIPAA enrichment
-        await auditLogger?.log(AuditEvent(
+        await self.auditLogger?.log(AuditEvent(
             category: .compliance,
             action: action,
             severity: severity,
@@ -243,9 +243,9 @@ final class AuditManager: ObservableObject {
             newConfig = HIPAARetentionPolicy.validate(newConfig)
         }
 
-        retentionConfiguration = newConfig
-        retentionService?.updateConfiguration(retentionConfiguration)
-        logger.info("Audit retention policy updated to \(newConfig.retentionDays) days")
+        self.retentionConfiguration = newConfig
+        self.retentionService?.updateConfiguration(self.retentionConfiguration)
+        self.logger.info("Audit retention policy updated to \(newConfig.retentionDays) days")
     }
 
     // MARK: Private

@@ -44,7 +44,7 @@ enum GDPRDataDeletionService {
     /// - Throws: `ComplianceError.deletionFailed` if a critical step fails.
     @MainActor
     static func deleteAllUserData() async throws -> GDPRDeletionReport {
-        logger.info("GDPR data deletion: starting complete user data erasure")
+        self.logger.info("GDPR data deletion: starting complete user data erasure")
 
         var categories: [GDPRDeletionReport.CategoryResult] = []
 
@@ -61,7 +61,7 @@ enum GDPRDataDeletionService {
         if itemCount > 0 {
             NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
         }
-        logger.info("GDPR deletion: removed \(itemCount) clipboard items")
+        self.logger.info("GDPR deletion: removed \(itemCount) clipboard items")
 
         // 2. Tags
         let tagCount = await deleteAllEntities(Tag.self, entityName: "Tag")
@@ -92,7 +92,7 @@ enum GDPRDataDeletionService {
         categories.append(.init(name: "Audit Logs", deletedCount: auditCount, success: auditCount >= 0))
 
         // 9. Keychain items
-        let keychainSuccess = deleteKeychainItems()
+        let keychainSuccess = self.deleteKeychainItems()
         categories.append(.init(
             name: "Keychain Items",
             deletedCount: keychainSuccess ? 2 : 0,
@@ -100,7 +100,7 @@ enum GDPRDataDeletionService {
         ))
 
         // 10. UserDefaults
-        let defaultsCount = clearUserDefaults()
+        let defaultsCount = self.clearUserDefaults()
         categories.append(.init(name: "UserDefaults", deletedCount: defaultsCount, success: true))
 
         let report = GDPRDeletionReport(
@@ -110,7 +110,7 @@ enum GDPRDataDeletionService {
 
         let totalDeleted = report.totalDeleted
         let categoryCount = categories.count
-        logger.info(
+        self.logger.info(
             "GDPR data deletion: complete. \(totalDeleted) items removed across \(categoryCount) categories"
         )
         return report
@@ -140,10 +140,10 @@ enum GDPRDataDeletionService {
             do {
                 let result = try context.execute(deleteRequest) as? NSBatchDeleteResult
                 let count = result?.result as? Int ?? 0
-                logger.info("GDPR deletion: removed \(count) \(entityName) records")
+                self.logger.info("GDPR deletion: removed \(count) \(entityName) records")
                 return count
             } catch {
-                logger.error("GDPR deletion: failed to delete \(entityName) — \(error.localizedDescription)")
+                self.logger.error("GDPR deletion: failed to delete \(entityName) — \(error.localizedDescription)")
                 return -1
             }
         }
@@ -166,7 +166,7 @@ enum GDPRDataDeletionService {
             ]
             let status = SecItemDelete(query as CFDictionary)
             if status != errSecSuccess, status != errSecItemNotFound {
-                logger.warning("GDPR deletion: failed to delete Keychain item \(tag) (status: \(status))")
+                self.logger.warning("GDPR deletion: failed to delete Keychain item \(tag) (status: \(status))")
                 allSuccess = false
             }
         }
@@ -199,7 +199,7 @@ enum GDPRDataDeletionService {
         }
 
         defaults.synchronize()
-        logger.info("GDPR deletion: cleared \(count) UserDefaults keys")
+        self.logger.info("GDPR deletion: cleared \(count) UserDefaults keys")
         return count
     }
 }
@@ -243,16 +243,16 @@ struct GDPRDeletionReport: Codable, Identifiable {
 
     /// Total number of items deleted across all categories.
     var totalDeleted: Int {
-        categories.reduce(0) { $0 + max($1.deletedCount, 0) }
+        self.categories.reduce(0) { $0 + max($1.deletedCount, 0) }
     }
 
     /// Whether all categories were successfully deleted.
     var allSuccessful: Bool {
-        categories.allSatisfy(\.success)
+        self.categories.allSatisfy(\.success)
     }
 
     /// Categories that failed during deletion.
     var failedCategories: [CategoryResult] {
-        categories.filter { !$0.success }
+        self.categories.filter { !$0.success }
     }
 }

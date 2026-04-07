@@ -34,16 +34,16 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
     /// - Returns: An NSPredicate that matches items according to the rules
     func buildPredicate(from rules: CollectionRules) -> NSPredicate {
         guard !rules.isEmpty else {
-            logger.debug("Empty rules, returning always-true predicate")
+            self.logger.debug("Empty rules, returning always-true predicate")
             return NSPredicate(value: true)
         }
 
         let conditionPredicates = rules.conditions.compactMap { condition in
-            buildConditionPredicate(condition)
+            self.buildConditionPredicate(condition)
         }
 
         guard !conditionPredicates.isEmpty else {
-            logger.debug("No valid condition predicates, returning always-true predicate")
+            self.logger.debug("No valid condition predicates, returning always-true predicate")
             return NSPredicate(value: true)
         }
 
@@ -57,7 +57,7 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
 
         let count = conditionPredicates.count
         let op = rules.logicalOperator.rawValue
-        logger.debug("Built predicate with \(count) conditions using \(op)")
+        self.logger.debug("Built predicate with \(count) conditions using \(op)")
         return combinedPredicate
     }
 
@@ -67,17 +67,17 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
     private func buildConditionPredicate(_ condition: RuleCondition) -> NSPredicate? {
         switch condition.field {
         case .contentType:
-            buildContentTypePredicate(condition)
+            self.buildContentTypePredicate(condition)
         case .sourceApp:
-            buildSourceAppPredicate(condition)
+            self.buildSourceAppPredicate(condition)
         case .textContent:
-            buildTextContentPredicate(condition)
+            self.buildTextContentPredicate(condition)
         case .dateCreated:
-            buildDatePredicate(condition)
+            self.buildDatePredicate(condition)
         case .isFavorite:
-            buildBooleanPredicate(condition, keyPath: "isFavorite")
+            self.buildBooleanPredicate(condition, keyPath: "isFavorite")
         case .isSensitive:
-            buildBooleanPredicate(condition, keyPath: "isSensitive")
+            self.buildBooleanPredicate(condition, keyPath: "isSensitive")
         }
     }
 
@@ -101,7 +101,7 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
         case .notEquals:
             return NSPredicate(format: "NOT (contentType IN %@)", contentTypeRawValues)
         default:
-            logger.warning("Unsupported operator \(condition.comparisonOperator.rawValue) for contentType")
+            self.logger.warning("Unsupported operator \(condition.comparisonOperator.rawValue) for contentType")
             return nil
         }
     }
@@ -134,7 +134,7 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
                 NSPredicate(format: "NOT (sourceAppName CONTAINS[cd] %@)", safeValue),
             ])
         default:
-            logger.warning("Unsupported operator \(condition.comparisonOperator.rawValue) for sourceApp")
+            self.logger.warning("Unsupported operator \(condition.comparisonOperator.rawValue) for sourceApp")
             return nil
         }
     }
@@ -157,7 +157,7 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
         case .notEquals:
             return NSPredicate(format: "plainTextPreview !=[cd] %@", safeValue)
         default:
-            logger.warning("Unsupported operator \(condition.comparisonOperator.rawValue) for textContent")
+            self.logger.warning("Unsupported operator \(condition.comparisonOperator.rawValue) for textContent")
             return nil
         }
     }
@@ -176,25 +176,25 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
             if let startDate = parseCustomDuration(condition.value) {
                 return NSPredicate(format: "timestamp >= %@", startDate as NSDate)
             }
-            logger.warning("Could not parse date range value: \(condition.value)")
+            self.logger.warning("Could not parse date range value: \(condition.value)")
             return nil
 
         case .before:
             if let date = parseDate(condition.value) {
                 return NSPredicate(format: "timestamp < %@", date as NSDate)
             }
-            logger.warning("Could not parse date: \(condition.value)")
+            self.logger.warning("Could not parse date: \(condition.value)")
             return nil
 
         case .after:
             if let date = parseDate(condition.value) {
                 return NSPredicate(format: "timestamp > %@", date as NSDate)
             }
-            logger.warning("Could not parse date: \(condition.value)")
+            self.logger.warning("Could not parse date: \(condition.value)")
             return nil
 
         default:
-            logger.warning("Unsupported operator \(condition.comparisonOperator.rawValue) for dateCreated")
+            self.logger.warning("Unsupported operator \(condition.comparisonOperator.rawValue) for dateCreated")
             return nil
         }
     }
@@ -267,7 +267,7 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
              "0":
             boolValue = false
         default:
-            logger.warning("Could not parse boolean value: \(condition.value)")
+            self.logger.warning("Could not parse boolean value: \(condition.value)")
             return nil
         }
 
@@ -277,7 +277,7 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
         case .notEquals:
             return NSPredicate(format: "%K != %@", keyPath, NSNumber(value: boolValue))
         default:
-            logger.warning("Unsupported operator \(condition.comparisonOperator.rawValue) for boolean field")
+            self.logger.warning("Unsupported operator \(condition.comparisonOperator.rawValue) for boolean field")
             return nil
         }
     }
@@ -296,7 +296,7 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
         }
 
         let results = rules.conditions.map { condition in
-            evaluateCondition(condition, for: item)
+            self.evaluateCondition(condition, for: item)
         }
 
         switch rules.logicalOperator {
@@ -311,17 +311,17 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
     private func evaluateCondition(_ condition: RuleCondition, for item: ClipboardItem) -> Bool {
         switch condition.field {
         case .contentType:
-            evaluateContentType(condition, item: item)
+            self.evaluateContentType(condition, item: item)
         case .sourceApp:
-            evaluateSourceApp(condition, item: item)
+            self.evaluateSourceApp(condition, item: item)
         case .textContent:
-            evaluateTextContent(condition, item: item)
+            self.evaluateTextContent(condition, item: item)
         case .dateCreated:
-            evaluateDate(condition, item: item)
+            self.evaluateDate(condition, item: item)
         case .isFavorite:
-            evaluateBoolean(condition, value: item.isFavorite)
+            self.evaluateBoolean(condition, value: item.isFavorite)
         case .isSensitive:
-            evaluateBoolean(condition, value: item.isSensitive)
+            self.evaluateBoolean(condition, value: item.isSensitive)
         }
     }
 
@@ -401,7 +401,7 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
             let startDate: Date? = if let rangeValue = DateRangeValue(rawValue: condition.value) {
                 rangeValue.startDate
             } else {
-                parseCustomDuration(condition.value)
+                self.parseCustomDuration(condition.value)
             }
             guard let start = startDate else {
                 return false

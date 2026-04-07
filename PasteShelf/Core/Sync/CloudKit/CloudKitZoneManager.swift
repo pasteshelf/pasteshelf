@@ -16,8 +16,8 @@ final class CloudKitZoneManager: Sendable {
     // MARK: - Initialization
 
     init(container: CKContainer = CKContainer(identifier: "iCloud.com.pasteshelf.PasteShelf")) {
-        database = container.privateCloudDatabase
-        zone = CKRecordZone(zoneName: Self.zoneName)
+        self.database = container.privateCloudDatabase
+        self.zone = CKRecordZone(zoneName: Self.zoneName)
     }
 
     // MARK: Internal
@@ -35,7 +35,7 @@ final class CloudKitZoneManager: Sendable {
 
     /// Zone ID for convenience
     var zoneID: CKRecordZone.ID {
-        zone.zoneID
+        self.zone.zoneID
     }
 
     // MARK: - Zone Management
@@ -46,12 +46,12 @@ final class CloudKitZoneManager: Sendable {
 
         do {
             // Try to fetch the zone
-            _ = try await database.recordZone(for: zoneID)
+            _ = try await self.database.recordZone(for: self.zoneID)
             Self.logger.info("Zone already exists")
         } catch let error as CKError where error.code == .zoneNotFound {
             // Zone doesn't exist, create it
             Self.logger.info("Creating new zone: \(Self.zoneName)")
-            try await createZone()
+            try await self.createZone()
         } catch {
             Self.logger.error("Failed to check zone: \(error.localizedDescription)")
             throw SyncError.from(error as? CKError ?? CKError(.serverRejectedRequest))
@@ -94,7 +94,7 @@ final class CloudKitZoneManager: Sendable {
 
         // Check if subscription already exists
         do {
-            _ = try await database.subscription(for: Self.subscriptionID)
+            _ = try await self.database.subscription(for: Self.subscriptionID)
             Self.logger.info("Subscription already exists")
             return
         } catch let error as CKError where error.code == .unknownItem {
@@ -117,7 +117,7 @@ final class CloudKitZoneManager: Sendable {
 
         subscription.notificationInfo = notificationInfo
 
-        try await saveSubscription(subscription)
+        try await self.saveSubscription(subscription)
     }
 
     /// Delete the subscription
@@ -158,15 +158,15 @@ final class CloudKitZoneManager: Sendable {
 
     /// Complete zone and subscription setup
     func setup() async throws {
-        try await createZoneIfNeeded()
-        try await createSubscriptionIfNeeded()
+        try await self.createZoneIfNeeded()
+        try await self.createSubscriptionIfNeeded()
         Self.logger.info("CloudKit zone setup complete")
     }
 
     /// Complete teardown (for reset)
     func teardown() async throws {
-        try await deleteSubscription()
-        try await deleteZone()
+        try await self.deleteSubscription()
+        try await self.deleteZone()
         Self.logger.info("CloudKit zone teardown complete")
     }
 

@@ -15,11 +15,11 @@ final class ClipboardContentMapperTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         let persistence = PersistenceController(inMemory: true)
-        context = persistence.container.viewContext
+        self.context = persistence.container.viewContext
     }
 
     override func tearDown() async throws {
-        context = nil
+        self.context = nil
         try await super.tearDown()
     }
 
@@ -35,7 +35,7 @@ final class ClipboardContentMapperTests: XCTestCase {
             contentHash: "abc123"
         )
 
-        let (item, contentData) = ClipboardContentMapper.mapToEntities(content, sourceApp: nil, context: context)
+        let (item, contentData) = ClipboardContentMapper.mapToEntities(content, sourceApp: nil, context: self.context)
 
         XCTAssertEqual(item.id, content.id)
         XCTAssertEqual(item.contentType, ContentType.plainText.rawValue)
@@ -58,7 +58,7 @@ final class ClipboardContentMapperTests: XCTestCase {
         )
         let sourceApp = SourceApp(bundleId: "com.apple.Safari", name: "Safari")
 
-        let (item, _) = ClipboardContentMapper.mapToEntities(content, sourceApp: sourceApp, context: context)
+        let (item, _) = ClipboardContentMapper.mapToEntities(content, sourceApp: sourceApp, context: self.context)
 
         XCTAssertEqual(item.sourceAppBundleId, "com.apple.Safari")
         XCTAssertEqual(item.sourceAppName, "Safari")
@@ -79,7 +79,7 @@ final class ClipboardContentMapperTests: XCTestCase {
             contentHash: "img123"
         )
 
-        let (item, contentData) = ClipboardContentMapper.mapToEntities(content, sourceApp: nil, context: context)
+        let (item, contentData) = ClipboardContentMapper.mapToEntities(content, sourceApp: nil, context: self.context)
 
         XCTAssertEqual(item.contentType, ContentType.png.rawValue)
         XCTAssertNotNil(item.preview)
@@ -99,7 +99,7 @@ final class ClipboardContentMapperTests: XCTestCase {
             contentHash: "url123"
         )
 
-        let (_, contentData) = ClipboardContentMapper.mapToEntities(content, sourceApp: nil, context: context)
+        let (_, contentData) = ClipboardContentMapper.mapToEntities(content, sourceApp: nil, context: self.context)
 
         XCTAssertEqual(contentData.urlString, "https://example.com")
         XCTAssertEqual(contentData.url?.absoluteString, "https://example.com")
@@ -116,7 +116,7 @@ final class ClipboardContentMapperTests: XCTestCase {
             contentHash: "files123"
         )
 
-        let (_, contentData) = ClipboardContentMapper.mapToEntities(content, sourceApp: nil, context: context)
+        let (_, contentData) = ClipboardContentMapper.mapToEntities(content, sourceApp: nil, context: self.context)
 
         XCTAssertNotNil(contentData.fileURLsJSON)
         XCTAssertEqual(contentData.fileURLs?.count, 2)
@@ -129,7 +129,7 @@ final class ClipboardContentMapperTests: XCTestCase {
             contentHash: "multi123"
         )
 
-        let (_, contentData) = ClipboardContentMapper.mapToEntities(content, sourceApp: nil, context: context)
+        let (_, contentData) = ClipboardContentMapper.mapToEntities(content, sourceApp: nil, context: self.context)
 
         let types = contentData.availableTypes
         XCTAssertEqual(types?.count, 3)
@@ -217,7 +217,7 @@ final class ClipboardContentMapperTests: XCTestCase {
             contentHash: "new_hash"
         )
 
-        ClipboardContentMapper.updateEntity(item, with: updatedContent, context: context)
+        ClipboardContentMapper.updateEntity(item, with: updatedContent, context: self.context)
 
         XCTAssertEqual(item.contentType, ContentType.html.rawValue)
         XCTAssertEqual(item.contentHash, "new_hash")

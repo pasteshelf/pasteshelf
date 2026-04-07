@@ -46,7 +46,7 @@ extension StorageManager {
     /// - Returns: Array of ClipboardItem objects
     func fetchItems(byContentType contentType: ContentType, limit: Int = 50) async -> [ClipboardItem] {
         let predicate = NSPredicate(format: "contentType == %@", contentType.rawValue)
-        return await fetchRecentItems(limit: limit, predicate: predicate)
+        return await self.fetchRecentItems(limit: limit, predicate: predicate)
     }
 
     /// Fetches favorite clipboard items
@@ -54,7 +54,7 @@ extension StorageManager {
     /// - Returns: Array of favorite ClipboardItem objects
     func fetchFavorites(limit: Int = 50) async -> [ClipboardItem] {
         let predicate = NSPredicate(format: "isFavorite == YES")
-        return await fetchRecentItems(limit: limit, predicate: predicate)
+        return await self.fetchRecentItems(limit: limit, predicate: predicate)
     }
 
     /// Fetches a clipboard item by ID
@@ -173,7 +173,7 @@ extension StorageManager {
         }
 
         let predicate = NSPredicate(format: "folder.id == %@", folderId as CVarArg)
-        return await fetchRecentItems(limit: limit, predicate: predicate)
+        return await self.fetchRecentItems(limit: limit, predicate: predicate)
     }
 
     // MARK: - Application Fetch

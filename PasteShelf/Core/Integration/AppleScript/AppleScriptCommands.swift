@@ -130,7 +130,7 @@ class CopyItemCommand: NSScriptCommand {
                     return
                 }
 
-                success = copyItemToClipboard(item)
+                success = self.copyItemToClipboard(item)
             } catch {
                 success = false
             }

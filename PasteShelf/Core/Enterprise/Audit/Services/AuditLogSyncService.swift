@@ -79,20 +79,20 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
         let entries = try await fetchUnsyncedEntries()
 
         guard !entries.isEmpty else {
-            logger.debug("Audit sync flush: no pending entries — skipping")
+            self.logger.debug("Audit sync flush: no pending entries — skipping")
             return
         }
 
-        logger.info("Audit sync flush: uploading \(entries.count) event(s) to admin console")
+        self.logger.info("Audit sync flush: uploading \(entries.count) event(s) to admin console")
 
-        let (events, ids) = reconstructEvents(from: entries)
+        let (events, ids) = self.reconstructEvents(from: entries)
 
         guard !events.isEmpty else {
-            logger.warning("Audit sync flush: all entries were malformed — nothing to upload")
+            self.logger.warning("Audit sync flush: all entries were malformed — nothing to upload")
             return
         }
 
-        try await submitAndMarkSynced(events: events, ids: ids)
+        try await self.submitAndMarkSynced(events: events, ids: ids)
     }
 
     /// Starts the periodic auto-flush timer on the main run loop.
@@ -101,12 +101,12 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
     /// fires every `flushInterval` seconds and uploads all pending audit events to the
     /// admin console asynchronously.
     func startAutoFlush() {
-        stopAutoFlush()
-        flushTimer = Timer.scheduledTimer(withTimeInterval: flushInterval, repeats: true) { [weak self] _ in
+        self.stopAutoFlush()
+        self.flushTimer = Timer.scheduledTimer(withTimeInterval: self.flushInterval, repeats: true) { [weak self] _ in
             guard let self else {
                 return
             }
-            logger.debug("Audit auto-flush timer fired")
+            self.logger.debug("Audit auto-flush timer fired")
             Task {
                 do {
                     try await self.flush()
@@ -115,7 +115,7 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
                 }
             }
         }
-        logger.info("Audit auto-flush timer started with interval \(flushInterval)s")
+        self.logger.info("Audit auto-flush timer started with interval \(self.flushInterval)s")
     }
 
     /// Stops the periodic auto-flush timer.
@@ -123,9 +123,9 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
     /// After calling this method, no further automatic flushes occur until
     /// `startAutoFlush()` is called again.
     func stopAutoFlush() {
-        flushTimer?.invalidate()
-        flushTimer = nil
-        logger.debug("Audit auto-flush timer stopped")
+        self.flushTimer?.invalidate()
+        self.flushTimer = nil
+        self.logger.debug("Audit auto-flush timer stopped")
     }
 
     // MARK: Private
@@ -152,9 +152,9 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
     /// Fetches unsynced audit log entries from CoreData.
     private func fetchUnsyncedEntries() async throws -> [AuditLogEntry] {
         do {
-            return try await storage.fetchUnsyncedEvents(limit: batchSize)
+            return try await self.storage.fetchUnsyncedEvents(limit: self.batchSize)
         } catch {
-            logger.error("Audit sync flush: failed to fetch unsynced entries — \(error.localizedDescription)")
+            self.logger.error("Audit sync flush: failed to fetch unsynced entries — \(error.localizedDescription)")
             throw AuditError.syncFailed("Fetch failed: \(error.localizedDescription)")
         }
     }
@@ -172,7 +172,7 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
                 let categoryRaw = entry.eventCategory,
                 let category = AuditEventCategory(rawValue: categoryRaw)
             else {
-                logger.warning("Skipping malformed AuditLogEntry (missing required fields)")
+                self.logger.warning("Skipping malformed AuditLogEntry (missing required fields)")
                 continue
             }
 
@@ -186,10 +186,10 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
 
             let detail: [String: String]
             do {
-                detail = try storage.decryptDetail(for: entry)
+                detail = try self.storage.decryptDetail(for: entry)
             } catch {
                 let errorDesc = error.localizedDescription
-                logger.warning(
+                self.logger.warning(
                     "Failed to decrypt detail for audit entry \(id): \(errorDesc) — using empty detail"
                 )
                 detail = [:]
@@ -217,18 +217,18 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
     /// Submits events to the admin console and marks them as synced.
     private func submitAndMarkSynced(events: [AuditEvent], ids: [UUID]) async throws {
         do {
-            try await apiClient.submitAuditEvents(events)
-            logger.info("Audit sync flush: successfully submitted \(events.count) event(s)")
+            try await self.apiClient.submitAuditEvents(events)
+            self.logger.info("Audit sync flush: successfully submitted \(events.count) event(s)")
         } catch {
-            logger.error("Audit sync flush: upload failed — \(error.localizedDescription)")
+            self.logger.error("Audit sync flush: upload failed — \(error.localizedDescription)")
             throw AuditError.syncFailed(error.localizedDescription)
         }
 
         do {
-            try await storage.markSynced(ids)
-            logger.debug("Audit sync flush: marked \(ids.count) entries as synced")
+            try await self.storage.markSynced(ids)
+            self.logger.debug("Audit sync flush: marked \(ids.count) entries as synced")
         } catch {
-            logger.error("Audit sync flush: markSynced failed — \(error.localizedDescription)")
+            self.logger.error("Audit sync flush: markSynced failed — \(error.localizedDescription)")
         }
     }
 }

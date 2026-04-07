@@ -15,11 +15,11 @@ final class StorageManagerCollectionTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        storageManager = await MainActor.run { StorageManager.forTesting() }
+        self.storageManager = await MainActor.run { StorageManager.forTesting() }
     }
 
     override func tearDown() async throws {
-        storageManager = nil
+        self.storageManager = nil
         try await super.tearDown()
     }
 
@@ -79,8 +79,8 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: nil
         )
 
-        _ = await storageManager.saveCollection(from: model1)
-        _ = await storageManager.saveCollection(from: model2)
+        _ = await self.storageManager.saveCollection(from: model1)
+        _ = await self.storageManager.saveCollection(from: model2)
 
         let collections = await storageManager.fetchCollections()
 
@@ -103,7 +103,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: nil
         )
 
-        _ = await storageManager.saveCollection(from: model)
+        _ = await self.storageManager.saveCollection(from: model)
 
         let fetchedCollection = await storageManager.fetchCollection(byId: id)
 
@@ -131,7 +131,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: nil
         )
 
-        _ = await storageManager.saveCollection(from: model)
+        _ = await self.storageManager.saveCollection(from: model)
 
         // Update the collection
         let updatedModel = CollectionDisplayModel(
@@ -174,7 +174,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: nil
         )
 
-        _ = await storageManager.saveCollection(from: model)
+        _ = await self.storageManager.saveCollection(from: model)
 
         // Verify it exists
         let beforeDelete = await storageManager.fetchCollection(byId: id)
@@ -204,7 +204,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: nil
         )
-        _ = await storageManager.saveCollection(from: collectionModel)
+        _ = await self.storageManager.saveCollection(from: collectionModel)
 
         // Re-fetch collection from view context so property access works correctly
         guard let collection = await storageManager.fetchCollection(byId: collectionId) else {
@@ -219,7 +219,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             plainText: "Test item",
             contentHash: "manual-test-hash"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         let items = await storageManager.fetchRecentItems(limit: 1)
         guard let item = items.first else {
@@ -255,7 +255,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: nil
         )
-        _ = await storageManager.saveCollection(from: collectionModel)
+        _ = await self.storageManager.saveCollection(from: collectionModel)
 
         // Re-fetch from view context
         guard let collection = await storageManager.fetchCollection(byId: collectionId) else {
@@ -270,7 +270,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             plainText: "Item to remove",
             contentHash: "remove-test-hash"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         let items = await storageManager.fetchRecentItems(limit: 1)
         guard let item = items.first else {
@@ -278,7 +278,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             return
         }
 
-        _ = await storageManager.addItemToCollection(item, collection: collection)
+        _ = await self.storageManager.addItemToCollection(item, collection: collection)
 
         // Re-fetch collection for fresh state
         guard let refreshedCollection = await storageManager.fetchCollection(byId: collectionId) else {
@@ -301,7 +301,7 @@ final class StorageManagerCollectionTests: XCTestCase {
         }
 
         // Verify removal
-        isInCollection = await storageManager.isItemInCollection(item, collection: finalCollection)
+        isInCollection = await self.storageManager.isItemInCollection(item, collection: finalCollection)
         XCTAssertFalse(isInCollection)
     }
 
@@ -318,7 +318,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: nil
         )
-        _ = await storageManager.saveCollection(from: collectionModel)
+        _ = await self.storageManager.saveCollection(from: collectionModel)
 
         // Re-fetch from view context
         guard let collection = await storageManager.fetchCollection(byId: collectionId) else {
@@ -334,12 +334,12 @@ final class StorageManagerCollectionTests: XCTestCase {
                 plainText: "Item \(i)",
                 contentHash: "count-hash-\(i)"
             )
-            _ = await storageManager.save(content: content, from: nil)
+            _ = await self.storageManager.save(content: content, from: nil)
         }
 
         let items = await storageManager.fetchRecentItems(limit: 3)
         for item in items {
-            _ = await storageManager.addItemToCollection(item, collection: collection)
+            _ = await self.storageManager.addItemToCollection(item, collection: collection)
         }
 
         // Re-fetch collection for fresh state
@@ -376,7 +376,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             rules: rules
         )
 
-        _ = await storageManager.saveCollection(from: model)
+        _ = await self.storageManager.saveCollection(from: model)
 
         let fetchedCollection = await storageManager.fetchCollection(byId: id)
         XCTAssertNotNil(fetchedCollection)
@@ -416,7 +416,7 @@ final class StorageManagerCollectionTests: XCTestCase {
             sortOrder: 0,
             rules: rules
         )
-        _ = await storageManager.saveCollection(from: collectionModel)
+        _ = await self.storageManager.saveCollection(from: collectionModel)
 
         // Re-fetch from view context
         guard let collection = await storageManager.fetchCollection(byId: collectionId) else {
@@ -432,7 +432,7 @@ final class StorageManagerCollectionTests: XCTestCase {
                 plainText: "Text item \(i)",
                 contentHash: "auto-text-hash-\(i)"
             )
-            _ = await storageManager.save(content: content, from: nil)
+            _ = await self.storageManager.save(content: content, from: nil)
         }
 
         // Fetch items for automatic collection

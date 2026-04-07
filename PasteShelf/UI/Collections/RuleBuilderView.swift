@@ -21,13 +21,13 @@ struct RuleBuilderView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header with logical operator
-            headerView
+            self.headerView
 
             // Conditions list
-            conditionsList
+            self.conditionsList
 
             // Add condition button
-            addConditionButton
+            self.addConditionButton
         }
         .padding()
         .background(Color.secondary.opacity(0.05))
@@ -44,7 +44,7 @@ struct RuleBuilderView: View {
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
 
-            Picker("", selection: $rules.logicalOperator) {
+            Picker("", selection: self.$rules.logicalOperator) {
                 Text("all").tag(LogicalOperator.and)
                 Text("any").tag(LogicalOperator.or)
             }
@@ -62,15 +62,15 @@ struct RuleBuilderView: View {
     // MARK: - Conditions List
 
     @ViewBuilder private var conditionsList: some View {
-        if rules.conditions.isEmpty {
-            emptyState
+        if self.rules.conditions.isEmpty {
+            self.emptyState
         } else {
             VStack(spacing: 4) {
-                ForEach($rules.conditions) { $condition in
+                ForEach(self.$rules.conditions) { $condition in
                     RuleConditionRow(
                         condition: $condition
                     ) {
-                        removeCondition(condition)
+                        self.removeCondition(condition)
                     }
                 }
             }
@@ -100,7 +100,7 @@ struct RuleBuilderView: View {
 
     private var addConditionButton: some View {
         Button {
-            addCondition()
+            self.addCondition()
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: "plus.circle.fill")
@@ -119,11 +119,11 @@ struct RuleBuilderView: View {
             comparisonOperator: .equals,
             value: ContentTypeValue.text.rawValue
         )
-        rules.conditions.append(newCondition)
+        self.rules.conditions.append(newCondition)
     }
 
     private func removeCondition(_ condition: RuleCondition) {
-        rules.conditions.removeAll { $0.id == condition.id }
+        self.rules.conditions.removeAll { $0.id == condition.id }
     }
 }
 
@@ -135,7 +135,7 @@ struct RuleBuilderView: View {
             // MARK: Internal
 
             var body: some View {
-                RuleBuilderView(rules: $rules)
+                RuleBuilderView(rules: self.$rules)
                     .padding()
             }
 

@@ -104,11 +104,11 @@ struct IdentityProvider: Codable, Identifiable, Equatable {
 
     /// Whether this provider has a valid configuration for its type
     var isConfigured: Bool {
-        switch type {
+        switch self.type {
         case .saml:
-            samlConfig != nil
+            self.samlConfig != nil
         case .oidc:
-            oidcConfig != nil
+            self.oidcConfig != nil
         }
     }
 }
@@ -291,11 +291,11 @@ struct OIDCProviderConfig: Codable, Equatable {
 
     /// Whether this is a confidential client (has a client secret)
     var isConfidentialClient: Bool {
-        clientSecret != nil
+        self.clientSecret != nil
     }
 
     /// The scope string formatted for OAuth 2.0 requests
     var scopeString: String {
-        scopes.joined(separator: " ")
+        self.scopes.joined(separator: " ")
     }
 }

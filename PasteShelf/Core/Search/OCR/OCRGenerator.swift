@@ -44,15 +44,15 @@ final class OCRGenerator: ObservableObject {
 
     /// Progress percentage (0.0 to 1.0)
     var progress: Double {
-        guard totalToProcess > 0 else {
+        guard self.totalToProcess > 0 else {
             return 0.0
         }
-        return Double(processedCount) / Double(totalToProcess)
+        return Double(self.processedCount) / Double(self.totalToProcess)
     }
 
     /// Whether OCR search is available
     var isAvailable: Bool {
-        ocrManager.isAvailable
+        self.ocrManager.isAvailable
     }
 
     /// Creates an OCRGenerator for testing
@@ -68,8 +68,8 @@ final class OCRGenerator: ObservableObject {
     @discardableResult
     func generateOCR(for itemId: UUID) async -> Bool { // swiftlint:disable:this function_body_length
         // Check if OCR manager is available
-        guard ocrManager.isAvailable else {
-            logger.warning("OCR manager not available")
+        guard self.ocrManager.isAvailable else {
+            self.logger.warning("OCR manager not available")
             return false
         }
 
@@ -87,20 +87,20 @@ final class OCRGenerator: ObservableObject {
         }
 
         // Check if OCR already exists
-        if await storageManager.fetchOCRText(for: itemId) != nil {
-            logger.debug("OCR already exists for item: \(itemId)")
+        if await self.storageManager.fetchOCRText(for: itemId) != nil {
+            self.logger.debug("OCR already exists for item: \(itemId)")
             return true
         }
 
         // Get image data
         guard let imageData = item.content?.imageData else {
-            logger.debug("No image data for item: \(itemId)")
+            self.logger.debug("No image data for item: \(itemId)")
             return false
         }
 
         // Check if image is processable
-        guard ocrManager.canProcess(imageData) else {
-            logger.debug("Image too small for OCR: \(itemId)")
+        guard self.ocrManager.canProcess(imageData) else {
+            self.logger.debug("Image too small for OCR: \(itemId)")
             return false
         }
 
@@ -114,7 +114,7 @@ final class OCRGenerator: ObservableObject {
                 language: nil,
                 imageHash: imageHash
             )
-            logger.debug("Reused existing OCR for item: \(itemId)")
+            self.logger.debug("Reused existing OCR for item: \(itemId)")
             return saved
         }
 
@@ -122,7 +122,7 @@ final class OCRGenerator: ObservableObject {
         guard let result = await ocrManager.recognizeText(in: imageData),
               result.isSuccess
         else {
-            logger.debug("OCR failed for item: \(itemId)")
+            self.logger.debug("OCR failed for item: \(itemId)")
             return false
         }
 
@@ -137,7 +137,7 @@ final class OCRGenerator: ObservableObject {
         )
 
         if saved {
-            logger.debug("Generated OCR for item: \(itemId), confidence: \(result.confidence)")
+            self.logger.debug("Generated OCR for item: \(itemId), confidence: \(result.confidence)")
         }
 
         return saved
@@ -150,23 +150,23 @@ final class OCRGenerator: ObservableObject {
     @discardableResult
     func processAllMissingOCR() async -> Int { // swiftlint:disable:this function_body_length
         // Check if already processing
-        guard !isProcessing else {
-            logger.debug("Processing already in progress")
+        guard !self.isProcessing else {
+            self.logger.debug("Processing already in progress")
             return 0
         }
 
         // Check if OCR manager is available
-        guard ocrManager.isAvailable else {
-            logger.warning("OCR manager not available")
+        guard self.ocrManager.isAvailable else {
+            self.logger.warning("OCR manager not available")
             return 0
         }
 
         // Cancel any existing task
-        processingTask?.cancel()
+        self.processingTask?.cancel()
 
-        isProcessing = true
-        processedCount = 0
-        totalToProcess = 0
+        self.isProcessing = true
+        self.processedCount = 0
+        self.totalToProcess = 0
 
         let task = Task<Int, Never>(priority: .background) { [weak self] in
             guard let self else {
@@ -185,7 +185,7 @@ final class OCRGenerator: ObservableObject {
                     imageContentTypes.map(\.rawValue)
                 )
                 let items = await storageManager.fetchRecentItems(
-                    limit: batchSize,
+                    limit: self.batchSize,
                     offset: offset,
                     predicate: contentTypePredicate
                 )
@@ -199,13 +199,13 @@ final class OCRGenerator: ObservableObject {
                 let missingIds = await storageManager.findItemsWithoutOCR(from: itemIds)
 
                 if missingIds.isEmpty {
-                    offset += batchSize
+                    offset += self.batchSize
                     continue
                 }
 
                 // Update progress
                 await MainActor.run {
-                    totalToProcess += missingIds.count
+                    self.totalToProcess += missingIds.count
                 }
 
                 // Process items without OCR
@@ -218,36 +218,36 @@ final class OCRGenerator: ObservableObject {
                     if success {
                         totalProcessed += 1
                         await MainActor.run {
-                            processedCount += 1
+                            self.processedCount += 1
                         }
                     }
 
                     // Check session limit
-                    if totalProcessed >= maxItemsPerSession {
-                        logger.info("Reached session limit: \(totalProcessed) items processed")
+                    if totalProcessed >= self.maxItemsPerSession {
+                        self.logger.info("Reached session limit: \(totalProcessed) items processed")
                         break
                     }
                 }
 
-                if totalProcessed >= maxItemsPerSession {
+                if totalProcessed >= self.maxItemsPerSession {
                     break
                 }
 
-                offset += batchSize
+                offset += self.batchSize
 
                 // Delay between batches to avoid overwhelming the system
-                try? await Task.sleep(for: .milliseconds(batchDelayMs))
+                try? await Task.sleep(for: .milliseconds(self.batchDelayMs))
             }
 
             await MainActor.run {
-                isProcessing = false
+                self.isProcessing = false
             }
 
-            logger.info("OCR processing completed: \(totalProcessed) items processed")
+            self.logger.info("OCR processing completed: \(totalProcessed) items processed")
             return totalProcessed
         }
 
-        processingTask = task
+        self.processingTask = task
         return await task.value
     }
 
@@ -255,25 +255,25 @@ final class OCRGenerator: ObservableObject {
 
     /// Cancels the current processing operation
     func cancelProcessing() {
-        processingTask?.cancel()
-        processingTask = nil
-        isProcessing = false
+        self.processingTask?.cancel()
+        self.processingTask = nil
+        self.isProcessing = false
     }
 
     /// Clears all OCR cache and resets progress
     func clearAllOCR() async {
-        cancelProcessing()
+        self.cancelProcessing()
         let deleted = await storageManager.deleteAllOCR()
-        logger.info("Cleared \(deleted) OCR entries")
-        processedCount = 0
-        totalToProcess = 0
+        self.logger.info("Cleared \(deleted) OCR entries")
+        self.processedCount = 0
+        self.totalToProcess = 0
     }
 
     /// Deletes outdated OCR entries (different version)
     func clearOutdatedOCR() async {
         let deleted = await storageManager.deleteOutdatedOCR()
         if deleted > 0 {
-            logger.info("Cleared \(deleted) outdated OCR entries")
+            self.logger.info("Cleared \(deleted) outdated OCR entries")
         }
     }
 
@@ -281,7 +281,7 @@ final class OCRGenerator: ObservableObject {
 
     /// Returns the number of processed items
     func processedItemCount() async -> Int {
-        await storageManager.ocrCount()
+        await self.storageManager.ocrCount()
     }
 
     // MARK: Private
@@ -328,14 +328,14 @@ final class OCRGenerator: ObservableObject {
         }
 
         // Check if image is processable
-        guard ocrManager.canProcess(imageData) else {
+        guard self.ocrManager.canProcess(imageData) else {
             return false
         }
 
         // Check for duplicate image (reuse existing OCR)
         if let existingText = await storageManager.findOCRByImageHash(imageData) {
             let imageHash = StorageManager.hashImageData(imageData)
-            return await storageManager.saveOCRText(
+            return await self.storageManager.saveOCRText(
                 for: itemId,
                 text: existingText,
                 confidence: 1.0,
@@ -353,7 +353,7 @@ final class OCRGenerator: ObservableObject {
 
         // Save OCR result
         let imageHash = StorageManager.hashImageData(imageData)
-        return await storageManager.saveOCRText(
+        return await self.storageManager.saveOCRText(
             for: itemId,
             text: result.text,
             confidence: result.confidence,

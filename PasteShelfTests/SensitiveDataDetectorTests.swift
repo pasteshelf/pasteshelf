@@ -21,7 +21,7 @@ struct SensitiveDataDetectorTests {
         // Use a fake key that won't be caught by the placeholder filter
         // (the placeholder filter rejects strings containing "example", "test", "xxx", etc.)
         let text = "AWS_ACCESS_KEY=AKIAIOSFODNN7FAKEVAL9"
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
         #expect(result.detectedTypes.contains("AWS Access Key"))
@@ -34,7 +34,7 @@ struct SensitiveDataDetectorTests {
         // Use alphanumeric chars that won't trigger the placeholder filter
         // (the placeholder filter rejects strings containing "xxx", "test", etc.)
         let text = "token: ghp_abcdefghij1234567890klmnopqrstuvwxyz"
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
         #expect(result.detectedTypes.contains("GitHub Token"))
@@ -45,7 +45,7 @@ struct SensitiveDataDetectorTests {
     @Test("Detects valid Visa card number")
     func detectsValidVisaCard() {
         let text = "Card: 4111111111111111" // Valid Luhn
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
         #expect(result.detectedTypes.contains("Credit Card"))
@@ -54,7 +54,7 @@ struct SensitiveDataDetectorTests {
     @Test("Detects formatted credit card")
     func detectsFormattedCreditCard() {
         let text = "Card: 4111-1111-1111-1111" // Valid Luhn with dashes
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
     }
@@ -62,7 +62,7 @@ struct SensitiveDataDetectorTests {
     @Test("Rejects invalid Luhn number")
     func rejectsInvalidLuhnNumber() {
         let text = "Number: 4111111111111112" // Invalid Luhn
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         // Should not detect as credit card due to failed Luhn check
         #expect(!result.detectedTypes.contains("Credit Card"))
@@ -73,7 +73,7 @@ struct SensitiveDataDetectorTests {
     @Test("Detects SSN pattern")
     func detectsSsnPattern() {
         let text = "SSN: 123-45-6789"
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
         #expect(result.detectedTypes.contains("Social Security Number"))
@@ -84,7 +84,7 @@ struct SensitiveDataDetectorTests {
     @Test("Detects password assignment")
     func detectsPasswordAssignment() {
         let text = "password = 'mysecretpassword'"
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
         #expect(result.detectedTypes.contains("Password"))
@@ -98,7 +98,7 @@ struct SensitiveDataDetectorTests {
           "password": "secret123"
         }
         """
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
     }
@@ -112,7 +112,7 @@ struct SensitiveDataDetectorTests {
         MIIEpAIBAAKCAQEA...
         -----END RSA PRIVATE KEY-----
         """
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
         #expect(result.highestSeverity == .critical)
@@ -123,7 +123,7 @@ struct SensitiveDataDetectorTests {
     @Test("Detects generic API key")
     func detectsGenericApiKey() {
         let text = "api_key: 'abcdefghijklmnop1234567890'"
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
     }
@@ -132,7 +132,7 @@ struct SensitiveDataDetectorTests {
     func detectsStripeKeyPattern() {
         // Use generic api_key assignment to avoid GitHub push protection blocking sk_live/sk_test patterns
         let text = "api_key='rk_prod_9a8b7c6d5e4f3g2h1i0jklmn'"
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
         #expect(result.detectedTypes.contains("Generic API Key"))
@@ -143,7 +143,7 @@ struct SensitiveDataDetectorTests {
     @Test("SSH key has critical severity")
     func sshKeyHasCriticalSeverity() {
         let text = "-----BEGIN PRIVATE KEY-----"
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.highestSeverity >= .critical)
     }
@@ -151,7 +151,7 @@ struct SensitiveDataDetectorTests {
     @Test("Password has high severity")
     func passwordHasHighSeverity() {
         let text = "password='secret'"
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.highestSeverity >= .high)
     }
@@ -161,7 +161,7 @@ struct SensitiveDataDetectorTests {
     @Test("Ignores placeholder API keys")
     func ignoresPlaceholderApiKeys() {
         let text = "api_key: 'your_api_key_here'"
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         // Should not flag obvious placeholders
         #expect(!result.isSensitive || result.detections.isEmpty)
@@ -171,7 +171,7 @@ struct SensitiveDataDetectorTests {
 
     @Test("Empty text returns no detections")
     func emptyTextReturnsNoDetections() {
-        let result = detector.analyze(text: "")
+        let result = self.detector.analyze(text: "")
 
         #expect(!result.isSensitive)
         #expect(result.detections.isEmpty)
@@ -181,7 +181,7 @@ struct SensitiveDataDetectorTests {
     @Test("Normal text returns no detections")
     func normalTextReturnsNoDetections() {
         let text = "Hello, this is a normal message without any sensitive data."
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(!result.isSensitive)
     }
@@ -197,7 +197,7 @@ struct SensitiveDataDetectorTests {
         password='mysecr3tpwd'
         SSN: 123-45-6789
         """
-        let result = detector.analyze(text: text)
+        let result = self.detector.analyze(text: text)
 
         #expect(result.isSensitive)
         #expect(result.detections.count >= 3)

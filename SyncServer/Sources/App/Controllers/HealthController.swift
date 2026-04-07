@@ -11,7 +11,7 @@ import Vapor
 
 struct HealthController: RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
-        routes.get("health", use: healthCheck)
+        routes.get("health", use: self.healthCheck)
     }
 
     @Sendable

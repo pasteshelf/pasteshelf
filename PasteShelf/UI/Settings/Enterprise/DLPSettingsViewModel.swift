@@ -26,7 +26,7 @@ final class DLPSettingsViewModel: ObservableObject {
 
     /// Creates the view model and triggers the initial data load.
     init() {
-        Task { await loadData() }
+        Task { await self.loadData() }
 
         // Refresh data when a DLP violation is detected
         NotificationCenter.default.publisher(for: .dlpViolationDetected)
@@ -34,7 +34,7 @@ final class DLPSettingsViewModel: ObservableObject {
             .sink { [weak self] _ in
                 Task { await self?.loadData() }
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 
     // MARK: Internal
@@ -66,17 +66,17 @@ final class DLPSettingsViewModel: ObservableObject {
 
     /// Loads rules and recent violations from `DLPManager`.
     func loadData() async {
-        isLoading = true
-        errorMessage = nil
+        self.isLoading = true
+        self.errorMessage = nil
         defer { isLoading = false }
 
         await DLPManager.shared.loadRules()
         await DLPManager.shared.loadRecentViolations()
 
-        rules = DLPManager.shared.rules
-        recentViolations = DLPManager.shared.recentViolations
+        self.rules = DLPManager.shared.rules
+        self.recentViolations = DLPManager.shared.recentViolations
 
-        logger.info("DLP settings loaded \(rules.count) rules and \(recentViolations.count) violations")
+        self.logger.info("DLP settings loaded \(self.rules.count) rules and \(self.recentViolations.count) violations")
     }
 
     /// Toggles the `isEnabled` state of the given rule and persists the change.
@@ -89,11 +89,11 @@ final class DLPSettingsViewModel: ObservableObject {
 
         do {
             try await DLPManager.shared.updateRule(updated)
-            rules = DLPManager.shared.rules
-            logger.info("Toggled DLP rule '\(rule.name)' to enabled=\(updated.isEnabled)")
+            self.rules = DLPManager.shared.rules
+            self.logger.info("Toggled DLP rule '\(rule.name)' to enabled=\(updated.isEnabled)")
         } catch {
-            errorMessage = error.localizedDescription
-            logger.error("Failed to toggle DLP rule '\(rule.name)': \(error.localizedDescription)")
+            self.errorMessage = error.localizedDescription
+            self.logger.error("Failed to toggle DLP rule '\(rule.name)': \(error.localizedDescription)")
         }
     }
 
@@ -103,19 +103,19 @@ final class DLPSettingsViewModel: ObservableObject {
     func deleteRule(_ rule: DLPRule) async {
         do {
             try await DLPManager.shared.deleteRule(id: rule.id)
-            rules = DLPManager.shared.rules
-            logger.info("Deleted DLP rule '\(rule.name)'")
+            self.rules = DLPManager.shared.rules
+            self.logger.info("Deleted DLP rule '\(rule.name)'")
         } catch {
-            errorMessage = error.localizedDescription
-            logger.error("Failed to delete DLP rule '\(rule.name)': \(error.localizedDescription)")
+            self.errorMessage = error.localizedDescription
+            self.logger.error("Failed to delete DLP rule '\(rule.name)': \(error.localizedDescription)")
         }
     }
 
     /// Installs the default DLP rules if no rules are currently configured.
     func installDefaults() async {
         await DLPManager.shared.installDefaultRulesIfNeeded()
-        rules = DLPManager.shared.rules
-        logger.info("Installed default DLP rules, total: \(rules.count)")
+        self.rules = DLPManager.shared.rules
+        self.logger.info("Installed default DLP rules, total: \(self.rules.count)")
     }
 
     /// Saves (add or update) the given rule via `DLPManager`.
@@ -124,17 +124,17 @@ final class DLPSettingsViewModel: ObservableObject {
     ///   it is updated; otherwise it is added as a new rule.
     func saveRule(_ rule: DLPRule) async {
         do {
-            if rules.contains(where: { $0.id == rule.id }) {
+            if self.rules.contains(where: { $0.id == rule.id }) {
                 try await DLPManager.shared.updateRule(rule)
-                logger.info("Updated DLP rule '\(rule.name)'")
+                self.logger.info("Updated DLP rule '\(rule.name)'")
             } else {
                 try await DLPManager.shared.addRule(rule)
-                logger.info("Added DLP rule '\(rule.name)'")
+                self.logger.info("Added DLP rule '\(rule.name)'")
             }
-            rules = DLPManager.shared.rules
+            self.rules = DLPManager.shared.rules
         } catch {
-            errorMessage = error.localizedDescription
-            logger.error("Failed to save DLP rule '\(rule.name)': \(error.localizedDescription)")
+            self.errorMessage = error.localizedDescription
+            self.logger.error("Failed to save DLP rule '\(rule.name)': \(error.localizedDescription)")
         }
     }
 
@@ -142,29 +142,29 @@ final class DLPSettingsViewModel: ObservableObject {
 
     /// Exports the current violations list as a CSV file, presenting an `NSSavePanel`.
     func exportViolationsAsCSV() {
-        let csvString = buildViolationsCSV()
+        let csvString = self.buildViolationsCSV()
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("dlp_violations_\(Date().timeIntervalSince1970).csv")
 
         do {
             try csvString.write(to: tempURL, atomically: true, encoding: .utf8)
         } catch {
-            errorMessage = "Failed to write CSV file: \(error.localizedDescription)"
+            self.errorMessage = "Failed to write CSV file: \(error.localizedDescription)"
             return
         }
 
-        presentSavePanel(sourceURL: tempURL, suggestedFilename: "dlp_violations.csv", fileExtension: "csv")
+        self.presentSavePanel(sourceURL: tempURL, suggestedFilename: "dlp_violations.csv", fileExtension: "csv")
     }
 
     /// Exports the current violations list as a JSON file, presenting an `NSSavePanel`.
     func exportViolationsAsJSON() {
-        let jsonObjects = recentViolations.map { buildViolationJSONObject(for: $0) }
+        let jsonObjects = self.recentViolations.map { self.buildViolationJSONObject(for: $0) }
 
         let jsonData: Data
         do {
             jsonData = try JSONSerialization.data(withJSONObject: jsonObjects, options: [.prettyPrinted, .sortedKeys])
         } catch {
-            errorMessage = "Failed to serialize violations as JSON: \(error.localizedDescription)"
+            self.errorMessage = "Failed to serialize violations as JSON: \(error.localizedDescription)"
             return
         }
 
@@ -174,11 +174,11 @@ final class DLPSettingsViewModel: ObservableObject {
         do {
             try jsonData.write(to: tempURL, options: .atomic)
         } catch {
-            errorMessage = "Failed to write JSON file: \(error.localizedDescription)"
+            self.errorMessage = "Failed to write JSON file: \(error.localizedDescription)"
             return
         }
 
-        presentSavePanel(sourceURL: tempURL, suggestedFilename: "dlp_violations.json", fileExtension: "json")
+        self.presentSavePanel(sourceURL: tempURL, suggestedFilename: "dlp_violations.json", fileExtension: "json")
     }
 
     // MARK: Private
@@ -232,9 +232,9 @@ final class DLPSettingsViewModel: ObservableObject {
 
     private func buildViolationsCSV() -> String {
         let isoFormatter = ISO8601DateFormatter()
-        var lines: [String] = [Self.csvColumns.map(csvEscape).joined(separator: ",")]
+        var lines: [String] = [Self.csvColumns.map(self.csvEscape).joined(separator: ",")]
 
-        for violation in recentViolations {
+        for violation in self.recentViolations {
             let row = [
                 isoFormatter.string(from: violation.timestamp),
                 violation.ruleName,
@@ -243,7 +243,7 @@ final class DLPSettingsViewModel: ObservableObject {
                 violation.contentPreview,
                 violation.matchedPattern,
                 violation.sourceAppName ?? "",
-            ].map(csvEscape).joined(separator: ",")
+            ].map(self.csvEscape).joined(separator: ",")
 
             lines.append(row)
         }

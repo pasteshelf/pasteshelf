@@ -33,7 +33,7 @@ struct CollectionRules: Codable, Equatable {
 
     /// Whether the rules have any conditions
     var isEmpty: Bool {
-        conditions.isEmpty
+        self.conditions.isEmpty
     }
 }
 
@@ -270,7 +270,7 @@ enum ContentTypeValue: String, CaseIterable {
 
     /// All content type raw values for this category
     var contentTypeRawValues: [String] {
-        contentTypes.map(\.rawValue)
+        self.contentTypes.map(\.rawValue)
     }
 }
 

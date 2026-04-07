@@ -64,13 +64,13 @@ final class CloudKitSyncBackend: SyncBackend {
     }
 
     func setup() async throws {
-        try await provider.setupZone()
-        try await provider.subscribeToChanges()
-        logger.info("CloudKit zone and subscription set up")
+        try await self.provider.setupZone()
+        try await self.provider.subscribeToChanges()
+        self.logger.info("CloudKit zone and subscription set up")
     }
 
     func pushChanges(_ changes: [SyncChange]) async throws -> SyncPushResult {
-        try await provider.pushChanges(changes)
+        try await self.provider.pushChanges(changes)
 
         // CloudKitProvider doesn't return conflict details directly —
         // conflicts surface as CKError.serverRecordChanged and are thrown.
@@ -100,9 +100,9 @@ final class CloudKitSyncBackend: SyncBackend {
     func deleteRecord(entityID: UUID) async throws {
         let recordID = CKRecord.ID(
             recordName: entityID.uuidString,
-            zoneID: provider.zoneID
+            zoneID: self.provider.zoneID
         )
-        try await provider.deleteRecord(withID: recordID)
+        try await self.provider.deleteRecord(withID: recordID)
     }
 
     func subscribeToChanges(handler: @escaping @Sendable (SyncNotification) -> Void) async throws {
@@ -113,13 +113,13 @@ final class CloudKitSyncBackend: SyncBackend {
         //
         // For the SyncBackend interface we register the handler but the
         // actual wiring is handled externally via NotificationCenter.
-        try await provider.subscribeToChanges()
-        logger.debug("CloudKit change subscription active (notifications handled via AppDelegate)")
+        try await self.provider.subscribeToChanges()
+        self.logger.debug("CloudKit change subscription active (notifications handled via AppDelegate)")
     }
 
     func teardown() async throws {
-        try await provider.reset()
-        logger.info("CloudKit sync data reset")
+        try await self.provider.reset()
+        self.logger.info("CloudKit sync data reset")
     }
 
     // MARK: Private

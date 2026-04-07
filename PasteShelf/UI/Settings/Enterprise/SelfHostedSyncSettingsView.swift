@@ -19,22 +19,26 @@ struct SelfHostedSyncSettingsView: View {
             // MARK: Server Configuration
 
             Section("Server Configuration") {
-                TextField("Server URL", text: $viewModel.serverURLString, prompt: Text("https://sync.company.internal"))
+                TextField(
+                    "Server URL",
+                    text: self.$viewModel.serverURLString,
+                    prompt: Text("https://sync.company.internal")
+                )
+                .textFieldStyle(.roundedBorder)
+
+                TextField("Organization ID", text: self.$viewModel.organizationID, prompt: Text("your-org-id"))
                     .textFieldStyle(.roundedBorder)
 
-                TextField("Organization ID", text: $viewModel.organizationID, prompt: Text("your-org-id"))
-                    .textFieldStyle(.roundedBorder)
-
-                SecureField("API Key", text: $viewModel.apiKey, prompt: Text("ps_..."))
+                SecureField("API Key", text: self.$viewModel.apiKey, prompt: Text("ps_..."))
                     .textFieldStyle(.roundedBorder)
             }
 
             // MARK: Security
 
             Section("Security") {
-                Toggle("Certificate Pinning", isOn: $viewModel.certificatePinningEnabled)
+                Toggle("Certificate Pinning", isOn: self.$viewModel.certificatePinningEnabled)
 
-                if viewModel.certificatePinningEnabled {
+                if self.viewModel.certificatePinningEnabled {
                     Text("When enabled, the client verifies the server's TLS certificate against pinned certificates.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -45,20 +49,20 @@ struct SelfHostedSyncSettingsView: View {
 
             Section("Connection Test") {
                 Button {
-                    Task { await viewModel.testConnection() }
+                    Task { await self.viewModel.testConnection() }
                 } label: {
                     HStack {
-                        if viewModel.isTestingConnection {
+                        if self.viewModel.isTestingConnection {
                             ProgressView()
                                 .controlSize(.small)
                         }
-                        Text(viewModel.isTestingConnection ? "Testing..." : "Test Connection")
+                        Text(self.viewModel.isTestingConnection ? "Testing..." : "Test Connection")
                     }
                 }
-                .disabled(viewModel.serverURLString.isEmpty || viewModel.isTestingConnection)
+                .disabled(self.viewModel.serverURLString.isEmpty || self.viewModel.isTestingConnection)
 
-                if !viewModel.testSteps.isEmpty {
-                    ForEach(viewModel.testSteps) { step in
+                if !self.viewModel.testSteps.isEmpty {
+                    ForEach(self.viewModel.testSteps) { step in
                         ConnectionTestStepRow(step: step)
                     }
                 }
@@ -67,9 +71,9 @@ struct SelfHostedSyncSettingsView: View {
             // MARK: Enable/Disable
 
             Section {
-                Toggle("Enable Self-Hosted Sync", isOn: $viewModel.isEnabled)
+                Toggle("Enable Self-Hosted Sync", isOn: self.$viewModel.isEnabled)
 
-                if viewModel.isEnabled {
+                if self.viewModel.isEnabled {
                     Text("Sync data will be sent to your self-hosted server instead of iCloud.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -80,9 +84,9 @@ struct SelfHostedSyncSettingsView: View {
 
             Section {
                 Button("Save Configuration") {
-                    viewModel.saveConfiguration()
+                    self.viewModel.saveConfiguration()
                 }
-                .disabled(viewModel.serverURLString.isEmpty)
+                .disabled(self.viewModel.serverURLString.isEmpty)
             }
         }
         .formStyle(.grouped)
@@ -103,12 +107,12 @@ struct ConnectionTestStepRow: View {
 
     var body: some View {
         HStack {
-            Image(systemName: step.status.icon)
-                .foregroundStyle(stepColor)
+            Image(systemName: self.step.status.icon)
+                .foregroundStyle(self.stepColor)
                 .frame(width: 20)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(step.title)
+                Text(self.step.title)
                     .font(.body)
 
                 if let detail = step.detail {
@@ -125,7 +129,7 @@ struct ConnectionTestStepRow: View {
     // MARK: Private
 
     private var stepColor: Color {
-        switch step.status {
+        switch self.step.status {
         case .inProgress: .blue
         case .passed: .green
         case .failed: .red

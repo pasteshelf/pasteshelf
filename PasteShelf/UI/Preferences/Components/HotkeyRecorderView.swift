@@ -21,15 +21,15 @@ struct HotkeyRecorderView: View {
 
     var body: some View {
         HotkeyRecorderRepresentable(
-            hotkey: $hotkey,
-            isRecording: $isRecording
+            hotkey: self.$hotkey,
+            isRecording: self.$isRecording
         )
         .frame(height: 24)
-        .background(isRecording ? Color.accentColor.opacity(0.1) : Color.secondary.opacity(0.1))
+        .background(self.isRecording ? Color.accentColor.opacity(0.1) : Color.secondary.opacity(0.1))
         .cornerRadius(6)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(isRecording ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 1)
+                .stroke(self.isRecording ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 1)
         )
     }
 }
@@ -49,16 +49,16 @@ struct HotkeyRecorderRepresentable: NSViewRepresentable {
         var parent: HotkeyRecorderRepresentable
 
         func hotkeyRecorderDidStartRecording() {
-            parent.isRecording = true
+            self.parent.isRecording = true
         }
 
         func hotkeyRecorderDidStopRecording() {
-            parent.isRecording = false
+            self.parent.isRecording = false
         }
 
         func hotkeyRecorderDidRecordHotkey(_ hotkey: StoredHotkey) {
-            parent.hotkey = hotkey
-            parent.isRecording = false
+            self.parent.hotkey = hotkey
+            self.parent.isRecording = false
         }
     }
 
@@ -68,13 +68,13 @@ struct HotkeyRecorderRepresentable: NSViewRepresentable {
     func makeNSView(context: Context) -> HotkeyRecorderNSView {
         let view = HotkeyRecorderNSView()
         view.delegate = context.coordinator
-        view.updateDisplay(hotkey: hotkey)
+        view.updateDisplay(hotkey: self.hotkey)
         return view
     }
 
     func updateNSView(_ nsView: HotkeyRecorderNSView, context: Context) {
-        nsView.updateDisplay(hotkey: hotkey)
-        nsView.isRecording = isRecording
+        nsView.updateDisplay(hotkey: self.hotkey)
+        nsView.isRecording = self.isRecording
     }
 
     func makeCoordinator() -> Coordinator {
@@ -99,12 +99,12 @@ class HotkeyRecorderNSView: NSView {
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        setup()
+        self.setup()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setup()
+        self.setup()
     }
 
     // MARK: Internal
@@ -120,21 +120,21 @@ class HotkeyRecorderNSView: NSView {
     var isRecording = false {
         didSet {
             needsDisplay = true
-            updateAccessibility()
+            self.updateAccessibility()
         }
     }
 
     override func becomeFirstResponder() -> Bool {
-        isRecording = true
-        textField.stringValue = "Press shortcut..."
-        delegate?.hotkeyRecorderDidStartRecording()
+        self.isRecording = true
+        self.textField.stringValue = "Press shortcut..."
+        self.delegate?.hotkeyRecorderDidStartRecording()
         return super.becomeFirstResponder()
     }
 
     override func resignFirstResponder() -> Bool {
-        isRecording = false
-        textField.stringValue = displayString
-        delegate?.hotkeyRecorderDidStopRecording()
+        self.isRecording = false
+        self.textField.stringValue = self.displayString
+        self.delegate?.hotkeyRecorderDidStopRecording()
         return super.resignFirstResponder()
     }
 
@@ -147,7 +147,7 @@ class HotkeyRecorderNSView: NSView {
     // MARK: - Key Events
 
     override func keyDown(with event: NSEvent) {
-        guard isRecording else {
+        guard self.isRecording else {
             super.keyDown(with: event)
             return
         }
@@ -181,9 +181,9 @@ class HotkeyRecorderNSView: NSView {
         }
 
         // Check for conflicts with common system shortcuts
-        if isSystemShortcut(keyCode: event.keyCode, modifiers: modifiers) {
+        if self.isSystemShortcut(keyCode: event.keyCode, modifiers: modifiers) {
             NSSound.beep()
-            showConflictAlert()
+            self.showConflictAlert()
             return
         }
 
@@ -192,18 +192,18 @@ class HotkeyRecorderNSView: NSView {
             modifiers: carbonModifiers
         )
 
-        displayString = newHotkey.displayString
-        textField.stringValue = displayString
+        self.displayString = newHotkey.displayString
+        self.textField.stringValue = self.displayString
 
-        delegate?.hotkeyRecorderDidRecordHotkey(newHotkey)
+        self.delegate?.hotkeyRecorderDidRecordHotkey(newHotkey)
         window?.makeFirstResponder(nil)
     }
 
     // MARK: - Display
 
     func updateDisplay(hotkey: StoredHotkey) {
-        displayString = hotkey.displayString
-        textField.stringValue = isRecording ? "Press shortcut..." : displayString
+        self.displayString = hotkey.displayString
+        self.textField.stringValue = self.isRecording ? "Press shortcut..." : self.displayString
     }
 
     // MARK: Private
@@ -213,33 +213,33 @@ class HotkeyRecorderNSView: NSView {
 
     private func setup() {
         // Create text field for display
-        textField = NSTextField()
-        textField.isEditable = false
-        textField.isBordered = false
-        textField.backgroundColor = .clear
-        textField.alignment = .center
-        textField.font = .systemFont(ofSize: 12, weight: .medium)
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(textField)
+        self.textField = NSTextField()
+        self.textField.isEditable = false
+        self.textField.isBordered = false
+        self.textField.backgroundColor = .clear
+        self.textField.alignment = .center
+        self.textField.font = .systemFont(ofSize: 12, weight: .medium)
+        self.textField.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(self.textField)
 
         NSLayoutConstraint.activate([
-            textField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            textField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            textField.centerYAnchor.constraint(equalTo: centerYAnchor),
+            self.textField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            self.textField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            self.textField.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
 
         // Set up accessibility
         setAccessibilityRole(.button)
         setAccessibilityLabel("Hotkey recorder")
-        updateAccessibility()
+        self.updateAccessibility()
     }
 
     private func updateAccessibility() {
-        if isRecording {
+        if self.isRecording {
             setAccessibilityValue("Recording")
             setAccessibilityHelp("Press a key combination to set the hotkey, or Escape to cancel")
         } else {
-            setAccessibilityValue(displayString)
+            setAccessibilityValue(self.displayString)
             setAccessibilityHelp("Click to record a new hotkey")
         }
     }

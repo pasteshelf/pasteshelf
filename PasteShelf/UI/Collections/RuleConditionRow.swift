@@ -24,7 +24,7 @@ struct RuleConditionRow: View {
     var body: some View {
         HStack(spacing: 8) {
             // Field picker
-            Picker("Field", selection: $condition.field) {
+            Picker("Field", selection: self.$condition.field) {
                 ForEach(RuleField.allCases, id: \.self) { field in
                     Label(field.displayName, systemImage: field.icon)
                         .tag(field)
@@ -32,18 +32,18 @@ struct RuleConditionRow: View {
             }
             .labelsHidden()
             .frame(width: 130)
-            .onChange(of: condition.field) { _, newField in
+            .onChange(of: self.condition.field) { _, newField in
                 // Reset operator when field changes
-                if !newField.availableOperators.contains(condition.comparisonOperator) {
-                    condition.comparisonOperator = newField.defaultOperator
+                if !newField.availableOperators.contains(self.condition.comparisonOperator) {
+                    self.condition.comparisonOperator = newField.defaultOperator
                 }
                 // Reset value when field changes
-                condition.value = defaultValue(for: newField)
+                self.condition.value = self.defaultValue(for: newField)
             }
 
             // Operator picker
-            Picker("Operator", selection: $condition.comparisonOperator) {
-                ForEach(condition.field.availableOperators, id: \.self) { op in
+            Picker("Operator", selection: self.$condition.comparisonOperator) {
+                ForEach(self.condition.field.availableOperators, id: \.self) { op in
                     Text(op.displayName)
                         .tag(op)
                 }
@@ -52,13 +52,13 @@ struct RuleConditionRow: View {
             .frame(width: 110)
 
             // Value input
-            valueInput
+            self.valueInput
 
             // Delete button
             if let onDelete {
                 Button(action: onDelete) {
                     Image(systemName: "minus.circle.fill")
-                        .foregroundStyle(.red.opacity(isHovered ? 1.0 : 0.7))
+                        .foregroundStyle(.red.opacity(self.isHovered ? 1.0 : 0.7))
                 }
                 .buttonStyle(.plain)
                 .help("Remove condition")
@@ -66,7 +66,7 @@ struct RuleConditionRow: View {
         }
         .padding(.vertical, 4)
         .onHover { hovering in
-            isHovered = hovering
+            self.isHovered = hovering
         }
     }
 
@@ -79,31 +79,31 @@ struct RuleConditionRow: View {
     // MARK: - Value Input
 
     @ViewBuilder private var valueInput: some View {
-        switch condition.field {
+        switch self.condition.field {
         case .contentType:
-            contentTypePicker
+            self.contentTypePicker
 
         case .sourceApp:
-            TextField("App name or bundle ID", text: $condition.value)
+            TextField("App name or bundle ID", text: self.$condition.value)
                 .textFieldStyle(.roundedBorder)
 
         case .textContent:
-            TextField("Text to match", text: $condition.value)
+            TextField("Text to match", text: self.$condition.value)
                 .textFieldStyle(.roundedBorder)
 
         case .dateCreated:
-            dateRangePicker
+            self.dateRangePicker
 
         case .isFavorite,
              .isSensitive:
-            booleanPicker
+            self.booleanPicker
         }
     }
 
     // MARK: - Content Type Picker
 
     private var contentTypePicker: some View {
-        Picker("Value", selection: $condition.value) {
+        Picker("Value", selection: self.$condition.value) {
             ForEach(ContentTypeValue.allCases, id: \.rawValue) { contentType in
                 Text(contentType.displayName)
                     .tag(contentType.rawValue)
@@ -116,8 +116,8 @@ struct RuleConditionRow: View {
 
     private var dateRangePicker: some View {
         Group {
-            if condition.comparisonOperator == .withinLast {
-                Picker("Value", selection: $condition.value) {
+            if self.condition.comparisonOperator == .withinLast {
+                Picker("Value", selection: self.$condition.value) {
                     ForEach(DateRangeValue.allCases, id: \.rawValue) { range in
                         Text(range.displayName)
                             .tag(range.rawValue)
@@ -129,8 +129,8 @@ struct RuleConditionRow: View {
                 DatePicker(
                     "Date",
                     selection: Binding(
-                        get: { parseDate(condition.value) ?? Date() },
-                        set: { condition.value = formatDate($0) }
+                        get: { self.parseDate(self.condition.value) ?? Date() },
+                        set: { self.condition.value = self.formatDate($0) }
                     ),
                     displayedComponents: .date
                 )
@@ -142,7 +142,7 @@ struct RuleConditionRow: View {
     // MARK: - Boolean Picker
 
     private var booleanPicker: some View {
-        Picker("Value", selection: $condition.value) {
+        Picker("Value", selection: self.$condition.value) {
             Text("Yes").tag("true")
             Text("No").tag("false")
         }
@@ -188,15 +188,15 @@ struct RuleConditionRow: View {
             var body: some View {
                 VStack(spacing: 12) {
                     RuleConditionRow(
-                        condition: $condition
+                        condition: self.$condition
                     ) {}
 
                     Divider()
 
                     // Preview different fields
-                    Text("Field: \(condition.field.displayName)")
-                    Text("Operator: \(condition.comparisonOperator.displayName)")
-                    Text("Value: \(condition.value)")
+                    Text("Field: \(self.condition.field.displayName)")
+                    Text("Operator: \(self.condition.comparisonOperator.displayName)")
+                    Text("Value: \(self.condition.value)")
                 }
                 .padding()
             }

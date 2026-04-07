@@ -25,7 +25,7 @@ final class SyncKeyManager: Sendable {
 
     /// Check if the primary encryption key exists
     var hasKey: Bool {
-        loadPrimaryKey() != nil
+        self.loadPrimaryKey() != nil
     }
 
     /// Get or create the sync encryption key
@@ -38,11 +38,11 @@ final class SyncKeyManager: Sendable {
             primaryKey = existingKey
             Self.logger.debug("Loaded existing primary key from keychain")
         } else {
-            primaryKey = try generateAndStorePrimaryKey()
+            primaryKey = try self.generateAndStorePrimaryKey()
             Self.logger.info("Generated and stored new primary key")
         }
 
-        return deriveSyncKey(from: primaryKey)
+        return self.deriveSyncKey(from: primaryKey)
     }
 
     /// Get the raw sync key data (for protocol conformance)
@@ -53,7 +53,7 @@ final class SyncKeyManager: Sendable {
 
     /// Delete all sync keys (for reset functionality)
     func deleteKeys() throws {
-        try deleteKeyFromKeychain(account: primaryKeyAccount)
+        try self.deleteKeyFromKeychain(account: self.primaryKeyAccount)
         Self.logger.info("Deleted sync encryption keys")
     }
 
@@ -61,13 +61,13 @@ final class SyncKeyManager: Sendable {
     /// - Returns: The new sync key (caller must re-encrypt data)
     func rotateKey() throws -> SymmetricKey {
         // Delete existing key
-        try? deleteKeys()
+        try? self.deleteKeys()
 
         // Generate new key
         let newPrimaryKey = try generateAndStorePrimaryKey()
         Self.logger.info("Rotated primary encryption key")
 
-        return deriveSyncKey(from: newPrimaryKey)
+        return self.deriveSyncKey(from: newPrimaryKey)
     }
 
     // MARK: Private
@@ -115,7 +115,7 @@ final class SyncKeyManager: Sendable {
         }
 
         // Store in iCloud Keychain
-        try storeInKeychain(data: keyData, account: primaryKeyAccount)
+        try self.storeInKeychain(data: keyData, account: self.primaryKeyAccount)
 
         return keyData
     }
@@ -138,8 +138,8 @@ final class SyncKeyManager: Sendable {
     private func loadPrimaryKey() -> Data? {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: primaryKeyAccount,
+            kSecAttrService as String: self.service,
+            kSecAttrAccount as String: self.primaryKeyAccount,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
             // Enable iCloud Keychain sync
@@ -151,7 +151,7 @@ final class SyncKeyManager: Sendable {
 
         guard status == errSecSuccess else {
             if status != errSecItemNotFound {
-                Self.logger.warning("Keychain load failed: \(securityErrorMessage(for: status))")
+                Self.logger.warning("Keychain load failed: \(self.securityErrorMessage(for: status))")
             }
             return nil
         }
@@ -162,11 +162,11 @@ final class SyncKeyManager: Sendable {
     /// Store key data in keychain with iCloud sync
     private func storeInKeychain(data: Data, account: String) throws {
         // First try to delete any existing item
-        try? deleteKeyFromKeychain(account: account)
+        try? self.deleteKeyFromKeychain(account: account)
 
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: self.service,
             kSecAttrAccount as String: account,
             kSecValueData as String: data,
             // Store in iCloud Keychain for cross-device access
@@ -178,7 +178,7 @@ final class SyncKeyManager: Sendable {
         let status = SecItemAdd(query as CFDictionary, nil)
 
         guard status == errSecSuccess else {
-            let message = securityErrorMessage(for: status)
+            let message = self.securityErrorMessage(for: status)
             Self.logger.error("Failed to store key in keychain: \(message)")
             throw SyncError.encryptionKeyMissing
         }
@@ -188,7 +188,7 @@ final class SyncKeyManager: Sendable {
     private func deleteKeyFromKeychain(account: String) throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: self.service,
             kSecAttrAccount as String: account,
             kSecAttrSynchronizable as String: true,
         ]
@@ -196,7 +196,7 @@ final class SyncKeyManager: Sendable {
         let status = SecItemDelete(query as CFDictionary)
 
         guard status == errSecSuccess || status == errSecItemNotFound else {
-            let message = securityErrorMessage(for: status)
+            let message = self.securityErrorMessage(for: status)
             Self.logger.error("Failed to delete key from keychain: \(message)")
             throw SyncError.encryptionKeyMissing
         }

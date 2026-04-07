@@ -68,12 +68,12 @@ enum SOC2AccessControlEvidence {
     static func exportEvidencePackage(dateRange: ClosedRange<Date>) async throws -> URL {
         let rangeStart = dateRange.lowerBound
         let rangeEnd = dateRange.upperBound
-        logger.info(
+        self.logger.info(
             "Starting SOC 2 access control evidence export (range: \(rangeStart) - \(rangeEnd))"
         )
 
         guard let storage = AuditManager.shared.storage else {
-            logger.error("Audit storage unavailable — AuditManager not configured")
+            self.logger.error("Audit storage unavailable — AuditManager not configured")
             throw EvidenceError.storageUnavailable
         }
 
@@ -90,7 +90,7 @@ enum SOC2AccessControlEvidence {
             to: exportDir
         )
 
-        logger.info("SOC 2 access control evidence package written to \(exportDir.path)")
+        self.logger.info("SOC 2 access control evidence package written to \(exportDir.path)")
         return exportDir
     }
 
@@ -122,9 +122,9 @@ enum SOC2AccessControlEvidence {
 
         for event in events.sorted(by: { $0.timestamp < $1.timestamp }) {
             let date = isoFormatter.string(from: event.timestamp)
-            let userId = csvEscape(event.userId ?? "")
-            let action = csvEscape(event.action.rawValue)
-            let result = csvEscape(event.detail["result"] ?? event.severity.rawValue)
+            let userId = self.csvEscape(event.userId ?? "")
+            let action = self.csvEscape(event.action.rawValue)
+            let result = self.csvEscape(event.detail["result"] ?? event.severity.rawValue)
             rows.append("\(date),\(userId),\(action),\(result)")
         }
 
@@ -207,7 +207,7 @@ enum SOC2AccessControlEvidence {
         let authEvents = authEntries.compactMap { AuditEvent(from: $0) }
         let policyEvents = policyEntries.compactMap { AuditEvent(from: $0) }
 
-        logger.info(
+        self.logger.info(
             "Fetched \(authEvents.count) authentication event(s) and \(policyEvents.count) policy event(s)"
         )
 
@@ -225,7 +225,7 @@ enum SOC2AccessControlEvidence {
         do {
             try FileManager.default.createDirectory(at: exportDir, withIntermediateDirectories: true)
         } catch {
-            logger.error("Failed to create evidence export directory: \(error.localizedDescription)")
+            self.logger.error("Failed to create evidence export directory: \(error.localizedDescription)")
             throw EvidenceError.fileWriteFailed(
                 "Could not create export directory: \(error.localizedDescription)"
             )
@@ -244,45 +244,45 @@ enum SOC2AccessControlEvidence {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
 
-        try writeJSON(
+        try self.writeJSON(
             encoder.encode(authEvents),
             to: exportDir.appendingPathComponent("authentication_events.json")
         )
 
-        try writeJSON(
+        try self.writeJSON(
             encoder.encode(policyEvents),
             to: exportDir.appendingPathComponent("policy_changes.json")
         )
 
         let allAccessEvents = authEvents + policyEvents
-        let csvString = generateAccessSummaryCSV(allAccessEvents)
+        let csvString = self.generateAccessSummaryCSV(allAccessEvents)
         guard let csvData = csvString.data(using: .utf8) else {
             throw EvidenceError.fileWriteFailed("Failed to encode CSV string as UTF-8")
         }
-        try writeData(csvData, to: exportDir.appendingPathComponent("access_summary.csv"))
+        try self.writeData(csvData, to: exportDir.appendingPathComponent("access_summary.csv"))
 
-        let metadataData = generateMetadata(
+        let metadataData = self.generateMetadata(
             dateRange: dateRange,
             authCount: authEvents.count,
             policyCount: policyEvents.count
         )
-        try writeJSON(metadataData, to: exportDir.appendingPathComponent("evidence_metadata.json"))
+        try self.writeJSON(metadataData, to: exportDir.appendingPathComponent("evidence_metadata.json"))
     }
 
     // MARK: - Private Helpers
 
     /// Writes `data` to `url`, wrapping any file-system error in `EvidenceError.fileWriteFailed`.
     private static func writeJSON(_ data: Data, to url: URL) throws {
-        try writeData(data, to: url)
+        try self.writeData(data, to: url)
     }
 
     /// Writes `data` to `url`, wrapping any file-system error in `EvidenceError.fileWriteFailed`.
     private static func writeData(_ data: Data, to url: URL) throws {
         do {
             try data.write(to: url, options: .atomic)
-            logger.debug("Wrote evidence file: \(url.lastPathComponent) (\(data.count) bytes)")
+            self.logger.debug("Wrote evidence file: \(url.lastPathComponent) (\(data.count) bytes)")
         } catch {
-            logger.error("Failed to write \(url.lastPathComponent): \(error.localizedDescription)")
+            self.logger.error("Failed to write \(url.lastPathComponent): \(error.localizedDescription)")
             throw EvidenceError.fileWriteFailed("\(url.lastPathComponent): \(error.localizedDescription)")
         }
     }

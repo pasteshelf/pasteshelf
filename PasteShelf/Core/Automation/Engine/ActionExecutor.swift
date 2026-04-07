@@ -35,46 +35,46 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
         content: ClipboardContent,
         rule: AutomationRule
     ) async throws -> ActionExecutionResult {
-        logger.debug("Executing action: \(action.displayName)")
+        self.logger.debug("Executing action: \(action.displayName)")
 
         switch action {
         case let .transform(_, preset):
-            return try await executeTransform(preset: preset, content: content)
+            return try await self.executeTransform(preset: preset, content: content)
 
         case let .addTag(_, tagName):
-            return try await executeAddTag(tagName: tagName, content: content)
+            return try await self.executeAddTag(tagName: tagName, content: content)
 
         case let .removeTag(_, tagName):
-            return try await executeRemoveTag(tagName: tagName, content: content)
+            return try await self.executeRemoveTag(tagName: tagName, content: content)
 
         case let .setFavorite(_, isFavorite):
-            return try await executeSetFavorite(isFavorite: isFavorite, content: content)
+            return try await self.executeSetFavorite(isFavorite: isFavorite, content: content)
 
         case let .moveToFolder(_, folderName):
-            return try await executeMoveToFolder(folderName: folderName, content: content)
+            return try await self.executeMoveToFolder(folderName: folderName, content: content)
 
         case .copyToClipboard:
-            return try executeCopyToClipboard(content: content)
+            return try self.executeCopyToClipboard(content: content)
 
         case let .notify(_, title, message):
-            return try await executeNotify(title: title, message: message, content: content, rule: rule)
+            return try await self.executeNotify(title: title, message: message, content: content, rule: rule)
 
         case let .openURL(_, urlTemplate):
-            return try executeOpenURL(urlTemplate: urlTemplate, content: content)
+            return try self.executeOpenURL(urlTemplate: urlTemplate, content: content)
 
         #if !APP_STORE
             case let .runScript(_, scriptPath):
-                return try await executeRunScript(scriptPath: scriptPath, content: content)
+                return try await self.executeRunScript(scriptPath: scriptPath, content: content)
         #endif
 
         case let .webhook(_, endpointId):
-            return try await executeWebhook(endpointId: endpointId, content: content, rule: rule)
+            return try await self.executeWebhook(endpointId: endpointId, content: content, rule: rule)
 
         case let .markSensitive(_, isSensitive):
-            return executeMarkSensitive(isSensitive: isSensitive, content: content)
+            return self.executeMarkSensitive(isSensitive: isSensitive, content: content)
 
         case .delete:
-            return executeDelete(content: content)
+            return self.executeDelete(content: content)
         }
     }
 
@@ -91,7 +91,7 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
             scriptPath: String,
             content: ClipboardContent
         ) async throws -> ActionExecutionResult {
-            let expandedPath = expandTemplate(scriptPath, content: content, rule: nil)
+            let expandedPath = self.expandTemplate(scriptPath, content: content, rule: nil)
             let scriptURL = URL(fileURLWithPath: expandedPath)
 
             guard FileManager.default.fileExists(atPath: expandedPath) else {
@@ -143,7 +143,7 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
                 group.cancelAll()
             }
 
-            logger.debug("Executed script: \(expandedPath)")
+            self.logger.debug("Executed script: \(expandedPath)")
             return ActionExecutionResult(content: content)
         }
     #endif
@@ -165,14 +165,14 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
 
         // Only transform text content
         guard let text = content.plainText else {
-            logger.warning("Transform action skipped: no text content")
+            self.logger.warning("Transform action skipped: no text content")
             return ActionExecutionResult(content: content)
         }
 
         let transformed = preset.transform(text)
         modifiedContent.plainText = transformed
 
-        logger.debug("Transformed text using \(preset.displayName)")
+        self.logger.debug("Transformed text using \(preset.displayName)")
         return ActionExecutionResult(content: modifiedContent)
     }
 
@@ -185,18 +185,18 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
         // Find or create the tag, then add it to the item
         var tag = await storageManager.fetchTag(byName: tagName)
         if tag == nil {
-            tag = await storageManager.saveTag(name: tagName, color: "#007AFF")
+            tag = await self.storageManager.saveTag(name: tagName, color: "#007AFF")
         }
 
         guard let resolvedTag = tag else {
-            logger.warning("Failed to find or create tag: \(tagName)")
+            self.logger.warning("Failed to find or create tag: \(tagName)")
             return ActionExecutionResult(content: content)
         }
 
         if let item = await storageManager.fetchItem(byId: content.id) {
             let success = await storageManager.addTags([resolvedTag], to: item)
             if success {
-                logger.debug("Added tag '\(tagName)' to item \(content.id)")
+                self.logger.debug("Added tag '\(tagName)' to item \(content.id)")
             }
         }
 
@@ -207,7 +207,7 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
         tagName: String,
         content: ClipboardContent
     ) async throws -> ActionExecutionResult {
-        logger.debug("Tag to remove: \(tagName) (applied after save)")
+        self.logger.debug("Tag to remove: \(tagName) (applied after save)")
         return ActionExecutionResult(content: content)
     }
 
@@ -220,7 +220,7 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
         if let item = await storageManager.fetchItem(byId: content.id) {
             let success = await storageManager.setFavorite(item: item, isFavorite: isFavorite)
             if success {
-                logger.debug("Set favorite=\(isFavorite) for item \(content.id)")
+                self.logger.debug("Set favorite=\(isFavorite) for item \(content.id)")
             }
         }
         return ActionExecutionResult(content: content)
@@ -237,14 +237,14 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
         let folder = folders.first { $0.name == folderName }
 
         guard let targetFolder = folder else {
-            logger.warning("Folder not found: \(folderName)")
+            self.logger.warning("Folder not found: \(folderName)")
             return ActionExecutionResult(content: content)
         }
 
         if let item = await storageManager.fetchItem(byId: content.id) {
             let success = await storageManager.moveItem(item, to: targetFolder)
             if success {
-                logger.debug("Moved item \(content.id) to folder '\(folderName)'")
+                self.logger.debug("Moved item \(content.id) to folder '\(folderName)'")
             }
         }
 
@@ -262,15 +262,15 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
         // Copy based on content type
         if let text = content.plainText {
             pasteboard.setString(text, forType: .string)
-            logger.debug("Copied text to clipboard")
+            self.logger.debug("Copied text to clipboard")
         } else if let imageData = content.imageData,
                   let image = NSImage(data: imageData)
         {
             pasteboard.writeObjects([image])
-            logger.debug("Copied image to clipboard")
+            self.logger.debug("Copied image to clipboard")
         } else if let url = content.url {
             pasteboard.setString(url.absoluteString, forType: .string)
-            logger.debug("Copied URL to clipboard")
+            self.logger.debug("Copied URL to clipboard")
         }
 
         return ActionExecutionResult(content: content)
@@ -285,8 +285,8 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
         rule: AutomationRule
     ) async throws -> ActionExecutionResult {
         // Expand template variables
-        let expandedTitle = expandTemplate(title, content: content, rule: rule)
-        let expandedMessage = expandTemplate(message, content: content, rule: rule)
+        let expandedTitle = self.expandTemplate(title, content: content, rule: rule)
+        let expandedMessage = self.expandTemplate(message, content: content, rule: rule)
 
         // Request notification permission if needed
         let center = UNUserNotificationCenter.current()
@@ -296,7 +296,7 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
             do {
                 try await center.requestAuthorization(options: [.alert, .sound])
             } catch {
-                logger.error("Failed to request notification permission: \(error.localizedDescription)")
+                self.logger.error("Failed to request notification permission: \(error.localizedDescription)")
             }
         }
 
@@ -314,7 +314,7 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
 
         do {
             try await center.add(request)
-            logger.debug("Notification posted: \(expandedTitle)")
+            self.logger.debug("Notification posted: \(expandedTitle)")
         } catch {
             throw AutomationError.actionExecutionFailed(
                 actionType: "notify",
@@ -332,7 +332,7 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
         content: ClipboardContent
     ) throws -> ActionExecutionResult {
         // Expand template variables in URL
-        let expandedURL = expandTemplate(urlTemplate, content: content, rule: nil)
+        let expandedURL = self.expandTemplate(urlTemplate, content: content, rule: nil)
 
         guard let url = URL(string: expandedURL) else {
             throw AutomationError.actionExecutionFailed(
@@ -342,7 +342,7 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
         }
 
         NSWorkspace.shared.open(url)
-        logger.debug("Opened URL: \(url.absoluteString)")
+        self.logger.debug("Opened URL: \(url.absoluteString)")
 
         return ActionExecutionResult(content: content)
     }
@@ -370,9 +370,9 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
         )
 
         // Send webhook
-        try await sendWebhook(endpoint: endpoint, payload: payload)
+        try await self.sendWebhook(endpoint: endpoint, payload: payload)
 
-        logger.debug("Webhook sent to: \(endpoint.url)")
+        self.logger.debug("Webhook sent to: \(endpoint.url)")
         return ActionExecutionResult(content: content)
     }
 
@@ -446,7 +446,7 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
     ) -> ActionExecutionResult {
         var modifiedContent = content
         modifiedContent.isSensitive = isSensitive
-        logger.debug("Marked content as sensitive: \(isSensitive)")
+        self.logger.debug("Marked content as sensitive: \(isSensitive)")
         return ActionExecutionResult(content: modifiedContent)
     }
 
@@ -455,7 +455,7 @@ final class ActionExecutor { // swiftlint:disable:this type_body_length
     private func executeDelete(
         content: ClipboardContent
     ) -> ActionExecutionResult {
-        logger.debug("Delete action: item will not be stored")
+        self.logger.debug("Delete action: item will not be stored")
         return ActionExecutionResult(content: content, shouldDelete: true)
     }
 
@@ -525,10 +525,10 @@ struct AutomationWebhookPayload: Codable {
 
     init(event: String, ruleId: UUID, ruleName: String, content: ClipboardContent) {
         self.event = event
-        timestamp = Date()
+        self.timestamp = Date()
         self.ruleId = ruleId
         self.ruleName = ruleName
-        data = PayloadData(
+        self.data = PayloadData(
             contentType: content.primaryType.rawValue,
             preview: content.previewText,
             sourceApp: content.sourceApp?.name,

@@ -24,7 +24,7 @@ final class SSOSettingsViewModel: ObservableObject {
     // MARK: - Initialization
 
     init() {
-        Task { await loadProviders() }
+        Task { await self.loadProviders() }
     }
 
     // MARK: Internal
@@ -79,13 +79,13 @@ final class SSOSettingsViewModel: ObservableObject {
 
     /// Derived accessor for the currently selected provider
     var selectedProvider: IdentityProvider? {
-        get { providers.first { $0.id == selectedProviderID } }
-        set { selectedProviderID = newValue?.id }
+        get { self.providers.first { $0.id == self.selectedProviderID } }
+        set { self.selectedProviderID = newValue?.id }
     }
 
     /// Whether the form is being used for a new provider (vs editing an existing one)
     var isFormForNewProvider: Bool {
-        editingProvider == nil
+        self.editingProvider == nil
     }
 
     // MARK: - Data Loading
@@ -98,11 +98,11 @@ final class SSOSettingsViewModel: ObservableObject {
         }
 
         do {
-            providers = try await store.loadAll()
+            self.providers = try await store.loadAll()
                 .sorted { $0.createdAt < $1.createdAt }
         } catch {
-            logger.error("Failed to load identity providers: \(error.localizedDescription)")
-            errorMessage = "Failed to load providers: \(error.localizedDescription)"
+            self.logger.error("Failed to load identity providers: \(error.localizedDescription)")
+            self.errorMessage = "Failed to load providers: \(error.localizedDescription)"
         }
     }
 
@@ -110,44 +110,44 @@ final class SSOSettingsViewModel: ObservableObject {
 
     /// Prepares the form to add a new provider
     func addProvider() {
-        editingProvider = nil
-        testResult = nil
-        isShowingForm = true
+        self.editingProvider = nil
+        self.testResult = nil
+        self.isShowingForm = true
     }
 
     /// Prepares the form to edit an existing provider
     func editProvider(_ provider: IdentityProvider) {
-        editingProvider = provider
-        testResult = nil
-        isShowingForm = true
+        self.editingProvider = provider
+        self.testResult = nil
+        self.isShowingForm = true
     }
 
     /// Requests deletion of the given provider (shows confirmation alert)
     func requestDeleteProvider(_ provider: IdentityProvider) {
-        selectedProviderID = provider.id
-        isShowingDeleteConfirmation = true
+        self.selectedProviderID = provider.id
+        self.isShowingDeleteConfirmation = true
     }
 
     /// Deletes the provider and refreshes the list
     func deleteProvider(_ provider: IdentityProvider) async {
         guard let store = SSOManager.shared.providerStore else {
-            providers.removeAll { $0.id == provider.id }
-            if selectedProviderID == provider.id {
-                selectedProviderID = nil
+            self.providers.removeAll { $0.id == provider.id }
+            if self.selectedProviderID == provider.id {
+                self.selectedProviderID = nil
             }
             return
         }
 
         do {
             try await store.delete(id: provider.id)
-            providers.removeAll { $0.id == provider.id }
-            if selectedProviderID == provider.id {
-                selectedProviderID = nil
+            self.providers.removeAll { $0.id == provider.id }
+            if self.selectedProviderID == provider.id {
+                self.selectedProviderID = nil
             }
-            logger.info("Deleted identity provider '\(provider.name)'")
+            self.logger.info("Deleted identity provider '\(provider.name)'")
         } catch {
-            logger.error("Failed to delete provider '\(provider.name)': \(error.localizedDescription)")
-            errorMessage = "Failed to delete provider: \(error.localizedDescription)"
+            self.logger.error("Failed to delete provider '\(provider.name)': \(error.localizedDescription)")
+            self.errorMessage = "Failed to delete provider: \(error.localizedDescription)"
         }
     }
 
@@ -156,20 +156,20 @@ final class SSOSettingsViewModel: ObservableObject {
         guard let store = SSOManager.shared.providerStore else {
             // In-memory: upsert
             if let index = providers.firstIndex(where: { $0.id == provider.id }) {
-                providers[index] = provider
+                self.providers[index] = provider
             } else {
-                providers.append(provider)
+                self.providers.append(provider)
             }
             return
         }
 
         do {
             try await store.save(provider)
-            await loadProviders()
-            logger.info("Saved identity provider '\(provider.name)'")
+            await self.loadProviders()
+            self.logger.info("Saved identity provider '\(provider.name)'")
         } catch {
-            logger.error("Failed to save provider '\(provider.name)': \(error.localizedDescription)")
-            errorMessage = "Failed to save provider: \(error.localizedDescription)"
+            self.logger.error("Failed to save provider '\(provider.name)': \(error.localizedDescription)")
+            self.errorMessage = "Failed to save provider: \(error.localizedDescription)"
         }
     }
 
@@ -178,7 +178,7 @@ final class SSOSettingsViewModel: ObservableObject {
         var updated = provider
         updated.isEnabled.toggle()
         updated.updatedAt = Date()
-        await saveProvider(updated)
+        await self.saveProvider(updated)
     }
 
     // MARK: - Test Connection
@@ -188,8 +188,8 @@ final class SSOSettingsViewModel: ObservableObject {
     /// For OIDC providers this performs an OIDC Discovery fetch. For SAML providers it
     /// validates that the SSO URL is reachable and returns an HTTP 200 response.
     func testConnection(_ provider: IdentityProvider) async {
-        isTestingConnection = true
-        testResult = nil
+        self.isTestingConnection = true
+        self.testResult = nil
 
         defer { isTestingConnection = false }
 
@@ -197,39 +197,39 @@ final class SSOSettingsViewModel: ObservableObject {
             switch provider.type {
             case .oidc:
                 guard let config = provider.oidcConfig else {
-                    testResult = .failure("OIDC configuration is incomplete.")
+                    self.testResult = .failure("OIDC configuration is incomplete.")
                     return
                 }
                 let discovery = OIDCDiscovery()
                 let document = try await discovery.discover(issuerURL: config.issuerURL)
                 let scopesList = document.scopesSupported?
                     .joined(separator: ", ") ?? "unspecified"
-                testResult = .success(
+                self.testResult = .success(
                     "Connected to \(document.issuer). Scopes supported: \(scopesList)."
                 )
 
             case .saml:
                 guard let config = provider.samlConfig else {
-                    testResult = .failure("SAML configuration is incomplete.")
+                    self.testResult = .failure("SAML configuration is incomplete.")
                     return
                 }
                 let request = URLRequest(url: config.ssoURL, timeoutInterval: 10)
                 let (_, response) = try await URLSession.shared.data(for: request)
                 if let http = response as? HTTPURLResponse, http.statusCode < 500 {
-                    testResult = .success(
+                    self.testResult = .success(
                         "SSO endpoint is reachable (HTTP \(http.statusCode))."
                     )
                 } else {
-                    testResult = .failure("SSO endpoint returned an unexpected response.")
+                    self.testResult = .failure("SSO endpoint returned an unexpected response.")
                 }
             }
-            logger.info("Test connection succeeded for provider '\(provider.name)'")
+            self.logger.info("Test connection succeeded for provider '\(provider.name)'")
         } catch let ssoError as SSOError {
             testResult = .failure(ssoError.localizedDescription)
             logger.error("Test connection failed for '\(provider.name)': \(ssoError.localizedDescription)")
         } catch {
-            testResult = .failure("Connection failed: \(error.localizedDescription)")
-            logger.error("Test connection failed for '\(provider.name)': \(error.localizedDescription)")
+            self.testResult = .failure("Connection failed: \(error.localizedDescription)")
+            self.logger.error("Test connection failed for '\(provider.name)': \(error.localizedDescription)")
         }
     }
 

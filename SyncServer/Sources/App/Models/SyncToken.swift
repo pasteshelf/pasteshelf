@@ -8,8 +8,8 @@ final class SyncToken: Model, Content, @unchecked Sendable {
 
     init(id: UUID? = nil, deviceID: UUID, userID: UUID, tokenValue: String) {
         self.id = id
-        $device.id = deviceID
-        $user.id = userID
+        self.$device.id = deviceID
+        self.$user.id = userID
         self.tokenValue = tokenValue
     }
 

@@ -21,7 +21,7 @@ final class ExclusionManager: AppExcluding {
 
     private init(excludeOwnApp: Bool = true) {
         self.excludeOwnApp = excludeOwnApp
-        ownBundleId = Bundle.main.bundleIdentifier ?? "com.pasteshelf.PasteShelf"
+        self.ownBundleId = Bundle.main.bundleIdentifier ?? "com.pasteshelf.PasteShelf"
     }
 
     // MARK: Internal
@@ -73,9 +73,9 @@ final class ExclusionManager: AppExcluding {
 
     var excludedBundleIds: [String] {
         var allExcluded = Set(defaultExcludedBundleIds)
-        allExcluded.formUnion(effectiveUserExclusions)
-        if excludeOwnApp {
-            allExcluded.insert(ownBundleId)
+        allExcluded.formUnion(self.effectiveUserExclusions)
+        if self.excludeOwnApp {
+            allExcluded.insert(self.ownBundleId)
         }
         return Array(allExcluded).sorted()
     }
@@ -93,22 +93,22 @@ final class ExclusionManager: AppExcluding {
 
     func isExcluded(bundleId: String) -> Bool {
         // Check own app
-        if excludeOwnApp, bundleId == ownBundleId {
+        if self.excludeOwnApp, bundleId == self.ownBundleId {
             return true
         }
 
         // Check default exclusions
-        if defaultExcludedBundleIds.contains(bundleId) {
+        if self.defaultExcludedBundleIds.contains(bundleId) {
             return true
         }
 
         // Check user exclusions
-        if effectiveUserExclusions.contains(bundleId) {
+        if self.effectiveUserExclusions.contains(bundleId) {
             return true
         }
 
         // Check wildcard patterns (e.g., "com.1password.*")
-        for defaultId in defaultExcludedBundleIds where defaultId.hasSuffix("*") {
+        for defaultId in self.defaultExcludedBundleIds where defaultId.hasSuffix("*") {
             let prefix = String(defaultId.dropLast())
             if bundleId.hasPrefix(prefix) {
                 return true
@@ -119,31 +119,31 @@ final class ExclusionManager: AppExcluding {
     }
 
     func exclude(bundleId: String) {
-        guard !defaultExcludedBundleIds.contains(bundleId) else {
+        guard !self.defaultExcludedBundleIds.contains(bundleId) else {
             Logger.clipboard.debug("Bundle ID \(bundleId) is already in default exclusions")
             return
         }
-        if testUserExclusions != nil {
-            testUserExclusions?.insert(bundleId)
+        if self.testUserExclusions != nil {
+            self.testUserExclusions?.insert(bundleId)
         } else {
-            var current = userExcludedBundleIds
+            var current = self.userExcludedBundleIds
             current.insert(bundleId)
-            userExcludedBundleIds = current
+            self.userExcludedBundleIds = current
         }
         Logger.clipboard.info("Added \(bundleId) to exclusion list")
     }
 
     func include(bundleId: String) {
-        guard !defaultExcludedBundleIds.contains(bundleId) else {
+        guard !self.defaultExcludedBundleIds.contains(bundleId) else {
             Logger.clipboard.warning("Cannot include default-excluded app: \(bundleId)")
             return
         }
-        if testUserExclusions != nil {
-            testUserExclusions?.remove(bundleId)
+        if self.testUserExclusions != nil {
+            self.testUserExclusions?.remove(bundleId)
         } else {
-            var current = userExcludedBundleIds
+            var current = self.userExcludedBundleIds
             current.remove(bundleId)
-            userExcludedBundleIds = current
+            self.userExcludedBundleIds = current
         }
         Logger.clipboard.info("Removed \(bundleId) from exclusion list")
     }
@@ -159,7 +159,7 @@ final class ExclusionManager: AppExcluding {
         }
 
         // Check app exclusion
-        if isExcluded(bundleId: bundleId) {
+        if self.isExcluded(bundleId: bundleId) {
             return (true, .excludedApp(bundleId: bundleId))
         }
 
@@ -168,11 +168,11 @@ final class ExclusionManager: AppExcluding {
 
     /// Returns info about why an app is excluded (for UI display)
     func exclusionInfo(for bundleId: String) -> ExclusionInfo? {
-        guard isExcluded(bundleId: bundleId) else {
+        guard self.isExcluded(bundleId: bundleId) else {
             return nil
         }
 
-        if bundleId == ownBundleId {
+        if bundleId == self.ownBundleId {
             return ExclusionInfo(
                 bundleId: bundleId,
                 reason: "Own application",
@@ -181,7 +181,7 @@ final class ExclusionManager: AppExcluding {
             )
         }
 
-        if defaultExcludedBundleIds.contains(bundleId) {
+        if self.defaultExcludedBundleIds.contains(bundleId) {
             return ExclusionInfo(
                 bundleId: bundleId,
                 reason: "Password manager or security app",
@@ -213,7 +213,7 @@ final class ExclusionManager: AppExcluding {
 
     /// Effective user exclusions (uses test override if set)
     private var effectiveUserExclusions: Set<String> {
-        testUserExclusions ?? userExcludedBundleIds
+        self.testUserExclusions ?? self.userExcludedBundleIds
     }
 }
 

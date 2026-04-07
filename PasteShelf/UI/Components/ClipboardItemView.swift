@@ -31,24 +31,24 @@ struct ClipboardItemView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             // Content type icon
-            contentTypeIcon
+            self.contentTypeIcon
 
             // Main content
             VStack(alignment: .leading, spacing: 4) {
                 // Content preview
-                contentPreview
+                self.contentPreview
 
                 // Metadata row
-                metadataRow
+                self.metadataRow
             }
 
             Spacer()
 
             // Actions/indicators
-            indicators
+            self.indicators
         }
-        .padding(.horizontal, settingsManager.appearance.compactMode ? 8 : 12)
-        .padding(.vertical, settingsManager.appearance.compactMode ? 4 : 8)
+        .padding(.horizontal, self.settingsManager.appearance.compactMode ? 8 : 12)
+        .padding(.vertical, self.settingsManager.appearance.compactMode ? 4 : 8)
     }
 
     // MARK: Private
@@ -61,11 +61,11 @@ struct ClipboardItemView: View {
 
     /// Whether there are search highlights to show
     private var hasSearchHighlights: Bool {
-        !searchHighlights.isEmpty || searchQuery != nil
+        !self.searchHighlights.isEmpty || self.searchQuery != nil
     }
 
     private var iconBackgroundColor: Color {
-        switch item.contentType {
+        switch self.item.contentType {
         case .plainText,
              .richText,
              .html:
@@ -83,7 +83,7 @@ struct ClipboardItemView: View {
     }
 
     private var iconForegroundColor: Color {
-        switch item.contentType {
+        switch self.item.contentType {
         case .plainText,
              .richText,
              .html:
@@ -105,24 +105,26 @@ struct ClipboardItemView: View {
     private var contentTypeIcon: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6)
-                .fill(iconBackgroundColor)
+                .fill(self.iconBackgroundColor)
                 .frame(width: 32, height: 32)
 
-            Image(systemName: item.icon)
+            Image(systemName: self.item.icon)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(iconForegroundColor)
+                .foregroundColor(self.iconForegroundColor)
         }
     }
 
     // MARK: - Content Preview
 
     @ViewBuilder private var contentPreview: some View {
-        if item.isSensitive, !isRevealed {
-            sensitiveContentView
-        } else if item.contentType.isImageType, item.hasThumbnail, settingsManager.appearance.showThumbnails {
-            imagePreviewView
+        if self.item.isSensitive, !self.isRevealed {
+            self.sensitiveContentView
+        } else if self.item.contentType.isImageType, self.item.hasThumbnail,
+                  self.settingsManager.appearance.showThumbnails
+        {
+            self.imagePreviewView
         } else {
-            textPreviewView
+            self.textPreviewView
         }
     }
 
@@ -138,7 +140,7 @@ struct ClipboardItemView: View {
                 .italic()
 
             Button(
-                action: { isRevealed = true },
+                action: { self.isRevealed = true },
                 label: {
                     Text("Reveal")
                         .font(.caption)
@@ -164,8 +166,8 @@ struct ClipboardItemView: View {
             }
 
             // OCR text preview
-            if item.hasOCRText {
-                ocrTextPreview
+            if self.item.hasOCRText {
+                self.ocrTextPreview
             }
         }
     }
@@ -175,7 +177,7 @@ struct ClipboardItemView: View {
             VStack(alignment: .leading, spacing: 2) {
                 // OCR header with toggle
                 Button(
-                    action: { isOCRExpanded.toggle() },
+                    action: { self.isOCRExpanded.toggle() },
                     label: {
                         HStack(spacing: 4) {
                             Image(systemName: "text.viewfinder")
@@ -186,7 +188,7 @@ struct ClipboardItemView: View {
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
 
-                            Image(systemName: isOCRExpanded ? "chevron.up" : "chevron.down")
+                            Image(systemName: self.isOCRExpanded ? "chevron.up" : "chevron.down")
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
 
@@ -197,7 +199,7 @@ struct ClipboardItemView: View {
                 .buttonStyle(.plain)
 
                 // OCR text content
-                if isOCRExpanded {
+                if self.isOCRExpanded {
                     Text(ocrText)
                         .font(.caption)
                         .foregroundColor(.primary.opacity(0.8))
@@ -221,23 +223,23 @@ struct ClipboardItemView: View {
             if let query = searchQuery, !query.isEmpty {
                 // Use highlighted text
                 HighlightedTextView(
-                    text: item.shortDisplayText(maxLength: 100),
+                    text: self.item.shortDisplayText(maxLength: 100),
                     query: query,
-                    lineLimit: settingsManager.appearance.previewLines
+                    lineLimit: self.settingsManager.appearance.previewLines
                 )
-            } else if !searchHighlights.isEmpty {
+            } else if !self.searchHighlights.isEmpty {
                 // Use provided highlight ranges
                 HighlightedTextView(
-                    text: item.shortDisplayText(maxLength: 100),
-                    matchRanges: searchHighlights,
-                    lineLimit: settingsManager.appearance.previewLines
+                    text: self.item.shortDisplayText(maxLength: 100),
+                    matchRanges: self.searchHighlights,
+                    lineLimit: self.settingsManager.appearance.previewLines
                 )
             } else {
                 // Regular text
-                Text(item.shortDisplayText(maxLength: 100))
+                Text(self.item.shortDisplayText(maxLength: 100))
                     .font(.subheadline)
                     .foregroundColor(.primary)
-                    .lineLimit(settingsManager.appearance.previewLines)
+                    .lineLimit(self.settingsManager.appearance.previewLines)
                     .multilineTextAlignment(.leading)
             }
         }
@@ -262,19 +264,19 @@ struct ClipboardItemView: View {
             }
 
             // Separator
-            if item.sourceAppName != nil {
+            if self.item.sourceAppName != nil {
                 Text("\u{2022}")
                     .font(.caption)
                     .foregroundColor(.secondary.opacity(0.5))
             }
 
             // Timestamp
-            Text(item.relativeTimestamp)
+            Text(self.item.relativeTimestamp)
                 .font(.caption)
                 .foregroundColor(.secondary)
 
             // Content type badge
-            Text(item.contentTypeName)
+            Text(self.item.contentTypeName)
                 .font(.caption2)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
@@ -288,20 +290,20 @@ struct ClipboardItemView: View {
     private var indicators: some View {
         VStack(spacing: 4) {
             HStack(spacing: 4) {
-                if item.isSensitive {
+                if self.item.isSensitive {
                     Image(systemName: "lock.fill")
                         .font(.caption)
                         .foregroundColor(.orange)
                 }
 
-                if item.isFavorite {
+                if self.item.isFavorite {
                     Image(systemName: "star.fill")
                         .font(.caption)
                         .foregroundColor(.yellow)
                 }
             }
 
-            if item.hasOCRText {
+            if self.item.hasOCRText {
                 Image(systemName: "text.viewfinder")
                     .font(.caption)
                     .foregroundColor(.teal)

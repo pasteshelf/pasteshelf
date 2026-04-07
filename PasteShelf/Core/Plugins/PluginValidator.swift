@@ -20,9 +20,9 @@
         private init() {
             #if DEBUG
                 // Allow unsigned plugins in debug builds
-                requireSignature = false
+                self.requireSignature = false
             #else
-                requireSignature = true
+                self.requireSignature = true
             #endif
         }
 
@@ -41,34 +41,34 @@
             let manifest = bundle.manifest
 
             // Check if plugin is blocked
-            if blockedPlugins.contains(manifest.identifier) {
-                logger.warning("Plugin \(manifest.identifier) is blocked")
+            if self.blockedPlugins.contains(manifest.identifier) {
+                self.logger.warning("Plugin \(manifest.identifier) is blocked")
                 return .failure(.pluginBlocked(manifest.identifier))
             }
 
             // Check version compatibility
-            if !manifest.isCompatible(with: hostVersion) {
+            if !manifest.isCompatible(with: self.hostVersion) {
                 let required = manifest.minPasteShelfVersion ?? "unknown"
-                logger.warning("""
+                self.logger.warning("""
                 Plugin \(manifest.name) requires PasteShelf \(required), \
-                but host version is \(hostVersion)
+                but host version is \(self.hostVersion)
                 """)
                 return .failure(.incompatibleVersion(
                     pluginVersion: manifest.version,
                     requiredHostVersion: required,
-                    currentHostVersion: hostVersion
+                    currentHostVersion: self.hostVersion
                 ))
             }
 
             // Validate code signature
-            if requireSignature {
-                let signatureResult = validateSignature(bundle)
+            if self.requireSignature {
+                let signatureResult = self.validateSignature(bundle)
                 if case let .failure(error) = signatureResult {
                     return .failure(error)
                 }
             }
 
-            logger.debug("Plugin \(manifest.identifier) passed validation")
+            self.logger.debug("Plugin \(manifest.identifier) passed validation")
             return .success
         }
 
@@ -89,7 +89,7 @@
             )
 
             guard createStatus == errSecSuccess, let code = staticCode else {
-                logger.error("Failed to create static code for \(bundle.manifest.identifier): \(createStatus)")
+                self.logger.error("Failed to create static code for \(bundle.manifest.identifier): \(createStatus)")
                 return .failure(.signatureValidationFailed("Unable to analyze code signature"))
             }
 
@@ -113,30 +113,30 @@
                 if infoStatus == errSecSuccess, let signingInfo = info as? [String: Any] {
                     // Log signing info
                     if let teamId = signingInfo[kSecCodeInfoTeamIdentifier as String] as? String {
-                        logger.debug("Plugin \(bundle.manifest.identifier) signed by team: \(teamId)")
+                        self.logger.debug("Plugin \(bundle.manifest.identifier) signed by team: \(teamId)")
                     }
                     return .success
                 }
                 return .success
 
             case errSecCSUnsigned:
-                logger.warning("Plugin \(bundle.manifest.identifier) is not signed")
+                self.logger.warning("Plugin \(bundle.manifest.identifier) is not signed")
                 return .failure(.notSigned)
 
             case errSecCSSignatureFailed:
-                logger.error("Plugin \(bundle.manifest.identifier) signature is invalid")
+                self.logger.error("Plugin \(bundle.manifest.identifier) signature is invalid")
                 return .failure(.signatureInvalid)
 
             case errSecCSSignatureNotVerifiable:
-                logger.error("Plugin \(bundle.manifest.identifier) signature cannot be verified")
+                self.logger.error("Plugin \(bundle.manifest.identifier) signature cannot be verified")
                 return .failure(.signatureNotVerifiable)
 
             case errSecCSStaticCodeChanged:
-                logger.error("Plugin \(bundle.manifest.identifier) code was modified after signing")
+                self.logger.error("Plugin \(bundle.manifest.identifier) code was modified after signing")
                 return .failure(.codeModified)
 
             default:
-                logger.error("Plugin \(bundle.manifest.identifier) signature check failed: \(validityStatus)")
+                self.logger.error("Plugin \(bundle.manifest.identifier) signature check failed: \(validityStatus)")
                 return .failure(.signatureValidationFailed("Security check failed with code \(validityStatus)"))
             }
         }
@@ -189,7 +189,7 @@
             let undeclared = permissions.subtracting(declared)
             if !undeclared.isEmpty {
                 let undeclaredNames = undeclared.map(\.displayName).joined(separator: ", ")
-                logger.warning("""
+                self.logger.warning("""
                 Plugin \(bundle.manifest.identifier) requesting undeclared permissions: \(undeclaredNames)
                 """)
                 return .failure(.undeclaredPermissions(undeclared))
@@ -207,11 +207,11 @@
             var results: [String: PluginValidationResult] = [:]
 
             for bundle in bundles {
-                results[bundle.manifest.identifier] = validate(bundle)
+                results[bundle.manifest.identifier] = self.validate(bundle)
             }
 
             let validCount = results.values.filter(\.isSuccess).count
-            logger
+            self.logger
                 .info("Validated \(bundles.count) plugins: \(validCount) passed, \(bundles.count - validCount) failed")
 
             return results

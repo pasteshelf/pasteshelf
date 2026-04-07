@@ -58,17 +58,17 @@ final class AuditLogStorageService: AuditLogStoring, @unchecked Sendable {
             encryptedDetail = nil
         } else {
             do {
-                encryptedDetail = try encryption.encrypt(event.detail)
+                encryptedDetail = try self.encryption.encrypt(event.detail)
             } catch let auditError as AuditError {
                 logger.error("Failed to encrypt detail for event \(event.id): \(auditError.localizedDescription)")
                 throw auditError
             } catch {
-                logger.error("Unexpected encryption error for event \(event.id): \(error.localizedDescription)")
+                self.logger.error("Unexpected encryption error for event \(event.id): \(error.localizedDescription)")
                 throw AuditError.encryptionFailed(error.localizedDescription)
             }
         }
 
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
         try await context.perform {
             _ = AuditLogEntry(context: context, event: event, encryptedDetail: encryptedDetail)
 
@@ -100,7 +100,7 @@ final class AuditLogStorageService: AuditLogStoring, @unchecked Sendable {
         to: Date?,
         limit: Int
     ) async throws -> [AuditLogEntry] {
-        let viewContext = persistenceController.container.viewContext
+        let viewContext = self.persistenceController.container.viewContext
         return try await viewContext.perform {
             let request = AuditLogEntry.viewerFetchRequest(category: category, from: from, to: to)
             request.fetchLimit = limit
@@ -124,7 +124,7 @@ final class AuditLogStorageService: AuditLogStoring, @unchecked Sendable {
     /// - Returns: An array of unsynced `AuditLogEntry` managed objects.
     /// - Throws: `AuditError.storageFailure` if the CoreData fetch fails.
     func fetchUnsyncedEvents(limit: Int) async throws -> [AuditLogEntry] {
-        let viewContext = persistenceController.container.viewContext
+        let viewContext = self.persistenceController.container.viewContext
         return try await viewContext.perform {
             let request = AuditLogEntry.unsyncedFetchRequest(limit: limit)
             do {
@@ -150,7 +150,7 @@ final class AuditLogStorageService: AuditLogStoring, @unchecked Sendable {
             return
         }
 
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
         try await context.perform {
             let request = AuditLogEntry.fetchRequest()
             request.predicate = NSPredicate(format: "id IN %@", ids as CVarArg)
@@ -193,11 +193,11 @@ final class AuditLogStorageService: AuditLogStoring, @unchecked Sendable {
             value: -retentionDays,
             to: Date()
         ) else {
-            logger.error("Failed to compute retention cutoff date for \(retentionDays) days")
+            self.logger.error("Failed to compute retention cutoff date for \(retentionDays) days")
             throw AuditError.storageFailure("Failed to compute retention cutoff date")
         }
 
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
         return try await context.perform {
             let request = AuditLogEntry.retentionCleanupFetchRequest(olderThan: cutoff)
             let entries: [AuditLogEntry]
@@ -238,7 +238,7 @@ final class AuditLogStorageService: AuditLogStoring, @unchecked Sendable {
         guard let encryptedDetail = entry.encryptedDetail else {
             return [:]
         }
-        return try encryption.decrypt(encryptedDetail)
+        return try self.encryption.decrypt(encryptedDetail)
     }
 
     // MARK: Private

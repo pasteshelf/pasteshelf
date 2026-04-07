@@ -17,7 +17,7 @@
 
         @MainActor
         static func show() {
-            dismiss()
+            self.dismiss()
 
             let toastView = CopiedConfirmationView()
             let hostingView = NSHostingView(rootView: toastView)
@@ -47,7 +47,7 @@
 
             // Auto-dismiss after 1.5 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                dismiss()
+                self.dismiss()
             }
         }
 

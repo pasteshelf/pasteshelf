@@ -16,14 +16,14 @@ final class SyncRecord: Model, Content, @unchecked Sendable {
         sourceDevice: String? = nil
     ) {
         self.id = id
-        $user.id = userID
+        self.$user.id = userID
         self.entityID = entityID
         self.entityType = entityType
         self.encryptedData = encryptedData
         self.contentHash = contentHash
-        isDeleted = false
+        self.isDeleted = false
         self.sourceDevice = sourceDevice
-        version = 1
+        self.version = 1
     }
 
     // MARK: Internal

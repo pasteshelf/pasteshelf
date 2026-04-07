@@ -65,7 +65,7 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
             method: "POST",
             body: registration
         )
-        return try await perform(request)
+        return try await self.perform(request)
     }
 
     func unregisterDevice(deviceId: String) async throws {
@@ -81,7 +81,7 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
             path: "/api/v1/devices/\(deviceId)/policy",
             method: "GET"
         )
-        return try await perform(request)
+        return try await self.perform(request)
     }
 
     func submitHealthReport(_ report: DeviceHealthReport) async throws {
@@ -90,7 +90,7 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
             method: "POST",
             body: report
         )
-        try await performVoid(request)
+        try await self.performVoid(request)
     }
 
     func submitAnalyticsEvents(_ events: [AdminAnalyticsEvent]) async throws {
@@ -145,7 +145,7 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
     ) throws -> URLRequest {
         var request = try makeBaseRequest(path: path, method: method)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try encoder.encode(body)
+        request.httpBody = try self.encoder.encode(body)
         return request
     }
 
@@ -154,7 +154,7 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
         path: String,
         method: String
     ) throws -> URLRequest {
-        try makeBaseRequest(path: path, method: method)
+        try self.makeBaseRequest(path: path, method: method)
     }
 
     /// Shared request construction: URL resolution, headers, and authentication.
@@ -189,9 +189,9 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
         try validateResponse(response, data: data)
 
         do {
-            return try decoder.decode(T.self, from: data)
+            return try self.decoder.decode(T.self, from: data)
         } catch {
-            logger.error("Failed to decode response: \(error.localizedDescription)")
+            self.logger.error("Failed to decode response: \(error.localizedDescription)")
             throw AdminError.invalidResponse
         }
     }
@@ -205,10 +205,10 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
     /// Executes the URL request, mapping transport errors to `AdminError.networkError`.
     private func executeRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
         do {
-            logger.debug("\(request.httpMethod ?? "?") \(request.url?.absoluteString ?? "nil")")
-            return try await session.data(for: request)
+            self.logger.debug("\(request.httpMethod ?? "?") \(request.url?.absoluteString ?? "nil")")
+            return try await self.session.data(for: request)
         } catch {
-            logger.error("Network request failed: \(error.localizedDescription)")
+            self.logger.error("Network request failed: \(error.localizedDescription)")
             throw AdminError.networkError(error.localizedDescription)
         }
     }
@@ -229,7 +229,7 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
             throw AdminError.authenticationRequired
         default:
             let message = String(data: data, encoding: .utf8) ?? "Unknown error"
-            logger.warning("Server error \(statusCode): \(message)")
+            self.logger.warning("Server error \(statusCode): \(message)")
             throw AdminError.serverError(statusCode, message)
         }
     }

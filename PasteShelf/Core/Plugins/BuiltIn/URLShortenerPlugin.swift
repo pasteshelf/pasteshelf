@@ -18,17 +18,17 @@
 
         public func didLoad(with context: any PluginContext) {
             self.context = context
-            storage = context.storage
-            network = context.network
+            self.storage = context.storage
+            self.network = context.network
             context.logger.info("URL Shortener loaded")
 
             Task { @MainActor in
-                registerTransformers()
+                self.registerTransformers()
             }
         }
 
         public func willUnload() {
-            context?.logger.info("URL Shortener unloading")
+            self.context?.logger.info("URL Shortener unloading")
 
             Task { @MainActor in
                 PluginTransformAPI.shared.unregisterTransformers(for: Self.identifier)
@@ -53,7 +53,7 @@
         // MARK: - Settings View
 
         public func settingsView() -> AnyView? {
-            AnyView(URLShortenerSettingsView(storage: storage))
+            AnyView(URLShortenerSettingsView(storage: self.storage))
         }
 
         // MARK: Internal
@@ -69,7 +69,7 @@
 
         /// Transforms content (used internally by plugin system)
         func transform(content: PluginClipboardContent) async throws -> PluginClipboardContent? {
-            try await shortenURL(content)
+            try await self.shortenURL(content)
         }
 
         /// Checks if content type is supported (used internally by plugin system)
@@ -88,7 +88,7 @@
         // MARK: - Settings
 
         private var selectedService: URLShortenerService {
-            let raw = storage?.string(forKey: "service") ?? URLShortenerService.isgd.rawValue
+            let raw = self.storage?.string(forKey: "service") ?? URLShortenerService.isgd.rawValue
             return URLShortenerService(rawValue: raw) ?? .isgd
         }
 
@@ -99,7 +99,7 @@
             PluginTransformAPI.shared.registerTransformer(
                 pluginId: Self.identifier,
                 name: "Shorten URL",
-                description: "Shorten a URL using \(selectedService.displayName)",
+                description: "Shorten a URL using \(self.selectedService.displayName)",
                 supportedTypes: [.plainText, .url],
                 iconName: "link.badge.plus"
             ) { [weak self] content in
@@ -140,7 +140,7 @@
             let result = PluginClipboardContent(url: shortenedURL)
             result.text = shortenedURL.absoluteString
             result.metadata["originalURL"] = urlString
-            result.metadata["shortenerService"] = selectedService.rawValue
+            result.metadata["shortenerService"] = self.selectedService.rawValue
             return result
         }
 
@@ -264,13 +264,13 @@
 
         var body: some View {
             Form {
-                Picker("Shortener Service", selection: $selectedService) {
+                Picker("Shortener Service", selection: self.$selectedService) {
                     ForEach(URLShortenerService.allCases, id: \.self) { service in
                         Text(service.displayName).tag(service)
                     }
                 }
-                .onChange(of: selectedService) { _, newValue in
-                    storage?.setString(newValue.rawValue, forKey: "service")
+                .onChange(of: self.selectedService) { _, newValue in
+                    self.storage?.setString(newValue.rawValue, forKey: "service")
                 }
 
                 Text("URLs are shortened using free public services.")
@@ -281,7 +281,7 @@
                 if let raw = storage?.string(forKey: "service"),
                    let service = URLShortenerService(rawValue: raw)
                 {
-                    selectedService = service
+                    self.selectedService = service
                 }
             }
         }

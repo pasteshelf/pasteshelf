@@ -35,7 +35,8 @@ enum SOC2AuditTrailExporter {
     /// - Throws: `ComplianceError.reportGenerationFailed` if the export fails.
     @MainActor
     static func exportVerifiedTrail(dateRange: ClosedRange<Date>) async throws -> URL {
-        logger.info("SOC2 audit trail export: starting for range \(dateRange.lowerBound) to \(dateRange.upperBound)")
+        self.logger
+            .info("SOC2 audit trail export: starting for range \(dateRange.lowerBound) to \(dateRange.upperBound)")
 
         guard let storage = AuditManager.shared.storage else {
             throw ComplianceError.notConfigured
@@ -51,7 +52,7 @@ enum SOC2AuditTrailExporter {
             to: exportDir
         )
 
-        logger.info("SOC2 audit trail export: completed with \(chainedEvents.count) events")
+        self.logger.info("SOC2 audit trail export: completed with \(chainedEvents.count) events")
         return exportDir
     }
 
@@ -162,7 +163,7 @@ enum SOC2AuditTrailExporter {
             let verificationData = try encoder.encode(verification)
             try verificationData.write(to: exportDir.appendingPathComponent("chain_verification.json"))
 
-            let instructions = generateVerificationInstructions(verification: verification)
+            let instructions = self.generateVerificationInstructions(verification: verification)
             try instructions.write(
                 to: exportDir.appendingPathComponent("verification_instructions.md"),
                 atomically: true,
@@ -178,8 +179,8 @@ enum SOC2AuditTrailExporter {
     // MARK: - Verification Instructions
 
     private static func generateVerificationInstructions(verification: ChainVerification) -> String {
-        let parameters = chainParametersSection(verification: verification)
-        let procedure = verificationProcedureSection()
+        let parameters = self.chainParametersSection(verification: verification)
+        let procedure = self.verificationProcedureSection()
         return """
         # SOC 2 Audit Trail Verification Instructions
 

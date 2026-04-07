@@ -30,7 +30,7 @@ struct OCRResult {
 
     /// Whether extraction was successful
     var isSuccess: Bool {
-        !text.isEmpty && confidence > 0
+        !self.text.isEmpty && self.confidence > 0
     }
 }
 
@@ -57,7 +57,7 @@ final class OCRManager: @unchecked Sendable {
     // MARK: - Initialization
 
     private init() {
-        logger.info("OCRManager initialized")
+        self.logger.info("OCRManager initialized")
     }
 
     // MARK: Internal
@@ -71,9 +71,9 @@ final class OCRManager: @unchecked Sendable {
 
     /// Gets the current confidence threshold
     var currentConfidenceThreshold: Float {
-        lock.lock()
+        self.lock.lock()
         defer { lock.unlock() }
-        return confidenceThreshold
+        return self.confidenceThreshold
     }
 
     // MARK: - Availability
@@ -97,10 +97,10 @@ final class OCRManager: @unchecked Sendable {
     /// Sets the minimum confidence threshold for text recognition
     /// - Parameter threshold: Confidence threshold (0.0 to 1.0)
     func setConfidenceThreshold(_ threshold: Float) {
-        lock.lock()
+        self.lock.lock()
         defer { lock.unlock() }
-        confidenceThreshold = max(0.0, min(1.0, threshold))
-        logger.debug("Confidence threshold set to \(confidenceThreshold)")
+        self.confidenceThreshold = max(0.0, min(1.0, threshold))
+        self.logger.debug("Confidence threshold set to \(self.confidenceThreshold)")
     }
 
     // MARK: - Text Recognition
@@ -110,11 +110,11 @@ final class OCRManager: @unchecked Sendable {
     /// - Returns: OCR result with extracted text, or nil if recognition failed
     func recognizeText(in image: NSImage) async -> OCRResult? {
         guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-            logger.error("Failed to convert NSImage to CGImage")
+            self.logger.error("Failed to convert NSImage to CGImage")
             return nil
         }
 
-        return await recognizeText(in: cgImage)
+        return await self.recognizeText(in: cgImage)
     }
 
     /// Recognizes text in image data
@@ -124,11 +124,11 @@ final class OCRManager: @unchecked Sendable {
         guard let image = NSImage(data: imageData),
               let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil)
         else {
-            logger.error("Failed to create CGImage from data")
+            self.logger.error("Failed to create CGImage from data")
             return nil
         }
 
-        return await recognizeText(in: cgImage)
+        return await self.recognizeText(in: cgImage)
     }
 
     /// Recognizes text in a CGImage
@@ -136,7 +136,7 @@ final class OCRManager: @unchecked Sendable {
     /// - Returns: OCR result with extracted text, or nil if recognition failed
     func recognizeText(in cgImage: CGImage) async -> OCRResult? {
         await withCheckedContinuation { continuation in
-            performOCR(on: cgImage) { result in
+            self.performOCR(on: cgImage) { result in
                 continuation.resume(returning: result)
             }
         }
@@ -184,7 +184,7 @@ final class OCRManager: @unchecked Sendable {
         guard let image = NSImage(data: imageData) else {
             return false
         }
-        return canProcess(image)
+        return self.canProcess(image)
     }
 
     // MARK: Private
@@ -214,23 +214,23 @@ final class OCRManager: @unchecked Sendable {
             }
 
             if let error {
-                logger.error("OCR request failed: \(error.localizedDescription)")
+                self.logger.error("OCR request failed: \(error.localizedDescription)")
                 completion(nil)
                 return
             }
 
             guard let observations = request.results as? [VNRecognizedTextObservation] else {
-                logger.debug("No text observations found")
+                self.logger.debug("No text observations found")
                 completion(OCRResult(text: "", confidence: 0, language: nil, regions: []))
                 return
             }
 
-            let result = processObservations(observations)
+            let result = self.processObservations(observations)
             completion(result)
         }
 
         // Configure recognition request
-        configureRequest(request)
+        self.configureRequest(request)
 
         // Perform the request
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
@@ -238,14 +238,14 @@ final class OCRManager: @unchecked Sendable {
         do {
             try handler.perform([request])
         } catch {
-            logger.error("Failed to perform OCR: \(error.localizedDescription)")
+            self.logger.error("Failed to perform OCR: \(error.localizedDescription)")
             completion(nil)
         }
     }
 
     private func configureRequest(_ request: VNRecognizeTextRequest) {
         // Use accurate recognition for better quality
-        request.recognitionLevel = recognitionLevel
+        request.recognitionLevel = self.recognitionLevel
 
         // Enable language correction for better accuracy
         request.usesLanguageCorrection = true
@@ -272,9 +272,9 @@ final class OCRManager: @unchecked Sendable {
     }
 
     private func processObservations(_ observations: [VNRecognizedTextObservation]) -> OCRResult {
-        lock.lock()
-        let threshold = confidenceThreshold
-        lock.unlock()
+        self.lock.lock()
+        let threshold = self.confidenceThreshold
+        self.lock.unlock()
 
         var allText: [String] = []
         var regions: [TextRegion] = []
@@ -319,7 +319,7 @@ final class OCRManager: @unchecked Sendable {
         // Combine all text with newlines
         let combinedText = allText.joined(separator: "\n")
 
-        logger
+        self.logger
             .info(
                 "OCR extracted \(allText.count) text blocks, avg confidence: \(String(format: "%.2f", avgConfidence))"
             )

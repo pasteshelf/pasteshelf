@@ -26,8 +26,8 @@ final class AccountChangeHandler: ObservableObject {
         self.container = container
         self.syncManager = syncManager
 
-        setupAccountChangeNotification()
-        checkAccountStatus()
+        self.setupAccountChangeNotification()
+        self.checkAccountStatus()
     }
 
     deinit {
@@ -48,8 +48,8 @@ final class AccountChangeHandler: ObservableObject {
 
     /// Check current iCloud account status
     func checkAccountStatus() {
-        accountStatusTask?.cancel()
-        accountStatusTask = Task { [weak self] in
+        self.accountStatusTask?.cancel()
+        self.accountStatusTask = Task { [weak self] in
             guard let self else {
                 return
             }
@@ -92,7 +92,7 @@ final class AccountChangeHandler: ObservableObject {
         let zoneManager = CloudKitZoneManager(container: container)
         do {
             // Try to fetch zone - if it exists, this is a new device
-            _ = try await container.privateCloudDatabase.recordZone(for: zoneManager.zoneID)
+            _ = try await self.container.privateCloudDatabase.recordZone(for: zoneManager.zoneID)
             return true
         } catch {
             return false // Zone doesn't exist, this is first device
@@ -122,7 +122,7 @@ final class AccountChangeHandler: ObservableObject {
 
     private func setupAccountChangeNotification() {
         // Observe iCloud account changes
-        notificationObserver = NotificationCenter.default.addObserver(
+        self.notificationObserver = NotificationCenter.default.addObserver(
             forName: .CKAccountChanged,
             object: nil,
             queue: .main
@@ -134,21 +134,21 @@ final class AccountChangeHandler: ObservableObject {
 
     /// Update account status and handle changes
     private func updateAccountStatus(_ status: CKAccountStatus) {
-        let previousStatus = accountStatus
-        accountStatus = status
+        let previousStatus = self.accountStatus
+        self.accountStatus = status
 
         Self.logger.info("Account status updated: \(String(describing: status))")
 
         // Handle status changes
         if previousStatus != status {
-            handleStatusChange(from: previousStatus, to: status)
+            self.handleStatusChange(from: previousStatus, to: status)
         }
 
         // If available, fetch user ID
         if status == .available {
-            fetchCurrentUserID()
+            self.fetchCurrentUserID()
         } else {
-            currentUserID = nil
+            self.currentUserID = nil
         }
     }
 
@@ -158,7 +158,7 @@ final class AccountChangeHandler: ObservableObject {
             // Small delay to let CloudKit settle
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
 
-            checkAccountStatus()
+            self.checkAccountStatus()
         }
     }
 
@@ -168,22 +168,22 @@ final class AccountChangeHandler: ObservableObject {
         case (_, .available):
             // Account became available
             Self.logger.info("iCloud account became available")
-            handleAccountAvailable()
+            self.handleAccountAvailable()
 
         case (.available, .noAccount):
             // User signed out
             Self.logger.info("User signed out of iCloud")
-            handleAccountSignedOut()
+            self.handleAccountSignedOut()
 
         case (.available, .restricted):
             // Account became restricted
             Self.logger.warning("iCloud account became restricted")
-            handleAccountRestricted()
+            self.handleAccountRestricted()
 
         case (_, .temporarilyUnavailable):
             // Account temporarily unavailable
             Self.logger.info("iCloud account temporarily unavailable")
-            handleAccountTemporarilyUnavailable()
+            self.handleAccountTemporarilyUnavailable()
 
         default:
             break
@@ -216,11 +216,11 @@ final class AccountChangeHandler: ObservableObject {
             // Different user - account switch detected!
             Self.logger
                 .warning("iCloud account switch detected: \(previousUserID.prefix(8))... -> \(newUserID.prefix(8))...")
-            handleAccountSwitch(from: previousUserID, to: newUserID)
+            self.handleAccountSwitch(from: previousUserID, to: newUserID)
         }
 
         // Save current user ID
-        currentUserID = newUserID
+        self.currentUserID = newUserID
         UserDefaults.standard.set(newUserID, forKey: Self.lastUserIDKey)
     }
 
@@ -243,16 +243,16 @@ final class AccountChangeHandler: ObservableObject {
 
     /// Handle user signing out of iCloud
     private func handleAccountSignedOut() {
-        syncManager?.stop()
+        self.syncManager?.stop()
 
         // Clear the stored user ID
         UserDefaults.standard.removeObject(forKey: Self.lastUserIDKey)
-        currentUserID = nil
+        self.currentUserID = nil
     }
 
     /// Handle account becoming restricted
     private func handleAccountRestricted() {
-        syncManager?.stop()
+        self.syncManager?.stop()
     }
 
     /// Handle account temporarily unavailable

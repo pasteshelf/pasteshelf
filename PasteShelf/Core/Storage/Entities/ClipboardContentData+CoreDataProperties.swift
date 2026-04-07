@@ -74,12 +74,12 @@ extension ClipboardContentData {
         }
         set {
             guard let urls = newValue else {
-                fileURLsJSON = nil
+                self.fileURLsJSON = nil
                 return
             }
             let paths = urls.map(\.absoluteString)
             if let data = try? JSONEncoder().encode(paths) {
-                fileURLsJSON = String(data: data, encoding: .utf8)
+                self.fileURLsJSON = String(data: data, encoding: .utf8)
             }
         }
     }
@@ -96,19 +96,19 @@ extension ClipboardContentData {
         }
         set {
             guard let types = newValue else {
-                availableTypesJSON = nil
+                self.availableTypesJSON = nil
                 return
             }
             if let data = try? JSONEncoder().encode(types) {
-                availableTypesJSON = String(data: data, encoding: .utf8)
+                self.availableTypesJSON = String(data: data, encoding: .utf8)
             }
         }
     }
 
     /// Parses urlString into URL
     var url: URL? {
-        get { urlString.flatMap { URL(string: $0) } }
-        set { urlString = newValue?.absoluteString }
+        get { self.urlString.flatMap { URL(string: $0) } }
+        set { self.urlString = newValue?.absoluteString }
     }
 }
 
@@ -130,11 +130,11 @@ extension ClipboardContentData {
             return html
         }
         // Fall back to parent's plain text preview
-        return clipboardItem?.plainTextPreview
+        return self.clipboardItem?.plainTextPreview
     }
 
     /// Returns HTML data as Data
     var htmlData: Data? {
-        htmlContent?.data(using: .utf8)
+        self.htmlContent?.data(using: .utf8)
     }
 }

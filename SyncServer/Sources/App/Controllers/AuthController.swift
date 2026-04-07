@@ -14,12 +14,12 @@ struct AuthController: RouteCollection {
 
     func boot(routes: any RoutesBuilder) throws {
         let auth = routes.grouped("api", "v1", "auth")
-        auth.post("token", use: exchangeToken)
-        auth.post("refresh", use: refreshToken)
+        auth.post("token", use: self.exchangeToken)
+        auth.post("refresh", use: self.refreshToken)
 
         // API key creation requires existing auth
         let protected = auth.grouped(JWTAuthMiddleware())
-        protected.post("api-key", use: createAPIKey)
+        protected.post("api-key", use: self.createAPIKey)
     }
 
     // MARK: - Token Exchange
@@ -149,7 +149,7 @@ struct AuthController: RouteCollection {
         }
 
         // Generate a random API key
-        let rawKey = generateAPIKey()
+        let rawKey = self.generateAPIKey()
         let keyHash = APIKeyHasher.hash(rawKey)
         let keyPrefix = String(rawKey.prefix(8))
 

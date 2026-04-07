@@ -67,7 +67,7 @@ struct AuditLogDisplayItem: Identifiable, Hashable {
     /// Maps each `AuditEventCategory` to a localized, title-cased string suitable
     /// for column headers and filter chips in the audit log viewer.
     var categoryDisplayName: String {
-        switch category {
+        switch self.category {
         case .clipboard:
             "Clipboard"
         case .userAction:
@@ -86,7 +86,7 @@ struct AuditLogDisplayItem: Identifiable, Hashable {
     /// Converts the snake_case raw value (e.g. `"copy_captured"`) to title case
     /// (e.g. `"Copy Captured"`) for display in the event action column.
     var actionDisplayName: String {
-        action.rawValue
+        self.action.rawValue
             .split(separator: "_")
             .map { $0.prefix(1).uppercased() + $0.dropFirst() }
             .joined(separator: " ")
@@ -96,7 +96,7 @@ struct AuditLogDisplayItem: Identifiable, Hashable {
     ///
     /// Used to render a severity indicator icon alongside each event row in the audit viewer.
     var severityIconName: String {
-        switch severity {
+        switch self.severity {
         case .info:
             "info.circle"
         case .warning:
@@ -113,7 +113,7 @@ struct AuditLogDisplayItem: Identifiable, Hashable {
     var formattedTimestamp: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
-        return formatter.localizedString(for: timestamp, relativeTo: Date())
+        return formatter.localizedString(for: self.timestamp, relativeTo: Date())
     }
 
     // MARK: - Factory
@@ -164,6 +164,6 @@ struct AuditLogDisplayItem: Identifiable, Hashable {
 
     /// Hashes the item using only its `id`.
     func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+        hasher.combine(self.id)
     }
 }

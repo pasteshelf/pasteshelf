@@ -135,7 +135,7 @@ struct GDPRConsentManagerTests {
     @Test("isConsentGranted returns false for unconfigured category")
     @MainActor
     func initialConsentFalse() {
-        let context = makeInMemoryContext()
+        let context = self.makeInMemoryContext()
         let manager = GDPRConsentManager(context: context)
         #expect(!manager.isConsentGranted(for: .clipboardMonitoring))
     }
@@ -143,7 +143,7 @@ struct GDPRConsentManagerTests {
     @Test("consentStatuses is empty for fresh manager")
     @MainActor
     func initialStatusesEmpty() {
-        let context = makeInMemoryContext()
+        let context = self.makeInMemoryContext()
         let manager = GDPRConsentManager(context: context)
         #expect(manager.consentStatuses.isEmpty)
     }
@@ -153,7 +153,7 @@ struct GDPRConsentManagerTests {
     @Test("Manager loads existing consent records from CoreData on init")
     @MainActor
     func loadsExistingRecords() {
-        let context = makeInMemoryContext()
+        let context = self.makeInMemoryContext()
 
         // Pre-populate a consent record
         let record = ConsentRecord(context: context)
@@ -170,7 +170,7 @@ struct GDPRConsentManagerTests {
     @Test("Manager ignores records with invalid category raw values")
     @MainActor
     func ignoresInvalidCategories() {
-        let context = makeInMemoryContext()
+        let context = self.makeInMemoryContext()
 
         let record = ConsentRecord(context: context)
         record.id = UUID()

@@ -56,7 +56,7 @@ enum VectorSimilarityCalculator {
         var results: [(id: ID, similarity: Double)] = []
 
         for candidate in candidates {
-            let similarity = cosineSimilarity(queryVector, candidate.vector)
+            let similarity = self.cosineSimilarity(queryVector, candidate.vector)
             if similarity >= threshold {
                 results.append((candidate.id, similarity))
             }
@@ -79,7 +79,7 @@ enum VectorSimilarityCalculator {
         k: Int,
         threshold: Double = 0.0
     ) -> [(id: ID, similarity: Double)] {
-        let similar = findSimilar(to: queryVector, in: candidates, threshold: threshold)
+        let similar = self.findSimilar(to: queryVector, in: candidates, threshold: threshold)
         return Array(similar.prefix(k))
     }
 
@@ -95,7 +95,7 @@ enum VectorSimilarityCalculator {
 
         for i in 0 ..< vectors.count {
             for j in (i + 1) ..< vectors.count {
-                let similarity = cosineSimilarity(vectors[i].vector, vectors[j].vector)
+                let similarity = self.cosineSimilarity(vectors[i].vector, vectors[j].vector)
                 let key = Set([vectors[i].id, vectors[j].id])
                 results[key] = similarity
             }

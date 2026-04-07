@@ -24,14 +24,14 @@ final class SAMLParser: NSObject, @unchecked Sendable {
         guard let data = Data(base64Encoded: base64String) else {
             throw SAMLValidationError.xmlParsingFailed("Invalid base64 encoding")
         }
-        return try parseResponse(data)
+        return try self.parseResponse(data)
     }
 
     /// Parses a SAML response from raw XML data
     /// - Parameter data: Raw XML data
     /// - Returns: Parsed SAML response
     func parseResponse(_ data: Data) throws -> SAMLResponse {
-        resetState()
+        self.resetState()
 
         let parser = XMLParser(data: data)
         parser.delegate = self
@@ -40,11 +40,11 @@ final class SAMLParser: NSObject, @unchecked Sendable {
 
         guard parser.parse() else {
             let error = parser.parserError?.localizedDescription ?? "Unknown parsing error"
-            logger.error("SAML XML parsing failed: \(error)")
+            self.logger.error("SAML XML parsing failed: \(error)")
             throw SAMLValidationError.xmlParsingFailed(error)
         }
 
-        guard !responseId.isEmpty else {
+        guard !self.responseId.isEmpty else {
             throw SAMLValidationError.invalidStructure("Missing Response ID")
         }
 
@@ -59,14 +59,14 @@ final class SAMLParser: NSObject, @unchecked Sendable {
         )
 
         return SAMLResponse(
-            id: responseId,
-            inResponseTo: responseInResponseTo,
-            destination: responseDestination,
+            id: self.responseId,
+            inResponseTo: self.responseInResponseTo,
+            destination: self.responseDestination,
             issueInstant: issueInstant,
-            issuer: responseIssuer,
-            version: responseVersion,
+            issuer: self.responseIssuer,
+            version: self.responseVersion,
             status: status,
-            assertions: assertions
+            assertions: self.assertions
         )
     }
 
@@ -74,7 +74,7 @@ final class SAMLParser: NSObject, @unchecked Sendable {
     /// - Parameter data: Raw XML data containing just an assertion
     /// - Returns: Parsed SAML assertion
     func parseAssertion(_ data: Data) throws -> SAMLAssertion {
-        resetState()
+        self.resetState()
 
         let parser = XMLParser(data: data)
         parser.delegate = self
@@ -148,32 +148,32 @@ final class SAMLParser: NSObject, @unchecked Sendable {
     // MARK: - State Management
 
     private func resetState() {
-        currentElement = ""
-        elementStack = []
-        currentText = ""
-        attributes = [:]
+        self.currentElement = ""
+        self.elementStack = []
+        self.currentText = ""
+        self.attributes = [:]
 
-        responseId = ""
-        responseInResponseTo = nil
-        responseDestination = nil
-        responseIssueInstant = nil
-        responseIssuer = ""
-        responseVersion = "2.0"
-        statusCode = .unknown
-        statusSubCode = nil
-        statusMessage = nil
+        self.responseId = ""
+        self.responseInResponseTo = nil
+        self.responseDestination = nil
+        self.responseIssueInstant = nil
+        self.responseIssuer = ""
+        self.responseVersion = "2.0"
+        self.statusCode = .unknown
+        self.statusSubCode = nil
+        self.statusMessage = nil
 
-        assertions = []
-        currentAssertion = nil
-        currentAttributeStatement = []
-        currentAttribute = nil
-        currentSubject = nil
-        currentConditions = nil
-        currentAuthnStatement = nil
+        self.assertions = []
+        self.currentAssertion = nil
+        self.currentAttributeStatement = []
+        self.currentAttribute = nil
+        self.currentSubject = nil
+        self.currentConditions = nil
+        self.currentAuthnStatement = nil
     }
 
     private func parseDate(_ string: String) -> Date? {
-        dateFormatter.date(from: string) ?? fallbackDateFormatter.date(from: string)
+        self.dateFormatter.date(from: string) ?? self.fallbackDateFormatter.date(from: string)
     }
 }
 
@@ -187,16 +187,16 @@ extension SAMLParser: XMLParserDelegate {
         qualifiedName qName: String?,
         attributes attributeDict: [String: String] = [:]
     ) {
-        elementStack.append(elementName)
-        currentElement = elementName
-        currentText = ""
-        attributes = attributeDict
+        self.elementStack.append(elementName)
+        self.currentElement = elementName
+        self.currentText = ""
+        self.attributes = attributeDict
 
         handleStartElement(elementName, attributes: attributeDict)
     }
 
     func parser(_ parser: XMLParser, foundCharacters string: String) {
-        currentText += string
+        self.currentText += string
     }
 
     func parser(
@@ -205,13 +205,13 @@ extension SAMLParser: XMLParserDelegate {
         namespaceURI: String?,
         qualifiedName qName: String?
     ) {
-        let trimmedText = currentText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedText = self.currentText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         handleEndElement(elementName, trimmedText: trimmedText)
 
-        elementStack.removeLast()
-        currentElement = elementStack.last ?? ""
-        currentText = ""
+        self.elementStack.removeLast()
+        self.currentElement = self.elementStack.last ?? ""
+        self.currentText = ""
     }
 }
 
@@ -222,110 +222,110 @@ private extension SAMLParser {
         switch elementName {
         case "Response",
              "samlp:Response":
-            handleStartResponse(attributeDict)
+            self.handleStartResponse(attributeDict)
         case "Assertion",
              "saml:Assertion":
-            handleStartAssertion(attributeDict)
+            self.handleStartAssertion(attributeDict)
         case "Subject",
              "saml:Subject":
-            currentSubject = SubjectBuilder()
+            self.currentSubject = SubjectBuilder()
         case "NameID",
              "saml:NameID":
-            handleStartNameID(attributeDict)
+            self.handleStartNameID(attributeDict)
         case "SubjectConfirmation",
              "saml:SubjectConfirmation":
-            currentSubject?.confirmationMethod = SAMLConfirmationMethod(rawValue: attributeDict["Method"] ?? "")
+            self.currentSubject?.confirmationMethod = SAMLConfirmationMethod(rawValue: attributeDict["Method"] ?? "")
         case "SubjectConfirmationData",
              "saml:SubjectConfirmationData":
-            handleStartSubjectConfirmationData(attributeDict)
+            self.handleStartSubjectConfirmationData(attributeDict)
         case "Conditions",
              "saml:Conditions":
-            handleStartConditions(attributeDict)
+            self.handleStartConditions(attributeDict)
         case "AuthnStatement",
              "saml:AuthnStatement":
-            handleStartAuthnStatement(attributeDict)
+            self.handleStartAuthnStatement(attributeDict)
         case "AttributeStatement",
              "saml:AttributeStatement":
-            currentAttributeStatement = []
+            self.currentAttributeStatement = []
         case "Attribute",
              "saml:Attribute":
-            handleStartAttribute(attributeDict)
+            self.handleStartAttribute(attributeDict)
         case "StatusCode",
              "samlp:StatusCode":
-            handleStartStatusCode(attributeDict)
+            self.handleStartStatusCode(attributeDict)
         default:
             break
         }
     }
 
     func handleStartResponse(_ attrs: [String: String]) {
-        responseId = attrs["ID"] ?? ""
-        responseInResponseTo = attrs["InResponseTo"]
-        responseDestination = attrs["Destination"]
-        responseVersion = attrs["Version"] ?? "2.0"
+        self.responseId = attrs["ID"] ?? ""
+        self.responseInResponseTo = attrs["InResponseTo"]
+        self.responseDestination = attrs["Destination"]
+        self.responseVersion = attrs["Version"] ?? "2.0"
         if let instant = attrs["IssueInstant"] {
-            responseIssueInstant = parseDate(instant)
+            self.responseIssueInstant = self.parseDate(instant)
         }
     }
 
     func handleStartAssertion(_ attrs: [String: String]) {
-        currentAssertion = AssertionBuilder()
-        currentAssertion?.id = attrs["ID"] ?? ""
-        currentAssertion?.version = attrs["Version"] ?? "2.0"
+        self.currentAssertion = AssertionBuilder()
+        self.currentAssertion?.id = attrs["ID"] ?? ""
+        self.currentAssertion?.version = attrs["Version"] ?? "2.0"
         if let instant = attrs["IssueInstant"] {
-            currentAssertion?.issueInstant = parseDate(instant)
+            self.currentAssertion?.issueInstant = self.parseDate(instant)
         }
     }
 
     func handleStartNameID(_ attrs: [String: String]) {
-        currentSubject?.nameIDFormat = SAMLNameIDFormat(rawValue: attrs["Format"] ?? "")
-        currentSubject?.nameQualifier = attrs["NameQualifier"]
+        self.currentSubject?.nameIDFormat = SAMLNameIDFormat(rawValue: attrs["Format"] ?? "")
+        self.currentSubject?.nameQualifier = attrs["NameQualifier"]
     }
 
     func handleStartSubjectConfirmationData(_ attrs: [String: String]) {
-        currentSubject?.confirmationRecipient = attrs["Recipient"]
-        currentSubject?.confirmationInResponseTo = attrs["InResponseTo"]
+        self.currentSubject?.confirmationRecipient = attrs["Recipient"]
+        self.currentSubject?.confirmationInResponseTo = attrs["InResponseTo"]
         if let notOnOrAfter = attrs["NotOnOrAfter"] {
-            currentSubject?.confirmationNotOnOrAfter = parseDate(notOnOrAfter)
+            self.currentSubject?.confirmationNotOnOrAfter = self.parseDate(notOnOrAfter)
         }
     }
 
     func handleStartConditions(_ attrs: [String: String]) {
-        currentConditions = ConditionsBuilder()
+        self.currentConditions = ConditionsBuilder()
         if let notBefore = attrs["NotBefore"] {
-            currentConditions?.notBefore = parseDate(notBefore)
+            self.currentConditions?.notBefore = self.parseDate(notBefore)
         }
         if let notOnOrAfter = attrs["NotOnOrAfter"] {
-            currentConditions?.notOnOrAfter = parseDate(notOnOrAfter)
+            self.currentConditions?.notOnOrAfter = self.parseDate(notOnOrAfter)
         }
     }
 
     func handleStartAuthnStatement(_ attrs: [String: String]) {
-        currentAuthnStatement = AuthnStatementBuilder()
+        self.currentAuthnStatement = AuthnStatementBuilder()
         if let instant = attrs["AuthnInstant"] {
-            currentAuthnStatement?.authnInstant = parseDate(instant)
+            self.currentAuthnStatement?.authnInstant = self.parseDate(instant)
         }
-        currentAuthnStatement?.sessionIndex = attrs["SessionIndex"]
+        self.currentAuthnStatement?.sessionIndex = attrs["SessionIndex"]
         if let sessionNotOnOrAfter = attrs["SessionNotOnOrAfter"] {
-            currentAuthnStatement?.sessionNotOnOrAfter = parseDate(sessionNotOnOrAfter)
+            self.currentAuthnStatement?.sessionNotOnOrAfter = self.parseDate(sessionNotOnOrAfter)
         }
     }
 
     func handleStartAttribute(_ attrs: [String: String]) {
-        currentAttribute = AttributeBuilder()
-        currentAttribute?.name = attrs["Name"] ?? ""
-        currentAttribute?.friendlyName = attrs["FriendlyName"]
+        self.currentAttribute = AttributeBuilder()
+        self.currentAttribute?.name = attrs["Name"] ?? ""
+        self.currentAttribute?.friendlyName = attrs["FriendlyName"]
         if let format = attrs["NameFormat"] {
-            currentAttribute?.nameFormat = SAMLAttributeNameFormat(rawValue: format)
+            self.currentAttribute?.nameFormat = SAMLAttributeNameFormat(rawValue: format)
         }
     }
 
     func handleStartStatusCode(_ attrs: [String: String]) {
         let code = SAMLStatusCode(rawValue: attrs["Value"] ?? "")
-        if statusCode == .unknown {
-            statusCode = code
+        if self.statusCode == .unknown {
+            self.statusCode = code
         } else {
-            statusSubCode = code
+            self.statusSubCode = code
         }
     }
 
@@ -333,44 +333,44 @@ private extension SAMLParser {
         switch elementName {
         case "Issuer",
              "saml:Issuer":
-            if currentAssertion != nil {
-                currentAssertion?.issuer = trimmedText
+            if self.currentAssertion != nil {
+                self.currentAssertion?.issuer = trimmedText
             } else {
-                responseIssuer = trimmedText
+                self.responseIssuer = trimmedText
             }
         case "NameID",
              "saml:NameID":
-            currentSubject?.nameID = trimmedText
+            self.currentSubject?.nameID = trimmedText
         case "Audience",
              "saml:Audience":
-            currentConditions?.audiences.append(trimmedText)
+            self.currentConditions?.audiences.append(trimmedText)
         case "AuthnContextClassRef",
              "saml:AuthnContextClassRef":
-            currentAuthnStatement?.authnContextClassRef = SAMLAuthnContextClass(rawValue: trimmedText)
+            self.currentAuthnStatement?.authnContextClassRef = SAMLAuthnContextClass(rawValue: trimmedText)
         case "AttributeValue",
              "saml:AttributeValue":
-            currentAttribute?.values.append(trimmedText)
+            self.currentAttribute?.values.append(trimmedText)
         case "StatusMessage",
              "samlp:StatusMessage":
-            statusMessage = trimmedText
+            self.statusMessage = trimmedText
         case "Attribute",
              "saml:Attribute":
-            handleEndAttribute()
+            self.handleEndAttribute()
         case "AttributeStatement",
              "saml:AttributeStatement":
-            handleEndAttributeStatement()
+            self.handleEndAttributeStatement()
         case "Subject",
              "saml:Subject":
-            handleEndSubject()
+            self.handleEndSubject()
         case "Conditions",
              "saml:Conditions":
-            handleEndConditions()
+            self.handleEndConditions()
         case "AuthnStatement",
              "saml:AuthnStatement":
-            handleEndAuthnStatement()
+            self.handleEndAuthnStatement()
         case "Assertion",
              "saml:Assertion":
-            handleEndAssertion()
+            self.handleEndAssertion()
         default:
             break
         }
@@ -378,43 +378,43 @@ private extension SAMLParser {
 
     func handleEndAttribute() {
         if let attr = currentAttribute?.build() {
-            currentAttributeStatement.append(attr)
+            self.currentAttributeStatement.append(attr)
         }
-        currentAttribute = nil
+        self.currentAttribute = nil
     }
 
     func handleEndAttributeStatement() {
         let statement = SAMLAttributeStatement(attributes: currentAttributeStatement)
-        currentAssertion?.attributeStatements.append(statement)
-        currentAttributeStatement = []
+        self.currentAssertion?.attributeStatements.append(statement)
+        self.currentAttributeStatement = []
     }
 
     func handleEndSubject() {
         if let subject = currentSubject?.build() {
-            currentAssertion?.subject = subject
+            self.currentAssertion?.subject = subject
         }
-        currentSubject = nil
+        self.currentSubject = nil
     }
 
     func handleEndConditions() {
         if let conditions = currentConditions?.build() {
-            currentAssertion?.conditions = conditions
+            self.currentAssertion?.conditions = conditions
         }
-        currentConditions = nil
+        self.currentConditions = nil
     }
 
     func handleEndAuthnStatement() {
         if let authnStatement = currentAuthnStatement?.build() {
-            currentAssertion?.authnStatement = authnStatement
+            self.currentAssertion?.authnStatement = authnStatement
         }
-        currentAuthnStatement = nil
+        self.currentAuthnStatement = nil
     }
 
     func handleEndAssertion() {
         if let assertion = currentAssertion?.build() {
-            assertions.append(assertion)
+            self.assertions.append(assertion)
         }
-        currentAssertion = nil
+        self.currentAssertion = nil
     }
 }
 

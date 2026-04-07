@@ -34,12 +34,12 @@ struct EnterpriseSettings: Codable, Equatable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        cloudSyncEnabled = try container.decode(Bool.self, forKey: .cloudSyncEnabled)
-        localStorageOnly = try container.decode(Bool.self, forKey: .localStorageOnly)
-        pluginsEnabled = try container.decode(Bool.self, forKey: .pluginsEnabled)
-        gdprEnabled = try container.decodeIfPresent(Bool.self, forKey: .gdprEnabled) ?? false
-        soc2Enabled = try container.decodeIfPresent(Bool.self, forKey: .soc2Enabled) ?? false
-        hipaaEnabled = try container.decodeIfPresent(Bool.self, forKey: .hipaaEnabled) ?? false
+        self.cloudSyncEnabled = try container.decode(Bool.self, forKey: .cloudSyncEnabled)
+        self.localStorageOnly = try container.decode(Bool.self, forKey: .localStorageOnly)
+        self.pluginsEnabled = try container.decode(Bool.self, forKey: .pluginsEnabled)
+        self.gdprEnabled = try container.decodeIfPresent(Bool.self, forKey: .gdprEnabled) ?? false
+        self.soc2Enabled = try container.decodeIfPresent(Bool.self, forKey: .soc2Enabled) ?? false
+        self.hipaaEnabled = try container.decodeIfPresent(Bool.self, forKey: .hipaaEnabled) ?? false
     }
 
     // MARK: Internal

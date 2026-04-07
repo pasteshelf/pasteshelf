@@ -29,49 +29,49 @@ final class AutomationRuleStorage {
 
     /// Fetches all automation rules ordered by priority
     func fetchAllRules() async -> [AutomationRule] {
-        let context = storageManager.viewContext
+        let context = self.storageManager.viewContext
         let fetchRequest = AutomationRuleEntity.allRulesFetchRequest()
 
         do {
             let entities = try context.fetch(fetchRequest)
             return entities.compactMap { $0.toAutomationRule() }
         } catch {
-            logger.error("Failed to fetch automation rules: \(error.localizedDescription)")
+            self.logger.error("Failed to fetch automation rules: \(error.localizedDescription)")
             return []
         }
     }
 
     /// Fetches all enabled rules ordered by priority
     func fetchEnabledRules() async -> [AutomationRule] {
-        let context = storageManager.viewContext
+        let context = self.storageManager.viewContext
         let fetchRequest = AutomationRuleEntity.enabledRulesFetchRequest()
 
         do {
             let entities = try context.fetch(fetchRequest)
             return entities.compactMap { $0.toAutomationRule() }
         } catch {
-            logger.error("Failed to fetch enabled rules: \(error.localizedDescription)")
+            self.logger.error("Failed to fetch enabled rules: \(error.localizedDescription)")
             return []
         }
     }
 
     /// Fetches enabled rules for a specific trigger type
     func fetchRules(for triggerType: String) async -> [AutomationRule] {
-        let context = storageManager.viewContext
+        let context = self.storageManager.viewContext
         let fetchRequest = AutomationRuleEntity.rulesForTriggerFetchRequest(triggerType: triggerType)
 
         do {
             let entities = try context.fetch(fetchRequest)
             return entities.compactMap { $0.toAutomationRule() }
         } catch {
-            logger.error("Failed to fetch rules for trigger \(triggerType): \(error.localizedDescription)")
+            self.logger.error("Failed to fetch rules for trigger \(triggerType): \(error.localizedDescription)")
             return []
         }
     }
 
     /// Fetches a single rule by ID
     func fetchRule(id: UUID) async -> AutomationRule? {
-        let context = storageManager.viewContext
+        let context = self.storageManager.viewContext
         let fetchRequest = AutomationRuleEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         fetchRequest.fetchLimit = 1
@@ -79,7 +79,7 @@ final class AutomationRuleStorage {
         do {
             return try context.fetch(fetchRequest).first?.toAutomationRule()
         } catch {
-            logger.error("Failed to fetch rule \(id): \(error.localizedDescription)")
+            self.logger.error("Failed to fetch rule \(id): \(error.localizedDescription)")
             return nil
         }
     }
@@ -89,7 +89,7 @@ final class AutomationRuleStorage {
     /// Creates a new automation rule
     @discardableResult
     func createRule(_ rule: AutomationRule) async -> Bool {
-        let context = storageManager.newBackgroundContext()
+        let context = self.storageManager.newBackgroundContext()
 
         return await context.perform {
             let entity = AutomationRuleEntity(context: context)
@@ -109,7 +109,7 @@ final class AutomationRuleStorage {
     /// Updates an existing automation rule
     @discardableResult
     func updateRule(_ rule: AutomationRule) async -> Bool {
-        let context = storageManager.newBackgroundContext()
+        let context = self.storageManager.newBackgroundContext()
 
         return await context.perform {
             let fetchRequest = AutomationRuleEntity.fetchRequest()
@@ -135,10 +135,10 @@ final class AutomationRuleStorage {
     /// Creates or updates a rule (upsert)
     @discardableResult
     func saveRule(_ rule: AutomationRule) async -> Bool {
-        if await fetchRule(id: rule.id) != nil {
-            await updateRule(rule)
+        if await self.fetchRule(id: rule.id) != nil {
+            await self.updateRule(rule)
         } else {
-            await createRule(rule)
+            await self.createRule(rule)
         }
     }
 
@@ -147,7 +147,7 @@ final class AutomationRuleStorage {
     /// Deletes a rule by ID
     @discardableResult
     func deleteRule(id: UUID) async -> Bool {
-        let context = storageManager.newBackgroundContext()
+        let context = self.storageManager.newBackgroundContext()
 
         return await context.perform {
             let fetchRequest = AutomationRuleEntity.fetchRequest()
@@ -173,7 +173,7 @@ final class AutomationRuleStorage {
     /// Deletes all rules
     @discardableResult
     func deleteAllRules() async -> Bool {
-        let context = storageManager.newBackgroundContext()
+        let context = self.storageManager.newBackgroundContext()
 
         return await context.perform {
             let fetchRequest = AutomationRuleEntity.fetchRequest()
@@ -198,7 +198,7 @@ final class AutomationRuleStorage {
     /// Toggles the enabled state of a rule
     @discardableResult
     func toggleRule(id: UUID) async -> Bool {
-        let context = storageManager.newBackgroundContext()
+        let context = self.storageManager.newBackgroundContext()
 
         return await context.perform {
             let fetchRequest = AutomationRuleEntity.fetchRequest()
@@ -225,7 +225,7 @@ final class AutomationRuleStorage {
     /// Updates the priority of a rule
     @discardableResult
     func updatePriority(id: UUID, priority: Int32) async -> Bool {
-        let context = storageManager.newBackgroundContext()
+        let context = self.storageManager.newBackgroundContext()
 
         return await context.perform {
             let fetchRequest = AutomationRuleEntity.fetchRequest()
@@ -250,7 +250,7 @@ final class AutomationRuleStorage {
     /// Reorders rules by updating their priorities
     @discardableResult
     func reorderRules(_ orderedIds: [UUID]) async -> Bool {
-        let context = storageManager.newBackgroundContext()
+        let context = self.storageManager.newBackgroundContext()
 
         return await context.perform {
             let fetchRequest = AutomationRuleEntity.fetchRequest()
@@ -283,7 +283,7 @@ final class AutomationRuleStorage {
     /// Records that a rule was executed
     @discardableResult
     func recordExecution(id: UUID) async -> Bool {
-        let context = storageManager.newBackgroundContext()
+        let context = self.storageManager.newBackgroundContext()
 
         return await context.perform {
             let fetchRequest = AutomationRuleEntity.fetchRequest()
@@ -310,11 +310,11 @@ final class AutomationRuleStorage {
     func seedDefaultRulesIfNeeded() async {
         let existingRules = await fetchAllRules()
         guard existingRules.isEmpty else {
-            logger.debug("Default rules not needed, rules already exist")
+            self.logger.debug("Default rules not needed, rules already exist")
             return
         }
 
-        logger.info("Seeding default automation rules")
+        self.logger.info("Seeding default automation rules")
 
         // Example rules (disabled by default, user can enable if wanted)
         let examples: [AutomationRule] = [
@@ -322,7 +322,7 @@ final class AutomationRuleStorage {
         ]
 
         for rule in examples {
-            await createRule(rule)
+            await self.createRule(rule)
         }
     }
 

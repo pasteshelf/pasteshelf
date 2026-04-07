@@ -16,11 +16,11 @@ final class StorageManagerFetchTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        storageManager = await MainActor.run { StorageManager.forTesting() }
+        self.storageManager = await MainActor.run { StorageManager.forTesting() }
     }
 
     override func tearDown() async throws {
-        storageManager = nil
+        self.storageManager = nil
         try await super.tearDown()
     }
 
@@ -32,21 +32,21 @@ final class StorageManagerFetchTests: XCTestCase {
     }
 
     func testFetchRecentItems() async {
-        await createTestItems(count: 5)
+        await self.createTestItems(count: 5)
 
         let items = await storageManager.fetchRecentItems()
         XCTAssertEqual(items.count, 5)
     }
 
     func testFetchRecentItemsWithLimit() async {
-        await createTestItems(count: 10)
+        await self.createTestItems(count: 10)
 
         let items = await storageManager.fetchRecentItems(limit: 3)
         XCTAssertEqual(items.count, 3)
     }
 
     func testFetchRecentItemsWithOffset() async {
-        await createTestItems(count: 10)
+        await self.createTestItems(count: 10)
 
         let items = await storageManager.fetchRecentItems(limit: 5, offset: 5)
         XCTAssertEqual(items.count, 5)
@@ -68,8 +68,8 @@ final class StorageManagerFetchTests: XCTestCase {
             contentHash: "url_hash"
         )
 
-        _ = await storageManager.save(content: textContent, from: nil)
-        _ = await storageManager.save(content: urlContent, from: nil)
+        _ = await self.storageManager.save(content: textContent, from: nil)
+        _ = await self.storageManager.save(content: urlContent, from: nil)
 
         let textItems = await storageManager.fetchItems(byContentType: .plainText)
         let urlItems = await storageManager.fetchItems(byContentType: .url)
@@ -81,7 +81,7 @@ final class StorageManagerFetchTests: XCTestCase {
     // MARK: - Fetch Favorites Tests
 
     func testFetchFavoritesEmpty() async {
-        await createTestItems(count: 3)
+        await self.createTestItems(count: 3)
 
         let favorites = await storageManager.fetchFavorites()
         XCTAssertTrue(favorites.isEmpty)
@@ -94,12 +94,12 @@ final class StorageManagerFetchTests: XCTestCase {
             plainText: "Favorite item",
             contentHash: "fav_hash"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         // Fetch the item and mark as favorite
         let items = await storageManager.fetchRecentItems(limit: 1)
         if let item = items.first {
-            _ = await storageManager.setFavorite(item: item, isFavorite: true)
+            _ = await self.storageManager.setFavorite(item: item, isFavorite: true)
         }
 
         let favorites = await storageManager.fetchFavorites()
@@ -115,7 +115,7 @@ final class StorageManagerFetchTests: XCTestCase {
             plainText: "Find me",
             contentHash: "find_hash"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         // First fetch to get the ID
         let items = await storageManager.fetchRecentItems(limit: 1)
@@ -143,7 +143,7 @@ final class StorageManagerFetchTests: XCTestCase {
             plainText: "Unique content",
             contentHash: "unique_hash_123"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         let item = await storageManager.fetchItem(byHash: "unique_hash_123")
         XCTAssertNotNil(item)
@@ -157,7 +157,7 @@ final class StorageManagerFetchTests: XCTestCase {
             plainText: "Existing content",
             contentHash: "existing_hash"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         let exists = await storageManager.itemExists(withHash: "existing_hash")
         let notExists = await storageManager.itemExists(withHash: "nonexistent_hash")
@@ -169,15 +169,15 @@ final class StorageManagerFetchTests: XCTestCase {
     // MARK: - Tag Fetch Tests
 
     func testFetchTags() async {
-        _ = await storageManager.saveTag(name: "Tag A", color: "#FF0000")
-        _ = await storageManager.saveTag(name: "Tag B", color: "#00FF00")
+        _ = await self.storageManager.saveTag(name: "Tag A", color: "#FF0000")
+        _ = await self.storageManager.saveTag(name: "Tag B", color: "#00FF00")
 
         let tags = await storageManager.fetchTags()
         XCTAssertEqual(tags.count, 2)
     }
 
     func testFetchTagByName() async {
-        _ = await storageManager.saveTag(name: "Urgent", color: "#FF0000")
+        _ = await self.storageManager.saveTag(name: "Urgent", color: "#FF0000")
 
         let tag = await storageManager.fetchTag(byName: "Urgent")
         XCTAssertNotNil(tag)
@@ -187,15 +187,15 @@ final class StorageManagerFetchTests: XCTestCase {
     // MARK: - Folder Fetch Tests
 
     func testFetchFolders() async {
-        _ = await storageManager.saveFolder(name: "Folder A")
-        _ = await storageManager.saveFolder(name: "Folder B")
+        _ = await self.storageManager.saveFolder(name: "Folder A")
+        _ = await self.storageManager.saveFolder(name: "Folder B")
 
         let folders = await storageManager.fetchFolders()
         XCTAssertEqual(folders.count, 2)
     }
 
     func testFetchFolderById() async {
-        _ = await storageManager.saveFolder(name: "Test Folder")
+        _ = await self.storageManager.saveFolder(name: "Test Folder")
 
         // The returned object belongs to a background context, so access its
         // properties by re-fetching from the view context instead.
@@ -215,17 +215,17 @@ final class StorageManagerFetchTests: XCTestCase {
     // MARK: - Application Fetch Tests
 
     func testFetchExcludedApplications() async {
-        _ = await storageManager.saveApplication(bundleId: "com.app1", name: "App 1", isExcluded: true)
-        _ = await storageManager.saveApplication(bundleId: "com.app2", name: "App 2", isExcluded: false)
-        _ = await storageManager.saveApplication(bundleId: "com.app3", name: "App 3", isExcluded: true)
+        _ = await self.storageManager.saveApplication(bundleId: "com.app1", name: "App 1", isExcluded: true)
+        _ = await self.storageManager.saveApplication(bundleId: "com.app2", name: "App 2", isExcluded: false)
+        _ = await self.storageManager.saveApplication(bundleId: "com.app3", name: "App 3", isExcluded: true)
 
         let excluded = await storageManager.fetchExcludedApplications()
         XCTAssertEqual(excluded.count, 2)
     }
 
     func testIsApplicationExcluded() async {
-        _ = await storageManager.saveApplication(bundleId: "com.excluded", name: "Excluded", isExcluded: true)
-        _ = await storageManager.saveApplication(bundleId: "com.included", name: "Included", isExcluded: false)
+        _ = await self.storageManager.saveApplication(bundleId: "com.excluded", name: "Excluded", isExcluded: true)
+        _ = await self.storageManager.saveApplication(bundleId: "com.included", name: "Included", isExcluded: false)
 
         let isExcluded = await storageManager.isApplicationExcluded(bundleId: "com.excluded")
         let isIncluded = await storageManager.isApplicationExcluded(bundleId: "com.included")
@@ -248,7 +248,7 @@ final class StorageManagerFetchTests: XCTestCase {
                 plainText: "Item \(i)",
                 contentHash: "hash_\(i)"
             )
-            _ = await storageManager.save(content: content, from: nil)
+            _ = await self.storageManager.save(content: content, from: nil)
         }
     }
 }

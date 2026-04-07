@@ -19,24 +19,24 @@ struct AutomationTabView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
-            headerView
+            self.headerView
 
             // Rules list
-            rulesListView
+            self.rulesListView
         }
         .padding()
-        .sheet(isPresented: $showingRuleEditor) {
+        .sheet(isPresented: self.$showingRuleEditor) {
             RuleEditorView(
-                viewModel: viewModel,
-                isPresented: $showingRuleEditor
+                viewModel: self.viewModel,
+                isPresented: self.$showingRuleEditor
             )
         }
-        .alert("Delete Rule", isPresented: $showingDeleteConfirmation) {
+        .alert("Delete Rule", isPresented: self.$showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
                 if let rule = ruleToDelete {
                     Task {
-                        await viewModel.deleteRule(rule)
+                        await self.viewModel.deleteRule(rule)
                     }
                 }
             }
@@ -44,15 +44,15 @@ struct AutomationTabView: View {
             Text("Are you sure you want to delete this rule? This action cannot be undone.")
         }
         .alert("Error", isPresented: .init(
-            get: { viewModel.errorMessage != nil },
+            get: { self.viewModel.errorMessage != nil },
             set: { if !$0 {
-                viewModel.clearError()
+                self.viewModel.clearError()
             }
             }
         )) {
-            Button("OK") { viewModel.clearError() }
+            Button("OK") { self.viewModel.clearError() }
         } message: {
-            Text(viewModel.errorMessage ?? "")
+            Text(self.viewModel.errorMessage ?? "")
         }
     }
 
@@ -75,19 +75,19 @@ struct AutomationTabView: View {
                 .foregroundColor(.secondary)
 
             HStack {
-                Text("\(viewModel.enabledRulesCount) active")
+                Text("\(self.viewModel.enabledRulesCount) active")
                     .foregroundColor(.green)
 
-                if viewModel.disabledRulesCount > 0 {
-                    Text("\(viewModel.disabledRulesCount) disabled")
+                if self.viewModel.disabledRulesCount > 0 {
+                    Text("\(self.viewModel.disabledRulesCount) disabled")
                         .foregroundColor(.secondary)
                 }
 
                 Spacer()
 
                 Button {
-                    viewModel.startCreating()
-                    showingRuleEditor = true
+                    self.viewModel.startCreating()
+                    self.showingRuleEditor = true
                 } label: {
                     Label("Add Rule", systemImage: "plus")
                 }
@@ -103,12 +103,12 @@ struct AutomationTabView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
 
-                TextField("Search rules...", text: $viewModel.searchQuery)
+                TextField("Search rules...", text: self.$viewModel.searchQuery)
                     .textFieldStyle(.plain)
 
-                if !viewModel.searchQuery.isEmpty {
+                if !self.viewModel.searchQuery.isEmpty {
                     Button {
-                        viewModel.searchQuery = ""
+                        self.viewModel.searchQuery = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.secondary)
@@ -121,36 +121,36 @@ struct AutomationTabView: View {
             .cornerRadius(8)
 
             // Rules list
-            if viewModel.filteredRules.isEmpty {
-                emptyStateView
+            if self.viewModel.filteredRules.isEmpty {
+                self.emptyStateView
             } else {
                 List {
-                    ForEach(viewModel.filteredRules) { rule in
+                    ForEach(self.viewModel.filteredRules) { rule in
                         RuleRowView(
                             rule: rule,
                             onToggle: {
                                 Task {
-                                    await viewModel.toggleRule(rule)
+                                    await self.viewModel.toggleRule(rule)
                                 }
                             },
                             onEdit: {
-                                viewModel.startEditing(rule)
-                                showingRuleEditor = true
+                                self.viewModel.startEditing(rule)
+                                self.showingRuleEditor = true
                             },
                             onDuplicate: {
                                 Task {
-                                    await viewModel.duplicateRule(rule)
+                                    await self.viewModel.duplicateRule(rule)
                                 }
                             },
                             onDelete: {
-                                ruleToDelete = rule
-                                showingDeleteConfirmation = true
+                                self.ruleToDelete = rule
+                                self.showingDeleteConfirmation = true
                             }
                         )
                     }
                     .onMove { source, destination in
                         Task {
-                            await viewModel.moveRule(from: source, to: destination)
+                            await self.viewModel.moveRule(from: source, to: destination)
                         }
                     }
                 }
@@ -165,7 +165,7 @@ struct AutomationTabView: View {
                 .font(.system(size: 36))
                 .foregroundColor(.secondary)
 
-            if viewModel.searchQuery.isEmpty {
+            if self.viewModel.searchQuery.isEmpty {
                 Text("No Rules Yet")
                     .font(.headline)
 
@@ -174,8 +174,8 @@ struct AutomationTabView: View {
                     .foregroundColor(.secondary)
 
                 Button("Create Rule") {
-                    viewModel.startCreating()
-                    showingRuleEditor = true
+                    self.viewModel.startCreating()
+                    self.showingRuleEditor = true
                 }
                 .buttonStyle(.borderedProminent)
             } else {
@@ -205,32 +205,32 @@ struct RuleRowView: View {
         HStack(spacing: 12) {
             // Enable/disable toggle
             Toggle("", isOn: .init(
-                get: { rule.isEnabled },
-                set: { _ in onToggle() }
+                get: { self.rule.isEnabled },
+                set: { _ in self.onToggle() }
             ))
             .toggleStyle(.switch)
             .labelsHidden()
 
             // Rule info
             VStack(alignment: .leading, spacing: 2) {
-                Text(rule.name)
+                Text(self.rule.name)
                     .font(.body)
-                    .foregroundColor(rule.isEnabled ? .primary : .secondary)
+                    .foregroundColor(self.rule.isEnabled ? .primary : .secondary)
 
                 HStack(spacing: 8) {
                     // Trigger badge
-                    Label(rule.trigger.displayName, systemImage: rule.trigger.iconName)
+                    Label(self.rule.trigger.displayName, systemImage: self.rule.trigger.iconName)
                         .font(.caption)
                         .foregroundColor(.secondary)
 
                     // Actions count
-                    Text("\(rule.actions.count) action\(rule.actions.count == 1 ? "" : "s")")
+                    Text("\(self.rule.actions.count) action\(self.rule.actions.count == 1 ? "" : "s")")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
                     // Execution count
-                    if rule.executionCount > 0 {
-                        Text("Run \(rule.executionCount)x")
+                    if self.rule.executionCount > 0 {
+                        Text("Run \(self.rule.executionCount)x")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -242,13 +242,13 @@ struct RuleRowView: View {
             // Context menu button
             Menu {
                 Button {
-                    onEdit()
+                    self.onEdit()
                 } label: {
                     Label("Edit", systemImage: "pencil")
                 }
 
                 Button {
-                    onDuplicate()
+                    self.onDuplicate()
                 } label: {
                     Label("Duplicate", systemImage: "plus.square.on.square")
                 }
@@ -256,7 +256,7 @@ struct RuleRowView: View {
                 Divider()
 
                 Button(role: .destructive) {
-                    onDelete()
+                    self.onDelete()
                 } label: {
                     Label("Delete", systemImage: "trash")
                 }
@@ -271,7 +271,7 @@ struct RuleRowView: View {
         .padding(.vertical, 4)
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
-            onEdit()
+            self.onEdit()
         }
     }
 }

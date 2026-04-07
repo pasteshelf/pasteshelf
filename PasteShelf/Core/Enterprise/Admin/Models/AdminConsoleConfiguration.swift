@@ -98,6 +98,6 @@ struct AdminConsoleConfiguration: Codable, Equatable {
     ///
     /// Use this to guard connection attempts and to show configuration-required prompts in the UI.
     var isConfigured: Bool {
-        serverURL != nil && !organizationID.isEmpty
+        self.serverURL != nil && !self.organizationID.isEmpty
     }
 }

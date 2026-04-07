@@ -28,7 +28,7 @@ struct PrivacyDashboardView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                if viewModel.isLoading {
+                if self.viewModel.isLoading {
                     ProgressView("Loading privacy data...")
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding()
@@ -36,7 +36,7 @@ struct PrivacyDashboardView: View {
                     // Data Collected
                     GroupBox {
                         VStack(alignment: .leading, spacing: 6) {
-                            ForEach(Array(viewModel.dataCategories.enumerated()), id: \.offset) { _, item in
+                            ForEach(Array(self.viewModel.dataCategories.enumerated()), id: \.offset) { _, item in
                                 HStack {
                                     Image(systemName: item.icon)
                                         .frame(width: 20)
@@ -58,7 +58,7 @@ struct PrivacyDashboardView: View {
                         HStack {
                             Text("Retention Period:")
                             Spacer()
-                            Text(viewModel.storageDuration)
+                            Text(self.viewModel.storageDuration)
                                 .fontWeight(.medium)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -69,7 +69,7 @@ struct PrivacyDashboardView: View {
                     // Connected Services
                     GroupBox {
                         VStack(alignment: .leading, spacing: 6) {
-                            ForEach(Array(viewModel.connectedServices.enumerated()), id: \.offset) { _, service in
+                            ForEach(Array(self.viewModel.connectedServices.enumerated()), id: \.offset) { _, service in
                                 HStack {
                                     Image(systemName: service.icon)
                                         .frame(width: 20)
@@ -99,9 +99,10 @@ struct PrivacyDashboardView: View {
                                         .frame(width: 20)
                                     Text(category.displayName)
                                     Spacer()
-                                    Text(consentManager.isConsentGranted(for: category) ? "Granted" : "Not Granted")
+                                    Text(self.consentManager
+                                        .isConsentGranted(for: category) ? "Granted" : "Not Granted")
                                         .font(.caption)
-                                        .foregroundStyle(consentManager
+                                        .foregroundStyle(self.consentManager
                                             .isConsentGranted(for: category) ? .green : .secondary)
                                 }
                             }
@@ -115,7 +116,7 @@ struct PrivacyDashboardView: View {
             .padding()
         }
         .task {
-            await viewModel.loadDashboardData()
+            await self.viewModel.loadDashboardData()
         }
     }
 

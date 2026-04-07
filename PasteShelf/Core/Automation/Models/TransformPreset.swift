@@ -247,7 +247,7 @@ enum TransformPreset: String, Codable, CaseIterable { // swiftlint:disable:this 
             input.capitalized
 
         case .sentenceCase:
-            transformToSentenceCase(input)
+            self.transformToSentenceCase(input)
 
         // Whitespace transformations
         case .trimWhitespace:
@@ -258,7 +258,7 @@ enum TransformPreset: String, Codable, CaseIterable { // swiftlint:disable:this 
                 .replacingOccurrences(of: "\r", with: " ")
 
         case .collapseSpaces:
-            collapseMultipleSpaces(input)
+            self.collapseMultipleSpaces(input)
 
         case .removeAllWhitespace:
             input.components(separatedBy: .whitespacesAndNewlines).joined()
@@ -268,7 +268,7 @@ enum TransformPreset: String, Codable, CaseIterable { // swiftlint:disable:this 
             input.components(separatedBy: .newlines).sorted().joined(separator: "\n")
 
         case .uniqueLines:
-            uniqueLines(input)
+            self.uniqueLines(input)
 
         case .reverseLines:
             input.components(separatedBy: .newlines).reversed().joined(separator: "\n")
@@ -281,7 +281,7 @@ enum TransformPreset: String, Codable, CaseIterable { // swiftlint:disable:this 
             Data(input.utf8).base64EncodedString()
 
         case .base64Decode:
-            decodeBase64(input) ?? input
+            self.decodeBase64(input) ?? input
 
         case .urlEncode:
             input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? input
@@ -291,27 +291,27 @@ enum TransformPreset: String, Codable, CaseIterable { // swiftlint:disable:this 
 
         // JSON transformations
         case .formatJSON:
-            formatJSON(input) ?? input
+            self.formatJSON(input) ?? input
 
         case .minifyJSON:
-            minifyJSON(input) ?? input
+            self.minifyJSON(input) ?? input
 
         // HTML transformations
         case .escapeHTML:
-            escapeHTML(input)
+            self.escapeHTML(input)
 
         case .unescapeHTML:
-            unescapeHTML(input)
+            self.unescapeHTML(input)
 
         case .stripHTMLTags:
-            stripHTMLTags(input)
+            self.stripHTMLTags(input)
 
         // Hash transformations
         case .md5Hash:
-            md5Hash(input)
+            self.md5Hash(input)
 
         case .sha256Hash:
-            sha256Hash(input)
+            self.sha256Hash(input)
         }
     }
 

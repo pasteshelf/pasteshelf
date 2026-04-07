@@ -23,9 +23,9 @@
 
         /// Whether the content was actually modified
         var wasModified: Bool {
-            original.text != transformed.text ||
-                original.imageData != transformed.imageData ||
-                original.url != transformed.url
+            self.original.text != self.transformed.text ||
+                self.original.imageData != self.transformed.imageData ||
+                self.original.url != self.transformed.url
         }
     }
 
@@ -50,7 +50,7 @@
         // MARK: - Initialization
 
         private init() {
-            logger.info("PluginTransformAPI initialized")
+            self.logger.info("PluginTransformAPI initialized")
         }
 
         // MARK: Internal
@@ -61,7 +61,7 @@
 
         /// All registered transformers
         var allTransformers: [PluginTransformer] {
-            transformersByPlugin.values.flatMap { $0 }
+            self.transformersByPlugin.values.flatMap { $0 }
         }
 
         // MARK: - Transformer Registration
@@ -95,27 +95,27 @@
             transformer.transform = transform
 
             // Add to plugin's transformers
-            var existing = transformersByPlugin[pluginId] ?? []
+            var existing = self.transformersByPlugin[pluginId] ?? []
             existing.append(transformer)
-            transformersByPlugin[pluginId] = existing
+            self.transformersByPlugin[pluginId] = existing
 
-            logger.debug("Registered transformer '\(name)' for plugin \(pluginId)")
+            self.logger.debug("Registered transformer '\(name)' for plugin \(pluginId)")
             return transformer
         }
 
         /// Unregisters all transformers for a plugin
         /// - Parameter pluginId: Plugin identifier
         func unregisterTransformers(for pluginId: String) {
-            let count = transformersByPlugin[pluginId]?.count ?? 0
-            transformersByPlugin.removeValue(forKey: pluginId)
-            logger.debug("Unregistered \(count) transformers for plugin \(pluginId)")
+            let count = self.transformersByPlugin[pluginId]?.count ?? 0
+            self.transformersByPlugin.removeValue(forKey: pluginId)
+            self.logger.debug("Unregistered \(count) transformers for plugin \(pluginId)")
         }
 
         /// Unregisters a specific transformer
         /// - Parameter transformerId: Transformer identifier
         func unregisterTransformer(id transformerId: UUID) {
-            for (pluginId, transformers) in transformersByPlugin {
-                transformersByPlugin[pluginId] = transformers.filter { $0.id != transformerId }
+            for (pluginId, transformers) in self.transformersByPlugin {
+                self.transformersByPlugin[pluginId] = transformers.filter { $0.id != transformerId }
             }
         }
 
@@ -167,7 +167,7 @@
         /// - Parameter contentType: Content type to filter by
         /// - Returns: Matching transformers
         func transformers(for contentType: ContentType) -> [PluginTransformer] {
-            allTransformers.filter { transformer in
+            self.allTransformers.filter { transformer in
                 transformer.supportedTypes.isEmpty || transformer.supportedTypes.contains(contentType)
             }
         }
@@ -176,14 +176,14 @@
         /// - Parameter id: Transformer ID
         /// - Returns: Transformer if found
         func findTransformer(id: UUID) -> PluginTransformer? {
-            allTransformers.first { $0.id == id }
+            self.allTransformers.first { $0.id == id }
         }
 
         /// Gets transformers for a specific plugin
         /// - Parameter pluginId: Plugin identifier
         /// - Returns: Transformers registered by the plugin
         func transformers(for pluginId: String) -> [PluginTransformer] {
-            transformersByPlugin[pluginId] ?? []
+            self.transformersByPlugin[pluginId] ?? []
         }
 
         // MARK: - Batch Transform

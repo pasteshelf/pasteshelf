@@ -19,7 +19,7 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
     // MARK: - Initialization
 
     init() {
-        loadConfiguration()
+        self.loadConfiguration()
     }
 
     // MARK: Internal
@@ -55,11 +55,11 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
             return
         }
 
-        serverURLString = config.serverURL?.absoluteString ?? ""
-        organizationID = config.organizationID
-        apiKey = loadApiKeyFromKeychain() ?? ""
-        isEnabled = config.isEnabled
-        certificatePinningEnabled = config.certificatePinningEnabled
+        self.serverURLString = config.serverURL?.absoluteString ?? ""
+        self.organizationID = config.organizationID
+        self.apiKey = self.loadApiKeyFromKeychain() ?? ""
+        self.isEnabled = config.isEnabled
+        self.certificatePinningEnabled = config.certificatePinningEnabled
     }
 
     func saveConfiguration() {
@@ -74,23 +74,23 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         )
 
         if let data = try? JSONEncoder().encode(config) {
-            UserDefaults.standard.set(data, forKey: configKey)
+            UserDefaults.standard.set(data, forKey: self.configKey)
         }
 
         // Store API key securely in Keychain
-        if apiKey.isEmpty {
-            deleteApiKeyFromKeychain()
+        if self.apiKey.isEmpty {
+            self.deleteApiKeyFromKeychain()
         } else {
-            saveApiKeyToKeychain(apiKey)
+            self.saveApiKeyToKeychain(self.apiKey)
         }
 
         // Propagate to SyncManager so it picks up the new configuration
         let syncConfig = SelfHostedSyncConfiguration(
             serverURL: URL(string: serverURLString),
             organizationID: organizationID,
-            apiKey: apiKey.isEmpty ? nil : apiKey,
-            isEnabled: isEnabled,
-            certificatePinningEnabled: certificatePinningEnabled,
+            apiKey: apiKey.isEmpty ? nil : self.apiKey,
+            isEnabled: self.isEnabled,
+            certificatePinningEnabled: self.certificatePinningEnabled,
             pinnedCertificateData: nil
         )
         SyncManager.shared.selfHostedConfiguration = syncConfig
@@ -108,30 +108,30 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
             }
         }
 
-        logger.info("Self-hosted sync configuration saved")
+        self.logger.info("Self-hosted sync configuration saved")
     }
 
     // MARK: - Connection Test
 
     func testConnection() async {
-        isTestingConnection = true
-        testSteps = []
-        connectionStatus = .testing
+        self.isTestingConnection = true
+        self.testSteps = []
+        self.connectionStatus = .testing
 
         guard let url = testValidateURL() else {
             return
         }
-        guard testResolveHostname(url) else {
+        guard self.testResolveHostname(url) else {
             return
         }
-        guard await testHealthCheck(url) else {
+        guard await self.testHealthCheck(url) else {
             return
         }
-        await testAuthentication(url)
-        testTLSCertificate(url)
+        await self.testAuthentication(url)
+        self.testTLSCertificate(url)
 
-        connectionStatus = .connected
-        isTestingConnection = false
+        self.connectionStatus = .connected
+        self.isTestingConnection = false
     }
 
     // MARK: Private
@@ -143,35 +143,35 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
 
     /// Step 1: Validate the server URL format.
     private func testValidateURL() -> URL? {
-        addStep(title: "Validating server URL", status: .inProgress)
+        self.addStep(title: "Validating server URL", status: .inProgress)
         guard let url = URL(string: serverURLString),
               url.scheme == "https" || url.scheme == "http"
         else {
-            updateLastStep(status: .failed, detail: "Invalid URL format")
-            connectionStatus = .failed
-            isTestingConnection = false
+            self.updateLastStep(status: .failed, detail: "Invalid URL format")
+            self.connectionStatus = .failed
+            self.isTestingConnection = false
             return nil
         }
-        updateLastStep(status: .passed)
+        self.updateLastStep(status: .passed)
         return url
     }
 
     /// Step 2: Verify the URL contains a resolvable hostname.
     private func testResolveHostname(_ url: URL) -> Bool {
-        addStep(title: "Resolving hostname", status: .inProgress)
+        self.addStep(title: "Resolving hostname", status: .inProgress)
         guard let host = url.host else {
-            updateLastStep(status: .failed, detail: "No hostname in URL")
-            connectionStatus = .failed
-            isTestingConnection = false
+            self.updateLastStep(status: .failed, detail: "No hostname in URL")
+            self.connectionStatus = .failed
+            self.isTestingConnection = false
             return false
         }
-        updateLastStep(status: .passed, detail: host)
+        self.updateLastStep(status: .passed, detail: host)
         return true
     }
 
     /// Step 3: Hit the server's health endpoint.
     private func testHealthCheck(_ url: URL) async -> Bool {
-        addStep(title: "Checking server health", status: .inProgress)
+        self.addStep(title: "Checking server health", status: .inProgress)
         let healthURL = url.appendingPathComponent("health")
         var request = URLRequest(url: healthURL)
         request.httpMethod = "GET"
@@ -180,9 +180,9 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse else {
-                updateLastStep(status: .failed, detail: "Invalid response")
-                connectionStatus = .failed
-                isTestingConnection = false
+                self.updateLastStep(status: .failed, detail: "Invalid response")
+                self.connectionStatus = .failed
+                self.isTestingConnection = false
                 return false
             }
 
@@ -190,20 +190,20 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
                 if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let version = json["version"] as? String
                 {
-                    updateLastStep(status: .passed, detail: "Server v\(version)")
+                    self.updateLastStep(status: .passed, detail: "Server v\(version)")
                 } else {
-                    updateLastStep(status: .passed, detail: "HTTP 200")
+                    self.updateLastStep(status: .passed, detail: "HTTP 200")
                 }
             } else {
-                updateLastStep(status: .failed, detail: "HTTP \(httpResponse.statusCode)")
-                connectionStatus = .failed
-                isTestingConnection = false
+                self.updateLastStep(status: .failed, detail: "HTTP \(httpResponse.statusCode)")
+                self.connectionStatus = .failed
+                self.isTestingConnection = false
                 return false
             }
         } catch {
-            updateLastStep(status: .failed, detail: error.localizedDescription)
-            connectionStatus = .failed
-            isTestingConnection = false
+            self.updateLastStep(status: .failed, detail: error.localizedDescription)
+            self.connectionStatus = .failed
+            self.isTestingConnection = false
             return false
         }
         return true
@@ -211,36 +211,36 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
 
     /// Step 4: Verify API key authentication if configured.
     private func testAuthentication(_ url: URL) async {
-        addStep(title: "Verifying authentication", status: .inProgress)
-        if apiKey.isEmpty {
-            updateLastStep(status: .skipped, detail: "No API key configured")
+        self.addStep(title: "Verifying authentication", status: .inProgress)
+        if self.apiKey.isEmpty {
+            self.updateLastStep(status: .skipped, detail: "No API key configured")
         } else {
             let statusURL = url.appendingPathComponent("api/v1/sync/status")
             var authRequest = URLRequest(url: statusURL)
             authRequest.httpMethod = "GET"
-            authRequest.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
+            authRequest.setValue(self.apiKey, forHTTPHeaderField: "X-API-Key")
             authRequest.timeoutInterval = 10
 
             do {
                 let (_, authResponse) = try await URLSession.shared.data(for: authRequest)
                 if let httpAuth = authResponse as? HTTPURLResponse, httpAuth.statusCode == 200 {
-                    updateLastStep(status: .passed, detail: "Authenticated")
+                    self.updateLastStep(status: .passed, detail: "Authenticated")
                 } else {
-                    updateLastStep(status: .warning, detail: "Auth may be invalid")
+                    self.updateLastStep(status: .warning, detail: "Auth may be invalid")
                 }
             } catch {
-                updateLastStep(status: .warning, detail: "Could not verify auth")
+                self.updateLastStep(status: .warning, detail: "Could not verify auth")
             }
         }
     }
 
     /// Step 5: Check whether the connection uses TLS.
     private func testTLSCertificate(_ url: URL) {
-        addStep(title: "Checking TLS certificate", status: .inProgress)
+        self.addStep(title: "Checking TLS certificate", status: .inProgress)
         if url.scheme == "https" {
-            updateLastStep(status: .passed, detail: "HTTPS enabled")
+            self.updateLastStep(status: .passed, detail: "HTTPS enabled")
         } else {
-            updateLastStep(status: .warning, detail: "Not using HTTPS")
+            self.updateLastStep(status: .warning, detail: "Not using HTTPS")
         }
     }
 
@@ -252,33 +252,33 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         }
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: apiKeyService,
-            kSecAttrAccount as String: apiKeyAccount,
+            kSecAttrService as String: self.apiKeyService,
+            kSecAttrAccount as String: self.apiKeyAccount,
         ]
         let deleteStatus = SecItemDelete(deleteQuery as CFDictionary)
         if deleteStatus != errSecSuccess, deleteStatus != errSecItemNotFound {
-            logger.warning("Keychain delete returned status \(deleteStatus)")
+            self.logger.warning("Keychain delete returned status \(deleteStatus)")
         }
 
         let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: apiKeyService,
-            kSecAttrAccount as String: apiKeyAccount,
+            kSecAttrService as String: self.apiKeyService,
+            kSecAttrAccount as String: self.apiKeyAccount,
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
         ]
         let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
         if addStatus != errSecSuccess {
-            logger.error("Keychain add failed with status \(addStatus)")
-            errorMessage = "Failed to save API key to Keychain (error \(addStatus))"
+            self.logger.error("Keychain add failed with status \(addStatus)")
+            self.errorMessage = "Failed to save API key to Keychain (error \(addStatus))"
         }
     }
 
     private func loadApiKeyFromKeychain() -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: apiKeyService,
-            kSecAttrAccount as String: apiKeyAccount,
+            kSecAttrService as String: self.apiKeyService,
+            kSecAttrAccount as String: self.apiKeyAccount,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
         ]
@@ -293,8 +293,8 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
     private func deleteApiKeyFromKeychain() {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: apiKeyService,
-            kSecAttrAccount as String: apiKeyAccount,
+            kSecAttrService as String: self.apiKeyService,
+            kSecAttrAccount as String: self.apiKeyAccount,
         ]
         SecItemDelete(query as CFDictionary)
     }
@@ -302,15 +302,15 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
     // MARK: - Helpers
 
     private func addStep(title: String, status: ConnectionTestStep.StepStatus) {
-        testSteps.append(ConnectionTestStep(title: title, status: status))
+        self.testSteps.append(ConnectionTestStep(title: title, status: status))
     }
 
     private func updateLastStep(status: ConnectionTestStep.StepStatus, detail: String? = nil) {
-        guard !testSteps.isEmpty else {
+        guard !self.testSteps.isEmpty else {
             return
         }
-        testSteps[testSteps.count - 1].status = status
-        testSteps[testSteps.count - 1].detail = detail
+        self.testSteps[self.testSteps.count - 1].status = status
+        self.testSteps[self.testSteps.count - 1].detail = detail
     }
 }
 

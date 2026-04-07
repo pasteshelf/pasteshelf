@@ -28,31 +28,31 @@ final class SyncEncryptionManager: SyncEncrypting, Sendable {
 
     var hasEncryptionKey: Bool {
         get async {
-            keyManager.hasKey
+            self.keyManager.hasKey
         }
     }
 
     /// Check if encryption is available
     var isAvailable: Bool {
-        keyManager.hasKey
+        self.keyManager.hasKey
     }
 
     func getOrCreateKey() async throws -> Data {
-        try keyManager.getOrCreateRawKey()
+        try self.keyManager.getOrCreateRawKey()
     }
 
     func encrypt(_ data: Data) async throws -> Data {
         let key = try keyManager.getOrCreateSyncKey()
-        return try encrypt(data, with: key)
+        return try self.encrypt(data, with: key)
     }
 
     func decrypt(_ data: Data) async throws -> Data {
         let key = try keyManager.getOrCreateSyncKey()
-        return try decrypt(data, with: key)
+        return try self.decrypt(data, with: key)
     }
 
     func rotateKey() async throws {
-        _ = try keyManager.rotateKey()
+        _ = try self.keyManager.rotateKey()
         Self.logger.info("Encryption key rotated - all data needs re-encryption")
     }
 
@@ -63,7 +63,7 @@ final class SyncEncryptionManager: SyncEncrypting, Sendable {
         guard let data = string.data(using: .utf8) else {
             throw SyncError.invalidData(reason: "String encoding failed")
         }
-        return try await encrypt(data)
+        return try await self.encrypt(data)
     }
 
     /// Decrypt to string
@@ -80,7 +80,7 @@ final class SyncEncryptionManager: SyncEncrypting, Sendable {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(object)
-        return try await encrypt(data)
+        return try await self.encrypt(data)
     }
 
     /// Decrypt to Codable object
@@ -95,7 +95,7 @@ final class SyncEncryptionManager: SyncEncrypting, Sendable {
 
     /// Delete encryption keys (for sync reset)
     func deleteKeys() throws {
-        try keyManager.deleteKeys()
+        try self.keyManager.deleteKeys()
     }
 
     // MARK: Private

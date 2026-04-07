@@ -32,7 +32,7 @@ struct AboutTabView: View {
                     .font(.title)
                     .fontWeight(.semibold)
 
-                Text("Version \(appVersion) (\(buildNumber))")
+                Text("Version \(self.appVersion) (\(self.buildNumber))")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }

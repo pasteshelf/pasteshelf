@@ -37,8 +37,8 @@ final class AdminSettingsViewModel: ObservableObject {
     // MARK: - Initialization
 
     init() {
-        loadState()
-        observeChanges()
+        self.loadState()
+        self.observeChanges()
     }
 
     // MARK: Internal
@@ -71,7 +71,7 @@ final class AdminSettingsViewModel: ObservableObject {
 
     /// Whether the device is fully enrolled with the admin console.
     var isEnrolled: Bool {
-        enrollmentStatus == .enrolled
+        self.enrollmentStatus == .enrolled
     }
 
     // MARK: - State Loading
@@ -79,31 +79,31 @@ final class AdminSettingsViewModel: ObservableObject {
     /// Reads the current admin console state and updates all published properties.
     func loadState() {
         let admin = AdminManager.shared
-        isConnected = admin.isConnected
-        enrollmentStatus = admin.enrollmentStatus
-        serverURL = admin.configuration.serverURL?.absoluteString
-        organizationID = admin.configuration.organizationID.isEmpty ? nil : admin.configuration.organizationID
-        policyName = admin.currentPolicy?.name
-        policyVersion = admin.currentPolicy?.version
-        lastError = admin.lastError
+        self.isConnected = admin.isConnected
+        self.enrollmentStatus = admin.enrollmentStatus
+        self.serverURL = admin.configuration.serverURL?.absoluteString
+        self.organizationID = admin.configuration.organizationID.isEmpty ? nil : admin.configuration.organizationID
+        self.policyName = admin.currentPolicy?.name
+        self.policyVersion = admin.currentPolicy?.version
+        self.lastError = admin.lastError
     }
 
     /// Enrolls this device with the admin console.
     ///
     /// On failure, sets `lastError` with the caught `AdminError`.
     func enrollDevice() async {
-        guard !isProcessing else {
+        guard !self.isProcessing else {
             return
         }
-        isProcessing = true
+        self.isProcessing = true
         defer { isProcessing = false }
         do {
             try await AdminManager.shared.enrollDevice()
-            loadState()
+            self.loadState()
         } catch let error as AdminError {
             lastError = error
         } catch {
-            lastError = AdminError.enrollmentFailed(error.localizedDescription)
+            self.lastError = AdminError.enrollmentFailed(error.localizedDescription)
         }
     }
 
@@ -111,18 +111,18 @@ final class AdminSettingsViewModel: ObservableObject {
     ///
     /// On failure, sets `lastError` with the caught `AdminError`.
     func unenrollDevice() async {
-        guard !isProcessing else {
+        guard !self.isProcessing else {
             return
         }
-        isProcessing = true
+        self.isProcessing = true
         defer { isProcessing = false }
         do {
             try await AdminManager.shared.unenrollDevice()
-            loadState()
+            self.loadState()
         } catch let error as AdminError {
             lastError = error
         } catch {
-            lastError = AdminError.enrollmentFailed(error.localizedDescription)
+            self.lastError = AdminError.enrollmentFailed(error.localizedDescription)
         }
     }
 
@@ -140,30 +140,30 @@ final class AdminSettingsViewModel: ObservableObject {
             .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.loadState() }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
 
         AdminManager.shared.$isConnected
             .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.loadState() }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
 
         AdminManager.shared.$currentPolicy
             .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.loadState() }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
 
         AdminManager.shared.$configuration
             .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.loadState() }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
 
         AdminManager.shared.$lastError
             .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.loadState() }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 }

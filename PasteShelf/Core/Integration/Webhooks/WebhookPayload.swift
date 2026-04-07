@@ -18,9 +18,9 @@ struct WebhookPayload: Codable {
 
     init(event: WebhookEventType, data: WebhookData) {
         self.event = event.rawValue
-        timestamp = ISO8601DateFormatter().string(from: Date())
+        self.timestamp = ISO8601DateFormatter().string(from: Date())
         self.data = data
-        metadata = WebhookMetadata()
+        self.metadata = WebhookMetadata()
     }
 
     // MARK: Internal
@@ -90,8 +90,8 @@ struct WebhookClipboardItemPayload: Codable {
     // MARK: - Initialization
 
     init(item: ClipboardItem) {
-        id = item.id?.uuidString ?? ""
-        contentType = item.contentType ?? "unknown"
+        self.id = item.id?.uuidString ?? ""
+        self.contentType = item.contentType ?? "unknown"
 
         // Truncate preview for security (max 200 chars)
         if let preview = item.plainTextPreview {
@@ -103,54 +103,54 @@ struct WebhookClipboardItemPayload: Codable {
                 self.preview = preview
             }
         } else {
-            preview = nil
+            self.preview = nil
         }
 
-        sourceAppBundleId = item.sourceAppBundleId
-        sourceAppName = item.sourceAppName
-        isFavorite = item.isFavorite
-        isSensitive = item.isSensitive
-        capturedAt = ISO8601DateFormatter().string(from: item.timestamp ?? Date())
-        contentHash = item.contentHash
+        self.sourceAppBundleId = item.sourceAppBundleId
+        self.sourceAppName = item.sourceAppName
+        self.isFavorite = item.isFavorite
+        self.isSensitive = item.isSensitive
+        self.capturedAt = ISO8601DateFormatter().string(from: item.timestamp ?? Date())
+        self.contentHash = item.contentHash
 
         // Calculate text stats
         if let text = item.plainTextPreview {
-            characterCount = text.count
-            wordCount = text.split { $0.isWhitespace || $0.isNewline }.count
+            self.characterCount = text.count
+            self.wordCount = text.split { $0.isWhitespace || $0.isNewline }.count
         } else {
-            characterCount = nil
-            wordCount = nil
+            self.characterCount = nil
+            self.wordCount = nil
         }
     }
 
     init(content: ClipboardContent) {
-        id = content.id.uuidString
-        contentType = content.primaryType.rawValue
+        self.id = content.id.uuidString
+        self.contentType = content.primaryType.rawValue
 
         // Get preview text
         if let text = content.plainText {
             if text.count > 200 {
-                preview = String(text.prefix(200)) + "..."
+                self.preview = String(text.prefix(200)) + "..."
             } else {
-                preview = text
+                self.preview = text
             }
         } else {
-            preview = nil
+            self.preview = nil
         }
 
-        sourceAppBundleId = nil
-        sourceAppName = nil
-        isFavorite = false
-        isSensitive = false
-        capturedAt = ISO8601DateFormatter().string(from: Date())
-        contentHash = nil
+        self.sourceAppBundleId = nil
+        self.sourceAppName = nil
+        self.isFavorite = false
+        self.isSensitive = false
+        self.capturedAt = ISO8601DateFormatter().string(from: Date())
+        self.contentHash = nil
 
         if let text = content.plainText {
-            characterCount = text.count
-            wordCount = text.split { $0.isWhitespace || $0.isNewline }.count
+            self.characterCount = text.count
+            self.wordCount = text.split { $0.isWhitespace || $0.isNewline }.count
         } else {
-            characterCount = nil
-            wordCount = nil
+            self.characterCount = nil
+            self.wordCount = nil
         }
     }
 
@@ -203,9 +203,9 @@ struct RuleExecutionPayload: Codable {
         errorMessage: String? = nil,
         durationMs: Int? = nil
     ) {
-        ruleId = rule.id.uuidString
-        ruleName = rule.name
-        trigger = rule.trigger.displayName
+        self.ruleId = rule.id.uuidString
+        self.ruleName = rule.name
+        self.trigger = rule.trigger.displayName
         self.actionsExecuted = actionsExecuted.map(\.actionType.displayName)
         self.success = success
         self.errorMessage = errorMessage
@@ -243,9 +243,9 @@ struct WebhookMetadata: Codable {
     // MARK: Lifecycle
 
     init() {
-        appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
-        apiVersion = "1.0"
-        deliveryId = UUID().uuidString
+        self.appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+        self.apiVersion = "1.0"
+        self.deliveryId = UUID().uuidString
     }
 
     // MARK: Internal

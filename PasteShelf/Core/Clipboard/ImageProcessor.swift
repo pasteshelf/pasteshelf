@@ -55,11 +55,11 @@ final class ImageProcessor: ImageProcessing, Sendable {
         result.height = pixelSize.height
 
         // Generate thumbnail
-        result.thumbnail = generateThumbnail(image)
+        result.thumbnail = self.generateThumbnail(image)
 
         // Get image data and compress if needed
         if let tiffData = image.tiffRepresentation {
-            let (processedData, wasCompressed) = compressIfNeeded(tiffData)
+            let (processedData, wasCompressed) = self.compressIfNeeded(tiffData)
             result.data = processedData
             result.isCompressed = wasCompressed
 
@@ -77,14 +77,14 @@ final class ImageProcessor: ImageProcessing, Sendable {
         let originalSize = image.size
 
         // Don't upscale small images
-        if originalSize.width <= thumbnailSize, originalSize.height <= thumbnailSize {
+        if originalSize.width <= self.thumbnailSize, originalSize.height <= self.thumbnailSize {
             return autoreleasepool { image.pngData }
         }
 
         // Calculate aspect-fit size
         let ratio = min(
             thumbnailSize / originalSize.width,
-            thumbnailSize / originalSize.height
+            self.thumbnailSize / originalSize.height
         )
         let newSize = CGSize(
             width: floor(originalSize.width * ratio),
@@ -114,7 +114,7 @@ final class ImageProcessor: ImageProcessing, Sendable {
 
     func compressIfNeeded(_ imageData: Data) -> (data: Data, isCompressed: Bool) {
         // If under limit, convert to PNG and return
-        if imageData.count <= maxStorageSize {
+        if imageData.count <= self.maxStorageSize {
             if let pngData = convertToPNG(imageData), pngData.count <= maxStorageSize {
                 return (pngData, false)
             }
@@ -129,7 +129,7 @@ final class ImageProcessor: ImageProcessing, Sendable {
         }
 
         // If still too large, try progressively lower quality
-        if compressed.count > maxStorageSize {
+        if compressed.count > self.maxStorageSize {
             for quality in [0.6, 0.4, 0.2] as [CGFloat] {
                 if let moreCompressed = compressToJPEG(imageData, quality: quality),
                    moreCompressed.count <= maxStorageSize

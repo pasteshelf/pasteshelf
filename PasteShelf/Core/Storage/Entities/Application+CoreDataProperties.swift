@@ -30,6 +30,6 @@ public extension Application {
 
 extension Application: Identifiable {
     public var id: String? {
-        bundleId
+        self.bundleId
     }
 }

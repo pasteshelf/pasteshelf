@@ -73,14 +73,14 @@ struct DLPEvaluationResult {
 
     /// Whether any violations were found during evaluation.
     var hasViolations: Bool {
-        !violations.isEmpty
+        !self.violations.isEmpty
     }
 
     // MARK: - Clean Sentinel
 
     /// Returns a copy with source app context injected into all violations.
     func withSourceApp(bundleId: String, name: String) -> DLPEvaluationResult {
-        let enriched = violations.map { violation in
+        let enriched = self.violations.map { violation in
             DLPViolation(
                 id: violation.id,
                 ruleId: violation.ruleId,
@@ -96,10 +96,10 @@ struct DLPEvaluationResult {
         }
         return DLPEvaluationResult(
             violations: enriched,
-            shouldBlock: shouldBlock,
-            shouldRedact: shouldRedact,
-            redactedContent: redactedContent,
-            redactedFields: redactedFields
+            shouldBlock: self.shouldBlock,
+            shouldRedact: self.shouldRedact,
+            redactedContent: self.redactedContent,
+            redactedFields: self.redactedFields
         )
     }
 }

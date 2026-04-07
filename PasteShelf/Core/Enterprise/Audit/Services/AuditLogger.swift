@@ -57,13 +57,13 @@ final class AuditLogger: AuditLogging, @unchecked Sendable {
         let finalEvent = HIPAAEnhancedAuditLogger.enrichIfNeeded(event)
 
         do {
-            try await storage.save(finalEvent)
-            logger
+            try await self.storage.save(finalEvent)
+            self.logger
                 .debug(
                     "Logged audit event \(finalEvent.id) [\(finalEvent.category.rawValue)/\(finalEvent.action.rawValue)]"
                 )
         } catch {
-            logger.error("Failed to persist audit event \(finalEvent.id): \(error.localizedDescription)")
+            self.logger.error("Failed to persist audit event \(finalEvent.id): \(error.localizedDescription)")
         }
     }
 
@@ -76,13 +76,13 @@ final class AuditLogger: AuditLogging, @unchecked Sendable {
     func logBatch(_ events: [AuditEvent]) async {
         for event in events {
             do {
-                try await storage.save(event)
+                try await self.storage.save(event)
             } catch {
-                logger.error("Failed to persist batch audit event \(event.id): \(error.localizedDescription)")
+                self.logger.error("Failed to persist batch audit event \(event.id): \(error.localizedDescription)")
             }
         }
 
-        logger.debug("Logged audit batch of \(events.count) event(s)")
+        self.logger.debug("Logged audit batch of \(events.count) event(s)")
     }
 
     // MARK: - Convenience Methods
@@ -108,7 +108,7 @@ final class AuditLogger: AuditLogging, @unchecked Sendable {
             resourceId: resourceId,
             detail: detail
         )
-        await log(event)
+        await self.log(event)
     }
 
     /// Records a user-action audit event.
@@ -155,7 +155,7 @@ final class AuditLogger: AuditLogging, @unchecked Sendable {
             resourceId: policyId,
             detail: detail
         )
-        await log(event)
+        await self.log(event)
     }
 
     /// Records an authentication audit event.

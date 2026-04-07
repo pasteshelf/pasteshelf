@@ -25,7 +25,7 @@ final class SelfHostedAPIClient: @unchecked Sendable {
         let sessionConfig = URLSessionConfiguration.default
         sessionConfig.timeoutIntervalForRequest = 30
         sessionConfig.timeoutIntervalForResource = 120
-        session = URLSession(configuration: sessionConfig, delegate: urlSessionDelegate, delegateQueue: nil)
+        self.session = URLSession(configuration: sessionConfig, delegate: urlSessionDelegate, delegateQueue: nil)
     }
 
     // MARK: Internal
@@ -49,8 +49,8 @@ final class SelfHostedAPIClient: @unchecked Sendable {
             "appVersion": appVersion,
         ]
         let result: TokenExchangeResult = try await post(path: "/api/v1/auth/token", body: body)
-        accessToken = result.accessToken
-        refreshToken = result.refreshToken
+        self.accessToken = result.accessToken
+        self.refreshToken = result.refreshToken
         return result
     }
 
@@ -61,7 +61,7 @@ final class SelfHostedAPIClient: @unchecked Sendable {
         }
         let body: [String: Any] = ["refreshToken": refreshToken]
         let result: TokenRefreshResult = try await post(path: "/api/v1/auth/refresh", body: body)
-        accessToken = result.accessToken
+        self.accessToken = result.accessToken
     }
 
     /// Create a persistent API key for this device.
@@ -70,7 +70,7 @@ final class SelfHostedAPIClient: @unchecked Sendable {
             "deviceID": deviceID,
             "deviceName": deviceName,
         ]
-        return try await post(path: "/api/v1/auth/api-key", body: body)
+        return try await self.post(path: "/api/v1/auth/api-key", body: body)
     }
 
     // MARK: - Device Endpoints
@@ -88,17 +88,17 @@ final class SelfHostedAPIClient: @unchecked Sendable {
             "osVersion": osVersion,
             "appVersion": appVersion,
         ]
-        return try await post(path: "/api/v1/devices/register", body: body)
+        return try await self.post(path: "/api/v1/devices/register", body: body)
     }
 
     /// List all devices registered for the current user.
     func listDevices() async throws -> DeviceListResult {
-        try await get(path: "/api/v1/devices")
+        try await self.get(path: "/api/v1/devices")
     }
 
     /// Unregister a device.
     func removeDevice(deviceID: String) async throws {
-        try await delete(path: "/api/v1/devices/\(deviceID)")
+        try await self.delete(path: "/api/v1/devices/\(deviceID)")
     }
 
     // MARK: - Sync Endpoints
@@ -109,7 +109,7 @@ final class SelfHostedAPIClient: @unchecked Sendable {
             "changes": changes.map { $0.toDictionary() },
             "deviceID": deviceID,
         ]
-        return try await post(path: "/api/v1/sync/push", body: body)
+        return try await self.post(path: "/api/v1/sync/push", body: body)
     }
 
     /// Pull changes from the server since the given token.
@@ -118,36 +118,36 @@ final class SelfHostedAPIClient: @unchecked Sendable {
             "since": token,
             "limit": limit,
         ]
-        return try await post(path: "/api/v1/sync/pull", body: body)
+        return try await self.post(path: "/api/v1/sync/pull", body: body)
     }
 
     /// Get the current sync status for this device.
     func syncStatus() async throws -> SyncStatusResult {
-        try await get(path: "/api/v1/sync/status")
+        try await self.get(path: "/api/v1/sync/status")
     }
 
     /// Reset all sync data for the current user.
     func resetSync() async throws -> SyncResetResult {
-        try await post(path: "/api/v1/sync/reset", body: [:] as [String: Any])
+        try await self.post(path: "/api/v1/sync/reset", body: [:] as [String: Any])
     }
 
     // MARK: - Health
 
     /// Check server health.
     func healthCheck() async throws -> HealthResult {
-        try await get(path: "/health")
+        try await self.get(path: "/health")
     }
 
     // MARK: - Token Management
 
     /// Set the access token directly (e.g., from stored keychain value).
     func setAccessToken(_ token: String) {
-        accessToken = token
+        self.accessToken = token
     }
 
     /// Set the API key for authentication.
     func setAPIKey(_ key: String) {
-        configuration.apiKey != nil ? () : ()
+        self.configuration.apiKey != nil ? () : ()
         // API key is read from configuration
     }
 
@@ -169,8 +169,8 @@ final class SelfHostedAPIClient: @unchecked Sendable {
         let url = try buildURL(path: path)
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        applyAuth(&request)
-        return try await execute(request)
+        self.applyAuth(&request)
+        return try await self.execute(request)
     }
 
     private func post<T: Decodable>(path: String, body: [String: Any?]) async throws -> T {
@@ -178,11 +178,11 @@ final class SelfHostedAPIClient: @unchecked Sendable {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        applyAuth(&request)
+        self.applyAuth(&request)
 
         let cleanBody = body.compactMapValues { $0 }
         request.httpBody = try JSONSerialization.data(withJSONObject: cleanBody)
-        return try await execute(request)
+        return try await self.execute(request)
     }
 
     @discardableResult
@@ -190,18 +190,18 @@ final class SelfHostedAPIClient: @unchecked Sendable {
         let url = try buildURL(path: path)
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
-        applyAuth(&request)
+        self.applyAuth(&request)
 
         let (data, response) = try await session.data(for: request)
-        try validateResponse(response)
+        try self.validateResponse(response)
         return data
     }
 
     private func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
-        logger.debug("Request: \(request.httpMethod ?? "?") \(request.url?.absoluteString ?? "?")")
+        self.logger.debug("Request: \(request.httpMethod ?? "?") \(request.url?.absoluteString ?? "?")")
 
         let (data, response) = try await session.data(for: request)
-        try validateResponse(response)
+        try self.validateResponse(response)
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -296,8 +296,8 @@ struct SyncChangePayload {
     func toDictionary() -> [String: Any] {
         var dict: [String: Any] = [
             "entityID": entityID.uuidString,
-            "entityType": entityType,
-            "isDeleted": isDeleted,
+            "entityType": self.entityType,
+            "isDeleted": self.isDeleted,
         ]
         if let data = encryptedData {
             dict["encryptedData"] = data

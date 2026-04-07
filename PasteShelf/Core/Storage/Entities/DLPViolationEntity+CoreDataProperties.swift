@@ -66,16 +66,16 @@ extension DLPViolationEntity {
         violation: DLPViolation
     ) {
         self.init(context: context)
-        id = violation.id
-        ruleId = violation.ruleId
-        ruleName = violation.ruleName
-        timestamp = violation.timestamp
-        contentPreview = violation.contentPreview
-        matchedPattern = violation.matchedPattern
-        actionTaken = violation.actionTaken.rawValue
-        sourceAppBundleId = violation.sourceAppBundleId
-        sourceAppName = violation.sourceAppName
-        wasBlocked = violation.wasBlocked
+        self.id = violation.id
+        self.ruleId = violation.ruleId
+        self.ruleName = violation.ruleName
+        self.timestamp = violation.timestamp
+        self.contentPreview = violation.contentPreview
+        self.matchedPattern = violation.matchedPattern
+        self.actionTaken = violation.actionTaken.rawValue
+        self.sourceAppBundleId = violation.sourceAppBundleId
+        self.sourceAppName = violation.sourceAppName
+        self.wasBlocked = violation.wasBlocked
     }
 
     // MARK: - Domain Model Conversion
@@ -102,13 +102,13 @@ extension DLPViolationEntity {
             id: id,
             ruleId: ruleId,
             ruleName: ruleName,
-            timestamp: timestamp ?? Date(),
+            timestamp: self.timestamp ?? Date(),
             contentPreview: contentPreview,
             matchedPattern: matchedPattern,
             actionTaken: actionTaken,
-            sourceAppBundleId: sourceAppBundleId,
-            sourceAppName: sourceAppName,
-            wasBlocked: wasBlocked
+            sourceAppBundleId: self.sourceAppBundleId,
+            sourceAppName: self.sourceAppName,
+            wasBlocked: self.wasBlocked
         )
     }
 }
@@ -128,7 +128,7 @@ extension DLPViolationEntity {
         from: Date?,
         to: Date?
     ) -> NSFetchRequest<DLPViolationEntity> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
 
         var predicates: [NSPredicate] = []
         if let from {
@@ -153,7 +153,7 @@ extension DLPViolationEntity {
     /// - Parameter limit: The maximum number of recent violations to return.
     /// - Returns: A configured `NSFetchRequest` limited to the `limit` most recent violations.
     static func recentViolationsFetchRequest(limit: Int) -> NSFetchRequest<DLPViolationEntity> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: false),
         ]
@@ -167,7 +167,7 @@ extension DLPViolationEntity {
     /// - Returns: A configured `NSFetchRequest` targeting violations for the given rule,
     ///   sorted by timestamp descending.
     static func violationsFetchRequest(for ruleId: UUID) -> NSFetchRequest<DLPViolationEntity> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(format: "ruleId == %@", ruleId as CVarArg)
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: false),
@@ -183,7 +183,7 @@ extension DLPViolationEntity {
     /// - Parameter olderThan: The cutoff date. Violations with `timestamp < olderThan` are returned.
     /// - Returns: A configured `NSFetchRequest` targeting violations eligible for deletion.
     static func retentionCleanupFetchRequest(olderThan cutoff: Date) -> NSFetchRequest<DLPViolationEntity> {
-        let request = fetchRequest()
+        let request = self.fetchRequest()
         request.predicate = NSPredicate(format: "timestamp < %@", cutoff as NSDate)
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: true),

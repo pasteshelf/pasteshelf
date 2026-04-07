@@ -106,7 +106,7 @@ enum SOC2SecurityControlsReport {
     /// - Returns: A `Report` containing all security control categories and their statuses.
     @MainActor
     static func generateReport() -> Report {
-        logger.info("Generating SOC 2 security controls report")
+        self.logger.info("Generating SOC 2 security controls report")
 
         let categories = [
             encryptionControls(),
@@ -141,7 +141,7 @@ enum SOC2SecurityControlsReport {
             summary: summary
         )
 
-        logger.info("SOC 2 report generated: score \(score)/100, \(totalCount) controls evaluated")
+        self.logger.info("SOC 2 report generated: score \(score)/100, \(totalCount) controls evaluated")
         return report
     }
 

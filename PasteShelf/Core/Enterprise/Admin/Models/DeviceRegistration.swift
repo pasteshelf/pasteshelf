@@ -139,6 +139,6 @@ struct DeviceRegistration: Codable, Identifiable, Equatable {
     /// Use this to gate admin-console-dependent features such as policy enforcement
     /// and health report submission.
     var isActive: Bool {
-        enrollmentStatus == .enrolled
+        self.enrollmentStatus == .enrolled
     }
 }

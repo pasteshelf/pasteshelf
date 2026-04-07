@@ -18,7 +18,7 @@ extension StorageManager {
         guard let itemId = item.id else {
             return nil
         }
-        return await toggleFavorite(itemId: itemId)
+        return await self.toggleFavorite(itemId: itemId)
     }
 
     /// Toggles the favorite status of a clipboard item by ID

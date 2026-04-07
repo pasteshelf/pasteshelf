@@ -23,7 +23,7 @@ struct AdminSettingsView: View {
     // MARK: - Body
 
     var body: some View {
-        adminContent
+        self.adminContent
     }
 
     // MARK: Private
@@ -38,8 +38,8 @@ struct AdminSettingsView: View {
 
             Section("Connection Status") {
                 LabeledContent("Status") {
-                    Text(viewModel.isConnected ? "Connected" : "Disconnected")
-                        .foregroundStyle(viewModel.isConnected ? .green : .secondary)
+                    Text(self.viewModel.isConnected ? "Connected" : "Disconnected")
+                        .foregroundStyle(self.viewModel.isConnected ? .green : .secondary)
                 }
 
                 if let url = viewModel.serverURL {
@@ -65,17 +65,17 @@ struct AdminSettingsView: View {
 
             Section("Device Enrollment") {
                 LabeledContent("Enrollment") {
-                    Text(viewModel.enrollmentStatus.displayName)
-                        .foregroundStyle(viewModel.isEnrolled ? .primary : .secondary)
+                    Text(self.viewModel.enrollmentStatus.displayName)
+                        .foregroundStyle(self.viewModel.isEnrolled ? .primary : .secondary)
                 }
 
-                if viewModel.isEnrolled {
+                if self.viewModel.isEnrolled {
                     Button("Unenroll Device", role: .destructive) {
-                        Task { await viewModel.unenrollDevice() }
+                        Task { await self.viewModel.unenrollDevice() }
                     }
                 } else {
                     Button("Enroll Device") {
-                        Task { await viewModel.enrollDevice() }
+                        Task { await self.viewModel.enrollDevice() }
                     }
                     .buttonStyle(.borderedProminent)
                 }
@@ -83,7 +83,7 @@ struct AdminSettingsView: View {
 
             // MARK: Active Policy Section
 
-            if viewModel.isEnrolled, let policyName = viewModel.policyName {
+            if self.viewModel.isEnrolled, let policyName = viewModel.policyName {
                 Section("Active Policy") {
                     LabeledContent("Policy") {
                         Text(policyName)
@@ -119,7 +119,7 @@ struct AdminSettingsView: View {
 
             // MARK: Not Configured State Section
 
-            if viewModel.serverURL == nil {
+            if self.viewModel.serverURL == nil {
                 Section {
                     VStack(spacing: 8) {
                         Image(systemName: "server.rack")

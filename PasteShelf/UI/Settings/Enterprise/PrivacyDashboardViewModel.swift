@@ -48,7 +48,7 @@ final class PrivacyDashboardViewModel: ObservableObject {
 
     /// Loads all dashboard data from the various managers.
     func loadDashboardData() async {
-        isLoading = true
+        self.isLoading = true
         defer { isLoading = false }
 
         // Data categories
@@ -57,7 +57,7 @@ final class PrivacyDashboardViewModel: ObservableObject {
         let folders = await StorageManager.shared.fetchFolders()
         let collections = await StorageManager.shared.fetchCollections()
 
-        dataCategories = [
+        self.dataCategories = [
             DataCategoryItem(name: "Clipboard Items", count: clipboardItems.count, icon: "doc.on.clipboard"),
             DataCategoryItem(name: "Tags", count: tags.count, icon: "tag"),
             DataCategoryItem(name: "Folders", count: folders.count, icon: "folder"),
@@ -67,7 +67,7 @@ final class PrivacyDashboardViewModel: ObservableObject {
         // Connected services
         let auditEnabled = AuditManager.shared.isEnabled
 
-        connectedServices = [
+        self.connectedServices = [
             ConnectedServiceItem(name: "Audit Logging", isActive: auditEnabled, icon: "list.clipboard.fill"),
             ConnectedServiceItem(name: "SSO", isActive: SSOManager.shared.currentSession != nil, icon: "key.fill"),
         ]
@@ -76,12 +76,12 @@ final class PrivacyDashboardViewModel: ObservableObject {
         let retentionDays = AuditManager.shared.retentionConfiguration.retentionDays
         if retentionDays >= 365 {
             let years = retentionDays / 365
-            storageDuration = "\(years) year\(years > 1 ? "s" : "") (\(retentionDays) days)"
+            self.storageDuration = "\(years) year\(years > 1 ? "s" : "") (\(retentionDays) days)"
         } else {
-            storageDuration = "\(retentionDays) days"
+            self.storageDuration = "\(retentionDays) days"
         }
 
-        logger.info("Privacy dashboard loaded: \(clipboardItems.count) items")
+        self.logger.info("Privacy dashboard loaded: \(clipboardItems.count) items")
     }
 
     // MARK: Private

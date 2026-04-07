@@ -15,13 +15,13 @@ final class RuleEvaluatorTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        storageManager = await MainActor.run { StorageManager.forTesting() }
-        evaluator = RuleEvaluator.shared
+        self.storageManager = await MainActor.run { StorageManager.forTesting() }
+        self.evaluator = RuleEvaluator.shared
     }
 
     override func tearDown() async throws {
-        storageManager = nil
-        evaluator = nil
+        self.storageManager = nil
+        self.evaluator = nil
         try await super.tearDown()
     }
 
@@ -29,7 +29,7 @@ final class RuleEvaluatorTests: XCTestCase {
 
     func testBuildPredicateFromEmptyRules() {
         let rules = CollectionRules()
-        let predicate = evaluator.buildPredicate(from: rules)
+        let predicate = self.evaluator.buildPredicate(from: rules)
 
         // Empty rules should return always-true predicate
         XCTAssertEqual(predicate.predicateFormat, "TRUEPREDICATE")
@@ -43,7 +43,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        let predicate = evaluator.buildPredicate(from: rules)
+        let predicate = self.evaluator.buildPredicate(from: rules)
 
         // Should include the content type predicate
         let format = predicate.predicateFormat
@@ -58,7 +58,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        let predicate = evaluator.buildPredicate(from: rules)
+        let predicate = self.evaluator.buildPredicate(from: rules)
 
         let format = predicate.predicateFormat
         // Should check both bundleId and appName
@@ -73,7 +73,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        let predicate = evaluator.buildPredicate(from: rules)
+        let predicate = self.evaluator.buildPredicate(from: rules)
 
         let format = predicate.predicateFormat
         XCTAssertTrue(format.contains("plainTextPreview"))
@@ -87,7 +87,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        let predicate = evaluator.buildPredicate(from: rules)
+        let predicate = self.evaluator.buildPredicate(from: rules)
 
         let format = predicate.predicateFormat
         XCTAssertTrue(format.contains("isFavorite"))
@@ -102,7 +102,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        let predicate = evaluator.buildPredicate(from: rules)
+        let predicate = self.evaluator.buildPredicate(from: rules)
 
         let format = predicate.predicateFormat
         // AND compound predicate
@@ -118,7 +118,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .or
         )
 
-        let predicate = evaluator.buildPredicate(from: rules)
+        let predicate = self.evaluator.buildPredicate(from: rules)
 
         let format = predicate.predicateFormat
         // Should contain OR logic
@@ -135,7 +135,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        let predicate = evaluator.buildPredicate(from: rules)
+        let predicate = self.evaluator.buildPredicate(from: rules)
 
         let format = predicate.predicateFormat
         XCTAssertTrue(format.contains("timestamp"))
@@ -149,7 +149,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        let predicate = evaluator.buildPredicate(from: rules)
+        let predicate = self.evaluator.buildPredicate(from: rules)
 
         let format = predicate.predicateFormat
         XCTAssertTrue(format.contains("timestamp"))
@@ -165,7 +165,7 @@ final class RuleEvaluatorTests: XCTestCase {
             plainText: "Test text",
             contentHash: "test-hash"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         let items = await storageManager.fetchRecentItems(limit: 1)
         guard let item = items.first else {
@@ -174,7 +174,7 @@ final class RuleEvaluatorTests: XCTestCase {
         }
 
         let rules = CollectionRules()
-        let result = evaluator.evaluate(item: item, against: rules)
+        let result = self.evaluator.evaluate(item: item, against: rules)
 
         // Empty rules should always match
         XCTAssertTrue(result)
@@ -188,7 +188,7 @@ final class RuleEvaluatorTests: XCTestCase {
             plainText: "Test text",
             contentHash: "test-hash-1"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         let items = await storageManager.fetchRecentItems(limit: 1)
         guard let item = items.first else {
@@ -212,8 +212,8 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        XCTAssertTrue(evaluator.evaluate(item: item, against: textRules))
-        XCTAssertFalse(evaluator.evaluate(item: item, against: imageRules))
+        XCTAssertTrue(self.evaluator.evaluate(item: item, against: textRules))
+        XCTAssertFalse(self.evaluator.evaluate(item: item, against: imageRules))
     }
 
     func testEvaluateBooleanMatch() async throws {
@@ -224,7 +224,7 @@ final class RuleEvaluatorTests: XCTestCase {
             plainText: "Favorite text",
             contentHash: "fav-hash"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         let items = await storageManager.fetchRecentItems(limit: 1)
         guard let item = items.first else {
@@ -233,7 +233,7 @@ final class RuleEvaluatorTests: XCTestCase {
         }
 
         // Mark as favorite
-        _ = try await storageManager.toggleFavorite(itemId: XCTUnwrap(item.id))
+        _ = try await self.storageManager.toggleFavorite(itemId: XCTUnwrap(item.id))
 
         // Fetch again to get updated state
         let updatedItems = await storageManager.fetchRecentItems(limit: 1)
@@ -249,7 +249,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        XCTAssertTrue(evaluator.evaluate(item: favoriteItem, against: rules))
+        XCTAssertTrue(self.evaluator.evaluate(item: favoriteItem, against: rules))
     }
 
     func testEvaluateTextContentMatch() async {
@@ -260,7 +260,7 @@ final class RuleEvaluatorTests: XCTestCase {
             plainText: "Hello World from PasteShelf",
             contentHash: "hello-hash"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         let items = await storageManager.fetchRecentItems(limit: 1)
         guard let item = items.first else {
@@ -284,8 +284,8 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        XCTAssertTrue(evaluator.evaluate(item: item, against: matchingRules))
-        XCTAssertFalse(evaluator.evaluate(item: item, against: nonMatchingRules))
+        XCTAssertTrue(self.evaluator.evaluate(item: item, against: matchingRules))
+        XCTAssertFalse(self.evaluator.evaluate(item: item, against: nonMatchingRules))
     }
 
     func testEvaluateWithAndOperator() async {
@@ -296,7 +296,7 @@ final class RuleEvaluatorTests: XCTestCase {
             plainText: "Important text",
             contentHash: "and-hash"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         let items = await storageManager.fetchRecentItems(limit: 1)
         guard let item = items.first else {
@@ -313,7 +313,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        XCTAssertTrue(evaluator.evaluate(item: item, against: andRules))
+        XCTAssertTrue(self.evaluator.evaluate(item: item, against: andRules))
 
         // AND rule - one condition fails
         let failingAndRules = CollectionRules(
@@ -324,7 +324,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .and
         )
 
-        XCTAssertFalse(evaluator.evaluate(item: item, against: failingAndRules))
+        XCTAssertFalse(self.evaluator.evaluate(item: item, against: failingAndRules))
     }
 
     func testEvaluateWithOrOperator() async {
@@ -335,7 +335,7 @@ final class RuleEvaluatorTests: XCTestCase {
             plainText: "Some text",
             contentHash: "or-hash"
         )
-        _ = await storageManager.save(content: content, from: nil)
+        _ = await self.storageManager.save(content: content, from: nil)
 
         let items = await storageManager.fetchRecentItems(limit: 1)
         guard let item = items.first else {
@@ -352,7 +352,7 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .or
         )
 
-        XCTAssertTrue(evaluator.evaluate(item: item, against: orRules))
+        XCTAssertTrue(self.evaluator.evaluate(item: item, against: orRules))
 
         // OR rule - no conditions match
         let failingOrRules = CollectionRules(
@@ -363,6 +363,6 @@ final class RuleEvaluatorTests: XCTestCase {
             logicalOperator: .or
         )
 
-        XCTAssertFalse(evaluator.evaluate(item: item, against: failingOrRules))
+        XCTAssertFalse(self.evaluator.evaluate(item: item, against: failingOrRules))
     }
 }

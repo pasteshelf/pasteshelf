@@ -37,7 +37,7 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
             throw SSOError.configurationInvalid("OIDC configuration is missing")
         }
 
-        logger.info("Starting OIDC authorization code flow for provider: \(config.name)")
+        self.logger.info("Starting OIDC authorization code flow for provider: \(config.name)")
 
         // Generate PKCE parameters if enabled
         let pkce: PKCEParameters? = oidcConfig.usePKCE ? PKCEParameters() : nil
@@ -66,7 +66,7 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
             pkce: pkce
         )
 
-        logger.info("OIDC authentication successful, building session")
+        self.logger.info("OIDC authentication successful, building session")
 
         // Parse ID token claims to extract user info
         let claims = try parseIDTokenClaims(tokenResponse.idToken)
@@ -97,7 +97,7 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
     }
 
     func logout(session: SSOSession) async throws {
-        logger.info("OIDC logout requested for session: \(session.id)")
+        self.logger.info("OIDC logout requested for session: \(session.id)")
 
         // OIDC logout will use the end_session_endpoint if available
         guard let providerStore = await SSOManager.shared.providerStore,
@@ -105,7 +105,7 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
               let oidcConfig = provider.oidcConfig,
               let endSessionEndpoint = oidcConfig.endSessionEndpoint
         else {
-            logger.info("No end_session_endpoint configured, skipping IdP logout")
+            self.logger.info("No end_session_endpoint configured, skipping IdP logout")
             return
         }
 
@@ -128,7 +128,7 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
         }
 
         // Open browser for logout (fire and forget — some IdPs don't redirect back)
-        _ = try? await performBrowserAuthentication(url: logoutURL)
+        _ = try? await self.performBrowserAuthentication(url: logoutURL)
     }
 
     // MARK: - Authorization URL
@@ -211,7 +211,7 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
 
         guard httpResponse.statusCode == 200 else {
             let errorBody = String(data: data, encoding: .utf8) ?? "Unknown error"
-            logger.error("Token exchange failed (\(httpResponse.statusCode)): \(errorBody)")
+            self.logger.error("Token exchange failed (\(httpResponse.statusCode)): \(errorBody)")
             throw SSOError.authenticationFailed("Token exchange failed: HTTP \(httpResponse.statusCode)")
         }
 
@@ -328,7 +328,7 @@ struct PKCEParameters {
         _ = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
 
         // Base64url encode
-        codeVerifier = Data(randomBytes)
+        self.codeVerifier = Data(randomBytes)
             .base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
@@ -337,7 +337,7 @@ struct PKCEParameters {
         // S256: SHA256 hash of verifier, base64url encoded
         let verifierData = Data(codeVerifier.utf8)
         let hash = SHA256.hash(data: verifierData)
-        codeChallenge = Data(hash)
+        self.codeChallenge = Data(hash)
             .base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
@@ -390,18 +390,18 @@ struct IDTokenClaims: Codable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        subject = try container.decode(String.self, forKey: .subject)
-        email = try container.decodeIfPresent(String.self, forKey: .email)
-        emailVerified = try container.decodeIfPresent(Bool.self, forKey: .emailVerified)
-        name = try container.decodeIfPresent(String.self, forKey: .name)
-        givenName = try container.decodeIfPresent(String.self, forKey: .givenName)
-        familyName = try container.decodeIfPresent(String.self, forKey: .familyName)
-        preferredUsername = try container.decodeIfPresent(String.self, forKey: .preferredUsername)
-        groups = (try? container.decodeIfPresent([String].self, forKey: .groups)) ?? []
-        issuer = try container.decodeIfPresent(String.self, forKey: .issuer)
-        audience = try container.decodeIfPresent(IDTokenAudience.self, forKey: .audience)
-        expiration = try container.decodeIfPresent(Int.self, forKey: .expiration)
-        issuedAt = try container.decodeIfPresent(Int.self, forKey: .issuedAt)
+        self.subject = try container.decode(String.self, forKey: .subject)
+        self.email = try container.decodeIfPresent(String.self, forKey: .email)
+        self.emailVerified = try container.decodeIfPresent(Bool.self, forKey: .emailVerified)
+        self.name = try container.decodeIfPresent(String.self, forKey: .name)
+        self.givenName = try container.decodeIfPresent(String.self, forKey: .givenName)
+        self.familyName = try container.decodeIfPresent(String.self, forKey: .familyName)
+        self.preferredUsername = try container.decodeIfPresent(String.self, forKey: .preferredUsername)
+        self.groups = (try? container.decodeIfPresent([String].self, forKey: .groups)) ?? []
+        self.issuer = try container.decodeIfPresent(String.self, forKey: .issuer)
+        self.audience = try container.decodeIfPresent(IDTokenAudience.self, forKey: .audience)
+        self.expiration = try container.decodeIfPresent(Int.self, forKey: .expiration)
+        self.issuedAt = try container.decodeIfPresent(Int.self, forKey: .issuedAt)
     }
 
     // MARK: Internal

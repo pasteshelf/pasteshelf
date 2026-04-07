@@ -15,12 +15,12 @@ final class Device: Model, Content, @unchecked Sendable {
         appVersion: String? = nil
     ) {
         self.id = id
-        $user.id = userID
+        self.$user.id = userID
         self.deviceID = deviceID
         self.deviceName = deviceName
         self.osVersion = osVersion
         self.appVersion = appVersion
-        lastSeen = Date()
+        self.lastSeen = Date()
     }
 
     // MARK: Internal

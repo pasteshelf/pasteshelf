@@ -29,7 +29,7 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
         // Delete existing item first (update = delete + add)
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: self.service,
             kSecAttrAccount as String: account,
         ]
         SecItemDelete(deleteQuery as CFDictionary)
@@ -37,7 +37,7 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
         // Add new item
         let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: self.service,
             kSecAttrAccount as String: account,
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
@@ -45,7 +45,7 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
 
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         guard status == errSecSuccess else {
-            logger.error("Failed to save SSO session to Keychain: \(status)")
+            self.logger.error("Failed to save SSO session to Keychain: \(status)")
             throw KeychainError.saveFailed(status)
         }
     }
@@ -53,7 +53,7 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
     func load(for providerId: UUID) async throws -> SSOSession? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: self.service,
             kSecAttrAccount as String: providerId.uuidString,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
@@ -66,7 +66,7 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
             if status == errSecItemNotFound {
                 return nil
             }
-            logger.error("Failed to load SSO session from Keychain: \(status)")
+            self.logger.error("Failed to load SSO session from Keychain: \(status)")
             throw KeychainError.loadFailed(status)
         }
 
@@ -76,13 +76,13 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
     func delete(for providerId: UUID) async throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: self.service,
             kSecAttrAccount as String: providerId.uuidString,
         ]
 
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
-            logger.error("Failed to delete SSO session from Keychain: \(status)")
+            self.logger.error("Failed to delete SSO session from Keychain: \(status)")
             throw KeychainError.deleteFailed(status)
         }
     }
@@ -90,12 +90,12 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
     func deleteAll() async throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: self.service,
         ]
 
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
-            logger.error("Failed to delete all SSO sessions from Keychain: \(status)")
+            self.logger.error("Failed to delete all SSO sessions from Keychain: \(status)")
             throw KeychainError.deleteFailed(status)
         }
     }

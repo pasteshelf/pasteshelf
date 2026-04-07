@@ -102,44 +102,44 @@ final class AdminManager: ObservableObject {
     ///
     /// - Parameter config: The admin console configuration to apply.
     func configure(with config: AdminConsoleConfiguration) {
-        configuration = config
+        self.configuration = config
 
         guard config.isConfigured else {
-            logger.info("Admin console not configured — services disabled")
-            tearDownServices()
+            self.logger.info("Admin console not configured — services disabled")
+            self.tearDownServices()
             return
         }
 
         let client = AdminAPIClient(configuration: config)
-        apiClient = client
+        self.apiClient = client
 
         let store = KeychainDeviceRegistrationStore()
         let registration = DeviceRegistrationService(apiClient: client, store: store)
-        registrationService = registration
+        self.registrationService = registration
 
-        healthService = HealthReportingService(
+        self.healthService = HealthReportingService(
             apiClient: client,
             registrationProvider: registration
         )
 
-        policyService = PolicySyncService(
+        self.policyService = PolicySyncService(
             apiClient: client
         ) { [weak self] in self?.deviceRegistration?.deviceId }
 
-        analyticsReporter = AnalyticsReporter(apiClient: client)
+        self.analyticsReporter = AnalyticsReporter(apiClient: client)
 
         // Configure audit logging
         AuditManager.shared.configure(with: client)
 
         // Load existing registration if present
         if let existing = registration.currentRegistration() {
-            deviceRegistration = existing
-            enrollmentStatus = existing.enrollmentStatus
-            isConnected = existing.isActive
-            currentPolicy = policyService?.currentPolicy
+            self.deviceRegistration = existing
+            self.enrollmentStatus = existing.enrollmentStatus
+            self.isConnected = existing.isActive
+            self.currentPolicy = self.policyService?.currentPolicy
         }
 
-        logger.info("Admin console configured: \(config.serverURL?.absoluteString ?? "nil")")
+        self.logger.info("Admin console configured: \(config.serverURL?.absoluteString ?? "nil")")
     }
 
     // MARK: - Enrollment
@@ -166,34 +166,34 @@ final class AdminManager: ObservableObject {
         }
 
         // Inject SSO token for API auth
-        apiClient?.bearerToken = session.accessToken
+        self.apiClient?.bearerToken = session.accessToken
 
         do {
             let registration = try await registrationService.enroll(
                 with: session,
-                config: configuration
+                config: self.configuration
             )
-            deviceRegistration = registration
-            enrollmentStatus = registration.enrollmentStatus
-            isConnected = registration.isActive
-            lastError = nil
+            self.deviceRegistration = registration
+            self.enrollmentStatus = registration.enrollmentStatus
+            self.isConnected = registration.isActive
+            self.lastError = nil
 
             // Start monitoring services
-            startMonitoring()
+            self.startMonitoring()
 
             // Fetch initial policy
-            await refreshPolicySilently()
+            await self.refreshPolicySilently()
 
             // Track enrollment event
-            trackEvent(.deviceEnrolled)
+            self.trackEvent(.deviceEnrolled)
 
-            logger.info("Device enrolled: \(registration.deviceId)")
+            self.logger.info("Device enrolled: \(registration.deviceId)")
         } catch let error as AdminError {
             lastError = error
             throw error
         } catch {
             let adminError = AdminError.enrollmentFailed(error.localizedDescription)
-            lastError = adminError
+            self.lastError = adminError
             throw adminError
         }
     }
@@ -209,18 +209,18 @@ final class AdminManager: ObservableObject {
             throw AdminError.notConfigured
         }
 
-        stopMonitoring()
+        self.stopMonitoring()
 
         do {
-            trackEvent(.deviceUnenrolled)
+            self.trackEvent(.deviceUnenrolled)
             try await registrationService.unenroll()
-            deviceRegistration = nil
-            enrollmentStatus = .notEnrolled
-            currentPolicy = nil
-            isConnected = false
-            lastError = nil
+            self.deviceRegistration = nil
+            self.enrollmentStatus = .notEnrolled
+            self.currentPolicy = nil
+            self.isConnected = false
+            self.lastError = nil
 
-            logger.info("Device unenrolled")
+            self.logger.info("Device unenrolled")
         } catch let error as AdminError {
             lastError = error
             throw error
@@ -238,8 +238,8 @@ final class AdminManager: ObservableObject {
         }
 
         let policy = try await policyService.fetchLatestPolicy()
-        currentPolicy = policy
-        trackEvent(.policyApplied, metadata: [
+        self.currentPolicy = policy
+        self.trackEvent(.policyApplied, metadata: [
             "policyId": policy.id,
             "policyVersion": policy.version,
         ])
@@ -262,20 +262,20 @@ final class AdminManager: ObservableObject {
 
     /// Starts health reporting and policy polling services.
     func startMonitoring() {
-        healthService?.startReporting(interval: configuration.pollingInterval)
-        policyService?.startPolling(interval: configuration.pollingInterval)
-        analyticsReporter?.startAutoFlush()
+        self.healthService?.startReporting(interval: self.configuration.pollingInterval)
+        self.policyService?.startPolling(interval: self.configuration.pollingInterval)
+        self.analyticsReporter?.startAutoFlush()
         AuditManager.shared.startMonitoring()
-        logger.info("Admin monitoring started")
+        self.logger.info("Admin monitoring started")
     }
 
     /// Stops all monitoring services.
     func stopMonitoring() {
-        healthService?.stopReporting()
-        policyService?.stopPolling()
-        analyticsReporter?.stopAutoFlush()
+        self.healthService?.stopReporting()
+        self.policyService?.stopPolling()
+        self.analyticsReporter?.stopAutoFlush()
         AuditManager.shared.stopMonitoring()
-        logger.info("Admin monitoring stopped")
+        self.logger.info("Admin monitoring stopped")
     }
 
     // MARK: - Analytics
@@ -292,7 +292,7 @@ final class AdminManager: ObservableObject {
         guard let deviceId = deviceRegistration?.deviceId else {
             return
         }
-        analyticsReporter?.track(
+        self.analyticsReporter?.track(
             type,
             deviceId: deviceId,
             userId: SSOManager.shared.currentSession?.userId,
@@ -318,20 +318,20 @@ final class AdminManager: ObservableObject {
     private func refreshPolicySilently() async {
         do {
             let policy = try await policyService?.fetchLatestPolicy()
-            currentPolicy = policy
+            self.currentPolicy = policy
         } catch {
-            logger.warning("Initial policy fetch failed: \(error.localizedDescription)")
+            self.logger.warning("Initial policy fetch failed: \(error.localizedDescription)")
         }
     }
 
     /// Tears down all services when configuration is cleared.
     private func tearDownServices() {
-        stopMonitoring()
-        apiClient = nil
-        registrationService = nil
-        healthService = nil
-        policyService = nil
-        analyticsReporter = nil
-        isConnected = false
+        self.stopMonitoring()
+        self.apiClient = nil
+        self.registrationService = nil
+        self.healthService = nil
+        self.policyService = nil
+        self.analyticsReporter = nil
+        self.isConnected = false
     }
 }

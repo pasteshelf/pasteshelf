@@ -40,20 +40,20 @@ struct HotkeyConfiguration: Codable, Equatable {
     var displayString: String {
         var parts: [String] = []
 
-        if modifiers & UInt32(controlKey) != 0 {
+        if self.modifiers & UInt32(controlKey) != 0 {
             parts.append("\u{2303}") // ⌃
         }
-        if modifiers & UInt32(optionKey) != 0 {
+        if self.modifiers & UInt32(optionKey) != 0 {
             parts.append("\u{2325}") // ⌥
         }
-        if modifiers & UInt32(shiftKey) != 0 {
+        if self.modifiers & UInt32(shiftKey) != 0 {
             parts.append("\u{21E7}") // ⇧
         }
-        if modifiers & UInt32(cmdKey) != 0 {
+        if self.modifiers & UInt32(cmdKey) != 0 {
             parts.append("\u{2318}") // ⌘
         }
 
-        parts.append(keyDisplayString)
+        parts.append(self.keyDisplayString)
 
         return parts.joined()
     }
@@ -88,7 +88,7 @@ struct HotkeyConfiguration: Codable, Equatable {
 
     /// Display string for the key
     private var keyDisplayString: String {
-        switch Int(keyCode) {
+        switch Int(self.keyCode) {
         case kVK_ANSI_A: "A"
         case kVK_ANSI_S: "S"
         case kVK_ANSI_D: "D"
@@ -131,21 +131,21 @@ struct HotkeyConfiguration: Codable, Equatable {
 extension HotkeyConfiguration {
     /// Returns true if Command modifier is set
     var hasCommand: Bool {
-        modifiers & UInt32(cmdKey) != 0
+        self.modifiers & UInt32(cmdKey) != 0
     }
 
     /// Returns true if Shift modifier is set
     var hasShift: Bool {
-        modifiers & UInt32(shiftKey) != 0
+        self.modifiers & UInt32(shiftKey) != 0
     }
 
     /// Returns true if Option modifier is set
     var hasOption: Bool {
-        modifiers & UInt32(optionKey) != 0
+        self.modifiers & UInt32(optionKey) != 0
     }
 
     /// Returns true if Control modifier is set
     var hasControl: Bool {
-        modifiers & UInt32(controlKey) != 0
+        self.modifiers & UInt32(controlKey) != 0
     }
 }

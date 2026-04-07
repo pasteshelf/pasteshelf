@@ -59,7 +59,7 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
     // MARK: - Initialization
 
     private init() {
-        logger.info("AutomationEngine initialized")
+        self.logger.info("AutomationEngine initialized")
     }
 
     // MARK: Internal
@@ -81,11 +81,11 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
         trigger: AutomationTrigger,
         sourceApp: SourceApp? = nil
     ) async -> AutomationResult {
-        logger.debug("Evaluating rules for trigger: \(trigger.displayName)")
+        self.logger.debug("Evaluating rules for trigger: \(trigger.displayName)")
 
         // Fetch enabled rules for this trigger
         let rules = await fetchEnabledRules(for: trigger)
-        logger.debug("Found \(rules.count) rules for trigger \(trigger.rawType)")
+        self.logger.debug("Found \(rules.count) rules for trigger \(trigger.rawType)")
 
         var transformedContent = content
         var matchedRules: [AutomationRule] = []
@@ -96,10 +96,10 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
         // Evaluate each rule in priority order
         for rule in rules {
             do {
-                let matches = evaluateConditions(rule: rule, content: transformedContent, sourceApp: sourceApp)
+                let matches = self.evaluateConditions(rule: rule, content: transformedContent, sourceApp: sourceApp)
 
                 if matches {
-                    logger.info("Rule '\(rule.name)' matched")
+                    self.logger.info("Rule '\(rule.name)' matched")
                     matchedRules.append(rule)
 
                     // Execute all actions for this rule
@@ -119,12 +119,12 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
                             }
 
                             // Record successful execution
-                            await recordRuleExecution(rule)
+                            await self.recordRuleExecution(rule)
                         } catch let error as AutomationError {
                             logger.error("Action failed: \(error.localizedDescription)")
                             errors.append(error)
                         } catch {
-                            logger.error("Unexpected action error: \(error.localizedDescription)")
+                            self.logger.error("Unexpected action error: \(error.localizedDescription)")
                             errors.append(.actionExecutionFailed(
                                 actionType: action.actionType.rawValue,
                                 reason: error.localizedDescription
@@ -133,7 +133,7 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
                     }
                 }
             } catch {
-                logger.error("Rule evaluation failed for '\(rule.name)': \(error.localizedDescription)")
+                self.logger.error("Rule evaluation failed for '\(rule.name)': \(error.localizedDescription)")
                 errors.append(.ruleEvaluationFailed(
                     ruleName: rule.name,
                     reason: error.localizedDescription
@@ -141,7 +141,7 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
             }
         }
 
-        logger.debug("""
+        self.logger.debug("""
         Automation complete: \(matchedRules.count) rules matched, \
         \(executedActions.count) actions executed, \
         \(errors.count) errors
@@ -166,14 +166,14 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
     func evaluateRule(_ rule: AutomationRule, against content: ClipboardContent) -> Bool {
         // Create a temporary ClipboardItem-like structure for RuleEvaluator
         // Since we're working with ClipboardContent directly, we need to adapt
-        evaluateConditions(rule: rule, content: content, sourceApp: content.sourceApp)
+        self.evaluateConditions(rule: rule, content: content, sourceApp: content.sourceApp)
     }
 
     /// Invalidates the rule cache (call when rules are modified)
     func invalidateRuleCache() {
-        cachedRules = []
-        lastRuleRefresh = .distantPast
-        logger.debug("Rule cache invalidated")
+        self.cachedRules = []
+        self.lastRuleRefresh = .distantPast
+        self.logger.debug("Rule cache invalidated")
     }
 
     // MARK: Private
@@ -208,7 +208,7 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
 
         // Evaluate each condition
         let results = rule.conditions.conditions.map { condition in
-            evaluateSingleCondition(condition, content: content, sourceApp: sourceApp)
+            self.evaluateSingleCondition(condition, content: content, sourceApp: sourceApp)
         }
 
         // Apply logical operator
@@ -228,18 +228,18 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
     ) -> Bool {
         switch condition.field {
         case .contentType:
-            evaluateContentTypeCondition(condition, content: content)
+            self.evaluateContentTypeCondition(condition, content: content)
         case .sourceApp:
-            evaluateSourceAppCondition(condition, sourceApp: sourceApp)
+            self.evaluateSourceAppCondition(condition, sourceApp: sourceApp)
         case .textContent:
-            evaluateTextContentCondition(condition, content: content)
+            self.evaluateTextContentCondition(condition, content: content)
         case .dateCreated:
-            evaluateDateCondition(condition, content: content)
+            self.evaluateDateCondition(condition, content: content)
         case .isFavorite:
             // ClipboardContent doesn't have isFavorite, assume false for new content
-            evaluateBooleanCondition(condition, value: false)
+            self.evaluateBooleanCondition(condition, value: false)
         case .isSensitive:
-            evaluateBooleanCondition(condition, value: content.isSensitive)
+            self.evaluateBooleanCondition(condition, value: content.isSensitive)
         }
     }
 
@@ -380,28 +380,28 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
     /// Fetches enabled rules for the given trigger type
     private func fetchEnabledRules(for trigger: AutomationTrigger) async -> [AutomationRule] {
         // Check cache first
-        if Date().timeIntervalSince(lastRuleRefresh) < ruleCacheTTL, !cachedRules.isEmpty {
-            return cachedRules.filter { $0.trigger == trigger }
+        if Date().timeIntervalSince(self.lastRuleRefresh) < self.ruleCacheTTL, !self.cachedRules.isEmpty {
+            return self.cachedRules.filter { $0.trigger == trigger }
         }
 
         // Fetch from storage
         let rules = await fetchRulesFromStorage()
-        cachedRules = rules
-        lastRuleRefresh = Date()
+        self.cachedRules = rules
+        self.lastRuleRefresh = Date()
 
         return rules.filter { $0.trigger == trigger && $0.isEnabled }
     }
 
     /// Fetches all automation rules from CoreData
     private func fetchRulesFromStorage() async -> [AutomationRule] {
-        let context = storageManager.viewContext
+        let context = self.storageManager.viewContext
         let fetchRequest = AutomationRuleEntity.enabledRulesFetchRequest()
 
         do {
             let entities = try context.fetch(fetchRequest)
             return entities.compactMap { $0.toAutomationRule() }
         } catch {
-            logger.error("Failed to fetch automation rules: \(error.localizedDescription)")
+            self.logger.error("Failed to fetch automation rules: \(error.localizedDescription)")
             return []
         }
     }
@@ -410,7 +410,7 @@ final class AutomationEngine { // swiftlint:disable:this type_body_length
 
     /// Records that a rule was executed
     private func recordRuleExecution(_ rule: AutomationRule) async {
-        let context = storageManager.newBackgroundContext()
+        let context = self.storageManager.newBackgroundContext()
 
         await context.perform {
             let fetchRequest = AutomationRuleEntity.fetchRequest()

@@ -18,7 +18,7 @@ final class PerformanceTests: XCTestCase {
 
     func testFuzzySearchPerformance_smallDataset() {
         let matcher = FuzzyMatcher(threshold: 0.6)
-        let items = generateTestItems(count: 100)
+        let items = self.generateTestItems(count: 100)
 
         measure {
             for item in items {
@@ -29,7 +29,7 @@ final class PerformanceTests: XCTestCase {
 
     func testFuzzySearchPerformance_largeDataset() {
         let matcher = FuzzyMatcher(threshold: 0.6)
-        let items = generateTestItems(count: 500)
+        let items = self.generateTestItems(count: 500)
 
         measure {
             for item in items {
@@ -42,7 +42,7 @@ final class PerformanceTests: XCTestCase {
 
     func testDeduplicationPerformance_hashComputation() {
         let deduplicator = Deduplicator()
-        let items = generateTestItems(count: 1000)
+        let items = self.generateTestItems(count: 1000)
 
         measure {
             for item in items {
@@ -54,7 +54,7 @@ final class PerformanceTests: XCTestCase {
     func testDeduplicationPerformance_duplicateCheck() {
         let deduplicator = Deduplicator()
         let existingHashes = (0 ..< 1000).map { _ in UUID().uuidString }
-        let items = generateTestItems(count: 100)
+        let items = self.generateTestItems(count: 100)
 
         measure {
             autoreleasepool {
@@ -71,7 +71,7 @@ final class PerformanceTests: XCTestCase {
 
     func testImageThumbnailGeneration_small() {
         let processor = ImageProcessor(thumbnailSize: 128)
-        let testImage = createTestImage(size: NSSize(width: 200, height: 200))
+        let testImage = self.createTestImage(size: NSSize(width: 200, height: 200))
 
         measure {
             for _ in 0 ..< 100 {
@@ -82,7 +82,7 @@ final class PerformanceTests: XCTestCase {
 
     func testImageThumbnailGeneration_medium() {
         let processor = ImageProcessor(thumbnailSize: 256)
-        let testImage = createTestImage(size: NSSize(width: 1000, height: 1000))
+        let testImage = self.createTestImage(size: NSSize(width: 1000, height: 1000))
 
         measure {
             for _ in 0 ..< 50 {
@@ -93,7 +93,7 @@ final class PerformanceTests: XCTestCase {
 
     func testImageThumbnailGeneration_large() {
         let processor = ImageProcessor(thumbnailSize: 256)
-        let testImage = createTestImage(size: NSSize(width: 4000, height: 3000))
+        let testImage = self.createTestImage(size: NSSize(width: 4000, height: 3000))
 
         measure {
             for _ in 0 ..< 10 {

@@ -16,22 +16,22 @@ struct PreferencesView: View {
     // MARK: - Body
 
     var body: some View {
-        TabView(selection: $viewModel.selectedTab) {
-            GeneralTabView(viewModel: viewModel)
+        TabView(selection: self.$viewModel.selectedTab) {
+            GeneralTabView(viewModel: self.viewModel)
                 .tabItem { Label(PreferencesTab.general.displayName, systemImage: PreferencesTab.general.iconName) }
                 .tag(PreferencesTab.general)
 
-            PrivacyTabView(viewModel: viewModel)
+            PrivacyTabView(viewModel: self.viewModel)
                 .tabItem { Label(PreferencesTab.privacy.displayName, systemImage: PreferencesTab.privacy.iconName) }
                 .tag(PreferencesTab.privacy)
 
-            AppearanceTabView(viewModel: viewModel)
+            AppearanceTabView(viewModel: self.viewModel)
                 .tabItem {
                     Label(PreferencesTab.appearance.displayName, systemImage: PreferencesTab.appearance.iconName)
                 }
                 .tag(PreferencesTab.appearance)
 
-            ShortcutsTabView(viewModel: viewModel)
+            ShortcutsTabView(viewModel: self.viewModel)
                 .tabItem { Label(PreferencesTab.shortcuts.displayName, systemImage: PreferencesTab.shortcuts.iconName) }
                 .tag(PreferencesTab.shortcuts)
 

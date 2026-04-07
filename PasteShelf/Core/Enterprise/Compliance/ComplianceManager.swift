@@ -60,49 +60,53 @@ final class ComplianceManager: ObservableObject {
     /// Call this once during app startup. Individual frameworks (HIPAA, GDPR, SOC2)
     /// have their own enable toggles; this method sets up their initial state.
     func configure() {
-        isEnabled = true
+        self.isEnabled = true
 
         // Load HIPAA mode: active if either enterprise settings or local config is enabled
         let hipaaMode = HIPAAComplianceMode.load()
         let enterpriseSettings = SettingsManager.shared.enterprise
-        isHIPAAActive = hipaaMode.isEnabled || enterpriseSettings.hipaaEnabled
-        if isHIPAAActive {
+        self.isHIPAAActive = hipaaMode.isEnabled || enterpriseSettings.hipaaEnabled
+        if self.isHIPAAActive {
             HIPAAAccessControlService.shared.configure()
         }
 
         // GDPR and SOC2 are gated by enterprise settings
-        isGDPRActive = enterpriseSettings.gdprEnabled
-        isSOC2Active = enterpriseSettings.soc2Enabled
+        self.isGDPRActive = enterpriseSettings.gdprEnabled
+        self.isSOC2Active = enterpriseSettings.soc2Enabled
 
-        logger.info("ComplianceManager configured (HIPAA=\(isHIPAAActive), GDPR=\(isGDPRActive), SOC2=\(isSOC2Active))")
+        self.logger
+            .info(
+                // swiftlint:disable:next line_length
+                "ComplianceManager configured (HIPAA=\(self.isHIPAAActive), GDPR=\(self.isGDPRActive), SOC2=\(self.isSOC2Active))"
+            )
     }
 
     /// Disables the compliance subsystem.
     func disable() {
-        isEnabled = false
-        isHIPAAActive = false
-        isGDPRActive = false
-        isSOC2Active = false
-        logger.info("ComplianceManager disabled")
+        self.isEnabled = false
+        self.isHIPAAActive = false
+        self.isGDPRActive = false
+        self.isSOC2Active = false
+        self.logger.info("ComplianceManager disabled")
     }
 
     /// Refreshes GDPR and SOC2 state from current enterprise settings.
     func refreshComplianceSettings() {
         let enterpriseSettings = SettingsManager.shared.enterprise
-        isGDPRActive = enterpriseSettings.gdprEnabled
-        isSOC2Active = enterpriseSettings.soc2Enabled
-        logger.debug("Compliance settings refreshed: GDPR=\(isGDPRActive), SOC2=\(isSOC2Active)")
+        self.isGDPRActive = enterpriseSettings.gdprEnabled
+        self.isSOC2Active = enterpriseSettings.soc2Enabled
+        self.logger.debug("Compliance settings refreshed: GDPR=\(self.isGDPRActive), SOC2=\(self.isSOC2Active)")
     }
 
     /// Refreshes HIPAA state after configuration changes.
     func refreshHIPAAState() {
         let hipaaMode = HIPAAComplianceMode.load()
         let enterpriseSettings = SettingsManager.shared.enterprise
-        isHIPAAActive = hipaaMode.isEnabled || enterpriseSettings.hipaaEnabled
-        if isHIPAAActive {
+        self.isHIPAAActive = hipaaMode.isEnabled || enterpriseSettings.hipaaEnabled
+        if self.isHIPAAActive {
             HIPAAAccessControlService.shared.configure()
         }
-        logger.debug("HIPAA state refreshed: \(isHIPAAActive)")
+        self.logger.debug("HIPAA state refreshed: \(self.isHIPAAActive)")
     }
 
     // MARK: Private

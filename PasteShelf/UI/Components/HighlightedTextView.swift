@@ -35,17 +35,17 @@ struct HighlightedTextView: View {
     // MARK: - Body
 
     var body: some View {
-        if matchRanges.isEmpty {
+        if self.matchRanges.isEmpty {
             // No highlights - simple text
-            Text(text)
-                .font(font)
-                .lineLimit(lineLimit)
+            Text(self.text)
+                .font(self.font)
+                .lineLimit(self.lineLimit)
                 .truncationMode(.tail)
         } else {
             // Build attributed string with highlights
-            Text(attributedString)
-                .font(font)
-                .lineLimit(lineLimit)
+            Text(self.attributedString)
+                .font(self.font)
+                .lineLimit(self.lineLimit)
                 .truncationMode(.tail)
         }
     }
@@ -58,7 +58,7 @@ struct HighlightedTextView: View {
         var result = AttributedString(text)
 
         // Sort ranges by position (descending) to avoid index shifting
-        let sortedRanges = matchRanges.sorted { $0.start > $1.start }
+        let sortedRanges = self.matchRanges.sorted { $0.start > $1.start }
 
         for range in sortedRanges {
             guard let attrRange = range.attributedStringRange(in: result) else {
@@ -66,7 +66,7 @@ struct HighlightedTextView: View {
             }
 
             // Apply highlight background
-            result[attrRange].backgroundColor = highlightColor
+            result[attrRange].backgroundColor = self.highlightColor
 
             // Apply highlight foreground if specified
             if let fgColor = highlightForegroundColor {
@@ -84,22 +84,22 @@ extension HighlightedTextView {
     /// Creates a highlighted text view from a search result
     init(text: String, searchResult: SearchResult, lineLimit: Int = 2) {
         self.text = text
-        matchRanges = searchResult.matchRanges
+        self.matchRanges = searchResult.matchRanges
         self.lineLimit = lineLimit
-        font = .system(size: 12)
-        highlightColor = .accentColor.opacity(0.3)
-        highlightForegroundColor = nil
+        self.font = .system(size: 12)
+        self.highlightColor = .accentColor.opacity(0.3)
+        self.highlightForegroundColor = nil
     }
 
     /// Creates a highlighted text view with a search query
     /// Automatically finds match ranges in the text
     init(text: String, query: String, lineLimit: Int = 2) {
         self.text = text
-        matchRanges = text.findWordMatchRanges(for: query)
+        self.matchRanges = text.findWordMatchRanges(for: query)
         self.lineLimit = lineLimit
-        font = .system(size: 12)
-        highlightColor = .accentColor.opacity(0.3)
-        highlightForegroundColor = nil
+        self.font = .system(size: 12)
+        self.highlightColor = .accentColor.opacity(0.3)
+        self.highlightForegroundColor = nil
     }
 }
 
@@ -133,7 +133,7 @@ extension HighlightedTextView {
         highlightColor: Color = .accentColor.opacity(0.3)
     ) -> AttributedString {
         let ranges = text.findWordMatchRanges(for: query)
-        return attributedString(for: text, matchRanges: ranges, highlightColor: highlightColor)
+        return self.attributedString(for: text, matchRanges: ranges, highlightColor: highlightColor)
     }
 }
 

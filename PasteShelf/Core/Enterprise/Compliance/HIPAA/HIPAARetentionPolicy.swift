@@ -37,14 +37,14 @@ enum HIPAARetentionPolicy {
         if corrected.retentionDays < AuditRetentionConfiguration.hipaaMinimumDays {
             let currentDays = corrected.retentionDays
             let minimumDays = AuditRetentionConfiguration.hipaaMinimumDays
-            logger.warning(
+            self.logger.warning(
                 "HIPAA retention: increasing retention from \(currentDays) to \(minimumDays) days"
             )
             corrected.retentionDays = AuditRetentionConfiguration.hipaaMinimumDays
         }
 
         if !corrected.isImmutable {
-            logger.warning("HIPAA retention: enabling immutability flag for compliance")
+            self.logger.warning("HIPAA retention: enabling immutability flag for compliance")
             corrected.isImmutable = true
         }
 

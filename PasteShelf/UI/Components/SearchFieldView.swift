@@ -39,17 +39,17 @@ struct SearchFieldView: View {
                 .font(.system(size: 12, weight: .medium))
 
             // Text field
-            TextField(placeholder, text: $text)
+            TextField(self.placeholder, text: self.$text)
                 .textFieldStyle(.plain)
                 .font(.system(size: 13))
-                .focused($isFocused)
+                .focused(self.$isFocused)
                 .onSubmit {
-                    onSubmit?()
+                    self.onSubmit?()
                 }
 
             // Clear button (visible when text is not empty)
-            if !text.isEmpty {
-                Button(action: clearSearch) {
+            if !self.text.isEmpty {
+                Button(action: self.clearSearch) {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
                         .font(.system(size: 12))
@@ -67,19 +67,19 @@ struct SearchFieldView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 6)
                 .stroke(
-                    isFocused ? Color.accentColor.opacity(0.5) : Color.clear,
+                    self.isFocused ? Color.accentColor.opacity(0.5) : Color.clear,
                     lineWidth: 1
                 )
         )
         .onAppear {
-            if autoFocus {
+            if self.autoFocus {
                 // Delay focus to allow view to fully appear
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    isFocused = true
+                    self.isFocused = true
                 }
             }
         }
-        .animation(.easeInOut(duration: 0.15), value: text.isEmpty)
+        .animation(.easeInOut(duration: 0.15), value: self.text.isEmpty)
     }
 
     // MARK: Private
@@ -89,9 +89,9 @@ struct SearchFieldView: View {
     @FocusState private var isFocused: Bool
 
     private func clearSearch() {
-        text = ""
-        onClear?()
-        isFocused = true
+        self.text = ""
+        self.onClear?()
+        self.isFocused = true
     }
 }
 
@@ -126,16 +126,16 @@ struct SearchFieldStyleModifier: ViewModifier {
                 VStack(spacing: 16) {
                     Text("Empty State")
                         .font(.caption)
-                    SearchFieldView(text: $searchText)
+                    SearchFieldView(text: self.$searchText)
 
                     Text("With Content")
                         .font(.caption)
-                    SearchFieldView(text: $searchTextWithContent)
+                    SearchFieldView(text: self.$searchTextWithContent)
 
                     Text("Custom Placeholder")
                         .font(.caption)
                     SearchFieldView(
-                        text: $searchText,
+                        text: self.$searchText,
                         placeholder: "Find items..."
                     )
                 }

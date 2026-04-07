@@ -115,12 +115,12 @@ extension String {
         var allRanges: [MatchRange] = []
 
         for word in queryWords {
-            let wordRanges = findMatchRanges(for: word)
+            let wordRanges = self.findMatchRanges(for: word)
             allRanges.append(contentsOf: wordRanges)
         }
 
         // Sort by position and remove overlapping ranges
-        return mergeOverlappingRanges(allRanges.sorted { $0.start < $1.start })
+        return self.mergeOverlappingRanges(allRanges.sorted { $0.start < $1.start })
     }
 
     // MARK: - Helper Methods

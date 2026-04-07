@@ -18,17 +18,17 @@
 
         public func didLoad(with context: any PluginContext) {
             self.context = context
-            storage = context.storage
-            network = context.network
+            self.storage = context.storage
+            self.network = context.network
             context.logger.info("GitHub Gist loaded")
 
             Task { @MainActor in
-                registerActions()
+                self.registerActions()
             }
         }
 
         public func willUnload() {
-            context?.logger.info("GitHub Gist unloading")
+            self.context?.logger.info("GitHub Gist unloading")
 
             Task { @MainActor in
                 PluginUIAPI.shared.unregisterMenuItems(for: Self.identifier)
@@ -59,7 +59,7 @@
         // MARK: - Settings View
 
         public func settingsView() -> AnyView? {
-            AnyView(GitHubGistSettingsView(storage: storage))
+            AnyView(GitHubGistSettingsView(storage: self.storage))
         }
 
         // MARK: Internal
@@ -75,7 +75,7 @@
 
         /// Transforms content (used internally by plugin system)
         func transform(content: PluginClipboardContent) async throws -> PluginClipboardContent? {
-            try await createGist(content)
+            try await self.createGist(content)
         }
 
         /// Checks if content type is supported (used internally by plugin system)
@@ -94,11 +94,11 @@
         // MARK: - Settings
 
         private var githubToken: String? {
-            storage?.string(forKey: "githubToken")
+            self.storage?.string(forKey: "githubToken")
         }
 
         private var defaultPublic: Bool {
-            storage?.bool(forKey: "defaultPublic") ?? false
+            self.storage?.bool(forKey: "defaultPublic") ?? false
         }
 
         // MARK: - Action Registration
@@ -134,17 +134,17 @@
             }
 
             // Detect file extension from content
-            let filename = detectFilename(from: text)
+            let filename = self.detectFilename(from: text)
 
             // Build request
             let gistRequest = GistCreateRequest(
                 description: "Created with PasteShelf",
-                isPublic: isPublic ?? defaultPublic,
+                isPublic: isPublic ?? self.defaultPublic,
                 files: [filename: GistFile(content: text)]
             )
 
             guard let gistAPIURL = URL(string: "https://api.github.com/gists") else {
-                throw PluginError.executionFailed("Invalid GitHub API URL")
+                return nil
             }
             var request = URLRequest(url: gistAPIURL)
             request.httpMethod = "POST"
@@ -170,7 +170,7 @@
 
             // Return URL to the created gist
             guard let gistURL = URL(string: gistResponse.htmlURL) else {
-                throw PluginError.executionFailed("Invalid gist response URL")
+                return nil
             }
             let result = PluginClipboardContent(url: gistURL)
             result.text = gistResponse.htmlURL
@@ -284,23 +284,23 @@
                 Section {
                     HStack {
                         Group {
-                            if showToken {
-                                TextField("Personal Access Token", text: $token)
+                            if self.showToken {
+                                TextField("Personal Access Token", text: self.$token)
                             } else {
-                                SecureField("Personal Access Token", text: $token)
+                                SecureField("Personal Access Token", text: self.$token)
                             }
                         }
                         .textFieldStyle(.roundedBorder)
 
                         Button {
-                            showToken.toggle()
+                            self.showToken.toggle()
                         } label: {
-                            Image(systemName: showToken ? "eye.slash" : "eye")
+                            Image(systemName: self.showToken ? "eye.slash" : "eye")
                         }
                         .buttonStyle(.plain)
                     }
-                    .onChange(of: token) { _, newValue in
-                        storage?.setString(newValue, forKey: "githubToken")
+                    .onChange(of: self.token) { _, newValue in
+                        self.storage?.setString(newValue, forKey: "githubToken")
                     }
 
                     Link(
@@ -313,15 +313,15 @@
                 }
 
                 Section {
-                    Toggle("Create public gists by default", isOn: $defaultPublic)
-                        .onChange(of: defaultPublic) { _, newValue in
-                            storage?.setBool(newValue, forKey: "defaultPublic")
+                    Toggle("Create public gists by default", isOn: self.$defaultPublic)
+                        .onChange(of: self.defaultPublic) { _, newValue in
+                            self.storage?.setBool(newValue, forKey: "defaultPublic")
                         }
                 }
             }
             .onAppear {
-                token = storage?.string(forKey: "githubToken") ?? ""
-                defaultPublic = storage?.bool(forKey: "defaultPublic") ?? false
+                self.token = self.storage?.string(forKey: "githubToken") ?? ""
+                self.defaultPublic = self.storage?.bool(forKey: "defaultPublic") ?? false
             }
         }
 

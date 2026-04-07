@@ -22,7 +22,7 @@ struct RuleEditorView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            headerView
+            self.headerView
                 .padding()
                 .background(Color(nsColor: .windowBackgroundColor))
 
@@ -32,17 +32,17 @@ struct RuleEditorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Basic info section
-                    basicInfoSection
+                    self.basicInfoSection
 
                     Divider()
 
                     // Trigger section
-                    triggerSection
+                    self.triggerSection
 
                     Divider()
 
                     // Actions section
-                    actionsSection
+                    self.actionsSection
                 }
                 .padding()
             }
@@ -50,13 +50,13 @@ struct RuleEditorView: View {
             Divider()
 
             // Footer
-            footerView
+            self.footerView
                 .padding()
                 .background(Color(nsColor: .windowBackgroundColor))
         }
         .frame(width: 500, height: 600)
         .onAppear {
-            loadRule()
+            self.loadRule()
         }
     }
 
@@ -73,14 +73,14 @@ struct RuleEditorView: View {
 
     private var headerView: some View {
         HStack {
-            Text(viewModel.isCreating ? "Create Rule" : "Edit Rule")
+            Text(self.viewModel.isCreating ? "Create Rule" : "Edit Rule")
                 .font(.headline)
 
             Spacer()
 
             Button {
-                isPresented = false
-                viewModel.cancelEditing()
+                self.isPresented = false
+                self.viewModel.cancelEditing()
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundColor(.secondary)
@@ -100,7 +100,7 @@ struct RuleEditorView: View {
                 Text("Name")
                     .frame(width: 80, alignment: .leading)
 
-                TextField("Rule name", text: $name)
+                TextField("Rule name", text: self.$name)
                     .textFieldStyle(.roundedBorder)
             }
 
@@ -108,7 +108,7 @@ struct RuleEditorView: View {
                 Text("Enabled")
                     .frame(width: 80, alignment: .leading)
 
-                Toggle("", isOn: $isEnabled)
+                Toggle("", isOn: self.$isEnabled)
                     .labelsHidden()
 
                 Spacer()
@@ -126,7 +126,7 @@ struct RuleEditorView: View {
 
                 Spacer()
 
-                Picker("", selection: $trigger) {
+                Picker("", selection: self.$trigger) {
                     Text("Captured").tag(AutomationTrigger.onCapture)
                     Text("Pasted").tag(AutomationTrigger.onPaste)
                     Text("Manual").tag(AutomationTrigger.manual)
@@ -138,8 +138,8 @@ struct RuleEditorView: View {
             }
 
             TriggerPickerView(
-                selectedTrigger: $trigger,
-                scheduleExpression: $scheduleExpression
+                selectedTrigger: self.$trigger,
+                scheduleExpression: self.$scheduleExpression
             )
         }
     }
@@ -155,14 +155,14 @@ struct RuleEditorView: View {
                 Spacer()
 
                 Button {
-                    showingAddAction = true
+                    self.showingAddAction = true
                 } label: {
                     Label("Add Action", systemImage: "plus")
                         .font(.caption)
                 }
             }
 
-            if actions.isEmpty {
+            if self.actions.isEmpty {
                 HStack {
                     Spacer()
                     VStack(spacing: 8) {
@@ -180,27 +180,27 @@ struct RuleEditorView: View {
                 .cornerRadius(8)
             } else {
                 VStack(spacing: 8) {
-                    ForEach(Array(actions.enumerated()), id: \.element.id) { index, action in
+                    ForEach(Array(self.actions.enumerated()), id: \.element.id) { index, action in
                         ActionRowView(
                             action: action,
                             onEdit: {
                                 // Edit action (could open another sheet)
                             },
                             onDelete: {
-                                actions.remove(at: index)
+                                self.actions.remove(at: index)
                             }
                         )
                     }
                     .onMove { source, destination in
-                        actions.move(fromOffsets: source, toOffset: destination)
+                        self.actions.move(fromOffsets: source, toOffset: destination)
                     }
                 }
             }
         }
-        .sheet(isPresented: $showingAddAction) {
+        .sheet(isPresented: self.$showingAddAction) {
             ActionPickerView { action in
-                actions.append(action)
-                showingAddAction = false
+                self.actions.append(action)
+                self.showingAddAction = false
             }
         }
     }
@@ -208,19 +208,19 @@ struct RuleEditorView: View {
     private var footerView: some View {
         HStack {
             Button("Cancel") {
-                isPresented = false
-                viewModel.cancelEditing()
+                self.isPresented = false
+                self.viewModel.cancelEditing()
             }
             .keyboardShortcut(.escape)
 
             Spacer()
 
-            Button(viewModel.isCreating ? "Create" : "Save") {
-                saveRule()
+            Button(self.viewModel.isCreating ? "Create" : "Save") {
+                self.saveRule()
             }
             .keyboardShortcut(.return)
             .buttonStyle(.borderedProminent)
-            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .disabled(self.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
     }
 
@@ -230,43 +230,43 @@ struct RuleEditorView: View {
         guard let rule = viewModel.selectedRule else {
             return
         }
-        name = rule.name
-        trigger = rule.trigger
-        isEnabled = rule.isEnabled
-        actions = rule.actions
+        self.name = rule.name
+        self.trigger = rule.trigger
+        self.isEnabled = rule.isEnabled
+        self.actions = rule.actions
 
         // Extract schedule expression if applicable
         if case let .schedule(expression) = rule.trigger {
-            scheduleExpression = expression.expression
+            self.scheduleExpression = expression.expression
         }
     }
 
     private func saveRule() {
-        let finalTrigger: AutomationTrigger = if case .schedule = trigger {
-            .schedule(CronExpression(expression: scheduleExpression))
+        let finalTrigger: AutomationTrigger = if case .schedule = self.trigger {
+            .schedule(CronExpression(expression: self.scheduleExpression))
         } else {
-            trigger
+            self.trigger
         }
 
         let rule = AutomationRule(
             id: viewModel.selectedRule?.id ?? UUID(),
-            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-            isEnabled: isEnabled,
+            name: self.name.trimmingCharacters(in: .whitespacesAndNewlines),
+            isEnabled: self.isEnabled,
             trigger: finalTrigger,
-            conditions: viewModel.selectedRule?.conditions ?? CollectionRules(),
-            actions: actions,
-            priority: viewModel.selectedRule?.priority ?? 100,
-            createdAt: viewModel.selectedRule?.createdAt ?? Date(),
+            conditions: self.viewModel.selectedRule?.conditions ?? CollectionRules(),
+            actions: self.actions,
+            priority: self.viewModel.selectedRule?.priority ?? 100,
+            createdAt: self.viewModel.selectedRule?.createdAt ?? Date(),
             modifiedAt: Date(),
-            lastExecutedAt: viewModel.selectedRule?.lastExecutedAt,
-            executionCount: viewModel.selectedRule?.executionCount ?? 0
+            lastExecutedAt: self.viewModel.selectedRule?.lastExecutedAt,
+            executionCount: self.viewModel.selectedRule?.executionCount ?? 0
         )
 
-        viewModel.selectedRule = rule
+        self.viewModel.selectedRule = rule
 
         Task {
-            await viewModel.saveCurrentRule()
-            isPresented = false
+            await self.viewModel.saveCurrentRule()
+            self.isPresented = false
         }
     }
 }
@@ -282,12 +282,12 @@ struct TriggerPickerView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Trigger description
-            Text(selectedTrigger.description)
+            Text(self.selectedTrigger.description)
                 .font(.caption)
                 .foregroundColor(.secondary)
 
             // Schedule options (if schedule trigger)
-            if case .schedule = selectedTrigger {
+            if case .schedule = self.selectedTrigger {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Schedule")
                         .font(.caption)
@@ -295,8 +295,8 @@ struct TriggerPickerView: View {
 
                     HStack {
                         Picker("Preset", selection: Binding(
-                            get: { schedulePreset(for: scheduleExpression) },
-                            set: { scheduleExpression = $0.expression }
+                            get: { self.schedulePreset(for: self.scheduleExpression) },
+                            set: { self.scheduleExpression = $0.expression }
                         )) {
                             Text("Hourly").tag(CronExpression.hourly)
                             Text("Daily").tag(CronExpression.daily)
@@ -336,15 +336,15 @@ struct ActionRowView: View {
 
     var body: some View {
         HStack {
-            Image(systemName: action.actionType.iconName)
+            Image(systemName: self.action.actionType.iconName)
                 .foregroundColor(.accentColor)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(action.actionType.displayName)
+                Text(self.action.actionType.displayName)
                     .font(.body)
 
-                Text(actionDescription)
+                Text(self.actionDescription)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -352,7 +352,7 @@ struct ActionRowView: View {
             Spacer()
 
             Button {
-                onDelete()
+                self.onDelete()
             } label: {
                 Image(systemName: "trash")
                     .foregroundColor(.red)
@@ -367,7 +367,7 @@ struct ActionRowView: View {
     // MARK: Private
 
     private var actionDescription: String {
-        switch action {
+        switch self.action {
         case let .transform(_, preset):
             "Transform: \(preset.displayName)"
         case let .addTag(_, tagName):
@@ -377,7 +377,7 @@ struct ActionRowView: View {
         case let .webhook(_, endpointId):
             "Webhook: \(endpointId.uuidString.prefix(8))..."
         default:
-            action.description
+            self.action.description
         }
     }
 }
@@ -397,7 +397,7 @@ struct ActionPickerView: View {
                     .font(.headline)
                 Spacer()
                 Button {
-                    dismiss()
+                    self.dismiss()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.secondary)
@@ -413,7 +413,7 @@ struct ActionPickerView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(ActionType.allCases, id: \.self) { actionType in
                         ActionTypeButton(actionType: actionType) {
-                            onSelect(createDefaultAction(for: actionType))
+                            self.onSelect(self.createDefaultAction(for: actionType))
                         }
                     }
                 }
@@ -467,14 +467,14 @@ struct ActionTypeButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: self.action) {
             HStack {
-                Image(systemName: actionType.iconName)
+                Image(systemName: self.actionType.iconName)
                     .frame(width: 24)
                     .foregroundColor(.accentColor)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(actionType.displayName).font(.body)
-                    Text(actionType.description).font(.caption).foregroundColor(.secondary)
+                    Text(self.actionType.displayName).font(.body)
+                    Text(self.actionType.description).font(.caption).foregroundColor(.secondary)
                 }
                 Spacer()
             }

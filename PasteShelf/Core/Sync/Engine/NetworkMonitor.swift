@@ -20,9 +20,9 @@ final class NetworkMonitor: ObservableObject {
     // MARK: - Initialization
 
     init() {
-        monitor = NWPathMonitor()
-        loadQueuedChanges()
-        startMonitoring()
+        self.monitor = NWPathMonitor()
+        self.loadQueuedChanges()
+        self.startMonitoring()
     }
 
     deinit {
@@ -54,31 +54,31 @@ final class NetworkMonitor: ObservableObject {
 
     /// Queue a change to be synced when network is restored
     func queueChange(_ change: SyncChange) {
-        guard queuedChanges.count < Self.maxQueueSize else {
+        guard self.queuedChanges.count < Self.maxQueueSize else {
             Self.logger.warning("Queue full, dropping change for \(change.entityID)")
             return
         }
 
         // Avoid duplicates
-        if !queuedChanges.contains(where: { $0.entityID == change.entityID }) {
-            queuedChanges.append(change)
-            saveQueuedChanges()
-            Self.logger.debug("Queued change for \(change.entityID), queue size: \(queuedChanges.count)")
+        if !self.queuedChanges.contains(where: { $0.entityID == change.entityID }) {
+            self.queuedChanges.append(change)
+            self.saveQueuedChanges()
+            Self.logger.debug("Queued change for \(change.entityID), queue size: \(self.queuedChanges.count)")
         }
     }
 
     /// Get and clear queued changes
     func dequeueChanges() -> [SyncChange] {
-        let changes = queuedChanges
-        queuedChanges.removeAll()
-        saveQueuedChanges()
+        let changes = self.queuedChanges
+        self.queuedChanges.removeAll()
+        self.saveQueuedChanges()
         return changes
     }
 
     /// Clear all queued changes
     func clearQueue() {
-        queuedChanges.removeAll()
-        saveQueuedChanges()
+        self.queuedChanges.removeAll()
+        self.saveQueuedChanges()
     }
 
     // MARK: Private
@@ -103,31 +103,31 @@ final class NetworkMonitor: ObservableObject {
     // MARK: - Monitoring
 
     private func startMonitoring() {
-        monitor.pathUpdateHandler = { [weak self] path in
+        self.monitor.pathUpdateHandler = { [weak self] path in
             Task { @MainActor in
                 self?.handlePathUpdate(path)
             }
         }
-        monitor.start(queue: monitorQueue)
+        self.monitor.start(queue: self.monitorQueue)
     }
 
     private func handlePathUpdate(_ path: NWPath) {
-        let wasConnected = isConnected
+        let wasConnected = self.isConnected
         let newConnected = path.status == .satisfied
 
-        isConnected = newConnected
-        isExpensive = path.isExpensive
-        isConstrained = path.isConstrained
+        self.isConnected = newConnected
+        self.isExpensive = path.isExpensive
+        self.isConstrained = path.isConstrained
 
         // Determine interface type
         if path.usesInterfaceType(.wifi) {
-            interfaceType = .wifi
+            self.interfaceType = .wifi
         } else if path.usesInterfaceType(.cellular) {
-            interfaceType = .cellular
+            self.interfaceType = .cellular
         } else if path.usesInterfaceType(.wiredEthernet) {
-            interfaceType = .wiredEthernet
+            self.interfaceType = .wiredEthernet
         } else {
-            interfaceType = nil
+            self.interfaceType = nil
         }
 
         Self.logger
@@ -138,9 +138,9 @@ final class NetworkMonitor: ObservableObject {
 
         // Handle connectivity change
         if !wasConnected, newConnected {
-            handleNetworkRestored()
+            self.handleNetworkRestored()
         } else if wasConnected, !newConnected {
-            handleNetworkLost()
+            self.handleNetworkLost()
         }
     }
 
@@ -172,8 +172,8 @@ final class NetworkMonitor: ObservableObject {
         do {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
-            queuedChanges = try decoder.decode([SyncChange].self, from: data)
-            Self.logger.debug("Loaded \(queuedChanges.count) queued changes")
+            self.queuedChanges = try decoder.decode([SyncChange].self, from: data)
+            Self.logger.debug("Loaded \(self.queuedChanges.count) queued changes")
         } catch {
             Self.logger.error("Failed to load queued changes: \(error.localizedDescription)")
         }
@@ -183,7 +183,7 @@ final class NetworkMonitor: ObservableObject {
         do {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(queuedChanges)
+            let data = try encoder.encode(self.queuedChanges)
             UserDefaults.standard.set(data, forKey: Self.queuedChangesKey)
         } catch {
             Self.logger.error("Failed to save queued changes: \(error.localizedDescription)")
@@ -206,7 +206,7 @@ extension Notification.Name {
 extension NetworkMonitor {
     /// Human-readable description of current network status
     var statusDescription: String {
-        guard isConnected else {
+        guard self.isConnected else {
             return "Offline"
         }
 
@@ -225,7 +225,7 @@ extension NetworkMonitor {
             }
         }
 
-        if isConstrained {
+        if self.isConstrained {
             description += " - Low Data Mode"
         }
 
@@ -236,6 +236,6 @@ extension NetworkMonitor {
     var shouldSync: Bool {
         // Always sync if connected
         // In the future, we could add settings to skip sync on expensive/constrained networks
-        isConnected
+        self.isConnected
     }
 }

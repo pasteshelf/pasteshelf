@@ -42,7 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
     // MARK: - NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        logger.info("PasteShelf launching")
+        self.logger.info("PasteShelf launching")
 
         // Handle test launch arguments
         #if DEBUG
@@ -52,30 +52,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
         #endif
 
         // Apply saved settings on launch
-        applySettingsOnLaunch()
+        self.applySettingsOnLaunch()
 
         // Set up core services
-        setupClipboardMonitor()
+        self.setupClipboardMonitor()
 
         // Set up UI controllers
-        setupMenuBar()
-        setupFloatingPanel()
+        self.setupMenuBar()
+        self.setupFloatingPanel()
 
         // Set up global hotkey
-        setupHotkey()
+        self.setupHotkey()
 
         // Set up notification observers
-        setupNotificationObservers()
+        self.setupNotificationObservers()
 
         // Set up settings observers
-        setupSettingsObservers()
+        self.setupSettingsObservers()
 
         // Start clipboard monitoring (always start timer, then pause if needed)
-        clipboardMonitor?.startMonitoring()
+        self.clipboardMonitor?.startMonitoring()
         if SettingsManager.shared.privacy.isMonitoringPaused {
-            clipboardMonitor?.pause()
-            menuBarController?.updateState(.paused)
-            logger.info("Clipboard monitoring started in paused state (user preference)")
+            self.clipboardMonitor?.pause()
+            self.menuBarController?.updateState(.paused)
+            self.logger.info("Clipboard monitoring started in paused state (user preference)")
         }
 
         // Eagerly bootstrap SyncManager so sync starts if previously enabled
@@ -89,34 +89,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
         AutoCleanupManager.shared.start()
 
         // Initialize automation engine
-        initializeAutomation()
+        self.initializeAutomation()
 
         // Initialize plugin system (gated by enterprise settings)
         #if !APP_STORE
             if SettingsManager.shared.enterprise.pluginsEnabled {
-                initializePluginSystem()
+                self.initializePluginSystem()
             }
         #endif
 
         // Start background embedding generation for semantic search
-        startBackgroundEmbeddingGeneration()
+        self.startBackgroundEmbeddingGeneration()
 
         // Start background OCR processing for image items
-        startBackgroundOCRProcessing()
+        self.startBackgroundOCRProcessing()
 
         // Configure general security lock (biometric auth, auto-lock timeout)
         SecurityLockService.shared.configure()
 
         // Initialize enterprise services (DLP, compliance, MDM monitoring)
         #if !APP_STORE
-            initializeEnterpriseServices()
+            self.initializeEnterpriseServices()
         #endif
 
         // Show onboarding if needed
         #if DEBUG
             let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
             if !isRunningTests, !CommandLine.arguments.contains("--skip-onboarding") {
-                showOnboardingIfNeeded()
+                self.showOnboardingIfNeeded()
             }
 
             if CommandLine.arguments.contains("--show-preferences") {
@@ -125,28 +125,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
                 }
             }
         #else
-            showOnboardingIfNeeded()
+            self.showOnboardingIfNeeded()
         #endif
 
-        logger.info("PasteShelf launched successfully")
+        self.logger.info("PasteShelf launched successfully")
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        logger.info("PasteShelf terminating")
+        self.logger.info("PasteShelf terminating")
 
         // Clear clipboard history on quit if security setting is enabled
         if SettingsManager.shared.security.clearOnQuit {
             Task {
-                await storageManager.deleteAllItems(keepFavorites: false)
+                await self.storageManager.deleteAllItems(keepFavorites: false)
             }
-            logger.info("Clipboard history cleared on quit (security policy)")
+            self.logger.info("Clipboard history cleared on quit (security policy)")
         }
 
         // Stop clipboard monitoring
-        clipboardMonitor?.stopMonitoring()
+        self.clipboardMonitor?.stopMonitoring()
 
         // Unregister hotkey
-        hotkeyManager?.unregisterHotkey()
+        self.hotkeyManager?.unregisterHotkey()
 
         // Stop auto-cleanup
         AutoCleanupManager.shared.stop()
@@ -173,14 +173,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
         #endif
 
         // Tear down menu bar
-        menuBarController?.teardown()
+        self.menuBarController?.teardown()
 
-        logger.info("PasteShelf terminated")
+        self.logger.info("PasteShelf terminated")
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         // Show floating panel when dock icon is clicked (if visible)
-        floatingPanelController?.show()
+        self.floatingPanelController?.show()
         return false
     }
 
@@ -213,9 +213,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
     // MARK: - Setup Methods
 
     private func setupClipboardMonitor() {
-        let detector = buildSensitiveDetector(from: SettingsManager.shared.privacy)
-        clipboardMonitor = ClipboardMonitor(sensitiveDetector: detector, storage: storageManager)
-        clipboardMonitor?.delegate = self
+        let detector = self.buildSensitiveDetector(from: SettingsManager.shared.privacy)
+        self.clipboardMonitor = ClipboardMonitor(sensitiveDetector: detector, storage: self.storageManager)
+        self.clipboardMonitor?.delegate = self
     }
 
     private func buildSensitiveDetector(from privacy: PrivacySettings) -> SensitiveDataDetector {
@@ -228,25 +228,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
     }
 
     private func setupMenuBar() {
-        menuBarController = MenuBarController(storageManager: storageManager)
-        menuBarController?.setup()
+        self.menuBarController = MenuBarController(storageManager: self.storageManager)
+        self.menuBarController?.setup()
     }
 
     private func setupFloatingPanel() {
-        floatingPanelController = FloatingPanelController(storageManager: storageManager)
-        floatingPanelController?.clipboardMonitor = clipboardMonitor
+        self.floatingPanelController = FloatingPanelController(storageManager: self.storageManager)
+        self.floatingPanelController?.clipboardMonitor = self.clipboardMonitor
 
         // Connect menu bar to panel
-        menuBarController?.panelController = floatingPanelController
+        self.menuBarController?.panelController = self.floatingPanelController
     }
 
     private func setupHotkey() {
         let config = HotkeyConfiguration.load()
-        hotkeyManager = HotkeyManager(configuration: config)
-        hotkeyManager?.onHotkeyPressed = { [weak self] in
+        self.hotkeyManager = HotkeyManager(configuration: config)
+        self.hotkeyManager?.onHotkeyPressed = { [weak self] in
             self?.floatingPanelController?.toggle()
         }
-        hotkeyManager?.register(configuration: config)
+        self.hotkeyManager?.register(configuration: config)
     }
 
     private func setupNotificationObservers() {
@@ -256,7 +256,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
             .sink { [weak self] _ in
                 self?.toggleMonitoring()
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
 
         // Show preferences
         NotificationCenter.default.publisher(for: .showPreferences)
@@ -264,7 +264,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
             .sink { [weak self] _ in
                 self?.showPreferences()
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
 
         // Paste specific item
         NotificationCenter.default.publisher(for: .pasteClipboardItem)
@@ -274,7 +274,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
                     self?.pasteItem(id: itemId)
                 }
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
 
         // Show main window (from URL scheme pasteshelf://show and AppleScript)
         NotificationCenter.default.publisher(for: .showMainWindow)
@@ -282,7 +282,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
             .sink { [weak self] _ in
                 self?.floatingPanelController?.show()
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
 
         // Show main window with search (from URL scheme pasteshelf://search)
         NotificationCenter.default.publisher(for: .showMainWindowWithSearch)
@@ -293,7 +293,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
                     self?.floatingPanelController?.viewModel.searchQuery = query
                 }
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 
     private func toggleMonitoring() {
@@ -303,11 +303,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
 
         if monitor.isPaused {
             monitor.resume()
-            menuBarController?.updateState(.idle)
+            self.menuBarController?.updateState(.idle)
             SettingsManager.shared.update { $0.privacy.isMonitoringPaused = false }
         } else {
             monitor.pause()
-            menuBarController?.updateState(.paused)
+            self.menuBarController?.updateState(.paused)
             SettingsManager.shared.update { $0.privacy.isMonitoringPaused = true }
         }
     }
@@ -320,21 +320,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
 
         if paused, !monitor.isPaused {
             monitor.pause()
-            menuBarController?.updateState(.paused)
+            self.menuBarController?.updateState(.paused)
         } else if !paused, monitor.isPaused {
             monitor.resume()
-            menuBarController?.updateState(.idle)
+            self.menuBarController?.updateState(.idle)
         }
     }
 
     private func showPreferences() {
         PreferencesWindowController.shared.show()
-        logger.debug("Preferences window shown")
+        self.logger.debug("Preferences window shown")
     }
 
     private func pasteItem(id: UUID) {
         Task {
-            await floatingPanelController?.viewModel.paste(itemId: id)
+            await self.floatingPanelController?.viewModel.paste(itemId: id)
 
             #if !APP_STORE
                 // Log paste as audit event
@@ -350,11 +350,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
 
     private func showOnboardingIfNeeded() {
         guard OnboardingWindowController.shared.shouldShowOnboarding() else {
-            logger.debug("Onboarding already completed")
+            self.logger.debug("Onboarding already completed")
             return
         }
 
-        logger.info("Showing onboarding")
+        self.logger.info("Showing onboarding")
         OnboardingWindowController.shared.show { [weak self] in
             self?.logger.info("Onboarding completed")
             // Reload hotkey after onboarding in case user changed it
@@ -372,7 +372,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
         DockVisibilityManager.shared.setVisible(settings.general.showInDock)
 
         // Apply theme setting
-        applyTheme(settings.appearance.theme)
+        self.applyTheme(settings.appearance.theme)
 
         // Apply OCR confidence threshold
         OCRManager.shared.setConfidenceThreshold(Float(settings.search.ocrConfidenceThreshold))
@@ -380,7 +380,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
         // Refresh launch at login status (to ensure UI matches actual state)
         LaunchAtLoginManager.shared.refreshStatus()
 
-        logger.debug("Settings applied on launch")
+        self.logger.debug("Settings applied on launch")
     }
 
     private func applyTheme(_ theme: AppTheme) {
@@ -404,17 +404,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
                 }
                 self?.handleSettingsChange(settings)
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 
     // swiftlint:disable:next function_body_length
     private func handleSettingsChange(_ settings: AppSettings) {
         // Apply hotkey changes
         let hotkeyConfig = settings.shortcuts.globalHotkey.toHotkeyConfiguration
-        hotkeyManager?.updateHotkey(hotkeyConfig)
+        self.hotkeyManager?.updateHotkey(hotkeyConfig)
 
         // Apply theme changes
-        applyTheme(settings.appearance.theme)
+        self.applyTheme(settings.appearance.theme)
 
         // Apply dock visibility changes
         DockVisibilityManager.shared.setVisible(settings.general.showInDock)
@@ -423,25 +423,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
         LaunchAtLoginManager.shared.setEnabled(settings.general.launchAtLogin)
 
         // Apply monitoring pause state explicitly to prevent drift
-        setMonitoringPaused(settings.privacy.isMonitoringPaused)
+        self.setMonitoringPaused(settings.privacy.isMonitoringPaused)
 
         // Rebuild sensitive data detector when detection settings change
-        let detector = buildSensitiveDetector(from: settings.privacy)
-        clipboardMonitor?.updateSensitiveDetector(detector)
+        let detector = self.buildSensitiveDetector(from: settings.privacy)
+        self.clipboardMonitor?.updateSensitiveDetector(detector)
 
         // Apply OCR confidence threshold
         OCRManager.shared.setConfidenceThreshold(Float(settings.search.ocrConfidenceThreshold))
 
         // Handle semantic search toggle: start or cancel background indexing
         if settings.search.semanticSearchEnabled {
-            startBackgroundEmbeddingGeneration()
+            self.startBackgroundEmbeddingGeneration()
         } else {
             EmbeddingGenerator.shared.cancelIndexing()
         }
 
         // Handle OCR search toggle: start or cancel background processing
         if settings.search.ocrSearchEnabled {
-            startBackgroundOCRProcessing()
+            self.startBackgroundOCRProcessing()
         } else {
             OCRGenerator.shared.cancelProcessing()
         }
@@ -483,24 +483,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
                 if let factory = pluginContextFactory {
                     Task {
                         await PluginManager.shared.initialize(contextFactory: factory)
-                        logger.info("Plugin system re-initialized after settings re-enable")
+                        self.logger.info("Plugin system re-initialized after settings re-enable")
                     }
                 } else {
-                    initializePluginSystem()
+                    self.initializePluginSystem()
                 }
             } else if !settings.enterprise.pluginsEnabled, PluginManager.shared.isInitialized {
                 Task { await PluginManager.shared.shutdown() }
-                logger.info("Plugin system disabled via settings")
+                self.logger.info("Plugin system disabled via settings")
             }
 
             // Re-apply MDM enterprise key overrides on settings change
-            applyMDMEnterpriseKeys()
+            self.applyMDMEnterpriseKeys()
 
             // Re-check admin console configuration (MDM URL may have changed mid-session)
-            configureAdminConsoleIfNeeded()
+            self.configureAdminConsoleIfNeeded()
         #endif
 
-        logger.debug("Settings change handled")
+        self.logger.debug("Settings change handled")
     }
 
     // MARK: - Semantic Search
@@ -509,7 +509,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
     private func startBackgroundEmbeddingGeneration() {
         // Check if semantic search is enabled in settings
         guard SettingsManager.shared.search.semanticSearchEnabled else {
-            logger.debug("Semantic search disabled, skipping embedding generation")
+            self.logger.debug("Semantic search disabled, skipping embedding generation")
             return
         }
 
@@ -531,7 +531,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
     /// Starts background OCR processing for existing image items
     private func startBackgroundOCRProcessing() {
         guard SettingsManager.shared.search.ocrSearchEnabled else {
-            logger.debug("OCR search disabled, skipping background OCR processing")
+            self.logger.debug("OCR search disabled, skipping background OCR processing")
             return
         }
 
@@ -595,12 +595,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
             MDMManager.shared.startMonitoring()
 
             // Apply MDM enterprise key overrides that affect enterprise services
-            applyMDMEnterpriseKeys()
+            self.applyMDMEnterpriseKeys()
 
             // Configure admin console if URL is available (from MDM or prior setup)
-            configureAdminConsoleIfNeeded()
+            self.configureAdminConsoleIfNeeded()
 
-            logger.debug("Enterprise services initialized")
+            self.logger.debug("Enterprise services initialized")
         }
 
         /// Applies MDM enterprise keys that affect services outside of AppSettings.
@@ -625,22 +625,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
 
             // DLP: block/unblock credit card patterns via MDM
             if let value = config.effectiveValue(for: .blockCreditCards), case let .bool(enabled) = value {
-                Task { await setDLPDefaultRule(named: "Credit Card", enabled: enabled) }
+                Task { await self.setDLPDefaultRule(named: "Credit Card", enabled: enabled) }
             }
 
             // DLP: block/unblock API key patterns via MDM
             if let value = config.effectiveValue(for: .blockAPIKeys), case let .bool(enabled) = value {
-                Task { await setDLPDefaultRule(named: "API Key", enabled: enabled) }
+                Task { await self.setDLPDefaultRule(named: "API Key", enabled: enabled) }
             }
 
             // --- SSO configuration via MDM ---
-            applySSOConfiguration(from: config)
+            self.applySSOConfiguration(from: config)
 
             // --- Sync / storage gating via MDM ---
             let settings = SettingsManager.shared.settings
             if settings.enterprise.localStorageOnly || !settings.enterprise.cloudSyncEnabled {
                 SyncManager.shared.stop()
-                logger
+                self.logger
                     .info(
                         // swiftlint:disable:next line_length
                         "MDM: sync disabled (localStorageOnly=\(settings.enterprise.localStorageOnly), cloudSyncEnabled=\(settings.enterprise.cloudSyncEnabled))"
@@ -650,17 +650,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
             // --- Plugin gating via MDM ---
             if !settings.enterprise.pluginsEnabled, PluginManager.shared.isInitialized {
                 Task { await PluginManager.shared.shutdown() }
-                logger.info("MDM: plugin system disabled")
+                self.logger.info("MDM: plugin system disabled")
             } else if settings.enterprise.pluginsEnabled, !PluginManager.shared.isInitialized {
                 // Re-enable: re-initialize with stored context factory
                 if let factory = pluginContextFactory {
                     Task {
                         await PluginManager.shared.initialize(contextFactory: factory)
-                        logger.info("Plugin system re-initialized after re-enable")
+                        self.logger.info("Plugin system re-initialized after re-enable")
                     }
                 } else {
-                    initializePluginSystem()
-                    logger.info("Plugin system initialized on first enable")
+                    self.initializePluginSystem()
+                    self.logger.info("Plugin system initialized on first enable")
                 }
             }
 
@@ -693,7 +693,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
             {
                 domain = domString
             } else {
-                logger.warning("MDM: SSO enabled but no SSODomain configured — skipping SSO setup")
+                self.logger.warning("MDM: SSO enabled but no SSODomain configured — skipping SSO setup")
                 return
             }
 
@@ -714,7 +714,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
                         isEnabled: true
                     )
                     try? await providerStore.save(provider)
-                    logger.info("MDM: SSO provider created for domain '\(domain)' (type: \(providerType.rawValue))")
+                    self.logger
+                        .info("MDM: SSO provider created for domain '\(domain)' (type: \(providerType.rawValue))")
                 }
             }
         }
@@ -751,7 +752,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
             }
 
             guard let url = serverURL else {
-                logger.debug("Admin console not configured — AuditManager will remain dormant")
+                self.logger.debug("Admin console not configured — AuditManager will remain dormant")
                 return
             }
 
@@ -765,16 +766,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
             )
 
             AdminManager.shared.configure(with: config)
-            logger.info("Admin console configured via MDM/stored URL")
+            self.logger.info("Admin console configured via MDM/stored URL")
         }
 
         /// Initializes the plugin system
         private func initializePluginSystem() {
             let factory = PluginContextFactoryImpl()
-            pluginContextFactory = factory
+            self.pluginContextFactory = factory
             Task {
                 await PluginManager.shared.initialize(contextFactory: factory)
-                logger.debug("Plugin system initialized")
+                self.logger.debug("Plugin system initialized")
             }
         }
     #endif
@@ -791,7 +792,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:
             await AutomationRuleStorage.shared.seedDefaultRulesIfNeeded()
         }
 
-        logger.debug("Automation engine initialized")
+        self.logger.debug("Automation engine initialized")
     }
 }
 
@@ -805,12 +806,12 @@ extension AppDelegate: ClipboardMonitorDelegate {
         from sourceApp: SourceApp?
     ) {
         // Flash menu bar icon (UI — always runs immediately)
-        menuBarController?.flashActive()
+        self.menuBarController?.flashActive()
 
         // Reload floating panel if visible (UI — always runs immediately)
-        if floatingPanelController?.isVisible == true {
+        if self.floatingPanelController?.isVisible == true {
             Task {
-                await floatingPanelController?.viewModel.loadItems()
+                await self.floatingPanelController?.viewModel.loadItems()
             }
         }
 
@@ -822,7 +823,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
                     if ComplianceManager.shared.isGDPRActive,
                        !GDPRConsentManager.shared.isConsentGranted(for: .clipboardMonitoring)
                     {
-                        logger.info("Pipeline skipped: GDPR clipboardMonitoring consent not granted")
+                        self.logger.info("Pipeline skipped: GDPR clipboardMonitoring consent not granted")
                         return
                     }
 
@@ -876,16 +877,16 @@ extension AppDelegate: ClipboardMonitorDelegate {
                 #endif
 
                 // Stage 6: Generate embedding for semantic search
-                generateEmbeddingForNewItem(id: finalContent.id)
+                self.generateEmbeddingForNewItem(id: finalContent.id)
 
                 // Stage 7: Generate OCR for image content
-                generateOCRForNewItem(id: finalContent.id, contentType: finalContent.primaryType)
+                self.generateOCRForNewItem(id: finalContent.id, contentType: finalContent.primaryType)
             } catch {
-                logger.error("Pipeline error for item \(content.id): \(error.localizedDescription)")
+                self.logger.error("Pipeline error for item \(content.id): \(error.localizedDescription)")
             }
         }
 
-        logger.debug("Captured: \(content.primaryType.displayName)")
+        self.logger.debug("Captured: \(content.primaryType.displayName)")
     }
 
     #if !APP_STORE
@@ -917,10 +918,10 @@ extension AppDelegate: ClipboardMonitorDelegate {
             if result.shouldBlock {
                 let deleted = await storageManager.deleteItem(byId: content.id)
                 if deleted {
-                    logger.info("DLP: blocked and deleted item \(content.id)")
+                    self.logger.info("DLP: blocked and deleted item \(content.id)")
                     NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
                 } else {
-                    logger
+                    self.logger
                         .error(
                             "DLP: failed to delete blocked item \(content.id) — sensitive data may remain in storage"
                         )
@@ -954,7 +955,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
                     stripOtherRepresentations: true
                 )
                 if !redactSuccess {
-                    logger
+                    self.logger
                         .error(
                             // swiftlint:disable:next line_length
                             "DLP: failed to persist redacted content for item \(content.id) — deleting to prevent sensitive data leak"
@@ -965,7 +966,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
                     }
                     return DLPPipelineResult(blocked: true, content: content)
                 }
-                logger.info("DLP: redacted content for item \(content.id)")
+                self.logger.info("DLP: redacted content for item \(content.id)")
 
                 // Audit: log that clipboard content was redacted by DLP (gated by GDPR auditLogging consent)
                 if !ComplianceManager.shared.isGDPRActive
@@ -1018,12 +1019,12 @@ extension AppDelegate: ClipboardMonitorDelegate {
         // Log automation results
         if !result.matchedRules.isEmpty {
             let ruleNames = result.matchedRules.map(\.name).joined(separator: ", ")
-            logger.info("Automation: \(result.matchedRules.count) rules matched [\(ruleNames)]")
+            self.logger.info("Automation: \(result.matchedRules.count) rules matched [\(ruleNames)]")
         }
 
         if !result.errors.isEmpty {
             for error in result.errors {
-                logger.warning("Automation error: \(String(describing: error))")
+                self.logger.warning("Automation error: \(String(describing: error))")
             }
         }
 
@@ -1031,7 +1032,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
         if result.shouldDelete {
             let deleted = await storageManager.deleteItem(byId: content.id)
             if deleted {
-                logger.info("Automation: deleted item \(content.id) per rule action")
+                self.logger.info("Automation: deleted item \(content.id) per rule action")
                 NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
 
                 #if !APP_STORE
@@ -1057,8 +1058,8 @@ extension AppDelegate: ClipboardMonitorDelegate {
         // Persist transformed content if text was changed by automation rules
         let transformed = result.transformedContent
         if transformed.plainText != content.plainText, let newText = transformed.plainText {
-            await storageManager.updatePlainText(itemId: content.id, text: newText)
-            logger.info("Automation: persisted transformed text for item \(content.id)")
+            await self.storageManager.updatePlainText(itemId: content.id, text: newText)
+            self.logger.info("Automation: persisted transformed text for item \(content.id)")
         }
 
         return AutomationPipelineResult(deleted: false, content: transformed)
@@ -1068,14 +1069,14 @@ extension AppDelegate: ClipboardMonitorDelegate {
         _ monitor: ClipboardMonitoring,
         didExcludeContentWithReason reason: ExclusionReason
     ) {
-        logger.debug("Excluded: \(String(describing: reason))")
+        self.logger.debug("Excluded: \(String(describing: reason))")
     }
 
     func clipboardMonitor(
         _ monitor: ClipboardMonitoring,
         didEncounterError error: Error
     ) {
-        menuBarController?.updateState(.error)
-        logger.error("Monitor error: \(error.localizedDescription)")
+        self.menuBarController?.updateState(.error)
+        self.logger.error("Monitor error: \(error.localizedDescription)")
     }
 }

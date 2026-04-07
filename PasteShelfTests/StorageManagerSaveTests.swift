@@ -14,11 +14,11 @@ final class StorageManagerSaveTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        storageManager = await MainActor.run { StorageManager.forTesting() }
+        self.storageManager = await MainActor.run { StorageManager.forTesting() }
     }
 
     override func tearDown() async throws {
-        storageManager = nil
+        self.storageManager = nil
         try await super.tearDown()
     }
 
@@ -149,14 +149,14 @@ final class StorageManagerSaveTests: XCTestCase {
     }
 
     func testUpdateApplicationExclusion() async {
-        _ = await storageManager.saveApplication(
+        _ = await self.storageManager.saveApplication(
             bundleId: "com.example.app",
             name: "Example App",
             isExcluded: false
         )
 
         // Update the same app
-        _ = await storageManager.saveApplication(
+        _ = await self.storageManager.saveApplication(
             bundleId: "com.example.app",
             name: "Example App",
             isExcluded: true
@@ -183,8 +183,8 @@ final class StorageManagerSaveTests: XCTestCase {
             contentHash: "hash_second"
         )
 
-        _ = await storageManager.save(content: content1, from: nil)
-        _ = await storageManager.save(content: content2, from: nil)
+        _ = await self.storageManager.save(content: content1, from: nil)
+        _ = await self.storageManager.save(content: content2, from: nil)
 
         let hashes = await storageManager.fetchRecentHashes(limit: 10)
         XCTAssertEqual(hashes.count, 2)
@@ -200,7 +200,7 @@ final class StorageManagerSaveTests: XCTestCase {
                 plainText: "Item \(i)",
                 contentHash: "hash_\(i)"
             )
-            _ = await storageManager.save(content: content, from: nil)
+            _ = await self.storageManager.save(content: content, from: nil)
         }
 
         let hashes = await storageManager.fetchRecentHashes(limit: 5)

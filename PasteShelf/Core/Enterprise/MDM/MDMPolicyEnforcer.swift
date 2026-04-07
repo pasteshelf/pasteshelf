@@ -32,11 +32,11 @@ struct MDMPolicyEnforcer {
     ///   - config: The MDM configuration containing forced preferences.
     func applyForcedPreferences(to settings: inout AppSettings, from config: MDMConfiguration) {
         for (key, value) in config.forcedPreferences {
-            apply(key: key, value: value, to: &settings)
+            self.apply(key: key, value: value, to: &settings)
         }
 
         if !config.forcedPreferences.isEmpty {
-            logger.info("Applied \(config.forcedPreferences.count) forced MDM preferences")
+            self.logger.info("Applied \(config.forcedPreferences.count) forced MDM preferences")
         }
     }
 
@@ -58,11 +58,11 @@ struct MDMPolicyEnforcer {
             guard !userCustomizedKeys.contains(key) else {
                 continue
             }
-            apply(key: key, value: value, to: &settings)
+            self.apply(key: key, value: value, to: &settings)
         }
 
         if !config.defaultPreferences.isEmpty {
-            logger.debug("Applied MDM default preferences (skipped \(userCustomizedKeys.count) user-customized)")
+            self.logger.debug("Applied MDM default preferences (skipped \(userCustomizedKeys.count) user-customized)")
         }
     }
 
@@ -85,17 +85,17 @@ struct MDMPolicyEnforcer {
         case .maxHistoryDays,
              .maxHistoryItems,
              .theme:
-            applyPrivacyAndAppearance(key: key, value: value, to: &settings)
+            self.applyPrivacyAndAppearance(key: key, value: value, to: &settings)
 
         case .clearOnQuit,
              .requireBiometricAuth,
              .autoLockTimeout:
-            applySecurityPreference(key: key, value: value, to: &settings)
+            self.applySecurityPreference(key: key, value: value, to: &settings)
 
         case .cloudSyncEnabled,
              .localStorageOnly,
              .pluginsEnabled:
-            applyEnterprisePreference(key: key, value: value, to: &settings)
+            self.applyEnterprisePreference(key: key, value: value, to: &settings)
 
         case .organizationID,
              .adminConsoleURL,
@@ -105,12 +105,12 @@ struct MDMPolicyEnforcer {
              .dlpEnabled,
              .blockCreditCards,
              .blockAPIKeys:
-            logDelegatedPreference(key: key, value: value)
+            self.logDelegatedPreference(key: key, value: value)
 
         case .gdprEnabled,
              .soc2Enabled,
              .hipaaEnabled:
-            applyCompliancePreference(key: key, value: value, to: &settings)
+            self.applyCompliancePreference(key: key, value: value, to: &settings)
         }
     }
 
@@ -128,7 +128,7 @@ struct MDMPolicyEnforcer {
             }
         case .maxHistoryItems:
             if case let .int(items) = value {
-                settings.general.historyLimit = closestHistoryLimit(to: items)
+                settings.general.historyLimit = self.closestHistoryLimit(to: items)
             }
         case .theme:
             if case let .string(themeName) = value,
@@ -191,8 +191,8 @@ struct MDMPolicyEnforcer {
 
     /// Logs MDM keys that are handled by their respective managers rather than AppSettings.
     private func logDelegatedPreference(key: ManagedPreferenceKey, value: PreferenceValue) {
-        logDelegatedStringPreference(key: key, value: value)
-        logDelegatedBoolPreference(key: key, value: value)
+        self.logDelegatedStringPreference(key: key, value: value)
+        self.logDelegatedBoolPreference(key: key, value: value)
     }
 
     /// Logs string-valued delegated MDM preferences.
@@ -202,13 +202,13 @@ struct MDMPolicyEnforcer {
         }
         switch key {
         case .organizationID:
-            logger.debug("MDM organizationID received: \(strValue)")
+            self.logger.debug("MDM organizationID received: \(strValue)")
         case .adminConsoleURL:
-            logger.debug("MDM adminConsoleURL received: \(strValue)")
+            self.logger.debug("MDM adminConsoleURL received: \(strValue)")
         case .ssoProvider:
-            logger.info("MDM SSO provider: \(strValue)")
+            self.logger.info("MDM SSO provider: \(strValue)")
         case .ssoDomain:
-            logger.info("MDM SSO domain: \(strValue)")
+            self.logger.info("MDM SSO domain: \(strValue)")
         default:
             break
         }
@@ -221,13 +221,13 @@ struct MDMPolicyEnforcer {
         }
         switch key {
         case .ssoEnabled:
-            logger.info("MDM SSO enabled: \(boolValue)")
+            self.logger.info("MDM SSO enabled: \(boolValue)")
         case .dlpEnabled:
-            logger.info("MDM DLP enabled: \(boolValue)")
+            self.logger.info("MDM DLP enabled: \(boolValue)")
         case .blockCreditCards:
-            logger.info("MDM block credit cards: \(boolValue)")
+            self.logger.info("MDM block credit cards: \(boolValue)")
         case .blockAPIKeys:
-            logger.info("MDM block API keys: \(boolValue)")
+            self.logger.info("MDM block API keys: \(boolValue)")
         default:
             break
         }

@@ -74,9 +74,9 @@
         /// Gets current resource usage statistics
         var resourceUsage: PluginResourceUsage {
             PluginResourceUsage(
-                activeOperations: activeOperations.count,
-                oldestOperation: activeOperations.values.min(),
-                config: config
+                activeOperations: self.activeOperations.count,
+                oldestOperation: self.activeOperations.values.min(),
+                config: self.config
             )
         }
 
@@ -93,9 +93,9 @@
             timeout: TimeInterval? = nil
         ) async throws -> T {
             let operationId = UUID()
-            let effectiveTimeout = timeout ?? config.maxExecutionTime
+            let effectiveTimeout = timeout ?? self.config.maxExecutionTime
 
-            activeOperations[operationId] = Date()
+            self.activeOperations[operationId] = Date()
 
             defer {
                 activeOperations.removeValue(forKey: operationId)
@@ -132,7 +132,7 @@
         /// - Parameter request: The URL request to validate
         /// - Throws: PluginSandboxError if request violates policy
         func validateNetworkRequest(_ request: URLRequest) throws {
-            guard config.allowNetwork else {
+            guard self.config.allowNetwork else {
                 throw PluginSandboxError.networkNotAllowed
             }
 
@@ -154,7 +154,7 @@
                 throw PluginSandboxError.blockedHost(host)
             }
 
-            logger.debug("[\(pluginId)] Network request validated: \(url.host ?? "unknown")")
+            self.logger.debug("[\(self.pluginId)] Network request validated: \(url.host ?? "unknown")")
         }
 
         // MARK: - File System Validation
@@ -165,7 +165,7 @@
         ///   - allowedPaths: Paths the plugin is allowed to access
         /// - Throws: PluginSandboxError if path violates policy
         func validateFilePath(_ path: String, allowedPaths: [String]) throws {
-            guard config.allowFileSystem || !allowedPaths.isEmpty else {
+            guard self.config.allowFileSystem || !allowedPaths.isEmpty else {
                 throw PluginSandboxError.fileSystemNotAllowed
             }
 
@@ -180,17 +180,17 @@
                 throw PluginSandboxError.pathNotAllowed(path)
             }
 
-            logger.debug("[\(pluginId)] File path validated: \(path)")
+            self.logger.debug("[\(self.pluginId)] File path validated: \(path)")
         }
 
         /// Checks if the plugin is within resource limits
         func checkResourceLimits() throws {
             // Check for stuck operations
             let now = Date()
-            for (operationId, startTime) in activeOperations {
+            for (operationId, startTime) in self.activeOperations {
                 let elapsed = now.timeIntervalSince(startTime)
-                if elapsed > config.maxExecutionTime * 2 {
-                    logger.warning("[\(pluginId)] Operation \(operationId) exceeded 2x timeout limit")
+                if elapsed > self.config.maxExecutionTime * 2 {
+                    self.logger.warning("[\(self.pluginId)] Operation \(operationId) exceeded 2x timeout limit")
                     throw PluginSandboxError.resourceLimitExceeded("Operation timeout exceeded")
                 }
             }
@@ -215,7 +215,7 @@
         let config: PluginSandboxConfig
 
         var oldestOperationAge: TimeInterval? {
-            oldestOperation.map { Date().timeIntervalSince($0) }
+            self.oldestOperation.map { Date().timeIntervalSince($0) }
         }
     }
 

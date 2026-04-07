@@ -24,16 +24,16 @@ struct SOC2SettingsView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Button {
-                                viewModel.generateSOC2Report()
+                                self.viewModel.generateSOC2Report()
                             } label: {
-                                if viewModel.isGenerating {
+                                if self.viewModel.isGenerating {
                                     ProgressView()
                                         .controlSize(.small)
                                 } else {
                                     Label("Generate Report", systemImage: "doc.text.magnifyingglass")
                                 }
                             }
-                            .disabled(viewModel.isGenerating || !ComplianceManager.shared.isSOC2Active)
+                            .disabled(self.viewModel.isGenerating || !ComplianceManager.shared.isSOC2Active)
 
                             Spacer()
 
@@ -56,7 +56,7 @@ struct SOC2SettingsView: View {
                                         .font(.caption.bold())
                                     ForEach(category.controls) { control in
                                         HStack {
-                                            statusIcon(control.status)
+                                            self.statusIcon(control.status)
                                             Text(control.name)
                                                 .font(.caption)
                                             Spacer()
@@ -75,9 +75,9 @@ struct SOC2SettingsView: View {
                 GroupBox {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            DatePicker("From:", selection: $trailStartDate, displayedComponents: .date)
+                            DatePicker("From:", selection: self.$trailStartDate, displayedComponents: .date)
                                 .frame(maxWidth: 200)
-                            DatePicker("To:", selection: $trailEndDate, displayedComponents: .date)
+                            DatePicker("To:", selection: self.$trailEndDate, displayedComponents: .date)
                                 .frame(maxWidth: 200)
                         }
 
@@ -90,15 +90,15 @@ struct SOC2SettingsView: View {
                                 }
                             }
                         } label: {
-                            if viewModel.isExporting {
+                            if self.viewModel.isExporting {
                                 ProgressView()
                                     .controlSize(.small)
                             } else {
                                 Label("Export Verified Audit Trail", systemImage: "link.badge.plus")
                             }
                         }
-                        .disabled(viewModel.isExporting || !ComplianceManager.shared
-                            .isSOC2Active || trailStartDate > trailEndDate)
+                        .disabled(self.viewModel.isExporting || !ComplianceManager.shared
+                            .isSOC2Active || self.trailStartDate > self.trailEndDate)
 
                         Text("Exports a cryptographically chained audit trail with SHA-256 integrity verification.")
                             .font(.caption)

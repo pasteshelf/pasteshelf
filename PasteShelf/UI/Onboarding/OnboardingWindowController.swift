@@ -37,31 +37,31 @@ final class OnboardingWindowController: NSObject {
 
     /// Shows the onboarding window
     func show(completion: (() -> Void)? = nil) {
-        onComplete = completion
+        self.onComplete = completion
 
-        if window == nil {
-            createWindow()
+        if self.window == nil {
+            self.createWindow()
         }
 
-        window?.center()
-        window?.makeKeyAndOrderFront(nil)
+        self.window?.center()
+        self.window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
 
-        logger.info("Onboarding window shown")
+        self.logger.info("Onboarding window shown")
     }
 
     /// Hides the onboarding window
     func hide() {
-        window?.orderOut(nil)
-        logger.debug("Onboarding window hidden")
+        self.window?.orderOut(nil)
+        self.logger.debug("Onboarding window hidden")
     }
 
     /// Closes the onboarding window
     func close() {
-        window?.close()
-        window = nil
-        viewModel = nil
-        logger.debug("Onboarding window closed")
+        self.window?.close()
+        self.window = nil
+        self.viewModel = nil
+        self.logger.debug("Onboarding window closed")
     }
 
     /// Check if onboarding should be shown
@@ -117,7 +117,7 @@ final class OnboardingWindowController: NSObject {
 
         // Create view model
         let vm = OnboardingViewModel()
-        viewModel = vm
+        self.viewModel = vm
 
         // Create SwiftUI content
         let contentView = OnboardingView(viewModel: vm)
@@ -135,14 +135,14 @@ final class OnboardingWindowController: NSObject {
 
         self.window = window
 
-        logger.info("Onboarding window created")
+        self.logger.info("Onboarding window created")
     }
 
     private func handleCompletion() {
-        logger.info("Onboarding completed, closing window")
-        let completion = onComplete
-        onComplete = nil
-        close()
+        self.logger.info("Onboarding completed, closing window")
+        let completion = self.onComplete
+        self.onComplete = nil
+        self.close()
         completion?()
     }
 }
@@ -153,16 +153,16 @@ extension OnboardingWindowController: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
         // If user closes window before completing, mark as completed anyway
         // to avoid showing on every launch
-        if viewModel?.isComplete == false {
-            viewModel?.completeOnboarding()
+        if self.viewModel?.isComplete == false {
+            self.viewModel?.completeOnboarding()
         }
-        let completion = onComplete
-        onComplete = nil
+        let completion = self.onComplete
+        self.onComplete = nil
         completion?()
-        logger.debug("Onboarding window will close")
+        self.logger.debug("Onboarding window will close")
     }
 
     func windowDidBecomeKey(_ notification: Notification) {
-        logger.debug("Onboarding window became key")
+        self.logger.debug("Onboarding window became key")
     }
 }

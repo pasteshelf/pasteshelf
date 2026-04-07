@@ -40,20 +40,20 @@ struct SAMLResponse: Codable, Equatable {
 
     /// The primary (first) assertion in the response
     var primaryAssertion: SAMLAssertion? {
-        assertions.first
+        self.assertions.first
     }
 
     /// Whether the authentication was successful
     var isSuccess: Bool {
-        status.code == .success
+        self.status.code == .success
     }
 
     /// Error message if authentication failed
     var errorMessage: String? {
-        guard !isSuccess else {
+        guard !self.isSuccess else {
             return nil
         }
-        return status.message ?? status.code.displayName
+        return self.status.message ?? self.status.code.displayName
     }
 
     // MARK: - Validation
@@ -70,8 +70,8 @@ struct SAMLResponse: Codable, Equatable {
         audience: String
     ) -> SAMLValidationResult {
         // Check status
-        guard isSuccess else {
-            return .failure(.authenticationFailed(status.code.displayName))
+        guard self.isSuccess else {
+            return .failure(.authenticationFailed(self.status.code.displayName))
         }
 
         // Check destination
@@ -81,7 +81,7 @@ struct SAMLResponse: Codable, Equatable {
 
         // Check InResponseTo
         if let expectedId = expectedRequestId, inResponseTo != expectedId {
-            return .failure(.invalidInResponseTo(expected: expectedId, actual: inResponseTo))
+            return .failure(.invalidInResponseTo(expected: expectedId, actual: self.inResponseTo))
         }
 
         // Must have at least one assertion

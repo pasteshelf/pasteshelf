@@ -59,7 +59,7 @@ enum SensitivePatterns {
         ) {
             self.name = name
             // swiftlint:disable:next force_try
-            regex = try! NSRegularExpression(pattern: pattern, options: options)
+            self.regex = try! NSRegularExpression(pattern: pattern, options: options)
             self.severity = severity
             self.category = category
             self.validator = validator
@@ -380,7 +380,7 @@ enum SensitivePatterns {
 
     /// Returns patterns filtered to the specified categories
     static func patterns(for categories: Set<SensitiveCategory>) -> [Pattern] {
-        allPatterns.filter { categories.contains($0.category) }
+        self.allPatterns.filter { categories.contains($0.category) }
     }
 }
 

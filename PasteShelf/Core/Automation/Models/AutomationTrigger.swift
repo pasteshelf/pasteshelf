@@ -105,7 +105,7 @@ enum AutomationTrigger: Codable, Equatable, Hashable {
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(rawType, forKey: .type)
+        try container.encode(self.rawType, forKey: .type)
 
         if case let .schedule(expression) = self {
             try container.encode(expression, forKey: .value)
@@ -212,14 +212,14 @@ struct CronExpression: Codable, Equatable, Hashable {
         timeFormatter.dateFormat = "h:mm a"
 
         var components = DateComponents()
-        components.hour = hour
-        components.minute = minute
+        components.hour = self.hour
+        components.minute = self.minute
 
         let calendar = Calendar.current
         let timeString: String = if let date = calendar.date(from: components) {
             timeFormatter.string(from: date)
         } else {
-            String(format: "%02d:%02d", hour, minute)
+            String(format: "%02d:%02d", self.hour, self.minute)
         }
 
         if let dayOfWeek {
@@ -227,10 +227,10 @@ struct CronExpression: Codable, Equatable, Hashable {
             let dayName = weekdaySymbols[dayOfWeek]
             return "Every \(dayName) at \(timeString)"
         } else if let dayOfMonth {
-            let ordinal = ordinalSuffix(for: dayOfMonth)
+            let ordinal = self.ordinalSuffix(for: dayOfMonth)
             return "Monthly on the \(dayOfMonth)\(ordinal) at \(timeString)"
         } else if dayOfMonth == nil, dayOfWeek == nil {
-            if hour == 0, minute == 0 {
+            if self.hour == 0, self.minute == 0 {
                 return "Every hour"
             } else {
                 return "Daily at \(timeString)"
@@ -244,16 +244,16 @@ struct CronExpression: Codable, Equatable, Hashable {
     var cronString: String {
         let minuteStr = String(minute)
         let hourStr = String(hour)
-        let dayOfMonthStr = dayOfMonth.map { String($0) } ?? "*"
-        let monthStr = month.map { String($0) } ?? "*"
-        let dayOfWeekStr = dayOfWeek.map { String($0) } ?? "*"
+        let dayOfMonthStr = self.dayOfMonth.map { String($0) } ?? "*"
+        let monthStr = self.month.map { String($0) } ?? "*"
+        let dayOfWeekStr = self.dayOfWeek.map { String($0) } ?? "*"
 
         return "\(minuteStr) \(hourStr) \(dayOfMonthStr) \(monthStr) \(dayOfWeekStr)"
     }
 
     /// Alias for cronString for UI compatibility
     var expression: String {
-        cronString
+        self.cronString
     }
 
     // MARK: - Preset Schedules
@@ -300,13 +300,13 @@ struct CronExpression: Codable, Equatable, Hashable {
                 from: candidateDate
             )
 
-            let matchesMinute = candidateComponents.minute == minute
-            let matchesHour = candidateComponents.hour == hour
-            let matchesDayOfMonth = dayOfMonth == nil ||
-                candidateComponents.day == dayOfMonth
-            let matchesMonth = month == nil || candidateComponents.month == month
-            let matchesDayOfWeek = dayOfWeek == nil ||
-                (candidateComponents.weekday.map { $0 - 1 } == dayOfWeek) // Convert to 0-indexed
+            let matchesMinute = candidateComponents.minute == self.minute
+            let matchesHour = candidateComponents.hour == self.hour
+            let matchesDayOfMonth = self.dayOfMonth == nil ||
+                candidateComponents.day == self.dayOfMonth
+            let matchesMonth = self.month == nil || candidateComponents.month == self.month
+            let matchesDayOfWeek = self.dayOfWeek == nil ||
+                (candidateComponents.weekday.map { $0 - 1 } == self.dayOfWeek) // Convert to 0-indexed
 
             if matchesMinute, matchesHour, matchesDayOfMonth, matchesMonth, matchesDayOfWeek {
                 return candidateDate

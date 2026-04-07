@@ -274,12 +274,12 @@ enum DLPDefaultPatterns {
     ///
     /// - Returns: An array of all default `DLPRule` values (currently 19 rules).
     static func allDefaultRules() -> [DLPRule] {
-        creditCardRules()
-            + ssnRules()
-            + apiKeyRules()
-            + piiRules()
-            + healthDataRules()
-            + credentialRules()
+        self.creditCardRules()
+            + self.ssnRules()
+            + self.apiKeyRules()
+            + self.piiRules()
+            + self.healthDataRules()
+            + self.credentialRules()
     }
 
     // MARK: - Custom Rule Template

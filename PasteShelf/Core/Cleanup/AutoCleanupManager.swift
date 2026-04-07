@@ -24,8 +24,8 @@ final class AutoCleanupManager: ObservableObject {
         self.storageManager = storageManager
         self.settingsManager = settingsManager
 
-        loadLastCleanupDate()
-        setupSettingsObserver()
+        self.loadLastCleanupDate()
+        self.setupSettingsObserver()
     }
 
     // MARK: Internal
@@ -48,24 +48,24 @@ final class AutoCleanupManager: ObservableObject {
 
     /// Starts the auto-cleanup scheduler
     func start() {
-        guard settingsManager.privacy.autoDeleteEnabled else {
-            logger.debug("Auto-cleanup disabled, not starting")
+        guard self.settingsManager.privacy.autoDeleteEnabled else {
+            self.logger.debug("Auto-cleanup disabled, not starting")
             return
         }
 
-        scheduleCleanup()
-        logger.info("Auto-cleanup manager started")
+        self.scheduleCleanup()
+        self.logger.info("Auto-cleanup manager started")
     }
 
     /// Stops the auto-cleanup scheduler
     func stop() {
-        stopScheduledCleanup()
-        logger.info("Auto-cleanup manager stopped")
+        self.stopScheduledCleanup()
+        self.logger.info("Auto-cleanup manager stopped")
     }
 
     /// Triggers an immediate cleanup
     func runCleanupNow() async {
-        await performCleanup()
+        await self.performCleanup()
     }
 
     // MARK: Private
@@ -94,7 +94,7 @@ final class AutoCleanupManager: ObservableObject {
 
     private func setupSettingsObserver() {
         // Observe settings changes
-        settingsManager.$settings
+        self.settingsManager.$settings
             .dropFirst()
             .sink { [weak self] settings in
                 if settings.privacy.autoDeleteEnabled {
@@ -103,24 +103,24 @@ final class AutoCleanupManager: ObservableObject {
                     self?.stopScheduledCleanup()
                 }
             }
-            .store(in: &cancellables)
+            .store(in: &self.cancellables)
     }
 
     // MARK: - Scheduling
 
     private func scheduleCleanup() {
-        stopScheduledCleanup()
+        self.stopScheduledCleanup()
 
         // Check if cleanup is needed immediately
-        if shouldRunCleanup() {
+        if self.shouldRunCleanup() {
             Task {
-                await performCleanup()
+                await self.performCleanup()
             }
         }
 
         // Schedule periodic cleanup
-        cleanupTimer = Timer.scheduledTimer(
-            withTimeInterval: cleanupInterval,
+        self.cleanupTimer = Timer.scheduledTimer(
+            withTimeInterval: self.cleanupInterval,
             repeats: true
         ) { [weak self] _ in
             Task { @MainActor in
@@ -133,12 +133,12 @@ final class AutoCleanupManager: ObservableObject {
             RunLoop.main.add(timer, forMode: .common)
         }
 
-        logger.debug("Cleanup scheduled (interval: \(cleanupInterval)s)")
+        self.logger.debug("Cleanup scheduled (interval: \(self.cleanupInterval)s)")
     }
 
     private func stopScheduledCleanup() {
-        cleanupTimer?.invalidate()
-        cleanupTimer = nil
+        self.cleanupTimer?.invalidate()
+        self.cleanupTimer = nil
     }
 
     private func shouldRunCleanup() -> Bool {
@@ -147,31 +147,31 @@ final class AutoCleanupManager: ObservableObject {
         }
 
         let timeSinceLastCleanup = Date().timeIntervalSince(lastDate)
-        return timeSinceLastCleanup >= cleanupInterval
+        return timeSinceLastCleanup >= self.cleanupInterval
     }
 
     // MARK: - Cleanup
 
     private func performCleanup() async {
-        guard !isRunning else {
-            logger.debug("Cleanup already in progress, skipping")
+        guard !self.isRunning else {
+            self.logger.debug("Cleanup already in progress, skipping")
             return
         }
 
-        guard settingsManager.privacy.autoDeleteEnabled else {
-            logger.debug("Auto-cleanup disabled, skipping")
+        guard self.settingsManager.privacy.autoDeleteEnabled else {
+            self.logger.debug("Auto-cleanup disabled, skipping")
             return
         }
 
-        isRunning = true
+        self.isRunning = true
         defer { isRunning = false }
 
-        logger.info("Starting auto-cleanup")
+        self.logger.info("Starting auto-cleanup")
 
         var totalDeleted = 0
 
         // Delete items older than the configured number of days
-        let daysToKeep = settingsManager.privacy.autoDeleteDays
+        let daysToKeep = self.settingsManager.privacy.autoDeleteDays
         let cutoffDate = Calendar.current.date(
             byAdding: .day,
             value: -daysToKeep,
@@ -194,26 +194,26 @@ final class AutoCleanupManager: ObservableObject {
         }
 
         // Update state
-        lastCleanupDate = Date()
-        lastCleanupCount = totalDeleted
-        saveLastCleanupDate()
+        self.lastCleanupDate = Date()
+        self.lastCleanupCount = totalDeleted
+        self.saveLastCleanupDate()
 
         if totalDeleted > 0 {
             NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
         }
 
-        logger.info("Auto-cleanup completed: \(totalDeleted) items deleted")
+        self.logger.info("Auto-cleanup completed: \(totalDeleted) items deleted")
     }
 
     // MARK: - Persistence
 
     private func loadLastCleanupDate() {
         if let timestamp = UserDefaults.standard.object(forKey: lastCleanupKey) as? Date {
-            lastCleanupDate = timestamp
+            self.lastCleanupDate = timestamp
         }
     }
 
     private func saveLastCleanupDate() {
-        UserDefaults.standard.set(lastCleanupDate, forKey: lastCleanupKey)
+        UserDefaults.standard.set(self.lastCleanupDate, forKey: self.lastCleanupKey)
     }
 }

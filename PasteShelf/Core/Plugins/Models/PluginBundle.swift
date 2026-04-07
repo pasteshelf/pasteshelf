@@ -20,16 +20,16 @@
         /// Creates a PluginBundle for built-in plugins compiled into the main app
         /// - Parameter manifest: Pre-built manifest for the built-in plugin
         init(builtIn manifest: PluginManifest) {
-            bundleURL = Bundle.main.bundleURL
+            self.bundleURL = Bundle.main.bundleURL
             self.manifest = manifest
-            bundle = Bundle.main
+            self.bundle = Bundle.main
         }
 
         /// Creates a PluginBundle from a bundle URL
         /// - Parameter url: URL to the .pasteshelfplugin bundle
         /// - Throws: PluginLoadError if the bundle is invalid
         init(url: URL) throws {
-            bundleURL = url
+            self.bundleURL = url
 
             // Validate bundle extension
             guard url.pathExtension == Self.bundleExtension else {
@@ -58,7 +58,7 @@
             self.bundle = bundle
 
             // Validate structure
-            try validateBundleStructure()
+            try self.validateBundleStructure()
         }
 
         // MARK: Internal
@@ -85,9 +85,9 @@
                 return cached
             }
 
-            let iconURL = bundleURL.appendingPathComponent(Self.iconPath)
+            let iconURL = self.bundleURL.appendingPathComponent(Self.iconPath)
             if let image = NSImage(contentsOf: iconURL) {
-                _icon = image
+                self._icon = image
                 return image
             }
 
@@ -96,13 +96,13 @@
                 systemSymbolName: "puzzlepiece.extension.fill",
                 accessibilityDescription: "Plugin"
             ) ?? NSImage()
-            _icon = defaultIcon
+            self._icon = defaultIcon
             return defaultIcon
         }
 
         /// Returns URL to Resources directory
         var resourcesURL: URL {
-            bundleURL.appendingPathComponent(Self.resourcesPath)
+            self.bundleURL.appendingPathComponent(Self.resourcesPath)
         }
 
         // MARK: - Equatable
@@ -117,14 +117,14 @@
         ///   - ext: File extension
         /// - Returns: URL to the resource if it exists
         func resourceURL(forResource name: String, withExtension ext: String?) -> URL? {
-            bundle.url(forResource: name, withExtension: ext)
+            self.bundle.url(forResource: name, withExtension: ext)
         }
 
         /// Loads localizable strings for the plugin
         /// - Parameter key: The localization key
         /// - Returns: Localized string or the key if not found
         func localizedString(forKey key: String) -> String {
-            bundle.localizedString(forKey: key, value: key, table: nil)
+            self.bundle.localizedString(forKey: key, value: key, table: nil)
         }
 
         // MARK: - Plugin Loading
@@ -134,23 +134,23 @@
         /// - Throws: PluginLoadError if class loading fails
         func loadPrincipalClass() throws -> AnyObject {
             // Try to load the principal class from the bundle
-            guard bundle.load() else {
-                throw PluginLoadError.bundleLoadFailed(bundleURL.path)
+            guard self.bundle.load() else {
+                throw PluginLoadError.bundleLoadFailed(self.bundleURL.path)
             }
 
             // Get the principal class
-            let className = manifest.pluginClass
+            let className = self.manifest.pluginClass
             guard let principalClass = bundle.classNamed(className) else {
                 // Try with module prefix
-                let bundleName = manifest.identifier.split(separator: ".").last ?? "Plugin"
+                let bundleName = self.manifest.identifier.split(separator: ".").last ?? "Plugin"
                 let fullyQualifiedName = "\(bundleName).\(className.split(separator: ".").last ?? Substring(className))"
                 guard let altClass = bundle.classNamed(String(fullyQualifiedName)) else {
                     throw PluginLoadError.principalClassNotFound(className)
                 }
-                return try instantiateClass(altClass)
+                return try self.instantiateClass(altClass)
             }
 
-            return try instantiateClass(principalClass)
+            return try self.instantiateClass(principalClass)
         }
 
         // MARK: Private
@@ -172,15 +172,15 @@
             let fm = FileManager.default
 
             // Check MacOS directory exists
-            let macOSURL = bundleURL.appendingPathComponent(Self.macOSPath)
+            let macOSURL = self.bundleURL.appendingPathComponent(Self.macOSPath)
             var isDir: ObjCBool = false
             guard fm.fileExists(atPath: macOSURL.path, isDirectory: &isDir), isDir.boolValue else {
-                throw PluginLoadError.missingMacOSDirectory(bundleURL.path)
+                throw PluginLoadError.missingMacOSDirectory(self.bundleURL.path)
             }
 
             // Check for executable
-            let executableName = manifest.identifier.split(separator: ".").last.map(String.init)
-                ?? manifest.name.replacingOccurrences(of: " ", with: "")
+            let executableName = self.manifest.identifier.split(separator: ".").last.map(String.init)
+                ?? self.manifest.name.replacingOccurrences(of: " ", with: "")
             let executableURL = macOSURL.appendingPathComponent(executableName)
 
             // Note: Executable validation is optional for Swift-based plugins
@@ -188,7 +188,7 @@
             if !fm.fileExists(atPath: executableURL.path) {
                 // Try with plugin name
                 let altExecutableURL = macOSURL.appendingPathComponent(
-                    manifest.name.replacingOccurrences(of: " ", with: "")
+                    self.manifest.name.replacingOccurrences(of: " ", with: "")
                 )
                 if !fm.fileExists(atPath: altExecutableURL.path) {
                     // Log warning but don't fail - principal class may be in main bundle
@@ -214,7 +214,7 @@
 
     extension PluginBundle: Hashable {
         func hash(into hasher: inout Hasher) {
-            hasher.combine(manifest.identifier)
+            hasher.combine(self.manifest.identifier)
         }
     }
 

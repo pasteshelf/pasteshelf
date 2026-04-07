@@ -28,7 +28,7 @@ final class ChangeTracker: ChangeTracking, @unchecked Sendable {
     // MARK: - ChangeTracking Protocol
 
     func getPendingChanges() async throws -> [SyncChange] {
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
 
         return try await context.perform {
             try self.fetchPendingChanges(in: context)
@@ -36,7 +36,7 @@ final class ChangeTracker: ChangeTracking, @unchecked Sendable {
     }
 
     func markAsSynced(_ changes: [SyncChange]) async throws {
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
 
         try await context.perform {
             for change in changes {
@@ -58,7 +58,7 @@ final class ChangeTracker: ChangeTracking, @unchecked Sendable {
     }
 
     func clearHistory(before date: Date) async throws {
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
 
         try await context.perform {
             let request = NSPersistentHistoryChangeRequest.deleteHistory(before: date)
@@ -114,7 +114,7 @@ final class ChangeTracker: ChangeTracking, @unchecked Sendable {
 
     /// Prepare changes with encrypted data for sync
     func prepareChangesForSync(_ changes: [SyncChange]) async throws -> [SyncChange] {
-        let context = persistenceController.newBackgroundContext()
+        let context = self.persistenceController.newBackgroundContext()
 
         var preparedChanges: [SyncChange] = []
 
@@ -131,7 +131,7 @@ final class ChangeTracker: ChangeTracking, @unchecked Sendable {
 
             // Encrypt outside context.perform (async-safe, no semaphore needed)
             if let data = payloadData {
-                change.encryptedData = try await encryptionManager.encrypt(data)
+                change.encryptedData = try await self.encryptionManager.encrypt(data)
             }
 
             preparedChanges.append(change)

@@ -36,10 +36,10 @@ final class MenuBarController: NSObject, ObservableObject {
 
     /// Sets up the status item in the menu bar
     func setup() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         guard let button = statusItem?.button else {
-            logger.error("Failed to get status item button")
+            self.logger.error("Failed to get status item button")
             return
         }
 
@@ -49,7 +49,7 @@ final class MenuBarController: NSObject, ObservableObject {
 
         // Set up click handling
         button.target = self
-        button.action = #selector(statusItemClicked(_:))
+        button.action = #selector(self.statusItemClicked(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
 
         #if !APP_STORE
@@ -59,17 +59,17 @@ final class MenuBarController: NSObject, ObservableObject {
                 .sink { [weak self] _ in
                     self?.logger.debug("Plugin menu items changed, menu will refresh on next open")
                 }
-                .store(in: &cancellables)
+                .store(in: &self.cancellables)
 
             NotificationCenter.default.publisher(for: .pluginActionsChanged)
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] _ in
                     self?.logger.debug("Plugin actions changed, menu will refresh on next open")
                 }
-                .store(in: &cancellables)
+                .store(in: &self.cancellables)
         #endif
 
-        logger.info("Menu bar status item configured")
+        self.logger.info("Menu bar status item configured")
     }
 
     /// Removes the status item from the menu bar
@@ -78,22 +78,22 @@ final class MenuBarController: NSObject, ObservableObject {
             NSStatusBar.system.removeStatusItem(statusItem)
         }
         statusItem = nil
-        logger.info("Menu bar status item removed")
+        self.logger.info("Menu bar status item removed")
     }
 
     // MARK: - State Management
 
     /// Updates the menu bar icon based on state
     func updateState(_ newState: MenuBarState) {
-        state = newState
-        statusItem?.button?.image = newState.image
-        statusItem?.button?.toolTip = newState.accessibilityDescription
+        self.state = newState
+        self.statusItem?.button?.image = newState.image
+        self.statusItem?.button?.toolTip = newState.accessibilityDescription
     }
 
     /// Shows a brief active state animation when content is captured
     func flashActive() {
-        let previousState = state
-        updateState(.active)
+        let previousState = self.state
+        self.updateState(.active)
 
         // Return to previous state after short delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
@@ -125,16 +125,16 @@ final class MenuBarController: NSObject, ObservableObject {
 
     @objc
     private func statusItemClicked(_ sender: NSStatusBarButton) {
-        showContextMenu()
+        self.showContextMenu()
     }
 
     /// Shows the context menu with options
     private func showContextMenu() {
         Task {
             let menu = await buildContextMenu()
-            statusItem?.menu = menu
-            statusItem?.button?.performClick(nil)
-            statusItem?.menu = nil // Clear to allow left-click handling again
+            self.statusItem?.menu = menu
+            self.statusItem?.button?.performClick(nil)
+            self.statusItem?.menu = nil // Clear to allow left-click handling again
         }
     }
 
@@ -146,7 +146,7 @@ final class MenuBarController: NSObject, ObservableObject {
         menu.minimumWidth = 200
 
         // Recent items section
-        let recentItems = await storageManager.fetchRecentItems(limit: maxRecentItems)
+        let recentItems = await storageManager.fetchRecentItems(limit: self.maxRecentItems)
 
         if recentItems.isEmpty {
             let emptyItem = NSMenuItem(title: "No recent items", action: nil, keyEquivalent: "")
@@ -154,7 +154,7 @@ final class MenuBarController: NSObject, ObservableObject {
             menu.addItem(emptyItem)
         } else {
             for (index, item) in recentItems.enumerated() {
-                let menuItem = createMenuItem(for: item, index: index)
+                let menuItem = self.createMenuItem(for: item, index: index)
                 menu.addItem(menuItem)
             }
         }
@@ -174,7 +174,7 @@ final class MenuBarController: NSObject, ObservableObject {
         menu.addItem(NSMenuItem.separator())
 
         // Pause/Resume monitoring
-        let isPaused = state == .paused
+        let isPaused = self.state == .paused
         let pauseItem = NSMenuItem(
             title: isPaused ? "Resume Monitoring" : "Pause Monitoring",
             action: #selector(togglePauseAction),
@@ -210,7 +210,7 @@ final class MenuBarController: NSObject, ObservableObject {
 
     /// Creates a menu item for a clipboard item
     private func createMenuItem(for clipboardItem: ClipboardItem, index: Int) -> NSMenuItem {
-        let title = menuItemTitle(for: clipboardItem)
+        let title = self.menuItemTitle(for: clipboardItem)
         let keyEquivalent = index < 9 ? String(index + 1) : ""
 
         let menuItem = NSMenuItem(
@@ -282,7 +282,7 @@ final class MenuBarController: NSObject, ObservableObject {
 
     @objc
     private func showPanelAction() {
-        panelController?.show()
+        self.panelController?.show()
     }
 
     @objc

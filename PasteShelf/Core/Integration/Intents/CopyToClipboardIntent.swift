@@ -151,7 +151,7 @@ struct CopyTextToClipboardIntent: AppIntent {
         // Copy text to clipboard
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
+        pasteboard.setString(self.text, forType: .string)
 
         return .result()
     }
