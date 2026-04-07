@@ -51,6 +51,7 @@ struct SyncTabView: View {
         }
         .formStyle(.grouped)
         .onAppear {}
+        // swiftlint:disable line_length
         .alert("Reset Sync", isPresented: self.$showingResetConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Reset", role: .destructive) {
@@ -58,8 +59,7 @@ struct SyncTabView: View {
             }
         } message: {
             Text(
-                "This will delete all sync data and re-upload your local clipboard history."
-                    + " This action cannot be undone."
+                "This will delete all sync data and re-upload your local clipboard history. This action cannot be undone."
             )
         }
         .alert("Delete iCloud Data", isPresented: self.$showingDeleteCloudConfirmation) {
@@ -69,9 +69,7 @@ struct SyncTabView: View {
             }
         } message: {
             Text(
-                "This will permanently delete all clipboard data stored in iCloud."
-                    + " Your local clipboard history will not be affected."
-                    + " Sync will be disabled."
+                "This will permanently delete all clipboard data stored in iCloud. Your local clipboard history will not be affected. Sync will be disabled."
             )
         }
         .alert("Enable Sync", isPresented: self.$showingEnableSyncConfirmation) {
@@ -81,14 +79,10 @@ struct SyncTabView: View {
             }
         } message: {
             Text(
-                "Your clipboard history will be uploaded to iCloud and kept in sync"
-                    + " across all your Mac devices signed in to the same iCloud account."
-                    + "\n\nThis uses your personal iCloud storage quota."
-                    + " All data is end-to-end encrypted before leaving your device."
-                    + "\n\nYou can disable sync or delete your iCloud data"
-                    + " at any time from this settings tab."
+                "Your clipboard history will be uploaded to iCloud and kept in sync across all your Mac devices signed in to the same iCloud account.\n\nThis uses your personal iCloud storage quota. All data is end-to-end encrypted before leaving your device.\n\nYou can disable sync or delete your iCloud data at any time from this settings tab."
             )
         }
+        // swiftlint:enable line_length
     }
 
     // MARK: Private
@@ -271,10 +265,11 @@ struct SyncTabView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
+                    // swiftlint:disable line_length
                     Text(
-                        "iCloud Sync keeps your clipboard history synchronized across all"
-                            + " your Mac devices signed in to the same iCloud account."
+                        "iCloud Sync keeps your clipboard history synchronized across all your Mac devices signed in to the same iCloud account."
                     )
+                    // swiftlint:enable line_length
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 }
@@ -336,8 +331,7 @@ struct SyncTabView: View {
         .disabled(!self.syncManager.isEnabled)
 
         Text(
-            "Deletes all remote sync data and re-uploads your local clipboard history."
-                + " Your local data is not affected."
+            "Deletes all remote sync data and re-uploads your local clipboard history. Your local data is not affected."
         )
         .font(.caption)
         .foregroundStyle(.secondary)
@@ -353,10 +347,11 @@ struct SyncTabView: View {
             }
         )
 
+        // swiftlint:disable line_length
         Text(
-            "Permanently removes all PasteShelf data from iCloud and disables sync."
-                + " Your local clipboard history is preserved."
+            "Permanently removes all PasteShelf data from iCloud and disables sync. Your local clipboard history is preserved."
         )
+        // swiftlint:enable line_length
         .font(.caption)
         .foregroundStyle(.secondary)
     }
