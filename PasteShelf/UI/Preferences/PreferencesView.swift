@@ -57,10 +57,12 @@ struct PreferencesView: View {
 
             #if !APP_STORE
                 EnterpriseTabView()
-                    .tabItem { Label(
-                        PreferencesTab.enterprise.displayName,
-                        systemImage: PreferencesTab.enterprise.iconName
-                    ) }
+                    .tabItem {
+                        Label(
+                            PreferencesTab.enterprise.displayName,
+                            systemImage: PreferencesTab.enterprise.iconName
+                        )
+                    }
                     .tag(PreferencesTab.enterprise)
             #endif
 

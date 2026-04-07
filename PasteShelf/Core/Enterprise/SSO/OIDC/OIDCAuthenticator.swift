@@ -270,7 +270,7 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
 
         // Check for error response
         if let error = queryItems.first(where: { $0.name == "error" })?.value {
-            let description = queryItems.first(where: { $0.name == "error_description" })?.value ?? error
+            let description = queryItems.first { $0.name == "error_description" }?.value ?? error
             throw SSOError.authenticationFailed(description)
         }
 
@@ -278,7 +278,7 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
             throw SSOError.authenticationFailed("No authorization code in callback URL")
         }
 
-        let state = queryItems.first(where: { $0.name == "state" })?.value
+        let state = queryItems.first { $0.name == "state" }?.value
         return (code, state)
     }
 
@@ -296,7 +296,7 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
         // Decode the payload (second part)
         var base64 = String(parts[1])
         // Pad to multiple of 4
-        while base64.count % 4 != 0 {
+        while !base64.count.isMultiple(of: 4) {
             base64.append("=")
         }
 

@@ -81,7 +81,7 @@ final class EmbeddingGenerator: ObservableObject {
         var text = item.content?.textContent ?? item.plainTextPreview
 
         // For image items without text, try OCR-extracted text
-        if text == nil || !embeddingManager.canEmbed(text!) {
+        if text.flatMap({ embeddingManager.canEmbed($0) ? $0 : nil }) == nil {
             if let ocrText = await storageManager.fetchOCRText(for: itemId),
                embeddingManager.canEmbed(ocrText)
             {
@@ -94,7 +94,7 @@ final class EmbeddingGenerator: ObservableObject {
         }
 
         // Check if embedding already exists
-        if let _ = await storageManager.fetchEmbedding(for: itemId) {
+        if await storageManager.fetchEmbedding(for: itemId) != nil {
             logger.debug("Embedding already exists for item: \(itemId)")
             return true
         }
@@ -135,7 +135,7 @@ final class EmbeddingGenerator: ObservableObject {
     /// Indexes all clipboard items that don't have embeddings
     /// - Returns: Number of items indexed
     @discardableResult
-    func indexAllMissingEmbeddings() async -> Int {
+    func indexAllMissingEmbeddings() async -> Int { // swiftlint:disable:this function_body_length
         // Check if already indexing
         guard !isIndexing else {
             logger.debug("Indexing already in progress")
@@ -306,7 +306,7 @@ final class EmbeddingGenerator: ObservableObject {
 
         // Use plain text preview, or fall back to OCR text for images
         var text = item.plainTextPreview
-        if text == nil || !embeddingManager.canEmbed(text!) {
+        if text.flatMap({ embeddingManager.canEmbed($0) ? $0 : nil }) == nil {
             if let ocrText = await storageManager.fetchOCRText(for: itemId),
                embeddingManager.canEmbed(ocrText)
             {

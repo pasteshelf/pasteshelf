@@ -132,6 +132,7 @@ final class NetworkMonitor: ObservableObject {
 
         Self.logger
             .debug(
+                // swiftlint:disable:next line_length
                 "Network status: connected=\(newConnected), expensive=\(path.isExpensive), constrained=\(path.isConstrained)"
             )
 

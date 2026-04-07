@@ -42,8 +42,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads string value from nested ManagedPreferences dict")
     func readsNestedManagedPreferencesStringValue() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["Theme": "dark"], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["Theme": "dark"], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -55,8 +55,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads integer value from nested ManagedPreferences dict")
     func readsNestedManagedPreferencesIntValue() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["MaxHistoryItems": 100], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["MaxHistoryItems": 100], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -68,8 +68,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads multiple keys from nested ManagedPreferences dict")
     func readsMultipleKeysFromNestedManagedPreferences() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(
                 ["Theme": "dark", "MaxHistoryItems": 100],
                 forKey: "ManagedPreferences"
             )
@@ -87,8 +87,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads string value from nested DefaultPreferences dict")
     func readsNestedDefaultPreferencesStringValue() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["Theme": "light"], forKey: "DefaultPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["Theme": "light"], forKey: "DefaultPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -100,8 +100,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads boolean value from nested DefaultPreferences dict")
     func readsNestedDefaultPreferencesBoolValue() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["DLPEnabled": true], forKey: "DefaultPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["DLPEnabled": true], forKey: "DefaultPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -115,9 +115,9 @@ struct ManagedPreferencesReaderTests {
 
     @Test("Forced ManagedPreferences take priority over DefaultPreferences for same key")
     func forcedTakesPriorityOverDefault() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["Theme": "dark"], forKey: "ManagedPreferences")
-            d.set(["Theme": "light"], forKey: "DefaultPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["Theme": "dark"], forKey: "ManagedPreferences")
+            defaults.set(["Theme": "light"], forKey: "DefaultPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -130,8 +130,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("isKeyForced returns true for key present in nested ManagedPreferences")
     func isKeyForcedTrueForNestedManagedKey() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["Theme": "dark"], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["Theme": "dark"], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -140,8 +140,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("isKeyForced returns false for key present only in DefaultPreferences")
     func isKeyForcedFalseForDefaultOnlyKey() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["Theme": "light"], forKey: "DefaultPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["Theme": "light"], forKey: "DefaultPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -150,8 +150,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("isKeyForced returns false for a key absent from both dicts")
     func isKeyForcedFalseForAbsentKey() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["Theme": "dark"], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["Theme": "dark"], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -162,8 +162,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads boolean true from ManagedPreferences dict")
     func readsBooleanTrueFromManagedPreferences() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["BlockCreditCards": true], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["BlockCreditCards": true], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -173,8 +173,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads boolean false from ManagedPreferences dict")
     func readsBooleanFalseFromManagedPreferences() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["DLPEnabled": false], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["DLPEnabled": false], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -184,8 +184,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads multiple boolean preferences correctly")
     func readsMultipleBooleanPreferences() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(
                 ["BlockCreditCards": true, "DLPEnabled": false],
                 forKey: "ManagedPreferences"
             )
@@ -201,8 +201,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads integer MaxHistoryDays from ManagedPreferences dict")
     func readsIntegerMaxHistoryDays() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["MaxHistoryDays": 30], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["MaxHistoryDays": 30], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -212,8 +212,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads integer AutoLockTimeout from ManagedPreferences dict")
     func readsIntegerAutoLockTimeout() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["AutoLockTimeout": 300], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["AutoLockTimeout": 300], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -223,8 +223,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads multiple integer preferences correctly")
     func readsMultipleIntegerPreferences() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(
                 ["MaxHistoryDays": 30, "AutoLockTimeout": 300],
                 forKey: "ManagedPreferences"
             )
@@ -240,8 +240,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads OrganizationID string from ManagedPreferences dict")
     func readsOrganizationID() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["OrganizationID": "org-123"], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["OrganizationID": "org-123"], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -251,8 +251,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration reads multiple string preferences correctly")
     func readsMultipleStringPreferences() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(
                 ["OrganizationID": "org-123", "AdminConsoleURL": "https://admin.acme.com"],
                 forKey: "ManagedPreferences"
             )
@@ -268,8 +268,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("value(for:) returns typed value from nested ManagedPreferences")
     func valueForKeyReturnsTypedStringValue() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["Theme": "dark"], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["Theme": "dark"], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -279,8 +279,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("value(for:) returns typed integer value from nested ManagedPreferences")
     func valueForKeyReturnsTypedIntValue() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["MaxHistoryItems": 500], forKey: "ManagedPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["MaxHistoryItems": 500], forKey: "ManagedPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -299,8 +299,8 @@ struct ManagedPreferencesReaderTests {
 
     @Test("value(for:) returns typed value from nested DefaultPreferences when not in Managed")
     func valueForKeyReturnsFromDefaultPreferences() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["Theme": "light"], forKey: "DefaultPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["Theme": "light"], forKey: "DefaultPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -312,9 +312,9 @@ struct ManagedPreferencesReaderTests {
 
     @Test("readConfiguration returns both forced and default keys from different dicts")
     func readConfigurationReturnsBothForcedAndDefault() {
-        let (reader, defaults, suiteName) = makeReader { d in
-            d.set(["Theme": "dark"], forKey: "ManagedPreferences")
-            d.set(["DLPEnabled": true], forKey: "DefaultPreferences")
+        let (reader, defaults, suiteName) = makeReader { defaults in
+            defaults.set(["Theme": "dark"], forKey: "ManagedPreferences")
+            defaults.set(["DLPEnabled": true], forKey: "DefaultPreferences")
         }
         defer { cleanup(suiteName: suiteName, defaults: defaults) }
 
@@ -329,13 +329,17 @@ struct ManagedPreferencesReaderTests {
 
     // MARK: - Helpers
 
-    /// Creates a fresh reader backed by a volatile in-memory UserDefaults suite.
-    /// The returned suite name can be used to clean up after the test.
+    // Creates a fresh reader backed by a volatile in-memory UserDefaults suite.
+    // The returned suite name can be used to clean up after the test.
+    // swiftlint:disable large_tuple
     private func makeReader(
         populateWith block: ((UserDefaults) -> Void)? = nil
     ) -> (reader: ManagedPreferencesReader, defaults: UserDefaults, suiteName: String) {
+        // swiftlint:enable large_tuple
         let suiteName = "com.pasteshelf.test.mdm.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            fatalError("Failed to create UserDefaults suite: \(suiteName)")
+        }
         defaults.removePersistentDomain(forName: suiteName)
         block?(defaults)
         let reader = ManagedPreferencesReader(

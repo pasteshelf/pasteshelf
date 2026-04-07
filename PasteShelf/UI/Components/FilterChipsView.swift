@@ -6,7 +6,13 @@
 //  Displays active filters and allows toggling them.
 //
 
+import os.log
 import SwiftUI
+
+private let filterChipsLogger = Logger(
+    subsystem: "com.pasteshelf",
+    category: "filter-chips"
+)
 
 // MARK: - FilterChipsView
 
@@ -247,11 +253,14 @@ struct ActiveFilterSummaryView: View {
                     .lineLimit(1)
 
                 if onClear != nil {
-                    Button(action: { onClear?() }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                    }
+                    Button(
+                        action: { onClear?() },
+                        label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                    )
                     .buttonStyle(.plain)
                 }
             }
@@ -304,7 +313,7 @@ struct ActiveFilterSummaryView: View {
                             favoritesOnly: true
                         )
                     ) {
-                        print("Clear filters")
+                        filterChipsLogger.debug("Clear filters")
                     }
                 }
                 .padding()

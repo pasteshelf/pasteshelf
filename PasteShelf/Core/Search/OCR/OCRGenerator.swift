@@ -66,7 +66,7 @@ final class OCRGenerator: ObservableObject {
     /// - Parameter itemId: The clipboard item ID
     /// - Returns: True if OCR was extracted successfully
     @discardableResult
-    func generateOCR(for itemId: UUID) async -> Bool {
+    func generateOCR(for itemId: UUID) async -> Bool { // swiftlint:disable:this function_body_length
         // Check if OCR manager is available
         guard ocrManager.isAvailable else {
             logger.warning("OCR manager not available")
@@ -148,7 +148,7 @@ final class OCRGenerator: ObservableObject {
     /// Processes all image items that don't have OCR text
     /// - Returns: Number of items processed
     @discardableResult
-    func processAllMissingOCR() async -> Int {
+    func processAllMissingOCR() async -> Int { // swiftlint:disable:this function_body_length
         // Check if already processing
         guard !isProcessing else {
             logger.debug("Processing already in progress")

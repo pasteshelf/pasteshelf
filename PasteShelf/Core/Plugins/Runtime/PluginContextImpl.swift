@@ -12,7 +12,8 @@
     import os.log
 
     /// Concrete implementation of PluginContext for running plugins
-    @MainActor @objc
+    @MainActor
+    @objc
     public final class PluginContextImpl: NSObject, PluginContext, @unchecked Sendable {
         // MARK: Lifecycle
 
@@ -96,7 +97,8 @@
         }
 
         /// Checks if a permission is currently granted (String-based for @objc compatibility)
-        @objc public func hasPermission(_ permissionString: String) -> Bool {
+        @objc
+        public func hasPermission(_ permissionString: String) -> Bool {
             guard let permission = PluginPermission(rawValue: permissionString) else {
                 return false
             }
@@ -201,7 +203,8 @@
     // MARK: - Plugin Clipboard Access Implementation
 
     /// Implementation of PluginClipboardAccess
-    @MainActor @objc
+    @MainActor
+    @objc
     public final class PluginClipboardAccessImpl: NSObject, PluginClipboardAccess,
         @unchecked Sendable
     {

@@ -64,7 +64,8 @@ enum DLPError: Error, LocalizedError, Sendable {
         case .featureUnavailable:
             "The DLP feature is not currently available."
         case let .invalidPattern(pattern):
-            "The regular expression \"\(pattern)\" is syntactically invalid and cannot be compiled by NSRegularExpression."
+            "The regular expression \"\(pattern)\" is syntactically invalid and cannot be compiled "
+                + "by NSRegularExpression."
         case let .storageFailure(reason):
             reason
         case let .ruleNotFound(id):
@@ -84,9 +85,11 @@ enum DLPError: Error, LocalizedError, Sendable {
         case .storageFailure:
             "Restart the application. If the problem continues, check available disk space or re-enroll the device."
         case .ruleNotFound:
-            "Refresh the DLP rule list from the admin console. The rule may have been deleted."
+            "Refresh the DLP rule list from the admin console. "
+                + "The rule may have been deleted."
         case .evaluationFailed:
-            "Try again. If the issue persists, review the DLP rule patterns for errors and contact your IT administrator."
+            "Try again. If the issue persists, review the DLP rule patterns "
+                + "for errors and contact your IT administrator."
         }
     }
 }

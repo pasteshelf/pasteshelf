@@ -61,9 +61,11 @@ struct SSOSettingsView: View {
         }
         .alert("Error", isPresented: .init(
             get: { viewModel.errorMessage != nil },
-            set: { if !$0 {
-                viewModel.errorMessage = nil
-            } }
+            set: { newValue in
+                if !newValue {
+                    viewModel.errorMessage = nil
+                }
+            }
         )) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
@@ -113,17 +115,16 @@ struct SSOSettingsView: View {
                 List(selection: $viewModel.selectedProviderID) {
                     ForEach(viewModel.providers) { provider in
                         ProviderListRow(
-                            provider: provider,
-                            onToggle: { Task { await viewModel.toggleProvider(provider) } }
-                        )
-                        .tag(provider.id)
-                        .contextMenu {
-                            Button("Edit") { viewModel.editProvider(provider) }
-                            Divider()
-                            Button("Delete", role: .destructive) {
-                                viewModel.requestDeleteProvider(provider)
+                            provider: provider
+                        ) { Task { await viewModel.toggleProvider(provider) } }
+                            .tag(provider.id)
+                            .contextMenu {
+                                Button("Edit") { viewModel.editProvider(provider) }
+                                Divider()
+                                Button("Delete", role: .destructive) {
+                                    viewModel.requestDeleteProvider(provider)
+                                }
                             }
-                        }
                     }
                 }
                 .listStyle(.sidebar)
@@ -217,31 +218,25 @@ struct SSOSettingsView: View {
         )
         .frame(minWidth: 560, minHeight: 500)
     }
+}
 
-    // MARK: - Provider Detail
+// MARK: - SSOSettingsView + Provider Detail
 
-    private func providerDetail(_ provider: IdentityProvider) -> some View {
+extension SSOSettingsView {
+    func providerDetail(_ provider: IdentityProvider) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Provider header
                 providerHeader(provider)
-
-                // Status section
                 providerStatusSection(provider)
-
-                // Configuration summary
                 providerConfigSummary(provider)
-
-                // Actions
                 providerActions(provider)
-
                 Spacer(minLength: 0)
             }
             .padding(20)
         }
     }
 
-    private func providerHeader(_ provider: IdentityProvider) -> some View {
+    func providerHeader(_ provider: IdentityProvider) -> some View {
         HStack(spacing: 14) {
             Image(systemName: provider.type == .saml ? "key.fill" : "lock.shield.fill")
                 .font(.system(size: 36))
@@ -257,8 +252,10 @@ struct SSOSettingsView: View {
 
                 HStack(spacing: 6) {
                     ProviderTypeBadge(type: provider.type)
-
-                    ConnectionStatusBadge(isEnabled: provider.isEnabled, isConfigured: provider.isConfigured)
+                    ConnectionStatusBadge(
+                        isEnabled: provider.isEnabled,
+                        isConfigured: provider.isConfigured
+                    )
                 }
             }
 
@@ -277,7 +274,7 @@ struct SSOSettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
-    private func providerStatusSection(_ provider: IdentityProvider) -> some View {
+    func providerStatusSection(_ provider: IdentityProvider) -> some View {
         GroupBox("Status") {
             VStack(alignment: .leading, spacing: 8) {
                 LabeledContent("Provider ID") {
@@ -286,18 +283,15 @@ struct SSOSettingsView: View {
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)
                 }
-
                 LabeledContent("Entity ID") {
                     Text(provider.entityId.isEmpty ? "Not set" : provider.entityId)
                         .foregroundStyle(provider.entityId.isEmpty ? .tertiary : .secondary)
                         .textSelection(.enabled)
                 }
-
                 LabeledContent("Created") {
                     Text(provider.createdAt, style: .date)
                         .foregroundStyle(.secondary)
                 }
-
                 LabeledContent("Last Updated") {
                     Text(provider.updatedAt, style: .relative)
                         .foregroundStyle(.secondary)
@@ -307,66 +301,80 @@ struct SSOSettingsView: View {
         }
     }
 
-    private func providerConfigSummary(_ provider: IdentityProvider) -> some View {
+    func providerConfigSummary(_ provider: IdentityProvider) -> some View {
         GroupBox("Configuration") {
             VStack(alignment: .leading, spacing: 8) {
                 if !provider.isConfigured {
-                    HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                        Text("Provider is not fully configured. Tap Edit to complete setup.")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                    }
+                    configIncompleteRow
                 } else if provider.type == .saml, let saml = provider.samlConfig {
-                    LabeledContent("SSO URL") {
-                        Text(saml.ssoURL.absoluteString)
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                    }
-                    LabeledContent("Binding") {
-                        Text(saml.binding.displayName)
-                            .foregroundStyle(.secondary)
-                    }
-                    LabeledContent("NameID Format") {
-                        Text(saml.nameIDFormat.shortDisplayName)
-                            .foregroundStyle(.secondary)
-                    }
-                    LabeledContent("Sign AuthnRequests") {
-                        Text(saml.signAuthnRequests ? "Yes" : "No")
-                            .foregroundStyle(.secondary)
-                    }
+                    samlConfigRows(saml)
                 } else if provider.type == .oidc, let oidc = provider.oidcConfig {
-                    LabeledContent("Issuer URL") {
-                        Text(oidc.issuerURL.absoluteString)
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                    }
-                    LabeledContent("Client ID") {
-                        Text(oidc.clientId.isEmpty ? "Not set" : oidc.clientId)
-                            .foregroundStyle(.secondary)
-                    }
-                    LabeledContent("PKCE") {
-                        Text(oidc.usePKCE ? "Enabled" : "Disabled")
-                            .foregroundStyle(.secondary)
-                    }
-                    LabeledContent("Scopes") {
-                        Text(oidc.scopeString)
-                            .foregroundStyle(.secondary)
-                    }
+                    oidcConfigRows(oidc)
                 }
             }
             .padding(.vertical, 4)
         }
     }
 
-    private func providerActions(_ provider: IdentityProvider) -> some View {
+    var configIncompleteRow: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            Text("Provider is not fully configured. Tap Edit to complete setup.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    func samlConfigRows(_ saml: SAMLProviderConfig) -> some View {
+        LabeledContent("SSO URL") {
+            Text(saml.ssoURL.absoluteString)
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .textSelection(.enabled)
+        }
+        LabeledContent("Binding") {
+            Text(saml.binding.displayName)
+                .foregroundStyle(.secondary)
+        }
+        LabeledContent("NameID Format") {
+            Text(saml.nameIDFormat.shortDisplayName)
+                .foregroundStyle(.secondary)
+        }
+        LabeledContent("Sign AuthnRequests") {
+            Text(saml.signAuthnRequests ? "Yes" : "No")
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    func oidcConfigRows(_ oidc: OIDCProviderConfig) -> some View {
+        LabeledContent("Issuer URL") {
+            Text(oidc.issuerURL.absoluteString)
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .textSelection(.enabled)
+        }
+        LabeledContent("Client ID") {
+            Text(oidc.clientId.isEmpty ? "Not set" : oidc.clientId)
+                .foregroundStyle(.secondary)
+        }
+        LabeledContent("PKCE") {
+            Text(oidc.usePKCE ? "Enabled" : "Disabled")
+                .foregroundStyle(.secondary)
+        }
+        LabeledContent("Scopes") {
+            Text(oidc.scopeString)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    func providerActions(_ provider: IdentityProvider) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 Button("Edit") {
@@ -398,8 +406,11 @@ struct SSOSettingsView: View {
             // Test result banner
             if let result = viewModel.testResult {
                 HStack(spacing: 8) {
-                    Image(systemName: result.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
-                        .foregroundStyle(result.isSuccess ? Color.green : Color.red)
+                    Image(
+                        systemName: result.isSuccess
+                            ? "checkmark.circle.fill" : "xmark.circle.fill"
+                    )
+                    .foregroundStyle(result.isSuccess ? Color.green : Color.red)
                     Text(result.message)
                         .font(.callout)
                         .foregroundStyle(result.isSuccess ? Color.green : Color.red)
@@ -411,137 +422,6 @@ struct SSOSettingsView: View {
                     in: RoundedRectangle(cornerRadius: 8)
                 )
             }
-        }
-    }
-}
-
-// MARK: - ProviderListRow
-
-private struct ProviderListRow: View {
-    // MARK: Internal
-
-    let provider: IdentityProvider
-    let onToggle: () -> Void
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: provider.type == .saml ? "key.fill" : "lock.shield.fill")
-                .font(.body)
-                .foregroundStyle(provider.isEnabled ? Color.accentColor : Color.secondary)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(provider.name)
-                    .font(.body)
-                    .lineLimit(1)
-
-                ProviderTypeBadge(type: provider.type)
-            }
-
-            Spacer()
-
-            // Status dot
-            Circle()
-                .fill(statusColor)
-                .frame(width: 8, height: 8)
-                .help(statusHelp)
-        }
-        .padding(.vertical, 3)
-    }
-
-    // MARK: Private
-
-    private var statusColor: Color {
-        if !provider.isConfigured {
-            return .orange
-        }
-        return provider.isEnabled ? .green : .secondary
-    }
-
-    private var statusHelp: String {
-        if !provider.isConfigured {
-            return "Incomplete configuration"
-        }
-        return provider.isEnabled ? "Active" : "Disabled"
-    }
-}
-
-// MARK: - ProviderTypeBadge
-
-private struct ProviderTypeBadge: View {
-    // MARK: Internal
-
-    let type: IdentityProviderType
-
-    var body: some View {
-        Text(type.displayName)
-            .font(.caption2)
-            .fontWeight(.medium)
-            .padding(.horizontal, 5)
-            .padding(.vertical, 2)
-            .background(badgeColor.opacity(0.15), in: Capsule())
-            .foregroundStyle(badgeColor)
-    }
-
-    // MARK: Private
-
-    private var badgeColor: Color {
-        switch type {
-        case .saml: .blue
-        case .oidc: .purple
-        }
-    }
-}
-
-// MARK: - ConnectionStatusBadge
-
-private struct ConnectionStatusBadge: View {
-    // MARK: Internal
-
-    let isEnabled: Bool
-    let isConfigured: Bool
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Circle()
-                .fill(dotColor)
-                .frame(width: 7, height: 7)
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    // MARK: Private
-
-    private var dotColor: Color {
-        if !isConfigured {
-            return .orange
-        }
-        return isEnabled ? .green : .secondary
-    }
-
-    private var label: String {
-        if !isConfigured {
-            return "Incomplete"
-        }
-        return isEnabled ? "Active" : "Disabled"
-    }
-}
-
-// MARK: - SAMLNameIDFormat Display Helper
-
-private extension SAMLNameIDFormat {
-    var shortDisplayName: String {
-        switch self {
-        case .emailAddress: "Email Address"
-        case .persistent: "Persistent"
-        case .transient: "Transient"
-        case .entity: "Entity"
-        case .kerberos: "Kerberos"
-        case .windowsDomainQualifiedName: "Windows Domain"
-        case .x509SubjectName: "X.509 Subject"
-        case .unspecified: "Unspecified"
         }
     }
 }

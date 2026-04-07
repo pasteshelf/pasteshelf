@@ -66,80 +66,29 @@ struct SOC2AccessControlEvidence: Sendable {
     ///   or `EvidenceError.fileWriteFailed` if any file cannot be written.
     @MainActor
     static func exportEvidencePackage(dateRange: ClosedRange<Date>) async throws -> URL {
-        logger
-            .info(
-                "Starting SOC 2 access control evidence export (range: \(dateRange.lowerBound) – \(dateRange.upperBound))"
-            )
+        let rangeStart = dateRange.lowerBound
+        let rangeEnd = dateRange.upperBound
+        logger.info(
+            "Starting SOC 2 access control evidence export (range: \(rangeStart) - \(rangeEnd))"
+        )
 
         guard let storage = AuditManager.shared.storage else {
             logger.error("Audit storage unavailable — AuditManager not configured")
             throw EvidenceError.storageUnavailable
         }
 
-        // Fetch authentication events via the storage service's built-in filter.
-        let authEntries = try await storage.fetchEvents(
-            category: .authentication,
-            from: dateRange.lowerBound,
-            to: dateRange.upperBound,
-            limit: Int.max
+        let (authEvents, policyEvents) = try await fetchEvents(
+            storage: storage, dateRange: dateRange
         )
 
-        // Fetch policy events via the storage service's built-in filter.
-        let policyEntries = try await storage.fetchEvents(
-            category: .policy,
-            from: dateRange.lowerBound,
-            to: dateRange.upperBound,
-            limit: Int.max
-        )
+        let exportDir = try createEvidenceDirectory()
 
-        // Convert CoreData entries to domain models for encoding.
-        let authEvents = authEntries.compactMap { AuditEvent(from: $0) }
-        let policyEvents = policyEntries.compactMap { AuditEvent(from: $0) }
-
-        logger.info("Fetched \(authEvents.count) authentication event(s) and \(policyEvents.count) policy event(s)")
-
-        // Create a unique output directory for this export run.
-        let exportDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SOC2AccessControlEvidence-\(UUID().uuidString)", isDirectory: true)
-
-        do {
-            try FileManager.default.createDirectory(at: exportDir, withIntermediateDirectories: true)
-        } catch {
-            logger.error("Failed to create evidence export directory: \(error.localizedDescription)")
-            throw EvidenceError.fileWriteFailed("Could not create export directory: \(error.localizedDescription)")
-        }
-
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        encoder.dateEncodingStrategy = .iso8601
-
-        // 1. authentication_events.json
-        try writeJSON(
-            encoder.encode(authEvents),
-            to: exportDir.appendingPathComponent("authentication_events.json")
-        )
-
-        // 2. policy_changes.json
-        try writeJSON(
-            encoder.encode(policyEvents),
-            to: exportDir.appendingPathComponent("policy_changes.json")
-        )
-
-        // 3. access_summary.csv — combines both authentication and policy events
-        let allAccessEvents = authEvents + policyEvents
-        let csvString = generateAccessSummaryCSV(allAccessEvents)
-        guard let csvData = csvString.data(using: .utf8) else {
-            throw EvidenceError.fileWriteFailed("Failed to encode CSV string as UTF-8")
-        }
-        try writeData(csvData, to: exportDir.appendingPathComponent("access_summary.csv"))
-
-        // 4. evidence_metadata.json
-        let metadataData = generateMetadata(
+        try writeEvidenceFiles(
+            authEvents: authEvents,
+            policyEvents: policyEvents,
             dateRange: dateRange,
-            authCount: authEvents.count,
-            policyCount: policyEvents.count
+            to: exportDir
         )
-        try writeJSON(metadataData, to: exportDir.appendingPathComponent("evidence_metadata.json"))
 
         logger.info("SOC 2 access control evidence package written to \(exportDir.path)")
         return exportDir
@@ -234,6 +183,91 @@ struct SOC2AccessControlEvidence: Sendable {
     // MARK: Private
 
     private static let logger = Logger.compliance
+
+    /// Fetches authentication and policy events from the audit storage.
+    @MainActor
+    private static func fetchEvents(
+        storage: AuditLogStoring,
+        dateRange: ClosedRange<Date>
+    ) async throws -> (auth: [AuditEvent], policy: [AuditEvent]) {
+        let authEntries = try await storage.fetchEvents(
+            category: .authentication,
+            from: dateRange.lowerBound,
+            to: dateRange.upperBound,
+            limit: Int.max
+        )
+
+        let policyEntries = try await storage.fetchEvents(
+            category: .policy,
+            from: dateRange.lowerBound,
+            to: dateRange.upperBound,
+            limit: Int.max
+        )
+
+        let authEvents = authEntries.compactMap { AuditEvent(from: $0) }
+        let policyEvents = policyEntries.compactMap { AuditEvent(from: $0) }
+
+        logger.info(
+            "Fetched \(authEvents.count) authentication event(s) and \(policyEvents.count) policy event(s)"
+        )
+
+        return (authEvents, policyEvents)
+    }
+
+    /// Creates a unique output directory for the evidence export.
+    private static func createEvidenceDirectory() throws -> URL {
+        let exportDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(
+                "SOC2AccessControlEvidence-\(UUID().uuidString)",
+                isDirectory: true
+            )
+
+        do {
+            try FileManager.default.createDirectory(at: exportDir, withIntermediateDirectories: true)
+        } catch {
+            logger.error("Failed to create evidence export directory: \(error.localizedDescription)")
+            throw EvidenceError.fileWriteFailed(
+                "Could not create export directory: \(error.localizedDescription)"
+            )
+        }
+        return exportDir
+    }
+
+    /// Writes all evidence files to the export directory.
+    private static func writeEvidenceFiles(
+        authEvents: [AuditEvent],
+        policyEvents: [AuditEvent],
+        dateRange: ClosedRange<Date>,
+        to exportDir: URL
+    ) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+
+        try writeJSON(
+            encoder.encode(authEvents),
+            to: exportDir.appendingPathComponent("authentication_events.json")
+        )
+
+        try writeJSON(
+            encoder.encode(policyEvents),
+            to: exportDir.appendingPathComponent("policy_changes.json")
+        )
+
+        let allAccessEvents = authEvents + policyEvents
+        let csvString = generateAccessSummaryCSV(allAccessEvents)
+        guard let csvData = csvString.data(using: .utf8) else {
+            throw EvidenceError.fileWriteFailed("Failed to encode CSV string as UTF-8")
+        }
+        try writeData(csvData, to: exportDir.appendingPathComponent("access_summary.csv"))
+
+        let metadataData = generateMetadata(
+            dateRange: dateRange,
+            authCount: authEvents.count,
+            policyCount: policyEvents.count
+        )
+        try writeJSON(metadataData, to: exportDir.appendingPathComponent("evidence_metadata.json"))
+    }
 
     // MARK: - Private Helpers
 

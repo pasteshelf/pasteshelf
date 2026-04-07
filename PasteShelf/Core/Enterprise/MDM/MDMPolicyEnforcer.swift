@@ -82,122 +82,178 @@ struct MDMPolicyEnforcer {
     /// Maps a single MDM key/value pair to the corresponding `AppSettings` field.
     private func apply(key: ManagedPreferenceKey, value: PreferenceValue, to settings: inout AppSettings) {
         switch key {
-        // MARK: Privacy / History
+        case .maxHistoryDays,
+             .maxHistoryItems,
+             .theme:
+            applyPrivacyAndAppearance(key: key, value: value, to: &settings)
 
+        case .clearOnQuit,
+             .requireBiometricAuth,
+             .autoLockTimeout:
+            applySecurityPreference(key: key, value: value, to: &settings)
+
+        case .cloudSyncEnabled,
+             .localStorageOnly,
+             .pluginsEnabled:
+            applyEnterprisePreference(key: key, value: value, to: &settings)
+
+        case .organizationID,
+             .adminConsoleURL,
+             .ssoEnabled,
+             .ssoProvider,
+             .ssoDomain,
+             .dlpEnabled,
+             .blockCreditCards,
+             .blockAPIKeys:
+            logDelegatedPreference(key: key, value: value)
+
+        case .gdprEnabled,
+             .soc2Enabled,
+             .hipaaEnabled:
+            applyCompliancePreference(key: key, value: value, to: &settings)
+        }
+    }
+
+    /// Applies privacy and appearance MDM preferences.
+    private func applyPrivacyAndAppearance(
+        key: ManagedPreferenceKey,
+        value: PreferenceValue,
+        to settings: inout AppSettings
+    ) {
+        switch key {
         case .maxHistoryDays:
             if case let .int(days) = value, days > 0 {
                 settings.privacy.autoDeleteEnabled = true
                 settings.privacy.autoDeleteDays = days
             }
-
         case .maxHistoryItems:
             if case let .int(items) = value {
                 settings.general.historyLimit = closestHistoryLimit(to: items)
             }
-
-        // MARK: Appearance
-
         case .theme:
             if case let .string(themeName) = value,
                let theme = AppTheme(rawValue: themeName)
             {
                 settings.appearance.theme = theme
             }
+        default:
+            break
+        }
+    }
 
-        // MARK: Security
-
+    /// Applies security-related MDM preferences.
+    private func applySecurityPreference(
+        key: ManagedPreferenceKey,
+        value: PreferenceValue,
+        to settings: inout AppSettings
+    ) {
+        switch key {
         case .clearOnQuit:
             if case let .bool(enabled) = value {
                 settings.security.clearOnQuit = enabled
             }
-
         case .requireBiometricAuth:
             if case let .bool(enabled) = value {
                 settings.security.requireBiometricAuth = enabled
             }
-
         case .autoLockTimeout:
             if case let .int(seconds) = value, seconds >= 0 {
                 settings.security.autoLockTimeout = seconds
             }
+        default:
+            break
+        }
+    }
 
-        // MARK: Enterprise — sync, storage, plugins
-
+    /// Applies enterprise sync/storage/plugin MDM preferences.
+    private func applyEnterprisePreference(
+        key: ManagedPreferenceKey,
+        value: PreferenceValue,
+        to settings: inout AppSettings
+    ) {
+        switch key {
         case .cloudSyncEnabled:
             if case let .bool(enabled) = value {
                 settings.enterprise.cloudSyncEnabled = enabled
             }
-
         case .localStorageOnly:
             if case let .bool(enabled) = value {
                 settings.enterprise.localStorageOnly = enabled
             }
-
         case .pluginsEnabled:
             if case let .bool(enabled) = value {
                 settings.enterprise.pluginsEnabled = enabled
             }
+        default:
+            break
+        }
+    }
 
-        // MARK: Enterprise — keys handled by their respective managers
+    /// Logs MDM keys that are handled by their respective managers rather than AppSettings.
+    private func logDelegatedPreference(key: ManagedPreferenceKey, value: PreferenceValue) {
+        logDelegatedStringPreference(key: key, value: value)
+        logDelegatedBoolPreference(key: key, value: value)
+    }
 
-        // These are wired via AppDelegate.applyMDMEnterpriseKeys() and
-        // do not map to AppSettings fields directly.
+    /// Logs string-valued delegated MDM preferences.
+    private func logDelegatedStringPreference(key: ManagedPreferenceKey, value: PreferenceValue) {
+        guard case let .string(strValue) = value else {
+            return
+        }
+        switch key {
         case .organizationID:
-            if case let .string(id) = value {
-                logger.debug("MDM organizationID received: \(id)")
-            }
-
+            logger.debug("MDM organizationID received: \(strValue)")
         case .adminConsoleURL:
-            if case let .string(url) = value {
-                logger.debug("MDM adminConsoleURL received: \(url)")
-            }
-
-        case .ssoEnabled:
-            if case let .bool(enabled) = value {
-                logger.info("MDM SSO enabled: \(enabled)")
-            }
-
+            logger.debug("MDM adminConsoleURL received: \(strValue)")
         case .ssoProvider:
-            if case let .string(provider) = value {
-                logger.info("MDM SSO provider: \(provider)")
-            }
-
+            logger.info("MDM SSO provider: \(strValue)")
         case .ssoDomain:
-            if case let .string(domain) = value {
-                logger.info("MDM SSO domain: \(domain)")
-            }
+            logger.info("MDM SSO domain: \(strValue)")
+        default:
+            break
+        }
+    }
 
+    /// Logs boolean-valued delegated MDM preferences.
+    private func logDelegatedBoolPreference(key: ManagedPreferenceKey, value: PreferenceValue) {
+        guard case let .bool(boolValue) = value else {
+            return
+        }
+        switch key {
+        case .ssoEnabled:
+            logger.info("MDM SSO enabled: \(boolValue)")
         case .dlpEnabled:
-            if case let .bool(enabled) = value {
-                logger.info("MDM DLP enabled: \(enabled)")
-            }
-
+            logger.info("MDM DLP enabled: \(boolValue)")
         case .blockCreditCards:
-            if case let .bool(enabled) = value {
-                logger.info("MDM block credit cards: \(enabled)")
-            }
-
+            logger.info("MDM block credit cards: \(boolValue)")
         case .blockAPIKeys:
-            if case let .bool(enabled) = value {
-                logger.info("MDM block API keys: \(enabled)")
-            }
+            logger.info("MDM block API keys: \(boolValue)")
+        default:
+            break
+        }
+    }
 
-        // MARK: Compliance
-
+    /// Applies compliance-related MDM preferences.
+    private func applyCompliancePreference(
+        key: ManagedPreferenceKey,
+        value: PreferenceValue,
+        to settings: inout AppSettings
+    ) {
+        switch key {
         case .gdprEnabled:
             if case let .bool(enabled) = value {
                 settings.enterprise.gdprEnabled = enabled
             }
-
         case .soc2Enabled:
             if case let .bool(enabled) = value {
                 settings.enterprise.soc2Enabled = enabled
             }
-
         case .hipaaEnabled:
             if case let .bool(enabled) = value {
                 settings.enterprise.hipaaEnabled = enabled
             }
+        default:
+            break
         }
     }
 

@@ -119,23 +119,23 @@ extension Color {
 
         switch length {
         case 3: // RGB (12-bit)
-            let r = Double((rgb >> 8) & 0xF) / 15.0
-            let g = Double((rgb >> 4) & 0xF) / 15.0
-            let b = Double(rgb & 0xF) / 15.0
-            self.init(red: r, green: g, blue: b)
+            let red = Double((rgb >> 8) & 0xF) / 15.0
+            let green = Double((rgb >> 4) & 0xF) / 15.0
+            let blue = Double(rgb & 0xF) / 15.0
+            self.init(red: red, green: green, blue: blue)
 
         case 6: // RRGGBB (24-bit)
-            let r = Double((rgb >> 16) & 0xFF) / 255.0
-            let g = Double((rgb >> 8) & 0xFF) / 255.0
-            let b = Double(rgb & 0xFF) / 255.0
-            self.init(red: r, green: g, blue: b)
+            let red = Double((rgb >> 16) & 0xFF) / 255.0
+            let green = Double((rgb >> 8) & 0xFF) / 255.0
+            let blue = Double(rgb & 0xFF) / 255.0
+            self.init(red: red, green: green, blue: blue)
 
         case 8: // AARRGGBB (32-bit)
-            let a = Double((rgb >> 24) & 0xFF) / 255.0
-            let r = Double((rgb >> 16) & 0xFF) / 255.0
-            let g = Double((rgb >> 8) & 0xFF) / 255.0
-            let b = Double(rgb & 0xFF) / 255.0
-            self.init(red: r, green: g, blue: b, opacity: a)
+            let alpha = Double((rgb >> 24) & 0xFF) / 255.0
+            let red = Double((rgb >> 16) & 0xFF) / 255.0
+            let green = Double((rgb >> 8) & 0xFF) / 255.0
+            let blue = Double(rgb & 0xFF) / 255.0
+            self.init(red: red, green: green, blue: blue, opacity: alpha)
 
         default:
             return nil
@@ -150,10 +150,10 @@ extension Color {
             return nil
         }
 
-        let r = Int(components[0] * 255)
-        let g = Int(components[1] * 255)
-        let b = Int(components[2] * 255)
+        let red = Int(components[0] * 255)
+        let green = Int(components[1] * 255)
+        let blue = Int(components[2] * 255)
 
-        return String(format: "#%02X%02X%02X", r, g, b)
+        return String(format: "#%02X%02X%02X", red, green, blue)
     }
 }

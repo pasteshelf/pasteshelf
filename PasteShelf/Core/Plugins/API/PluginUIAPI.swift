@@ -25,22 +25,34 @@
 
         // MARK: Internal
 
+        // MARK: - Menu Items
+
+        struct PluginMenuGroup {
+            let pluginId: String
+            let pluginName: String
+            let items: [PluginMenuItem]
+        }
+
         // MARK: - Singleton
 
         static let shared = PluginUIAPI()
 
-        // MARK: - Menu Items
-
         /// Gets all menu items from all plugins
-        var allMenuItems: [(pluginId: String, pluginName: String, items: [PluginMenuItem])] {
-            menuItemsByPlugin.compactMap { pluginId, items in
-                guard !items.isEmpty,
-                      let plugin = PluginManager.shared.plugins[pluginId]
-                else {
-                    return nil
+        var allMenuItems: [PluginMenuGroup] {
+            menuItemsByPlugin
+                .compactMap { pluginId, items -> PluginMenuGroup? in
+                    guard !items.isEmpty,
+                          let plugin = PluginManager.shared.plugins[pluginId]
+                    else {
+                        return nil
+                    }
+                    return PluginMenuGroup(
+                        pluginId: pluginId,
+                        pluginName: plugin.bundle.manifest.name,
+                        items: items
+                    )
                 }
-                return (pluginId, plugin.bundle.manifest.name, items)
-            }.sorted { $0.pluginName < $1.pluginName }
+                .sorted { $0.pluginName < $1.pluginName }
         }
 
         /// Registers menu items for a plugin
@@ -119,9 +131,9 @@
                 }
             }
 
-            return result.sorted(by: { lhs, rhs -> Bool in
+            return result.sorted { lhs, rhs -> Bool in
                 lhs.1.priority > rhs.1.priority
-            })
+            }
         }
 
         // MARK: - Action Execution

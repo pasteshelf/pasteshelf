@@ -35,80 +35,9 @@ final class OIDCDiscovery: Sendable {
     /// - Throws: `SSOError` if the network request fails, the document is invalid,
     ///   or the issuer in the document does not match the requested issuer URL
     func discover(issuerURL: URL) async throws -> OIDCDiscoveryDocument {
-        // Construct the discovery document URL
-        let discoveryURL = issuerURL
-            .appendingPathComponent(".well-known")
-            .appendingPathComponent("openid-configuration")
-
-        logger.info("Fetching OIDC discovery document from: \(discoveryURL.absoluteString)")
-
-        // Perform GET request
-        let request = URLRequest(url: discoveryURL)
-        let (data, response): (Data, URLResponse)
-
-        do {
-            (data, response) = try await urlSession.data(for: request)
-        } catch {
-            logger.error("Network request failed for discovery URL: \(error.localizedDescription)")
-            throw SSOError.networkError("Failed to reach discovery endpoint: \(error.localizedDescription)")
-        }
-
-        // Validate HTTP 200 response
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw SSOError.networkError("Invalid response type from discovery endpoint")
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            logger.error("Discovery endpoint returned HTTP \(httpResponse.statusCode)")
-            throw SSOError.networkError(
-                "Discovery endpoint returned HTTP \(httpResponse.statusCode)"
-            )
-        }
-
-        // Decode the discovery document
-        let document: OIDCDiscoveryDocument
-        do {
-            let decoder = JSONDecoder()
-            document = try decoder.decode(OIDCDiscoveryDocument.self, from: data)
-        } catch {
-            logger.error("Failed to decode discovery document: \(error.localizedDescription)")
-            throw SSOError.configurationInvalid(
-                "Failed to parse discovery document: \(error.localizedDescription)"
-            )
-        }
-
-        // Validate required fields
-        guard !document.issuer.isEmpty else {
-            throw SSOError.configurationInvalid("Discovery document is missing required field: issuer")
-        }
-        guard !document.authorizationEndpoint.isEmpty else {
-            throw SSOError.configurationInvalid(
-                "Discovery document is missing required field: authorization_endpoint"
-            )
-        }
-        guard !document.tokenEndpoint.isEmpty else {
-            throw SSOError.configurationInvalid(
-                "Discovery document is missing required field: token_endpoint"
-            )
-        }
-        guard !document.jwksUri.isEmpty else {
-            throw SSOError.configurationInvalid(
-                "Discovery document is missing required field: jwks_uri"
-            )
-        }
-
-        // Verify issuer match: normalise by stripping trailing slashes before comparing
-        let normalizedDocumentIssuer = document.issuer.trimmingCharacters(in: .init(charactersIn: "/"))
-        let normalizedRequestedIssuer = issuerURL.absoluteString.trimmingCharacters(in: .init(charactersIn: "/"))
-
-        guard normalizedDocumentIssuer == normalizedRequestedIssuer else {
-            logger.error(
-                "Issuer mismatch: expected '\(normalizedRequestedIssuer)', got '\(normalizedDocumentIssuer)'"
-            )
-            throw SSOError.configurationInvalid(
-                "Issuer mismatch: document issuer '\(document.issuer)' does not match requested issuer '\(issuerURL.absoluteString)'"
-            )
-        }
+        let data = try await fetchDiscoveryDocument(issuerURL: issuerURL)
+        let document = try decodeDiscoveryDocument(data)
+        try validateDiscoveryDocument(document, issuerURL: issuerURL)
 
         logger.info("Successfully fetched and validated OIDC discovery document for issuer: \(document.issuer)")
         return document
@@ -137,7 +66,8 @@ final class OIDCDiscovery: Sendable {
         redirectURI: String,
         usePKCE: Bool = true
     ) -> OIDCProviderConfig {
-        // Convert string URLs to URL objects (forced-unwrap guarded by discovery validation)
+        // Validated by discovery; fallback URL is a safety net only
+        // swiftlint:disable:next force_unwrapping
         let issuerURL = URL(string: document.issuer) ?? URL(string: "https://invalid")!
         let authorizationEndpoint = URL(string: document.authorizationEndpoint) ?? issuerURL
         let tokenEndpoint = URL(string: document.tokenEndpoint) ?? issuerURL
@@ -161,13 +91,14 @@ final class OIDCDiscovery: Sendable {
         let effectiveUsePKCE: Bool
         if usePKCE {
             let supportedMethods = document.codeChallengeMethodsSupported
-            effectiveUsePKCE = supportedMethods == nil || supportedMethods!.contains("S256")
+            effectiveUsePKCE = supportedMethods.map { $0.contains("S256") } ?? true
         } else {
             effectiveUsePKCE = false
         }
 
+        let scopeList = scopes.joined(separator: " ")
         logger.info(
-            "Building OIDCProviderConfig — clientId: \(clientId), scopes: \(scopes.joined(separator: " ")), usePKCE: \(effectiveUsePKCE)"
+            "Building OIDCProviderConfig — clientId: \(clientId), scopes: \(scopeList), usePKCE: \(effectiveUsePKCE)"
         )
 
         return OIDCProviderConfig(
@@ -190,6 +121,87 @@ final class OIDCDiscovery: Sendable {
 
     private let logger = Logger(subsystem: "com.pasteshelf", category: "oidc-discovery")
     private let urlSession: URLSession
+
+    /// Fetches the raw discovery document data from the issuer's well-known endpoint.
+    private func fetchDiscoveryDocument(issuerURL: URL) async throws -> Data {
+        let discoveryURL = issuerURL
+            .appendingPathComponent(".well-known")
+            .appendingPathComponent("openid-configuration")
+
+        logger.info("Fetching OIDC discovery document from: \(discoveryURL.absoluteString)")
+
+        let request = URLRequest(url: discoveryURL)
+        let (data, response): (Data, URLResponse)
+
+        do {
+            (data, response) = try await urlSession.data(for: request)
+        } catch {
+            logger.error("Network request failed for discovery URL: \(error.localizedDescription)")
+            throw SSOError.networkError("Failed to reach discovery endpoint: \(error.localizedDescription)")
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw SSOError.networkError("Invalid response type from discovery endpoint")
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            logger.error("Discovery endpoint returned HTTP \(httpResponse.statusCode)")
+            throw SSOError.networkError(
+                "Discovery endpoint returned HTTP \(httpResponse.statusCode)"
+            )
+        }
+
+        return data
+    }
+
+    /// Decodes the discovery document from JSON data.
+    private func decodeDiscoveryDocument(_ data: Data) throws -> OIDCDiscoveryDocument {
+        do {
+            let decoder = JSONDecoder()
+            return try decoder.decode(OIDCDiscoveryDocument.self, from: data)
+        } catch {
+            logger.error("Failed to decode discovery document: \(error.localizedDescription)")
+            throw SSOError.configurationInvalid(
+                "Failed to parse discovery document: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    /// Validates required fields and issuer match in the discovery document.
+    private func validateDiscoveryDocument(_ document: OIDCDiscoveryDocument, issuerURL: URL) throws {
+        guard !document.issuer.isEmpty else {
+            throw SSOError.configurationInvalid("Discovery document is missing required field: issuer")
+        }
+        guard !document.authorizationEndpoint.isEmpty else {
+            throw SSOError.configurationInvalid(
+                "Discovery document is missing required field: authorization_endpoint"
+            )
+        }
+        guard !document.tokenEndpoint.isEmpty else {
+            throw SSOError.configurationInvalid(
+                "Discovery document is missing required field: token_endpoint"
+            )
+        }
+        guard !document.jwksUri.isEmpty else {
+            throw SSOError.configurationInvalid(
+                "Discovery document is missing required field: jwks_uri"
+            )
+        }
+
+        let normalizedDocIssuer = document.issuer.trimmingCharacters(in: .init(charactersIn: "/"))
+        let normalizedReqIssuer = issuerURL.absoluteString.trimmingCharacters(in: .init(charactersIn: "/"))
+
+        guard normalizedDocIssuer == normalizedReqIssuer else {
+            logger.error(
+                "Issuer mismatch: expected '\(normalizedReqIssuer)', got '\(normalizedDocIssuer)'"
+            )
+            let docIssuer = document.issuer
+            let reqIssuer = issuerURL.absoluteString
+            throw SSOError.configurationInvalid(
+                "Issuer mismatch: document issuer '\(docIssuer)' does not match requested issuer '\(reqIssuer)'"
+            )
+        }
+    }
 }
 
 // MARK: - OIDCDiscoveryDocument

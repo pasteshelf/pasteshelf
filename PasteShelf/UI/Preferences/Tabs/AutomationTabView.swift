@@ -47,7 +47,8 @@ struct AutomationTabView: View {
             get: { viewModel.errorMessage != nil },
             set: { if !$0 {
                 viewModel.clearError()
-            } }
+            }
+            }
         )) {
             Button("OK") { viewModel.clearError() }
         } message: {

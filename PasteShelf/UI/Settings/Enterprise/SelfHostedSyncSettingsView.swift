@@ -44,9 +44,9 @@ struct SelfHostedSyncSettingsView: View {
             // MARK: Connection Test
 
             Section("Connection Test") {
-                Button(action: {
+                Button {
                     Task { await viewModel.testConnection() }
-                }) {
+                } label: {
                     HStack {
                         if viewModel.isTestingConnection {
                             ProgressView()

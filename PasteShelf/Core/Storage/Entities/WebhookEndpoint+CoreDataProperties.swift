@@ -12,7 +12,8 @@ import Foundation
 // MARK: - CoreData Properties
 
 public extension WebhookEndpoint {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<WebhookEndpoint> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<WebhookEndpoint> {
         NSFetchRequest<WebhookEndpoint>(entityName: "WebhookEndpoint")
     }
 
@@ -67,7 +68,8 @@ extension WebhookEndpoint: Identifiable {}
 
 public extension WebhookEndpoint {
     /// Fetch all enabled webhook endpoints
-    @nonobjc class func enabledEndpointsFetchRequest() -> NSFetchRequest<WebhookEndpoint> {
+    @nonobjc
+    class func enabledEndpointsFetchRequest() -> NSFetchRequest<WebhookEndpoint> {
         let request = fetchRequest()
         request.predicate = NSPredicate(format: "isEnabled == YES")
         request.sortDescriptors = [
@@ -77,7 +79,8 @@ public extension WebhookEndpoint {
     }
 
     /// Fetch endpoints for a specific event type
-    @nonobjc class func endpointsForEventFetchRequest(event: String) -> NSFetchRequest<WebhookEndpoint> {
+    @nonobjc
+    class func endpointsForEventFetchRequest(event: String) -> NSFetchRequest<WebhookEndpoint> {
         let request = fetchRequest()
         request.predicate = NSPredicate(
             format: "isEnabled == YES AND eventsJSON CONTAINS %@",
@@ -90,7 +93,8 @@ public extension WebhookEndpoint {
     }
 
     /// Fetch all endpoints sorted by name
-    @nonobjc class func allEndpointsFetchRequest() -> NSFetchRequest<WebhookEndpoint> {
+    @nonobjc
+    class func allEndpointsFetchRequest() -> NSFetchRequest<WebhookEndpoint> {
         let request = fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \WebhookEndpoint.name, ascending: true),
@@ -99,7 +103,8 @@ public extension WebhookEndpoint {
     }
 
     /// Fetch endpoints with failures
-    @nonobjc class func failedEndpointsFetchRequest(minFailures: Int32 = 1) -> NSFetchRequest<WebhookEndpoint> {
+    @nonobjc
+    class func failedEndpointsFetchRequest(minFailures: Int32 = 1) -> NSFetchRequest<WebhookEndpoint> {
         let request = fetchRequest()
         request.predicate = NSPredicate(format: "failureCount >= %d", minFailures)
         request.sortDescriptors = [

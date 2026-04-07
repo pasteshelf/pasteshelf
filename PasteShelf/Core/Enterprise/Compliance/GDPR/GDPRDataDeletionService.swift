@@ -108,10 +108,11 @@ struct GDPRDataDeletionService: Sendable {
             completedAt: Date()
         )
 
-        logger
-            .info(
-                "GDPR data deletion: complete. \(report.totalDeleted) items removed across \(categories.count) categories"
-            )
+        let totalDeleted = report.totalDeleted
+        let categoryCount = categories.count
+        logger.info(
+            "GDPR data deletion: complete. \(totalDeleted) items removed across \(categoryCount) categories"
+        )
         return report
     }
 
@@ -192,11 +193,9 @@ struct GDPRDataDeletionService: Sendable {
 
         var count = 0
         let allKeys = defaults.dictionaryRepresentation().keys
-        for key in allKeys {
-            if prefixes.contains(where: { key.hasPrefix($0) || key == $0 }) {
-                defaults.removeObject(forKey: key)
-                count += 1
-            }
+        for key in allKeys where prefixes.contains(where: { key.hasPrefix($0) || key == $0 }) {
+            defaults.removeObject(forKey: key)
+            count += 1
         }
 
         defaults.synchronize()

@@ -6,7 +6,15 @@
 //  Allows selecting existing tags or creating new ones.
 //
 
+import os.log
 import SwiftUI
+
+// MARK: - TagPickerView
+
+private let tagPickerLogger = Logger(
+    subsystem: "com.pasteshelf",
+    category: "tag-picker"
+)
 
 // MARK: - TagPickerView
 
@@ -91,7 +99,7 @@ struct TagPickerView: View {
 
     private var shouldShowCreateOption: Bool {
         !searchText.isEmpty &&
-            !availableTags.contains(where: { $0.name.lowercased() == searchText.lowercased() })
+            !availableTags.contains { $0.name.lowercased() == searchText.lowercased() }
     }
 
     // MARK: - Create Tag Row
@@ -290,10 +298,10 @@ struct ColorPickerButton: View {
                     availableTags: TagDisplayModel.samples,
                     selectedTagIds: $selectedIds,
                     onCreateTag: { name, color in
-                        print("Create tag: \(name) with color \(color)")
+                        tagPickerLogger.debug("Create tag: \(name) with color \(color)")
                     },
                     onSelectionChanged: {
-                        print("Selection changed: \(selectedIds.count) selected")
+                        tagPickerLogger.debug("Selection changed: \(selectedIds.count) selected")
                     }
                 )
             }

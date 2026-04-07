@@ -35,8 +35,10 @@ struct HIPAARetentionPolicy: Sendable {
         var corrected = configuration
 
         if corrected.retentionDays < AuditRetentionConfiguration.hipaaMinimumDays {
+            let currentDays = corrected.retentionDays
+            let minimumDays = AuditRetentionConfiguration.hipaaMinimumDays
             logger.warning(
-                "HIPAA retention: increasing retention from \(corrected.retentionDays) to \(AuditRetentionConfiguration.hipaaMinimumDays) days"
+                "HIPAA retention: increasing retention from \(currentDays) to \(minimumDays) days"
             )
             corrected.retentionDays = AuditRetentionConfiguration.hipaaMinimumDays
         }

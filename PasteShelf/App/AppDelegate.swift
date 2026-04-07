@@ -2,9 +2,12 @@
 //  AppDelegate.swift
 //  PasteShelf
 //
+// swiftlint:disable file_length
 //  Main application delegate that coordinates menu bar, floating panel,
 //  clipboard monitoring, and global hotkey registration.
 //
+
+// swiftformat:disable organizeDeclarations
 
 import AppKit
 import Combine
@@ -14,7 +17,7 @@ import os.log
 
 /// Main application delegate for PasteShelf
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate { // swiftlint:disable:this type_body_length
     // MARK: Internal
 
     // MARK: - Controllers
@@ -183,11 +186,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Handle pasteshelf:// URL scheme
     func application(_ application: NSApplication, open urls: [URL]) {
-        for url in urls {
-            if url.scheme == "pasteshelf" {
-                logger.info("Handling URL scheme: \(url.absoluteString)")
-                URLSchemeHandler.shared.handleURL(url)
-            }
+        for url in urls where url.scheme == "pasteshelf" {
+            logger.info("Handling URL scheme: \(url.absoluteString)")
+            URLSchemeHandler.shared.handleURL(url)
         }
     }
 
@@ -406,6 +407,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
     }
 
+    // swiftlint:disable:next function_body_length
     private func handleSettingsChange(_ settings: AppSettings) {
         // Apply hotkey changes
         let hotkeyConfig = settings.shortcuts.globalHotkey.toHotkeyConfiguration
@@ -640,6 +642,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 SyncManager.shared.stop()
                 logger
                     .info(
+                        // swiftlint:disable:next line_length
                         "MDM: sync disabled (localStorageOnly=\(settings.enterprise.localStorageOnly), cloudSyncEnabled=\(settings.enterprise.cloudSyncEnabled))"
                     )
             }
@@ -795,6 +798,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: ClipboardMonitorDelegate
 
 extension AppDelegate: ClipboardMonitorDelegate {
+    // swiftlint:disable:next function_body_length
     func clipboardMonitor(
         _ monitor: ClipboardMonitoring,
         didCapture content: ClipboardContent,
@@ -896,7 +900,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
         ///
         /// Returns a `DLPPipelineResult` indicating whether the item was blocked and
         /// providing the (possibly redacted) content for downstream stages.
-        private func processDLPEvaluation(for content: ClipboardContent,
+        private func processDLPEvaluation(for content: ClipboardContent, // swiftlint:disable:this function_body_length
                                           sourceApp: SourceApp? = nil) async -> DLPPipelineResult
         {
             guard DLPManager.shared.isEnabled else {
@@ -952,6 +956,7 @@ extension AppDelegate: ClipboardMonitorDelegate {
                 if !redactSuccess {
                     logger
                         .error(
+                            // swiftlint:disable:next line_length
                             "DLP: failed to persist redacted content for item \(content.id) — deleting to prevent sensitive data leak"
                         )
                     let fallbackDeleted = await storageManager.deleteItem(byId: content.id)

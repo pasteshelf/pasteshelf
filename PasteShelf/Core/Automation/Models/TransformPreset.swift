@@ -13,7 +13,7 @@ import Foundation
 // MARK: - TransformPreset
 
 /// Built-in text transformation presets
-enum TransformPreset: String, Codable, CaseIterable, Sendable {
+enum TransformPreset: String, Codable, CaseIterable, Sendable { // swiftlint:disable:this type_body_length
     // MARK: - Case Transformations
 
     /// Convert to UPPERCASE
@@ -234,7 +234,7 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
     /// Apply the transformation to the input text
     /// - Parameter input: The text to transform
     /// - Returns: The transformed text, or original if transformation fails
-    func transform(_ input: String) -> String {
+    func transform(_ input: String) -> String { // swiftlint:disable:this cyclomatic_complexity
         switch self {
         // Case transformations
         case .uppercase:
@@ -335,14 +335,12 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
         // Reconstruct with original separators
         var output = ""
         var index = 0
-        for char in input {
-            if ".!?".contains(char) {
-                if index < result.count {
-                    output += result[index]
-                    index += 1
-                }
-                output.append(char)
+        for char in input where ".!?".contains(char) {
+            if index < result.count {
+                output += result[index]
+                index += 1
             }
+            output.append(char)
         }
 
         // Add any remaining sentence
@@ -365,11 +363,9 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
         var seen = Set<String>()
         var result: [String] = []
 
-        for line in input.components(separatedBy: .newlines) {
-            if !seen.contains(line) {
-                seen.insert(line)
-                result.append(line)
-            }
+        for line in input.components(separatedBy: .newlines) where !seen.contains(line) {
+            seen.insert(line)
+            result.append(line)
         }
 
         return result.joined(separator: "\n")

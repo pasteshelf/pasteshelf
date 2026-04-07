@@ -9,6 +9,15 @@ import CoreData
 import Foundation
 import os.log
 
+// MARK: - ApplicationEntry
+
+/// Represents an application to be saved or updated
+struct ApplicationEntry {
+    let bundleId: String
+    let name: String
+    let isExcluded: Bool
+}
+
 extension StorageManager {
     // MARK: - Tag Operations
 
@@ -133,10 +142,13 @@ extension StorageManager {
     /// Saves multiple applications at once
     /// - Parameter applications: Array of (bundleId, name, isExcluded) tuples
     /// - Returns: Number of applications saved
-    func saveApplications(_ applications: [(bundleId: String, name: String, isExcluded: Bool)]) async -> Int {
+    func saveApplications(_ applications: [ApplicationEntry]) async -> Int {
         let result = await performBackgroundTaskSafe { context -> Int in
             var count = 0
-            for (bundleId, name, isExcluded) in applications {
+            for entry in applications {
+                let bundleId = entry.bundleId
+                let name = entry.name
+                let isExcluded = entry.isExcluded
                 let request = Application.fetchRequest()
                 request.predicate = NSPredicate(format: "bundleId == %@", bundleId)
                 request.fetchLimit = 1

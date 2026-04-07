@@ -123,9 +123,8 @@ final class AdminManager: ObservableObject {
         )
 
         policyService = PolicySyncService(
-            apiClient: client,
-            deviceId: { [weak self] in self?.deviceRegistration?.deviceId }
-        )
+            apiClient: client
+        ) { [weak self] in self?.deviceRegistration?.deviceId }
 
         analyticsReporter = AnalyticsReporter(apiClient: client)
 

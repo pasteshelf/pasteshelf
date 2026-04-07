@@ -118,27 +118,59 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         testSteps = []
         connectionStatus = .testing
 
-        // Step 1: Validate URL
+        guard let url = testValidateURL() else {
+            return
+        }
+        guard testResolveHostname(url) else {
+            return
+        }
+        guard await testHealthCheck(url) else {
+            return
+        }
+        await testAuthentication(url)
+        testTLSCertificate(url)
+
+        connectionStatus = .connected
+        isTestingConnection = false
+    }
+
+    // MARK: Private
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-settings")
+    private let configKey = "com.pasteshelf.selfhosted.config"
+    private let apiKeyService = "com.pasteshelf.selfhosted.apiKey"
+    private let apiKeyAccount = "selfHostedConfig"
+
+    /// Step 1: Validate the server URL format.
+    private func testValidateURL() -> URL? {
         addStep(title: "Validating server URL", status: .inProgress)
-        guard let url = URL(string: serverURLString), url.scheme == "https" || url.scheme == "http" else {
+        guard let url = URL(string: serverURLString),
+              url.scheme == "https" || url.scheme == "http"
+        else {
             updateLastStep(status: .failed, detail: "Invalid URL format")
             connectionStatus = .failed
             isTestingConnection = false
-            return
+            return nil
         }
         updateLastStep(status: .passed)
+        return url
+    }
 
-        // Step 2: DNS Resolution
+    /// Step 2: Verify the URL contains a resolvable hostname.
+    private func testResolveHostname(_ url: URL) -> Bool {
         addStep(title: "Resolving hostname", status: .inProgress)
         guard let host = url.host else {
             updateLastStep(status: .failed, detail: "No hostname in URL")
             connectionStatus = .failed
             isTestingConnection = false
-            return
+            return false
         }
         updateLastStep(status: .passed, detail: host)
+        return true
+    }
 
-        // Step 3: Health Check
+    /// Step 3: Hit the server's health endpoint.
+    private func testHealthCheck(_ url: URL) async -> Bool {
         addStep(title: "Checking server health", status: .inProgress)
         let healthURL = url.appendingPathComponent("health")
         var request = URLRequest(url: healthURL)
@@ -151,7 +183,7 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
                 updateLastStep(status: .failed, detail: "Invalid response")
                 connectionStatus = .failed
                 isTestingConnection = false
-                return
+                return false
             }
 
             if httpResponse.statusCode == 200 {
@@ -166,21 +198,23 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
                 updateLastStep(status: .failed, detail: "HTTP \(httpResponse.statusCode)")
                 connectionStatus = .failed
                 isTestingConnection = false
-                return
+                return false
             }
         } catch {
             updateLastStep(status: .failed, detail: error.localizedDescription)
             connectionStatus = .failed
             isTestingConnection = false
-            return
+            return false
         }
+        return true
+    }
 
-        // Step 4: Authentication
+    /// Step 4: Verify API key authentication if configured.
+    private func testAuthentication(_ url: URL) async {
         addStep(title: "Verifying authentication", status: .inProgress)
         if apiKey.isEmpty {
             updateLastStep(status: .skipped, detail: "No API key configured")
         } else {
-            // Try a simple authenticated request
             let statusURL = url.appendingPathComponent("api/v1/sync/status")
             var authRequest = URLRequest(url: statusURL)
             authRequest.httpMethod = "GET"
@@ -198,25 +232,17 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
                 updateLastStep(status: .warning, detail: "Could not verify auth")
             }
         }
+    }
 
-        // Step 5: TLS Certificate
+    /// Step 5: Check whether the connection uses TLS.
+    private func testTLSCertificate(_ url: URL) {
         addStep(title: "Checking TLS certificate", status: .inProgress)
         if url.scheme == "https" {
             updateLastStep(status: .passed, detail: "HTTPS enabled")
         } else {
             updateLastStep(status: .warning, detail: "Not using HTTPS")
         }
-
-        connectionStatus = .connected
-        isTestingConnection = false
     }
-
-    // MARK: Private
-
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-settings")
-    private let configKey = "com.pasteshelf.selfhosted.config"
-    private let apiKeyService = "com.pasteshelf.selfhosted.apiKey"
-    private let apiKeyAccount = "selfHostedConfig"
 
     // MARK: - Keychain Helpers
 

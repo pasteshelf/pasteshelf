@@ -73,7 +73,8 @@ struct SearchTabView: View {
             }
         } message: {
             Text(
-                "This will delete all extracted text from images. The cache will be rebuilt when you process images again."
+                "This will delete all extracted text from images."
+                    + " The cache will be rebuilt when you process images again."
             )
         }
     }
@@ -107,8 +108,7 @@ struct SearchTabView: View {
 
     // MARK: - Search Settings Section
 
-    @ViewBuilder
-    private var searchSettingsSection: some View {
+    @ViewBuilder private var searchSettingsSection: some View {
         // Fuzzy matching toggle
         Toggle("Enable Fuzzy Matching", isOn: Binding(
             get: { settingsManager.search.fuzzyMatchEnabled },
@@ -124,8 +124,7 @@ struct SearchTabView: View {
 
     // MARK: - Semantic Search Section
 
-    @ViewBuilder
-    private var semanticSearchSection: some View {
+    @ViewBuilder private var semanticSearchSection: some View {
         // Enable/Disable Toggle
         Toggle("Enable Semantic Search", isOn: Binding(
             get: { settingsManager.search.semanticSearchEnabled },
@@ -177,8 +176,7 @@ struct SearchTabView: View {
 
     // MARK: - OCR Search Section
 
-    @ViewBuilder
-    private var ocrSearchSection: some View {
+    @ViewBuilder private var ocrSearchSection: some View {
         // Enable/Disable Toggle
         Toggle("Enable OCR Search", isOn: Binding(
             get: { settingsManager.search.ocrSearchEnabled },
@@ -228,8 +226,7 @@ struct SearchTabView: View {
 
     // MARK: - OCR Processing Status Section
 
-    @ViewBuilder
-    private var ocrProcessingStatusSection: some View {
+    @ViewBuilder private var ocrProcessingStatusSection: some View {
         // Processing Status
         HStack {
             Image(systemName: ocrGenerator.isProcessing ? "text.viewfinder" : "checkmark.circle.fill")
@@ -271,30 +268,36 @@ struct SearchTabView: View {
 
         // Actions
         HStack {
-            Button(action: {
-                Task {
-                    await startOCRProcessing()
+            Button(
+                action: {
+                    Task {
+                        await startOCRProcessing()
+                    }
+                },
+                label: {
+                    Label("Process Images", systemImage: "text.viewfinder")
                 }
-            }) {
-                Label("Process Images", systemImage: "text.viewfinder")
-            }
+            )
             .disabled(ocrGenerator.isProcessing || !ocrSearchEnabled)
 
             Spacer()
 
-            Button(role: .destructive, action: {
-                showingOCRClearConfirmation = true
-            }) {
-                Label("Clear Cache", systemImage: "trash")
-            }
+            Button(
+                role: .destructive,
+                action: {
+                    showingOCRClearConfirmation = true
+                },
+                label: {
+                    Label("Clear Cache", systemImage: "trash")
+                }
+            )
             .disabled(ocrGenerator.isProcessing)
         }
     }
 
     // MARK: - Indexing Status Section
 
-    @ViewBuilder
-    private var indexingStatusSection: some View {
+    @ViewBuilder private var indexingStatusSection: some View {
         // Index Status
         HStack {
             Image(systemName: embeddingGenerator.isIndexing ? "brain" : "brain.filled.head.profile")
@@ -336,54 +339,65 @@ struct SearchTabView: View {
 
         // Actions
         HStack {
-            Button(action: {
-                Task {
-                    await startIndexing()
+            Button(
+                action: {
+                    Task {
+                        await startIndexing()
+                    }
+                },
+                label: {
+                    Label("Rebuild Index", systemImage: "arrow.triangle.2.circlepath")
                 }
-            }) {
-                Label("Rebuild Index", systemImage: "arrow.triangle.2.circlepath")
-            }
+            )
             .disabled(embeddingGenerator.isIndexing || !semanticSearchEnabled)
 
             Spacer()
 
-            Button(role: .destructive, action: {
-                showingClearConfirmation = true
-            }) {
-                Label("Clear Index", systemImage: "trash")
-            }
+            Button(
+                role: .destructive,
+                action: {
+                    showingClearConfirmation = true
+                },
+                label: {
+                    Label("Clear Index", systemImage: "trash")
+                }
+            )
             .disabled(embeddingGenerator.isIndexing)
         }
     }
+}
 
-    private func loadIndexedCount() async {
+// MARK: - SearchTabView Actions
+
+private extension SearchTabView {
+    func loadIndexedCount() async {
         indexedCount = await embeddingGenerator.indexedItemCount()
     }
 
-    private func loadOCRProcessedCount() async {
+    func loadOCRProcessedCount() async {
         ocrProcessedCount = await ocrGenerator.processedItemCount()
     }
 
-    private func startIndexing() async {
+    func startIndexing() async {
         await embeddingGenerator.clearOutdatedEmbeddings()
         _ = await embeddingGenerator.indexAllMissingEmbeddings()
         await loadIndexedCount()
     }
 
-    private func startOCRProcessing() async {
+    func startOCRProcessing() async {
         await ocrGenerator.clearOutdatedOCR()
         _ = await ocrGenerator.processAllMissingOCR()
         await loadOCRProcessedCount()
     }
 
-    private func clearIndex() {
+    func clearIndex() {
         Task {
             await embeddingGenerator.clearAllEmbeddings()
             indexedCount = 0
         }
     }
 
-    private func clearOCRCache() {
+    func clearOCRCache() {
         Task {
             await ocrGenerator.clearAllOCR()
             ocrProcessedCount = 0

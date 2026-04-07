@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension Folder {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<Folder> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<Folder> {
         NSFetchRequest<Folder>(entityName: "Folder")
     }
 

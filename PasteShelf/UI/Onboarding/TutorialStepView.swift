@@ -31,6 +31,7 @@ struct TutorialStepView: View {
 
             // Description
             Text(
+                // swiftlint:disable:next line_length
                 "PasteShelf runs in the background and saves everything you copy. Use the hotkey to open the clipboard panel anytime."
             )
             .font(.body)

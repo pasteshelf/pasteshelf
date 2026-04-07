@@ -69,24 +69,12 @@ final class SSOManager: ObservableObject {
         defer { isAuthenticating = false }
 
         do {
-            let session: SSOSession
-
-            switch provider.type {
-            case .saml:
-                logger.info("Starting SAML authentication with '\(provider.name)'")
-                session = try await samlAuthenticator.authenticate(config: provider)
-            case .oidc:
-                logger.info("Starting OIDC authentication with '\(provider.name)'")
-                session = try await oidcAuthenticator.authenticate(config: provider)
-            }
-
-            // Store the session
+            let session = try await performAuthentication(with: provider)
             try await sessionStore?.save(session)
             currentSession = session
 
             logger.info("SSO authentication successful for user: \(session.userId)")
 
-            // Audit: log successful SSO login
             await AuditManager.shared.logAuthEvent(
                 action: .ssoLogin,
                 detail: [
@@ -99,34 +87,12 @@ final class SSOManager: ObservableObject {
             return session
         } catch let error as SSOError {
             lastError = error
-            logger.error("SSO authentication failed: \(error.localizedDescription)")
-
-            // Audit: log failed SSO login
-            await AuditManager.shared.logAuthEvent(
-                action: .loginFailure,
-                severity: .warning,
-                detail: [
-                    "provider": provider.name,
-                    "error": error.localizedDescription,
-                ]
-            )
-
+            await logAuthFailure(provider: provider, error: error)
             throw error
         } catch {
             let ssoError = SSOError.authenticationFailed(error.localizedDescription)
             lastError = ssoError
-            logger.error("SSO authentication failed: \(error.localizedDescription)")
-
-            // Audit: log failed SSO login
-            await AuditManager.shared.logAuthEvent(
-                action: .loginFailure,
-                severity: .warning,
-                detail: [
-                    "provider": provider.name,
-                    "error": error.localizedDescription,
-                ]
-            )
-
+            await logAuthFailure(provider: provider, error: error)
             throw ssoError
         }
     }
@@ -272,4 +238,29 @@ final class SSOManager: ObservableObject {
     private let samlAuthenticator = SAMLAuthenticator()
     private let oidcAuthenticator = OIDCAuthenticator()
     private let oidcTokenManager = OIDCTokenManager()
+
+    /// Delegates to the appropriate SSO authenticator based on provider type.
+    private func performAuthentication(with provider: IdentityProvider) async throws -> SSOSession {
+        switch provider.type {
+        case .saml:
+            logger.info("Starting SAML authentication with '\(provider.name)'")
+            return try await samlAuthenticator.authenticate(config: provider)
+        case .oidc:
+            logger.info("Starting OIDC authentication with '\(provider.name)'")
+            return try await oidcAuthenticator.authenticate(config: provider)
+        }
+    }
+
+    /// Logs a failed SSO authentication attempt to the audit trail.
+    private func logAuthFailure(provider: IdentityProvider, error: Error) async {
+        logger.error("SSO authentication failed: \(error.localizedDescription)")
+        await AuditManager.shared.logAuthEvent(
+            action: .loginFailure,
+            severity: .warning,
+            detail: [
+                "provider": provider.name,
+                "error": error.localizedDescription,
+            ]
+        )
+    }
 }

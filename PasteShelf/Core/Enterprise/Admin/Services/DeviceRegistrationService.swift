@@ -151,24 +151,35 @@ final class DeviceRegistrationService: DeviceRegistrationProviding, @unchecked S
 
     // MARK: Private
 
+    // MARK: - Device Metadata
+
+    /// Metadata about the local device collected during enrollment.
+    private struct DeviceMetadata {
+        let deviceName: String
+        let osVersion: String
+        let appVersion: String
+        let serialNumber: String?
+    }
+
     private let apiClient: AdminAPIProviding
     private let store: DeviceRegistrationStore
     private let logger = Logger(subsystem: "com.pasteshelf", category: "device-registration")
 
-    // MARK: - Device Metadata
-
     /// Collects metadata about the local device for inclusion in the enrollment payload.
     ///
-    /// - Returns: A tuple containing the device name, OS version string, app version string,
-    ///   and hardware serial number (always `nil` in a sandboxed environment).
-    private func collectDeviceMetadata()
-        -> (deviceName: String, osVersion: String, appVersion: String, serialNumber: String?)
-    {
+    /// - Returns: A `DeviceMetadata` containing the device name, OS version string,
+    ///   app version string, and hardware serial number (always `nil` in a sandboxed environment).
+    private func collectDeviceMetadata() -> DeviceMetadata {
         let deviceName = Host.current().localizedName ?? "Unknown Mac"
         let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
         // Serial number is not accessible in the macOS app sandbox.
-        return (deviceName, osVersion, appVersion, nil)
+        return DeviceMetadata(
+            deviceName: deviceName,
+            osVersion: osVersion,
+            appVersion: appVersion,
+            serialNumber: nil
+        )
     }
 }
 

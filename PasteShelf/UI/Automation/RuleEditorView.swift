@@ -198,10 +198,10 @@ struct RuleEditorView: View {
             }
         }
         .sheet(isPresented: $showingAddAction) {
-            ActionPickerView(onSelect: { action in
+            ActionPickerView { action in
                 actions.append(action)
                 showingAddAction = false
-            })
+            }
         }
     }
 
@@ -425,7 +425,8 @@ struct ActionPickerView: View {
 
     // MARK: Private
 
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)
+    private var dismiss
 
     private func createDefaultAction(for type: ActionType) -> AutomationAction {
         switch type {
@@ -471,16 +472,10 @@ struct ActionTypeButton: View {
                 Image(systemName: actionType.iconName)
                     .frame(width: 24)
                     .foregroundColor(.accentColor)
-
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(actionType.displayName)
-                        .font(.body)
-
-                    Text(actionType.description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Text(actionType.displayName).font(.body)
+                    Text(actionType.description).font(.caption).foregroundColor(.secondary)
                 }
-
                 Spacer()
             }
             .padding(10)
@@ -491,16 +486,3 @@ struct ActionTypeButton: View {
         .buttonStyle(.plain)
     }
 }
-
-// MARK: - Preview
-
-#if DEBUG
-    struct RuleEditorView_Previews: PreviewProvider {
-        static var previews: some View {
-            RuleEditorView(
-                viewModel: AutomationViewModel(),
-                isPresented: .constant(true)
-            )
-        }
-    }
-#endif

@@ -116,7 +116,7 @@ struct WebhookClipboardItemPayload: Codable {
         // Calculate text stats
         if let text = item.plainTextPreview {
             characterCount = text.count
-            wordCount = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
+            wordCount = text.split { $0.isWhitespace || $0.isNewline }.count
         } else {
             characterCount = nil
             wordCount = nil
@@ -147,7 +147,7 @@ struct WebhookClipboardItemPayload: Codable {
 
         if let text = content.plainText {
             characterCount = text.count
-            wordCount = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
+            wordCount = text.split { $0.isWhitespace || $0.isNewline }.count
         } else {
             characterCount = nil
             wordCount = nil

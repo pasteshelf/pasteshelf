@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  AuditEventModelTests.swift
 //  PasteShelfTests
@@ -245,7 +246,8 @@ struct AuditEventTests {
     @Test("AuditEvent default init produces non-nil id")
     func defaultInitIdNotNil() {
         let event = AuditEvent(category: .clipboard, action: .copyCaptured)
-        #expect(event.id != UUID(uuidString: "00000000-0000-0000-0000-000000000000")!)
+        let nilUUID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")
+        #expect(event.id != nilUUID)
     }
 
     @Test("AuditEvent default init timestamp is recent (within 5 seconds)")

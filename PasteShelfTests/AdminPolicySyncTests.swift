@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  AdminPolicySyncTests.swift
 //  PasteShelfTests
@@ -12,6 +13,7 @@ import Testing
 
 // MARK: - AdminPolicySyncTests
 
+// swiftlint:disable:next type_body_length
 struct AdminPolicySyncTests {
     // MARK: Internal
 
@@ -22,7 +24,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 100, enforced: true)
         )
 
@@ -36,7 +41,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 1, enforced: true)
         )
 
@@ -50,7 +58,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 500, enforced: true)
         )
 
@@ -64,7 +75,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 101, enforced: true)
         )
 
@@ -78,7 +92,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 1000, enforced: true)
         )
 
@@ -92,7 +109,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 501, enforced: true)
         )
 
@@ -106,7 +126,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 5000, enforced: true)
         )
 
@@ -120,7 +143,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 0, enforced: true)
         )
 
@@ -134,7 +160,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: -10, enforced: true)
         )
 
@@ -151,7 +180,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         settings.privacy.autoDeleteEnabled = false
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxDays: 30, enforced: true)
         )
 
@@ -166,7 +198,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxDays: 90, enforced: true)
         )
 
@@ -182,7 +217,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         settings.privacy.autoDeleteEnabled = false
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxDays: 0, enforced: true)
         )
 
@@ -197,7 +235,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         settings.privacy.autoDeleteEnabled = false
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxDays: -5, enforced: true)
         )
 
@@ -211,7 +252,10 @@ struct AdminPolicySyncTests {
         let (service, _) = makeService()
         var settings = AppSettings.default
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 200, maxDays: 60, enforced: true)
         )
 
@@ -230,7 +274,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.user.app"]
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             excludedApps: ExcludedAppsPolicy(
                 bundleIds: ["com.enterprise.secure", "com.enterprise.vpn"],
                 enforced: true
@@ -251,7 +298,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.zzz"]
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             excludedApps: ExcludedAppsPolicy(bundleIds: ["com.aaa"], enforced: true)
         )
 
@@ -266,7 +316,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.shared.app"]
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             excludedApps: ExcludedAppsPolicy(bundleIds: ["com.shared.app", "com.new.app"], enforced: true)
         )
 
@@ -283,7 +336,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.user.app"]
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             excludedApps: ExcludedAppsPolicy(bundleIds: [], enforced: true)
         )
 
@@ -300,7 +356,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         let original = settings
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 100, maxDays: 7, enforced: false)
         )
 
@@ -316,7 +375,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.user.app"]
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             excludedApps: ExcludedAppsPolicy(bundleIds: ["com.blocked.app"], enforced: false)
         )
 
@@ -331,7 +393,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         let original = settings
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             syncSettings: SyncSettingsPolicy(syncEnabled: false, localStorageOnly: true, enforced: false)
         )
 
@@ -346,7 +411,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         let original = settings
         let policy = AdminPolicy(
-            id: "p1", version: "1", name: "Test", updatedAt: Date(),
+            id: "p1",
+            version: "1",
+            name: "Test",
+            updatedAt: Date(),
             encryptionRequirements: EncryptionPolicy(requireEncryption: true, enforced: false)
         )
 
@@ -388,7 +456,10 @@ struct AdminPolicySyncTests {
         var settings = AppSettings.default
         settings.privacy.excludedAppBundleIds = ["com.user.kept"]
         let policy = AdminPolicy(
-            id: "full", version: "3", name: "Enterprise Strict", updatedAt: Date(),
+            id: "full",
+            version: "3",
+            name: "Enterprise Strict",
+            updatedAt: Date(),
             historyLimits: HistoryLimitPolicy(maxItems: 500, maxDays: 30, enforced: true),
             excludedApps: ExcludedAppsPolicy(bundleIds: ["com.secure.browser"], enforced: true),
             syncSettings: SyncSettingsPolicy(syncEnabled: false, localStorageOnly: true, enforced: true),
@@ -490,9 +561,8 @@ struct AdminPolicySyncTests {
         deviceId: String? = "dev-test"
     ) -> (PolicySyncService, MockAdminAPIClient) {
         let service = PolicySyncService(
-            apiClient: api,
-            deviceId: { deviceId }
-        )
+            apiClient: api
+        ) { deviceId }
         return (service, api)
     }
 }

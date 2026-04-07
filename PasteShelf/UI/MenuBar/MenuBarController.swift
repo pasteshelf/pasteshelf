@@ -123,7 +123,8 @@ final class MenuBarController: NSObject, ObservableObject {
 
     // MARK: - Click Handling
 
-    @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
+    @objc
+    private func statusItemClicked(_ sender: NSStatusBarButton) {
         showContextMenu()
     }
 
@@ -279,29 +280,34 @@ final class MenuBarController: NSObject, ObservableObject {
 
     // MARK: - Menu Actions
 
-    @objc private func showPanelAction() {
+    @objc
+    private func showPanelAction() {
         panelController?.show()
     }
 
-    @objc private func togglePauseAction() {
+    @objc
+    private func togglePauseAction() {
         NotificationCenter.default.post(
             name: .toggleClipboardMonitoring,
             object: nil
         )
     }
 
-    @objc private func showPreferencesAction() {
+    @objc
+    private func showPreferencesAction() {
         NotificationCenter.default.post(
             name: .showPreferences,
             object: nil
         )
     }
 
-    @objc private func quitAction() {
+    @objc
+    private func quitAction() {
         NSApp.terminate(nil)
     }
 
-    @objc private func recentItemClicked(_ sender: NSMenuItem) {
+    @objc
+    private func recentItemClicked(_ sender: NSMenuItem) {
         guard let itemId = sender.representedObject as? UUID else {
             return
         }

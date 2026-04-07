@@ -78,8 +78,7 @@ struct RuleConditionRow: View {
 
     // MARK: - Value Input
 
-    @ViewBuilder
-    private var valueInput: some View {
+    @ViewBuilder private var valueInput: some View {
         switch condition.field {
         case .contentType:
             contentTypePicker
@@ -189,9 +188,8 @@ struct RuleConditionRow: View {
             var body: some View {
                 VStack(spacing: 12) {
                     RuleConditionRow(
-                        condition: $condition,
-                        onDelete: {}
-                    )
+                        condition: $condition
+                    ) {}
 
                     Divider()
 

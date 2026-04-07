@@ -163,6 +163,7 @@ final class ConflictResolver: ConflictResolving, Sendable {
 
         Self.logger
             .debug(
+                // swiftlint:disable:next line_length
                 "Merged payload: favorite=\(merged.isFavorite), accessCount=\(merged.accessCount), tags=\(merged.tagNames?.count ?? 0)"
             )
 

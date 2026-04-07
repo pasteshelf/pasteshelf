@@ -173,7 +173,8 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     /// Pasteboard instance
     private let pasteboard: NSPasteboard
 
-    @objc private func handleHistoryChanged() {
+    @objc
+    private func handleHistoryChanged() {
         // Clear immediately so the timer doesn't see stale hashes before reload completes
         recentHashes.removeAll()
         Task { await reloadHashCache() }

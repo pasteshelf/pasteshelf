@@ -97,8 +97,7 @@ struct ClipboardItemRow: View {
 
     // MARK: - Context Menu
 
-    @ViewBuilder
-    private var contextMenuContent: some View {
+    @ViewBuilder private var contextMenuContent: some View {
         // Paste
         Button {
             onPaste()
@@ -158,7 +157,7 @@ struct ClipboardItemRow: View {
         #if !APP_STORE
             // Plugin actions — grouped under a single "Plugins" submenu
             let pluginMenuItems = PluginManager.shared.allMenuItems
-                .sorted(by: { ($0.pluginId) < ($1.pluginId) })
+                .sorted { ($0.pluginId) < ($1.pluginId) }
                 .filter { pluginId, _ in
                     let types = PluginManager.shared.plugins[pluginId]?.bundle.manifest.supportedContentTypes ?? []
                     return types.isEmpty || types.contains(item.contentType.rawValue)
@@ -205,8 +204,7 @@ struct ClipboardItemRow: View {
 
     // MARK: - Background
 
-    @ViewBuilder
-    private var backgroundView: some View {
+    @ViewBuilder private var backgroundView: some View {
         if isSelected {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.accentColor.opacity(0.15))
@@ -224,8 +222,7 @@ struct ClipboardItemRow: View {
 
     // MARK: - Quick Actions
 
-    @ViewBuilder
-    private var quickActionOverlay: some View {
+    @ViewBuilder private var quickActionOverlay: some View {
         if isSelected || isHovered {
             HStack(spacing: 8) {
                 // Quick paste button

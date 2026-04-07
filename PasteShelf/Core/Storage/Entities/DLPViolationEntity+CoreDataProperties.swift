@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension DLPViolationEntity {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<DLPViolationEntity> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<DLPViolationEntity> {
         NSFetchRequest<DLPViolationEntity>(entityName: "DLPViolationEntity")
     }
 

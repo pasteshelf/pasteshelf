@@ -192,93 +192,7 @@ extension SAMLParser: XMLParserDelegate {
         currentText = ""
         attributes = attributeDict
 
-        switch elementName {
-        case "Response",
-             "samlp:Response":
-            responseId = attributeDict["ID"] ?? ""
-            responseInResponseTo = attributeDict["InResponseTo"]
-            responseDestination = attributeDict["Destination"]
-            responseVersion = attributeDict["Version"] ?? "2.0"
-            if let instant = attributeDict["IssueInstant"] {
-                responseIssueInstant = parseDate(instant)
-            }
-
-        case "Assertion",
-             "saml:Assertion":
-            currentAssertion = AssertionBuilder()
-            currentAssertion?.id = attributeDict["ID"] ?? ""
-            currentAssertion?.version = attributeDict["Version"] ?? "2.0"
-            if let instant = attributeDict["IssueInstant"] {
-                currentAssertion?.issueInstant = parseDate(instant)
-            }
-
-        case "Subject",
-             "saml:Subject":
-            currentSubject = SubjectBuilder()
-
-        case "NameID",
-             "saml:NameID":
-            currentSubject?.nameIDFormat = SAMLNameIDFormat(rawValue: attributeDict["Format"] ?? "")
-            currentSubject?.nameQualifier = attributeDict["NameQualifier"]
-
-        case "SubjectConfirmation",
-             "saml:SubjectConfirmation":
-            currentSubject?.confirmationMethod = SAMLConfirmationMethod(rawValue: attributeDict["Method"] ?? "")
-
-        case "SubjectConfirmationData",
-             "saml:SubjectConfirmationData":
-            currentSubject?.confirmationRecipient = attributeDict["Recipient"]
-            currentSubject?.confirmationInResponseTo = attributeDict["InResponseTo"]
-            if let notOnOrAfter = attributeDict["NotOnOrAfter"] {
-                currentSubject?.confirmationNotOnOrAfter = parseDate(notOnOrAfter)
-            }
-
-        case "Conditions",
-             "saml:Conditions":
-            currentConditions = ConditionsBuilder()
-            if let notBefore = attributeDict["NotBefore"] {
-                currentConditions?.notBefore = parseDate(notBefore)
-            }
-            if let notOnOrAfter = attributeDict["NotOnOrAfter"] {
-                currentConditions?.notOnOrAfter = parseDate(notOnOrAfter)
-            }
-
-        case "AuthnStatement",
-             "saml:AuthnStatement":
-            currentAuthnStatement = AuthnStatementBuilder()
-            if let instant = attributeDict["AuthnInstant"] {
-                currentAuthnStatement?.authnInstant = parseDate(instant)
-            }
-            currentAuthnStatement?.sessionIndex = attributeDict["SessionIndex"]
-            if let sessionNotOnOrAfter = attributeDict["SessionNotOnOrAfter"] {
-                currentAuthnStatement?.sessionNotOnOrAfter = parseDate(sessionNotOnOrAfter)
-            }
-
-        case "AttributeStatement",
-             "saml:AttributeStatement":
-            currentAttributeStatement = []
-
-        case "Attribute",
-             "saml:Attribute":
-            currentAttribute = AttributeBuilder()
-            currentAttribute?.name = attributeDict["Name"] ?? ""
-            currentAttribute?.friendlyName = attributeDict["FriendlyName"]
-            if let format = attributeDict["NameFormat"] {
-                currentAttribute?.nameFormat = SAMLAttributeNameFormat(rawValue: format)
-            }
-
-        case "StatusCode",
-             "samlp:StatusCode":
-            let code = SAMLStatusCode(rawValue: attributeDict["Value"] ?? "")
-            if statusCode == .unknown {
-                statusCode = code
-            } else {
-                statusSubCode = code
-            }
-
-        default:
-            break
-        }
+        handleStartElement(elementName, attributes: attributeDict)
     }
 
     func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -293,6 +207,129 @@ extension SAMLParser: XMLParserDelegate {
     ) {
         let trimmedText = currentText.trimmingCharacters(in: .whitespacesAndNewlines)
 
+        handleEndElement(elementName, trimmedText: trimmedText)
+
+        elementStack.removeLast()
+        currentElement = elementStack.last ?? ""
+        currentText = ""
+    }
+}
+
+// MARK: - SAMLParser Element Handlers
+
+private extension SAMLParser {
+    func handleStartElement(_ elementName: String, attributes attributeDict: [String: String]) {
+        switch elementName {
+        case "Response",
+             "samlp:Response":
+            handleStartResponse(attributeDict)
+        case "Assertion",
+             "saml:Assertion":
+            handleStartAssertion(attributeDict)
+        case "Subject",
+             "saml:Subject":
+            currentSubject = SubjectBuilder()
+        case "NameID",
+             "saml:NameID":
+            handleStartNameID(attributeDict)
+        case "SubjectConfirmation",
+             "saml:SubjectConfirmation":
+            currentSubject?.confirmationMethod = SAMLConfirmationMethod(rawValue: attributeDict["Method"] ?? "")
+        case "SubjectConfirmationData",
+             "saml:SubjectConfirmationData":
+            handleStartSubjectConfirmationData(attributeDict)
+        case "Conditions",
+             "saml:Conditions":
+            handleStartConditions(attributeDict)
+        case "AuthnStatement",
+             "saml:AuthnStatement":
+            handleStartAuthnStatement(attributeDict)
+        case "AttributeStatement",
+             "saml:AttributeStatement":
+            currentAttributeStatement = []
+        case "Attribute",
+             "saml:Attribute":
+            handleStartAttribute(attributeDict)
+        case "StatusCode",
+             "samlp:StatusCode":
+            handleStartStatusCode(attributeDict)
+        default:
+            break
+        }
+    }
+
+    func handleStartResponse(_ attrs: [String: String]) {
+        responseId = attrs["ID"] ?? ""
+        responseInResponseTo = attrs["InResponseTo"]
+        responseDestination = attrs["Destination"]
+        responseVersion = attrs["Version"] ?? "2.0"
+        if let instant = attrs["IssueInstant"] {
+            responseIssueInstant = parseDate(instant)
+        }
+    }
+
+    func handleStartAssertion(_ attrs: [String: String]) {
+        currentAssertion = AssertionBuilder()
+        currentAssertion?.id = attrs["ID"] ?? ""
+        currentAssertion?.version = attrs["Version"] ?? "2.0"
+        if let instant = attrs["IssueInstant"] {
+            currentAssertion?.issueInstant = parseDate(instant)
+        }
+    }
+
+    func handleStartNameID(_ attrs: [String: String]) {
+        currentSubject?.nameIDFormat = SAMLNameIDFormat(rawValue: attrs["Format"] ?? "")
+        currentSubject?.nameQualifier = attrs["NameQualifier"]
+    }
+
+    func handleStartSubjectConfirmationData(_ attrs: [String: String]) {
+        currentSubject?.confirmationRecipient = attrs["Recipient"]
+        currentSubject?.confirmationInResponseTo = attrs["InResponseTo"]
+        if let notOnOrAfter = attrs["NotOnOrAfter"] {
+            currentSubject?.confirmationNotOnOrAfter = parseDate(notOnOrAfter)
+        }
+    }
+
+    func handleStartConditions(_ attrs: [String: String]) {
+        currentConditions = ConditionsBuilder()
+        if let notBefore = attrs["NotBefore"] {
+            currentConditions?.notBefore = parseDate(notBefore)
+        }
+        if let notOnOrAfter = attrs["NotOnOrAfter"] {
+            currentConditions?.notOnOrAfter = parseDate(notOnOrAfter)
+        }
+    }
+
+    func handleStartAuthnStatement(_ attrs: [String: String]) {
+        currentAuthnStatement = AuthnStatementBuilder()
+        if let instant = attrs["AuthnInstant"] {
+            currentAuthnStatement?.authnInstant = parseDate(instant)
+        }
+        currentAuthnStatement?.sessionIndex = attrs["SessionIndex"]
+        if let sessionNotOnOrAfter = attrs["SessionNotOnOrAfter"] {
+            currentAuthnStatement?.sessionNotOnOrAfter = parseDate(sessionNotOnOrAfter)
+        }
+    }
+
+    func handleStartAttribute(_ attrs: [String: String]) {
+        currentAttribute = AttributeBuilder()
+        currentAttribute?.name = attrs["Name"] ?? ""
+        currentAttribute?.friendlyName = attrs["FriendlyName"]
+        if let format = attrs["NameFormat"] {
+            currentAttribute?.nameFormat = SAMLAttributeNameFormat(rawValue: format)
+        }
+    }
+
+    func handleStartStatusCode(_ attrs: [String: String]) {
+        let code = SAMLStatusCode(rawValue: attrs["Value"] ?? "")
+        if statusCode == .unknown {
+            statusCode = code
+        } else {
+            statusSubCode = code
+        }
+    }
+
+    func handleEndElement(_ elementName: String, trimmedText: String) {
         switch elementName {
         case "Issuer",
              "saml:Issuer":
@@ -301,210 +338,85 @@ extension SAMLParser: XMLParserDelegate {
             } else {
                 responseIssuer = trimmedText
             }
-
         case "NameID",
              "saml:NameID":
             currentSubject?.nameID = trimmedText
-
         case "Audience",
              "saml:Audience":
             currentConditions?.audiences.append(trimmedText)
-
         case "AuthnContextClassRef",
              "saml:AuthnContextClassRef":
             currentAuthnStatement?.authnContextClassRef = SAMLAuthnContextClass(rawValue: trimmedText)
-
         case "AttributeValue",
              "saml:AttributeValue":
             currentAttribute?.values.append(trimmedText)
-
         case "StatusMessage",
              "samlp:StatusMessage":
             statusMessage = trimmedText
-
         case "Attribute",
              "saml:Attribute":
-            if let attr = currentAttribute?.build() {
-                currentAttributeStatement.append(attr)
-            }
-            currentAttribute = nil
-
+            handleEndAttribute()
         case "AttributeStatement",
              "saml:AttributeStatement":
-            let statement = SAMLAttributeStatement(attributes: currentAttributeStatement)
-            currentAssertion?.attributeStatements.append(statement)
-            currentAttributeStatement = []
-
+            handleEndAttributeStatement()
         case "Subject",
              "saml:Subject":
-            if let subject = currentSubject?.build() {
-                currentAssertion?.subject = subject
-            }
-            currentSubject = nil
-
+            handleEndSubject()
         case "Conditions",
              "saml:Conditions":
-            if let conditions = currentConditions?.build() {
-                currentAssertion?.conditions = conditions
-            }
-            currentConditions = nil
-
+            handleEndConditions()
         case "AuthnStatement",
              "saml:AuthnStatement":
-            if let authnStatement = currentAuthnStatement?.build() {
-                currentAssertion?.authnStatement = authnStatement
-            }
-            currentAuthnStatement = nil
-
+            handleEndAuthnStatement()
         case "Assertion",
              "saml:Assertion":
-            if let assertion = currentAssertion?.build() {
-                assertions.append(assertion)
-            }
-            currentAssertion = nil
-
+            handleEndAssertion()
         default:
             break
         }
-
-        elementStack.removeLast()
-        currentElement = elementStack.last ?? ""
-        currentText = ""
     }
-}
 
-// MARK: - AssertionBuilder
-
-private class AssertionBuilder {
-    var id = ""
-    var issuer = ""
-    var issueInstant: Date?
-    var version = "2.0"
-    var subject: SAMLSubject?
-    var conditions: SAMLConditions?
-    var authnStatement: SAMLAuthnStatement?
-    var attributeStatements: [SAMLAttributeStatement] = []
-
-    func build() -> SAMLAssertion? {
-        guard !id.isEmpty,
-              !issuer.isEmpty,
-              let issueInstant,
-              let subject,
-              let conditions
-        else {
-            return nil
+    func handleEndAttribute() {
+        if let attr = currentAttribute?.build() {
+            currentAttributeStatement.append(attr)
         }
-
-        return SAMLAssertion(
-            id: id,
-            issuer: issuer,
-            issueInstant: issueInstant,
-            version: version,
-            subject: subject,
-            conditions: conditions,
-            authnStatement: authnStatement,
-            attributeStatements: attributeStatements
-        )
+        currentAttribute = nil
     }
-}
 
-// MARK: - SubjectBuilder
+    func handleEndAttributeStatement() {
+        let statement = SAMLAttributeStatement(attributes: currentAttributeStatement)
+        currentAssertion?.attributeStatements.append(statement)
+        currentAttributeStatement = []
+    }
 
-private class SubjectBuilder {
-    var nameID = ""
-    var nameIDFormat: SAMLNameIDFormat = .unspecified
-    var nameQualifier: String?
-    var confirmationMethod: SAMLConfirmationMethod = .bearer
-    var confirmationRecipient: String?
-    var confirmationNotOnOrAfter: Date?
-    var confirmationInResponseTo: String?
-
-    func build() -> SAMLSubject? {
-        guard !nameID.isEmpty else {
-            return nil
+    func handleEndSubject() {
+        if let subject = currentSubject?.build() {
+            currentAssertion?.subject = subject
         }
-
-        let confirmationData = SAMLSubjectConfirmationData(
-            recipient: confirmationRecipient,
-            notOnOrAfter: confirmationNotOnOrAfter,
-            inResponseTo: confirmationInResponseTo
-        )
-
-        let confirmation = SAMLSubjectConfirmation(
-            method: confirmationMethod,
-            confirmationData: confirmationData
-        )
-
-        return SAMLSubject(
-            nameID: nameID,
-            nameIDFormat: nameIDFormat,
-            nameQualifier: nameQualifier,
-            confirmations: [confirmation]
-        )
+        currentSubject = nil
     }
-}
 
-// MARK: - ConditionsBuilder
-
-private class ConditionsBuilder {
-    var notBefore: Date?
-    var notOnOrAfter: Date?
-    var audiences: [String] = []
-
-    func build() -> SAMLConditions? {
-        guard let notBefore, let notOnOrAfter else {
-            return nil
+    func handleEndConditions() {
+        if let conditions = currentConditions?.build() {
+            currentAssertion?.conditions = conditions
         }
-
-        let audienceRestriction = SAMLAudienceRestriction(audiences: audiences)
-        return SAMLConditions(
-            notBefore: notBefore,
-            notOnOrAfter: notOnOrAfter,
-            audienceRestrictions: audiences.isEmpty ? [] : [audienceRestriction]
-        )
+        currentConditions = nil
     }
-}
 
-// MARK: - AuthnStatementBuilder
-
-private class AuthnStatementBuilder {
-    var authnInstant: Date?
-    var sessionIndex: String?
-    var sessionNotOnOrAfter: Date?
-    var authnContextClassRef: SAMLAuthnContextClass = .unspecified
-
-    func build() -> SAMLAuthnStatement? {
-        guard let authnInstant else {
-            return nil
+    func handleEndAuthnStatement() {
+        if let authnStatement = currentAuthnStatement?.build() {
+            currentAssertion?.authnStatement = authnStatement
         }
-
-        return SAMLAuthnStatement(
-            authnInstant: authnInstant,
-            sessionIndex: sessionIndex,
-            sessionNotOnOrAfter: sessionNotOnOrAfter,
-            authnContext: SAMLAuthnContext(classRef: authnContextClassRef)
-        )
+        currentAuthnStatement = nil
     }
-}
 
-// MARK: - AttributeBuilder
-
-private class AttributeBuilder {
-    var name = ""
-    var friendlyName: String?
-    var nameFormat: SAMLAttributeNameFormat?
-    var values: [String] = []
-
-    func build() -> SAMLAttribute? {
-        guard !name.isEmpty else {
-            return nil
+    func handleEndAssertion() {
+        if let assertion = currentAssertion?.build() {
+            assertions.append(assertion)
         }
-
-        return SAMLAttribute(
-            name: name,
-            friendlyName: friendlyName,
-            nameFormat: nameFormat,
-            values: values
-        )
+        currentAssertion = nil
     }
 }
+
+// Builder classes (AssertionBuilder, SubjectBuilder, ConditionsBuilder,
+// AuthnStatementBuilder, AttributeBuilder) are in SAMLParserBuilders.swift

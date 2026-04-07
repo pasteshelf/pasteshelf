@@ -42,6 +42,7 @@ enum NaturalLanguageQueryParser {
 
     // MARK: - Parsing
 
+    // swiftlint:disable cyclomatic_complexity function_body_length
     /// Parses a natural language query into structured components
     /// - Parameter query: The raw query string
     /// - Returns: A ParsedQuery with extracted filters and semantic text
@@ -137,6 +138,8 @@ enum NaturalLanguageQueryParser {
         )
     }
 
+    // swiftlint:enable cyclomatic_complexity function_body_length
+
     // MARK: Private
 
     // MARK: - Time Reference Patterns
@@ -231,34 +234,40 @@ enum NaturalLanguageQueryParser {
     private static func yesterday() -> DateRange {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
-        return DateRange(start: yesterday, end: today)
+        let yesterdayDate = calendar.date(byAdding: .day, value: -1, to: today)
+            ?? today
+        return DateRange(start: yesterdayDate, end: today)
     }
 
     private static func thisWeek() -> DateRange {
         let calendar = Calendar.current
         let now = Date()
-        let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))!
+        let weekStart = calendar.date(
+            from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
+        ) ?? now
         return DateRange(start: weekStart, end: now)
     }
 
     private static func thisMonth() -> DateRange {
         let calendar = Calendar.current
         let now = Date()
-        let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
+        let monthStart = calendar.date(
+            from: calendar.dateComponents([.year, .month], from: now)
+        ) ?? now
         return DateRange(start: monthStart, end: now)
     }
 
-    private static func lastNDays(_ n: Int) -> DateRange {
+    private static func lastNDays(_ dayCount: Int) -> DateRange {
         let calendar = Calendar.current
         let end = Date()
-        let start = calendar.date(byAdding: .day, value: -n, to: end)!
+        let start = calendar.date(byAdding: .day, value: -dayCount, to: end)
+            ?? end
         return DateRange(start: start, end: end)
     }
 
-    private static func lastNHours(_ n: Int) -> DateRange {
+    private static func lastNHours(_ hourCount: Int) -> DateRange {
         let end = Date()
-        let start = Date(timeIntervalSinceNow: TimeInterval(-n * 3600))
+        let start = Date(timeIntervalSinceNow: TimeInterval(-hourCount * 3600))
         return DateRange(start: start, end: end)
     }
 }

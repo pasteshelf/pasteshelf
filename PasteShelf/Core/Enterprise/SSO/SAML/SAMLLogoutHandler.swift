@@ -144,6 +144,10 @@ final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
     /// Callback URL scheme for receiving SLO responses
     private let callbackScheme = "pasteshelf"
 
+    // Synthetic callback URL used when the IdP does not redirect back.
+    // swiftlint:disable:next force_unwrapping
+    private lazy var sloCompleteURL = URL(string: "\(callbackScheme)://slo-complete")!
+
     // MARK: - Browser Logout
 
     /// Opens the IdP SLO URL in a managed browser session and waits for the callback.
@@ -164,7 +168,7 @@ final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
                     {
                         // Build a synthetic callback URL so the caller can handle gracefully
                         continuation.resume(
-                            returning: URL(string: "\(self.callbackScheme)://slo-complete")!
+                            returning: self.sloCompleteURL
                         )
                         return
                     }
@@ -177,7 +181,7 @@ final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
                 guard let callbackURL else {
                     // No redirect back from IdP — treat as success
                     continuation.resume(
-                        returning: URL(string: "\(self.callbackScheme)://slo-complete")!
+                        returning: self.sloCompleteURL
                     )
                     return
                 }

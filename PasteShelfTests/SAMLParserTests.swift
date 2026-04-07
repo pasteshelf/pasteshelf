@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  SAMLParserTests.swift
 //  PasteShelfTests
@@ -11,7 +12,8 @@ import Testing
 
 // MARK: - Test Fixtures
 
-/// Generates valid SAML 2.0 XML for testing.
+// Generates valid SAML 2.0 XML for testing.
+// swiftlint:disable:next function_body_length
 private func makeValidSAMLResponseXML(
     responseId: String = "_response123",
     assertionId: String = "_assertion456",
@@ -33,6 +35,7 @@ private func makeValidSAMLResponseXML(
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime]
 
+    // swiftlint:disable line_length
     let assertionXML = includeAssertion ? """
         <saml:Assertion ID="\(assertionId)" Version="2.0" IssueInstant="\(formatter.string(from: now))">
             <saml:Issuer>\(issuer)</saml:Issuer>
@@ -72,6 +75,7 @@ private func makeValidSAMLResponseXML(
             </saml:AttributeStatement>
         </saml:Assertion>
     """ : ""
+    // swiftlint:enable line_length
 
     let xml = """
     <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
@@ -88,7 +92,7 @@ private func makeValidSAMLResponseXML(
         \(assertionXML)
     </samlp:Response>
     """
-    return xml.data(using: .utf8)!
+    return Data(xml.utf8)
 }
 
 /// Generates a standalone SAML assertion XML for testing.
@@ -108,6 +112,7 @@ private func makeStandaloneAssertionXML(
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime]
 
+    // swiftlint:disable line_length
     let xml = """
     <saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
                     ID="\(assertionId)" Version="2.0" IssueInstant="\(formatter.string(from: now))">
@@ -144,7 +149,8 @@ private func makeStandaloneAssertionXML(
         </saml:AttributeStatement>
     </saml:Assertion>
     """
-    return xml.data(using: .utf8)!
+    // swiftlint:enable line_length
+    return Data(xml.utf8)
 }
 
 // MARK: - SAMLParserTests
@@ -262,7 +268,7 @@ struct SAMLParserTests {
 
     @Test("parseResponse with invalid XML throws xmlParsingFailed error")
     func parseResponse_invalidXML_throwsParsingError() throws {
-        let invalidData = "not xml at all <<<>>>".data(using: .utf8)!
+        let invalidData = Data("not xml at all <<<>>>".utf8)
 
         #expect(throws: (any Error).self) {
             try parser.parseResponse(invalidData)
@@ -349,7 +355,7 @@ struct SAMLParserTests {
 
     @Test("parseAssertion with invalid XML throws error")
     func parseAssertion_invalidXML_throwsError() {
-        let badData = "<not-an-assertion/>".data(using: .utf8)!
+        let badData = Data("<not-an-assertion/>".utf8)
 
         #expect(throws: (any Error).self) {
             try parser.parseAssertion(badData)
@@ -358,6 +364,7 @@ struct SAMLParserTests {
 
     // MARK: - Multiple Attribute Statements
 
+    // swiftlint:disable function_body_length
     @Test("parseResponse handles multiple attribute statements in assertion")
     func parseResponse_multipleAttributeStatements_parsesAll() throws {
         let now = Date()
@@ -367,6 +374,7 @@ struct SAMLParserTests {
         let notOnOrAfter = formatter.string(from: now.addingTimeInterval(3600))
         let issueInstant = formatter.string(from: now)
 
+        // swiftlint:disable line_length
         let xml = """
         <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
                         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
@@ -412,6 +420,7 @@ struct SAMLParserTests {
             </saml:Assertion>
         </samlp:Response>
         """
+        // swiftlint:enable line_length
         let data = try #require(xml.data(using: .utf8))
 
         let response = try parser.parseResponse(data)
@@ -422,6 +431,7 @@ struct SAMLParserTests {
         #expect(assertion.email == "user@example.com")
         #expect(assertion.groups.contains("engineering"))
     }
+    // swiftlint:enable function_body_length
 }
 
 // MARK: - SAMLAssertionTests
@@ -1030,9 +1040,15 @@ struct SAMLValidationErrorTests {
 
     @Test("SAMLValidationError equality holds for same cases")
     func equality_sameCases_areEqual() {
-        #expect(SAMLValidationError.missingAssertion == SAMLValidationError.missingAssertion)
-        #expect(SAMLValidationError.assertionExpired == SAMLValidationError.assertionExpired)
-        #expect(SAMLValidationError.signatureInvalid == SAMLValidationError.signatureInvalid)
+        let missing1 = SAMLValidationError.missingAssertion
+        let missing2 = SAMLValidationError.missingAssertion
+        #expect(missing1 == missing2)
+        let expired1 = SAMLValidationError.assertionExpired
+        let expired2 = SAMLValidationError.assertionExpired
+        #expect(expired1 == expired2)
+        let sigInvalid1 = SAMLValidationError.signatureInvalid
+        let sigInvalid2 = SAMLValidationError.signatureInvalid
+        #expect(sigInvalid1 == sigInvalid2)
     }
 
     @Test("SAMLValidationError inequality holds for different cases")

@@ -81,8 +81,8 @@ struct ImageProcessorTests {
         // We verify the pixel dimensions are a positive multiple of the point size.
         #expect(result.width > 0)
         #expect(result.height > 0)
-        #expect(result.width % 800 == 0)
-        #expect(result.height % 600 == 0)
+        #expect(result.width.isMultiple(of: 800))
+        #expect(result.height.isMultiple(of: 600))
         // Aspect ratio should be preserved regardless of scale factor
         let expectedRatio = 800.0 / 600.0
         let actualRatio = Double(result.width) / Double(result.height)

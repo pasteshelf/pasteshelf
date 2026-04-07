@@ -131,7 +131,10 @@
             // Append blocks to page
             let requestBody = NotionAppendRequest(children: blocks)
 
-            var request = URLRequest(url: URL(string: "https://api.notion.com/v1/blocks/\(pageId)/children")!)
+            guard let apiURL = URL(string: "https://api.notion.com/v1/blocks/\(pageId)/children") else {
+                throw PluginError.executionFailed("Invalid Notion API URL")
+            }
+            var request = URLRequest(url: apiURL)
             request.httpMethod = "PATCH"
             request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -313,6 +316,7 @@
 
                     Link(
                         "Create an integration at notion.so/my-integrations",
+                        // swiftlint:disable:next force_unwrapping
                         destination: URL(string: "https://www.notion.so/my-integrations")!
                     )
                     .font(.caption)

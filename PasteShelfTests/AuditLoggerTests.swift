@@ -265,7 +265,7 @@ struct AuditLoggerTests {
             severity: .info,
             userId: nil,
             deviceId: nil,
-            resourceType: policyId != "" ? "Policy" : nil,
+            resourceType: !policyId.isEmpty ? "Policy" : nil,
             resourceId: policyId,
             detail: [:]
         )

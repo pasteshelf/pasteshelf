@@ -76,9 +76,12 @@ final class SelfHostedAPIClient: @unchecked Sendable {
     // MARK: - Device Endpoints
 
     /// Register this device with the sync server.
-    func registerDevice(deviceID: String, deviceName: String?, osVersion: String?,
-                        appVersion: String?) async throws -> DeviceResult
-    {
+    func registerDevice(
+        deviceID: String,
+        deviceName: String?,
+        osVersion: String?,
+        appVersion: String?
+    ) async throws -> DeviceResult {
         let body: [String: Any?] = [
             "deviceID": deviceID,
             "deviceName": deviceName,

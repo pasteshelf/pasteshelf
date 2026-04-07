@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 #if !APP_STORE
 //
     //  PluginManager.swift
@@ -6,13 +7,15 @@
     //  Central manager for plugin lifecycle, state, and coordination.
 //
 
+    // swiftformat:disable organizeDeclarations
+
     import Combine
     import Foundation
     import os.log
 
     /// Central manager for all plugin operations
     @MainActor
-    final class PluginManager: ObservableObject {
+    final class PluginManager: ObservableObject { // swiftlint:disable:this type_body_length
         // MARK: Lifecycle
 
         // MARK: - Initialization
@@ -93,6 +96,7 @@
                     plugin.loadError = error.localizedDescription
                     logger
                         .warning(
+                            // swiftlint:disable:next line_length
                             "Plugin \(bundle.manifest.identifier) failed validation: \(error.localizedDescription ?? "Unknown")"
                         )
                 }
@@ -164,7 +168,6 @@
                 enabledPluginIds = enabled
 
                 logger.info("Loaded plugin: \(plugin.bundle.manifest.name)")
-
             } catch {
                 plugin.state = .failed
                 plugin.loadError = error.localizedDescription
@@ -318,10 +321,8 @@
 
             // Find removed plugins
             let removedIds = Set(plugins.keys).subtracting(Set(newPlugins.keys))
-            for id in removedIds {
-                if activePlugins[id] != nil {
-                    await unloadPlugin(id: id)
-                }
+            for id in removedIds where activePlugins[id] != nil {
+                await unloadPlugin(id: id)
             }
 
             plugins = newPlugins
@@ -358,48 +359,50 @@
 
         // MARK: - Built-In Plugin Registration
 
+        private struct BuiltInPluginDefinition {
+            let id: String
+            let name: String
+            let pluginClass: String
+            let description: String
+            let categories: [PluginCategory]
+        }
+
         /// Definitions of built-in plugins compiled into the app
-        private static let builtInPluginDefinitions: [(
-            id: String,
-            name: String,
-            pluginClass: String,
-            description: String,
-            categories: [PluginCategory]
-        )] = [
-            (
-                "com.pasteshelf.plugins.jsonbeautifier",
-                "JSON Beautifier",
-                "JSONBeautifier",
-                "Formats, minifies, and validates JSON content",
-                [.formatting, .developer]
+        private static let builtInPluginDefinitions: [BuiltInPluginDefinition] = [
+            BuiltInPluginDefinition(
+                id: "com.pasteshelf.plugins.jsonbeautifier",
+                name: "JSON Beautifier",
+                pluginClass: "JSONBeautifier",
+                description: "Formats, minifies, and validates JSON content",
+                categories: [.formatting, .developer]
             ),
-            (
-                "com.pasteshelf.plugins.markdownformatter",
-                "Markdown Formatter",
-                "MarkdownFormatter",
-                "Formats and cleans up Markdown text",
-                [.formatting]
+            BuiltInPluginDefinition(
+                id: "com.pasteshelf.plugins.markdownformatter",
+                name: "Markdown Formatter",
+                pluginClass: "MarkdownFormatter",
+                description: "Formats and cleans up Markdown text",
+                categories: [.formatting]
             ),
-            (
-                "com.pasteshelf.plugins.urlshortener",
-                "URL Shortener",
-                "URLShortener",
-                "Shortens URLs using popular services",
-                [.utility]
+            BuiltInPluginDefinition(
+                id: "com.pasteshelf.plugins.urlshortener",
+                name: "URL Shortener",
+                pluginClass: "URLShortener",
+                description: "Shortens URLs using popular services",
+                categories: [.utility]
             ),
-            (
-                "com.pasteshelf.plugins.githubgist",
-                "GitHub Gist",
-                "GitHubGist",
-                "Create GitHub Gists from clipboard content",
-                [.integration, .developer]
+            BuiltInPluginDefinition(
+                id: "com.pasteshelf.plugins.githubgist",
+                name: "GitHub Gist",
+                pluginClass: "GitHubGist",
+                description: "Create GitHub Gists from clipboard content",
+                categories: [.integration, .developer]
             ),
-            (
-                "com.pasteshelf.plugins.notion",
-                "Notion",
-                "Notion",
-                "Send clipboard content to Notion",
-                [.integration, .productivity]
+            BuiltInPluginDefinition(
+                id: "com.pasteshelf.plugins.notion",
+                name: "Notion",
+                pluginClass: "Notion",
+                description: "Send clipboard content to Notion",
+                categories: [.integration, .productivity]
             ),
         ]
 

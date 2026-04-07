@@ -23,26 +23,26 @@ final class SyncKeyManager: Sendable {
 
     // MARK: - Public API
 
-    /// Check if the master encryption key exists
+    /// Check if the primary encryption key exists
     var hasKey: Bool {
-        loadMasterKey() != nil
+        loadPrimaryKey() != nil
     }
 
     /// Get or create the sync encryption key
     /// - Returns: 256-bit symmetric key for AES-256-GCM
     /// - Throws: SyncError if key generation or retrieval fails
     func getOrCreateSyncKey() throws -> SymmetricKey {
-        let masterKey: Data
+        let primaryKey: Data
 
-        if let existingKey = loadMasterKey() {
-            masterKey = existingKey
-            Self.logger.debug("Loaded existing master key from keychain")
+        if let existingKey = loadPrimaryKey() {
+            primaryKey = existingKey
+            Self.logger.debug("Loaded existing primary key from keychain")
         } else {
-            masterKey = try generateAndStoreMasterKey()
-            Self.logger.info("Generated and stored new master key")
+            primaryKey = try generateAndStorePrimaryKey()
+            Self.logger.info("Generated and stored new primary key")
         }
 
-        return deriveSyncKey(from: masterKey)
+        return deriveSyncKey(from: primaryKey)
     }
 
     /// Get the raw sync key data (for protocol conformance)
@@ -53,33 +53,33 @@ final class SyncKeyManager: Sendable {
 
     /// Delete all sync keys (for reset functionality)
     func deleteKeys() throws {
-        try deleteKeyFromKeychain(account: masterKeyAccount)
+        try deleteKeyFromKeychain(account: primaryKeyAccount)
         Self.logger.info("Deleted sync encryption keys")
     }
 
-    /// Rotate the master key
+    /// Rotate the primary key
     /// - Returns: The new sync key (caller must re-encrypt data)
     func rotateKey() throws -> SymmetricKey {
         // Delete existing key
         try? deleteKeys()
 
         // Generate new key
-        let newMasterKey = try generateAndStoreMasterKey()
-        Self.logger.info("Rotated master encryption key")
+        let newPrimaryKey = try generateAndStorePrimaryKey()
+        Self.logger.info("Rotated primary encryption key")
 
-        return deriveSyncKey(from: newMasterKey)
+        return deriveSyncKey(from: newPrimaryKey)
     }
 
     // MARK: Private
 
-    /// Size of the master key in bytes (256 bits)
-    private static let masterKeySize = 32
+    /// Size of the primary key in bytes (256 bits)
+    private static let primaryKeySize = 32
 
     /// Salt for HKDF key derivation
-    private static let derivationSalt = "com.pasteshelf.sync".data(using: .utf8)!
+    private static let derivationSalt = Data("com.pasteshelf.sync".utf8)
 
     /// Info string for deriving the sync encryption key
-    private static let syncKeyInfo = "encryption-key-v1".data(using: .utf8)!
+    private static let syncKeyInfo = Data("encryption-key-v1".utf8)
 
     // MARK: - Logger
 
@@ -93,20 +93,20 @@ final class SyncKeyManager: Sendable {
     /// Keychain service identifier for sync keys
     private let service = "com.pasteshelf.sync"
 
-    /// Keychain account for the master encryption key
-    private let masterKeyAccount = "master_encryption_key"
+    /// Keychain account for the primary encryption key
+    private let primaryKeyAccount = "master_encryption_key"
 
     // MARK: - Private Key Operations
 
-    /// Generate a new master key and store it in keychain
-    private func generateAndStoreMasterKey() throws -> Data {
+    /// Generate a new primary key and store it in keychain
+    private func generateAndStorePrimaryKey() throws -> Data {
         // Generate cryptographically secure random bytes
-        var keyData = Data(count: Self.masterKeySize)
+        var keyData = Data(count: Self.primaryKeySize)
         let result = keyData.withUnsafeMutableBytes { buffer in
             guard let baseAddress = buffer.baseAddress else {
                 return errSecParam
             }
-            return SecRandomCopyBytes(kSecRandomDefault, Self.masterKeySize, baseAddress)
+            return SecRandomCopyBytes(kSecRandomDefault, Self.primaryKeySize, baseAddress)
         }
 
         guard result == errSecSuccess else {
@@ -115,31 +115,31 @@ final class SyncKeyManager: Sendable {
         }
 
         // Store in iCloud Keychain
-        try storeInKeychain(data: keyData, account: masterKeyAccount)
+        try storeInKeychain(data: keyData, account: primaryKeyAccount)
 
         return keyData
     }
 
-    /// Derive the sync encryption key from master key using HKDF
-    private func deriveSyncKey(from masterKey: Data) -> SymmetricKey {
-        let masterSymmetricKey = SymmetricKey(data: masterKey)
+    /// Derive the sync encryption key from primary key using HKDF
+    private func deriveSyncKey(from primaryKey: Data) -> SymmetricKey {
+        let primarySymmetricKey = SymmetricKey(data: primaryKey)
 
         // Use HKDF to derive the actual encryption key
         // This provides key separation and allows for multiple derived keys if needed
         return HKDF<SHA256>.deriveKey(
-            inputKeyMaterial: masterSymmetricKey,
+            inputKeyMaterial: primarySymmetricKey,
             salt: Self.derivationSalt,
             info: Self.syncKeyInfo,
-            outputByteCount: Self.masterKeySize
+            outputByteCount: Self.primaryKeySize
         )
     }
 
-    /// Load master key from keychain
-    private func loadMasterKey() -> Data? {
+    /// Load primary key from keychain
+    private func loadPrimaryKey() -> Data? {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: masterKeyAccount,
+            kSecAttrAccount as String: primaryKeyAccount,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
             // Enable iCloud Keychain sync

@@ -37,7 +37,8 @@ enum ClipboardContentMapper {
             .isEmpty ? nil : (try? JSONEncoder().encode(content.sensitiveTypes)).flatMap { String(
                 data: $0,
                 encoding: .utf8
-            ) }
+            )
+            }
         item.isFavorite = false
         item.accessCount = 0
 
@@ -148,7 +149,7 @@ enum ClipboardContentMapper {
     ///   - item: The existing CoreData ClipboardItem
     ///   - content: The new in-memory content
     ///   - context: The managed object context
-    static func updateEntity(
+    static func updateEntity( // swiftlint:disable:this function_body_length
         _ item: ClipboardItem,
         with content: ClipboardContent,
         context: NSManagedObjectContext
@@ -162,7 +163,8 @@ enum ClipboardContentMapper {
             .isEmpty ? nil : (try? JSONEncoder().encode(content.sensitiveTypes)).flatMap { String(
                 data: $0,
                 encoding: .utf8
-            ) }
+            )
+            }
 
         // Update or create content data
         if let contentData = item.content {

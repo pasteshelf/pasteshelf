@@ -159,7 +159,11 @@
     extension PasteSimulator {
         /// Opens System Preferences to the Accessibility pane
         static func openAccessibilityPreferences() {
-            let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+            let urlString = "x-apple.systempreferences:"
+                + "com.apple.preference.security?Privacy_Accessibility"
+            guard let url = URL(string: urlString) else {
+                return
+            }
             NSWorkspace.shared.open(url)
         }
     }

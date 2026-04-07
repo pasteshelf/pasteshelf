@@ -202,8 +202,10 @@ final class SSOSettingsViewModel: ObservableObject {
                 }
                 let discovery = OIDCDiscovery()
                 let document = try await discovery.discover(issuerURL: config.issuerURL)
+                let scopesList = document.scopesSupported?
+                    .joined(separator: ", ") ?? "unspecified"
                 testResult = .success(
-                    "Connected to \(document.issuer). Scopes supported: \(document.scopesSupported?.joined(separator: ", ") ?? "unspecified")."
+                    "Connected to \(document.issuer). Scopes supported: \(scopesList)."
                 )
 
             case .saml:

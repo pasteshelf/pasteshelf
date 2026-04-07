@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension EmbeddingCache {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<EmbeddingCache> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<EmbeddingCache> {
         NSFetchRequest<EmbeddingCache>(entityName: "EmbeddingCache")
     }
 

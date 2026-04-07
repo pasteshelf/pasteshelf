@@ -6,12 +6,14 @@
 //  Displays list of clipboard items with keyboard navigation support.
 //
 
+// swiftformat:disable organizeDeclarations
+
 import SwiftUI
 
 // MARK: - FloatingPanelView
 
 /// Main view for the floating clipboard history panel
-struct FloatingPanelView: View {
+struct FloatingPanelView: View { // swiftlint:disable:this type_body_length
     // MARK: Internal
 
     @ObservedObject var viewModel: FloatingPanelViewModel
@@ -272,8 +274,8 @@ struct FloatingPanelView: View {
                     Task {
                         if let filter = newValue {
                             await viewModel.toggleContentTypeFilter(filter)
-                        } else if viewModel.activeFilters.contentTypeFilter != nil {
-                            await viewModel.toggleContentTypeFilter(viewModel.activeFilters.contentTypeFilter!)
+                        } else if let current = viewModel.activeFilters.contentTypeFilter {
+                            await viewModel.toggleContentTypeFilter(current)
                         }
                     }
                 }
@@ -397,10 +399,26 @@ struct FloatingPanelView: View {
 
     // MARK: - Item Row
 
-    private func itemRow(for item: ClipboardItemDisplayModel, index: Int? = nil) -> some View {
-        let actualIndex = index ?? viewModel.items.firstIndex(where: { $0.id == item.id }) ?? 0
+    private func itemRow(
+        for item: ClipboardItemDisplayModel,
+        index: Int? = nil
+    ) -> some View {
+        let actualIndex = index ?? viewModel.items.firstIndex { $0.id == item.id } ?? 0
         let matchRanges = viewModel.matchRanges(for: item.id)
 
+        return buildItemRow(
+            item: item,
+            actualIndex: actualIndex,
+            matchRanges: matchRanges
+        )
+        .id(item.id)
+    }
+
+    private func buildItemRow(
+        item: ClipboardItemDisplayModel,
+        actualIndex: Int,
+        matchRanges: [MatchRange]
+    ) -> ClipboardItemRow {
         #if !APP_STORE
             return ClipboardItemRow(
                 item: item,
@@ -408,28 +426,14 @@ struct FloatingPanelView: View {
                 isSelected: viewModel.selectedIndex == actualIndex,
                 searchHighlights: matchRanges,
                 searchQuery: viewModel.isSearchActive ? viewModel.searchQuery : nil,
-                onSelect: {
-                    viewModel.select(at: actualIndex)
-                },
-                onPaste: {
-                    Task {
-                        await viewModel.paste(item: item)
-                    }
-                },
+                onSelect: { viewModel.select(at: actualIndex) },
+                onPaste: { Task { await viewModel.paste(item: item) } },
                 onCopyOCRText: item.hasOCRText ? {
-                    Task {
-                        await viewModel.copyOCRText(for: item)
-                    }
+                    Task { await viewModel.copyOCRText(for: item) }
                 } : nil,
-                onDelete: {
-                    Task {
-                        await viewModel.delete(item: item)
-                    }
-                },
+                onDelete: { Task { await viewModel.delete(item: item) } },
                 onToggleFavorite: {
-                    Task {
-                        await viewModel.toggleFavorite(for: item)
-                    }
+                    Task { await viewModel.toggleFavorite(for: item) }
                 },
                 onPluginAction: { menuItem, pluginId in
                     Task {
@@ -441,7 +445,6 @@ struct FloatingPanelView: View {
                     }
                 }
             )
-            .id(item.id)
         #else
             return ClipboardItemRow(
                 item: item,
@@ -449,31 +452,16 @@ struct FloatingPanelView: View {
                 isSelected: viewModel.selectedIndex == actualIndex,
                 searchHighlights: matchRanges,
                 searchQuery: viewModel.isSearchActive ? viewModel.searchQuery : nil,
-                onSelect: {
-                    viewModel.select(at: actualIndex)
-                },
-                onPaste: {
-                    Task {
-                        await viewModel.paste(item: item)
-                    }
-                },
+                onSelect: { viewModel.select(at: actualIndex) },
+                onPaste: { Task { await viewModel.paste(item: item) } },
                 onCopyOCRText: item.hasOCRText ? {
-                    Task {
-                        await viewModel.copyOCRText(for: item)
-                    }
+                    Task { await viewModel.copyOCRText(for: item) }
                 } : nil,
-                onDelete: {
-                    Task {
-                        await viewModel.delete(item: item)
-                    }
-                },
+                onDelete: { Task { await viewModel.delete(item: item) } },
                 onToggleFavorite: {
-                    Task {
-                        await viewModel.toggleFavorite(for: item)
-                    }
+                    Task { await viewModel.toggleFavorite(for: item) }
                 }
             )
-            .id(item.id)
         #endif
     }
 }

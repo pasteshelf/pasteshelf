@@ -37,7 +37,9 @@ struct OnboardingView: View {
             .padding(.bottom, 16)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(
-                "Setup progress: step \(Self.currentStepNumber(for: viewModel.currentStep)) of \(OnboardingStep.activeSteps.count)"
+                "Setup progress: step "
+                    + "\(Self.currentStepNumber(for: viewModel.currentStep)) "
+                    + "of \(OnboardingStep.activeSteps.count)"
             )
 
             // Step content
@@ -121,8 +123,10 @@ struct OnboardingView: View {
 
     // MARK: Private
 
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dismiss)
+    private var dismiss
+    @Environment(\.accessibilityReduceMotion)
+    private var reduceMotion
 
     private var canProceed: Bool {
         switch viewModel.currentStep {

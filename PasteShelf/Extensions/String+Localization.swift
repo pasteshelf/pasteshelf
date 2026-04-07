@@ -31,7 +31,8 @@ enum LocalizedString {
         static let welcomeSubtitle = "Your privacy-first clipboard manager"
         static let permissionTitle = "Accessibility Permission"
         static let permissionDescription =
-            "PasteShelf needs accessibility permission to paste items into other apps. Your data stays private and is never shared."
+            "PasteShelf needs accessibility permission to paste items into other apps. "
+                + "Your data stays private and is never shared."
         static let permissionGranted = "Permission granted"
         static let permissionRequired = "Permission required"
         static let openSystemSettings = "Open System Settings"
@@ -244,7 +245,9 @@ enum LocalizedString {
         static let floatingPanel = "Floating Panel"
         static let floatingPanelDescription =
             "Press your hotkey to open the clipboard panel. Use arrow keys to navigate and Enter to paste."
+        // swiftlint:disable:next line_length
         static let searchDescription = "Start typing to search through your clipboard history. Use filters to narrow down results."
+        // swiftlint:disable:next line_length
         static let favoritesDescription = "Press ⌘S to mark items as favorites. They'll be preserved even when auto-cleanup runs."
         static let menuBarDescription = "Click the menu bar icon to quickly access recent items or open preferences."
         static let keyShortcuts = "Key Shortcuts"

@@ -13,7 +13,8 @@ struct PasteShelfApp: App {
     // MARK: - App Delegate
 
     /// AppDelegate manages menu bar, floating panel, and clipboard monitoring
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @NSApplicationDelegateAdaptor(AppDelegate.self)
+    var appDelegate
 
     // MARK: - Core Services
 

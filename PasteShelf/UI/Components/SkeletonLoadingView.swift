@@ -55,7 +55,8 @@ struct SkeletonItemRow: View {
     // MARK: Private
 
     @State private var isAnimating = false
-    @Environment(\.reduceMotion) private var reduceMotion
+    @Environment(\.reduceMotion)
+    private var reduceMotion
 
     private var shimmerGradient: LinearGradient {
         let baseOpacity = reduceMotion ? 0.2 : (isAnimating ? 0.3 : 0.15)

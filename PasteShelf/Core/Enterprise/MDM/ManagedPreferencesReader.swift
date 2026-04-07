@@ -62,51 +62,14 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
         var defaults: [ManagedPreferenceKey: PreferenceValue] = [:]
 
         // Strategy 1: Check flat keys via objectIsForced
-        for key in ManagedPreferenceKey.allCases {
-            if userDefaults.objectIsForced(forKey: key.rawValue) {
-                if let value = readPreferenceValue(for: key) {
-                    forced[key] = value
-                }
-            }
-        }
+        readFlatForcedKeys(into: &forced)
 
         // Strategy 2: Check nested ManagedPreferences / DefaultPreferences dicts
-        if let managedDict = userDefaults.dictionary(forKey: "ManagedPreferences") {
-            for key in ManagedPreferenceKey.allCases {
-                guard forced[key] == nil else {
-                    continue
-                } // Flat forced takes priority
-                if let rawValue = managedDict[key.rawValue] {
-                    if let value = convertToPreferenceValue(rawValue) {
-                        forced[key] = value
-                    }
-                }
-            }
-        }
-
-        if let defaultDict = userDefaults.dictionary(forKey: "DefaultPreferences") {
-            for key in ManagedPreferenceKey.allCases {
-                if let rawValue = defaultDict[key.rawValue] {
-                    if let value = convertToPreferenceValue(rawValue) {
-                        defaults[key] = value
-                    }
-                }
-            }
-        }
+        readNestedManagedKeys(into: &forced)
+        readNestedDefaultKeys(into: &defaults)
 
         // Strategy 3: Non-forced flat keys that exist become defaults
-        for key in ManagedPreferenceKey.allCases {
-            guard forced[key] == nil, defaults[key] == nil else {
-                continue
-            }
-            if userDefaults.object(forKey: key.rawValue) != nil,
-               !userDefaults.objectIsForced(forKey: key.rawValue)
-            {
-                if let value = readPreferenceValue(for: key) {
-                    defaults[key] = value
-                }
-            }
-        }
+        readFlatDefaultKeys(forced: forced, into: &defaults)
 
         let config = MDMConfiguration(
             forcedPreferences: forced,
@@ -236,6 +199,58 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
     private var lastConfiguration: MDMConfiguration = .empty
 
     // MARK: - Private Helpers
+
+    /// Reads flat forced keys from UserDefaults.
+    private func readFlatForcedKeys(into forced: inout [ManagedPreferenceKey: PreferenceValue]) {
+        for key in ManagedPreferenceKey.allCases where userDefaults.objectIsForced(forKey: key.rawValue) {
+            if let value = readPreferenceValue(for: key) {
+                forced[key] = value
+            }
+        }
+    }
+
+    /// Reads nested ManagedPreferences dictionary keys into forced preferences.
+    private func readNestedManagedKeys(into forced: inout [ManagedPreferenceKey: PreferenceValue]) {
+        guard let managedDict = userDefaults.dictionary(forKey: "ManagedPreferences") else {
+            return
+        }
+        for key in ManagedPreferenceKey.allCases where forced[key] == nil {
+            if let rawValue = managedDict[key.rawValue],
+               let value = convertToPreferenceValue(rawValue)
+            {
+                forced[key] = value
+            }
+        }
+    }
+
+    /// Reads nested DefaultPreferences dictionary keys into default preferences.
+    private func readNestedDefaultKeys(into defaults: inout [ManagedPreferenceKey: PreferenceValue]) {
+        guard let defaultDict = userDefaults.dictionary(forKey: "DefaultPreferences") else {
+            return
+        }
+        for key in ManagedPreferenceKey.allCases {
+            if let rawValue = defaultDict[key.rawValue],
+               let value = convertToPreferenceValue(rawValue)
+            {
+                defaults[key] = value
+            }
+        }
+    }
+
+    /// Reads non-forced flat keys that exist as default preferences.
+    private func readFlatDefaultKeys(
+        forced: [ManagedPreferenceKey: PreferenceValue],
+        into defaults: inout [ManagedPreferenceKey: PreferenceValue]
+    ) {
+        for key in ManagedPreferenceKey.allCases where forced[key] == nil && defaults[key] == nil {
+            if userDefaults.object(forKey: key.rawValue) != nil,
+               !userDefaults.objectIsForced(forKey: key.rawValue),
+               let value = readPreferenceValue(for: key)
+            {
+                defaults[key] = value
+            }
+        }
+    }
 
     /// Reads a single preference value from flat UserDefaults keys.
     private func readPreferenceValue(for key: ManagedPreferenceKey) -> PreferenceValue? {

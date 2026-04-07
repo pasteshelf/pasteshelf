@@ -19,7 +19,7 @@ struct SelfHostedSyncConfigurationTests {
     func defaultInit() {
         let config = SelfHostedSyncConfiguration()
         #expect(config.serverURL == nil)
-        #expect(config.organizationID == "")
+        #expect(config.organizationID.isEmpty)
         #expect(config.apiKey == nil)
         #expect(config.isEnabled == false)
         #expect(config.certificatePinningEnabled == false)
@@ -86,22 +86,22 @@ struct SelfHostedSyncConfigurationTests {
 
     @Test("Configurations with same values are equal")
     func equalConfigs() {
-        let a = SelfHostedSyncConfiguration(
+        let config1 = SelfHostedSyncConfiguration(
             serverURL: URL(string: "https://sync.example.com"),
             organizationID: "acme"
         )
-        let b = SelfHostedSyncConfiguration(
+        let config2 = SelfHostedSyncConfiguration(
             serverURL: URL(string: "https://sync.example.com"),
             organizationID: "acme"
         )
-        #expect(a == b)
+        #expect(config1 == config2)
     }
 
     @Test("Configurations with different org IDs are not equal")
     func unequalConfigs() {
-        let a = SelfHostedSyncConfiguration(organizationID: "alpha")
-        let b = SelfHostedSyncConfiguration(organizationID: "beta")
-        #expect(a != b)
+        let config1 = SelfHostedSyncConfiguration(organizationID: "alpha")
+        let config2 = SelfHostedSyncConfiguration(organizationID: "beta")
+        #expect(config1 != config2)
     }
 }
 
@@ -132,26 +132,30 @@ struct SyncBackendTypeTests {
 struct SyncBackendStatusTests {
     @Test("Available status equals itself")
     func availableEquality() {
-        #expect(SyncBackendStatus.available == SyncBackendStatus.available)
+        let status1 = SyncBackendStatus.available
+        let status2 = SyncBackendStatus.available
+        #expect(status1 == status2)
     }
 
     @Test("AuthenticationRequired status equals itself")
     func authRequiredEquality() {
-        #expect(SyncBackendStatus.authenticationRequired == SyncBackendStatus.authenticationRequired)
+        let status1 = SyncBackendStatus.authenticationRequired
+        let status2 = SyncBackendStatus.authenticationRequired
+        #expect(status1 == status2)
     }
 
     @Test("Unavailable with same reason are equal")
     func unavailableEquality() {
-        let a = SyncBackendStatus.unavailable(reason: "test")
-        let b = SyncBackendStatus.unavailable(reason: "test")
-        #expect(a == b)
+        let status1 = SyncBackendStatus.unavailable(reason: "test")
+        let status2 = SyncBackendStatus.unavailable(reason: "test")
+        #expect(status1 == status2)
     }
 
     @Test("Unavailable with different reasons are not equal")
     func unavailableInequality() {
-        let a = SyncBackendStatus.unavailable(reason: "reason1")
-        let b = SyncBackendStatus.unavailable(reason: "reason2")
-        #expect(a != b)
+        let status1 = SyncBackendStatus.unavailable(reason: "reason1")
+        let status2 = SyncBackendStatus.unavailable(reason: "reason2")
+        #expect(status1 != status2)
     }
 
     @Test("Available and AuthenticationRequired are not equal")
@@ -278,17 +282,21 @@ struct SyncErrorSelfHostedTests {
 
     @Test("Self-hosted error equality")
     func errorEquality() {
-        #expect(SyncError.certificatePinningFailed == SyncError.certificatePinningFailed)
-        #expect(SyncError.authenticationTokenExpired == SyncError.authenticationTokenExpired)
-        #expect(SyncError.serverConnectionFailed(message: "a") == SyncError.serverConnectionFailed(message: "a"))
-        #expect(SyncError.serverConnectionFailed(message: "a") != SyncError.serverConnectionFailed(message: "b"))
-        #expect(SyncError.selfHostedServerError(code: 500, message: "x") == SyncError.selfHostedServerError(
-            code: 500,
-            message: "x"
-        ))
-        #expect(SyncError.selfHostedServerError(code: 500, message: "x") != SyncError.selfHostedServerError(
-            code: 404,
-            message: "x"
-        ))
+        let certPinning1 = SyncError.certificatePinningFailed
+        let certPinning2 = SyncError.certificatePinningFailed
+        #expect(certPinning1 == certPinning2)
+        let tokenExpired1 = SyncError.authenticationTokenExpired
+        let tokenExpired2 = SyncError.authenticationTokenExpired
+        #expect(tokenExpired1 == tokenExpired2)
+        let connFailA1 = SyncError.serverConnectionFailed(message: "a")
+        let connFailA2 = SyncError.serverConnectionFailed(message: "a")
+        #expect(connFailA1 == connFailA2)
+        let connFailB = SyncError.serverConnectionFailed(message: "b")
+        #expect(connFailA1 != connFailB)
+        let serverErr500a = SyncError.selfHostedServerError(code: 500, message: "x")
+        let serverErr500b = SyncError.selfHostedServerError(code: 500, message: "x")
+        #expect(serverErr500a == serverErr500b)
+        let serverErr404 = SyncError.selfHostedServerError(code: 404, message: "x")
+        #expect(serverErr500a != serverErr404)
     }
 }

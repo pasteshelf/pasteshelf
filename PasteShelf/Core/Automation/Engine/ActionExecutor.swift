@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  ActionExecutor.swift
 //  PasteShelf
@@ -5,6 +6,8 @@
 //  Executes automation actions on clipboard content.
 //  Handles transformations, tagging, notifications, and external integrations.
 //
+
+// swiftformat:disable organizeDeclarations
 
 import AppKit
 import CryptoKit
@@ -16,7 +19,7 @@ import UserNotifications
 
 /// Executes automation actions on clipboard content
 @MainActor
-final class ActionExecutor {
+final class ActionExecutor { // swiftlint:disable:this type_body_length
     // MARK: Internal
 
     // MARK: - Action Execution

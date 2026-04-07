@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension ClipboardItem {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<ClipboardItem> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<ClipboardItem> {
         NSFetchRequest<ClipboardItem>(entityName: "ClipboardItem")
     }
 

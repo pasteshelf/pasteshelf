@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension ConsentRecord {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<ConsentRecord> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<ConsentRecord> {
         NSFetchRequest<ConsentRecord>(entityName: "ConsentRecord")
     }
 

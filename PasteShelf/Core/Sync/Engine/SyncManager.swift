@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  SyncManager.swift
 //  PasteShelf
@@ -5,6 +6,8 @@
 //  Main coordinator for sync operations.
 //  Supports both CloudKit and self-hosted backends.
 //
+
+// swiftformat:disable organizeDeclarations
 
 import CloudKit
 import Combine
@@ -24,7 +27,7 @@ import Security
 ///
 /// The active backend is selected in `start()` based on user configuration.
 @MainActor
-public final class SyncManager: ObservableObject, SyncManaging {
+public final class SyncManager: ObservableObject, SyncManaging { // swiftlint:disable:this type_body_length
     // MARK: Lifecycle
 
     // MARK: - Initialization
@@ -87,6 +90,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
 
     // MARK: - SyncManaging Protocol
 
+    // swiftlint:disable:next function_body_length
     public func start() async throws {
         Self.logger.info("Starting sync engine")
 
@@ -727,6 +731,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
         }
     }
 
+    // swiftlint:disable:next function_body_length
     private func setupNetworkMonitoring() {
         networkMonitor.pathUpdateHandler = { [weak self] path in
             Task { @MainActor in
@@ -843,6 +848,5 @@ public final class SyncManager: ObservableObject, SyncManaging {
 
 extension SyncManager {
     /// Shared singleton instance
-    @MainActor
-    static let shared = SyncManager()
+    @MainActor static let shared = SyncManager()
 }

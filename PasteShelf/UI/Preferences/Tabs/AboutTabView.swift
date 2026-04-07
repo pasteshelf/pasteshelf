@@ -45,29 +45,35 @@ struct AboutTabView: View {
 
             // Links
             VStack(spacing: 12) {
-                Link(destination: URL(string: "https://pasteshelf.app")!) {
-                    HStack {
-                        Image(systemName: "globe")
-                        Text("Website")
+                if let websiteURL = URL(string: "https://pasteshelf.app") {
+                    Link(destination: websiteURL) {
+                        HStack {
+                            Image(systemName: "globe")
+                            Text("Website")
+                        }
                     }
+                    .accessibilityLabel("Visit PasteShelf website")
                 }
-                .accessibilityLabel("Visit PasteShelf website")
 
-                Link(destination: URL(string: "https://github.com/pasteshelf/pasteshelf")!) {
-                    HStack {
-                        Image(systemName: "chevron.left.forwardslash.chevron.right")
-                        Text("Source Code")
+                if let sourceCodeURL = URL(string: "https://github.com/pasteshelf/pasteshelf") {
+                    Link(destination: sourceCodeURL) {
+                        HStack {
+                            Image(systemName: "chevron.left.forwardslash.chevron.right")
+                            Text("Source Code")
+                        }
                     }
+                    .accessibilityLabel("View source code on GitHub")
                 }
-                .accessibilityLabel("View source code on GitHub")
 
-                Link(destination: URL(string: "https://pasteshelf.app/legal/privacy-policy/")!) {
-                    HStack {
-                        Image(systemName: "hand.raised")
-                        Text("Privacy Policy")
+                if let privacyURL = URL(string: "https://pasteshelf.app/legal/privacy-policy/") {
+                    Link(destination: privacyURL) {
+                        HStack {
+                            Image(systemName: "hand.raised")
+                            Text("Privacy Policy")
+                        }
                     }
+                    .accessibilityLabel("Read privacy policy")
                 }
-                .accessibilityLabel("Read privacy policy")
             }
             .buttonStyle(.link)
 

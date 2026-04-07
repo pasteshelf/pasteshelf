@@ -61,19 +61,17 @@ struct RuleBuilderView: View {
 
     // MARK: - Conditions List
 
-    @ViewBuilder
-    private var conditionsList: some View {
+    @ViewBuilder private var conditionsList: some View {
         if rules.conditions.isEmpty {
             emptyState
         } else {
             VStack(spacing: 4) {
                 ForEach($rules.conditions) { $condition in
                     RuleConditionRow(
-                        condition: $condition,
-                        onDelete: {
-                            removeCondition(condition)
-                        }
-                    )
+                        condition: $condition
+                    ) {
+                        removeCondition(condition)
+                    }
                 }
             }
         }

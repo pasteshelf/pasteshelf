@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  AdminConsoleModelTests.swift
 //  PasteShelfTests
@@ -443,7 +444,7 @@ struct AdminPolicyTests {
 
     @Test("AdminPolicy.empty has id of empty string")
     func emptyId() {
-        #expect(AdminPolicy.empty.id == "")
+        #expect(AdminPolicy.empty.id.isEmpty)
     }
 
     @Test("AdminPolicy.empty has version '0'")

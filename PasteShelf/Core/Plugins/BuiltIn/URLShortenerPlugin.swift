@@ -144,9 +144,11 @@
             return result
         }
 
-        private func shortenWithService(url: URL, service: URLShortenerService,
-                                        network: any PluginNetwork) async throws -> URL
-        {
+        private func shortenWithService(
+            url: URL,
+            service: URLShortenerService,
+            network: any PluginNetwork
+        ) async throws -> URL {
             let request = try service.buildRequest(for: url)
             let (data, response) = try await network.request(request)
 
@@ -180,15 +182,19 @@
         var apiURL: URL {
             switch self {
             case .isgd:
+                // swiftlint:disable:next force_unwrapping
                 URL(string: "https://is.gd/create.php")!
             case .vgd:
+                // swiftlint:disable:next force_unwrapping
                 URL(string: "https://v.gd/create.php")!
             case .tinyurl:
+                // swiftlint:disable:next force_unwrapping
                 URL(string: "https://tinyurl.com/api-create.php")!
             }
         }
 
         func buildRequest(for url: URL) throws -> URLRequest {
+            // swiftlint:disable:next force_unwrapping
             var components = URLComponents(url: apiURL, resolvingAgainstBaseURL: false)!
 
             switch self {

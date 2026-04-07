@@ -141,7 +141,8 @@ struct ActiveFilters: Equatable, Sendable {
     // MARK: - Conversion to SearchOptions
 
     /// Converts active filters to SearchOptions for the search engine
-    @MainActor func toSearchOptions(limit: Int = 50) -> SearchOptions {
+    @MainActor
+    func toSearchOptions(limit: Int = 50) -> SearchOptions {
         SearchOptions(
             limit: limit,
             offset: 0,

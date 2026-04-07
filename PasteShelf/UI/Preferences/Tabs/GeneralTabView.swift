@@ -44,7 +44,8 @@ struct GeneralTabView: View {
                 Text("History")
             } footer: {
                 Text(
-                    "Items beyond this limit will be automatically removed (oldest first). Favorites are always preserved."
+                    "Items beyond this limit will be automatically removed (oldest first)."
+                        + " Favorites are always preserved."
                 )
                 .font(.caption)
                 .foregroundColor(.secondary)

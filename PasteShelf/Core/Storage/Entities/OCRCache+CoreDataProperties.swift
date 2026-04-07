@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension OCRCache {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<OCRCache> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<OCRCache> {
         NSFetchRequest<OCRCache>(entityName: "OCRCache")
     }
 

@@ -52,7 +52,8 @@ struct ReduceMotionModifier: ViewModifier {
 
     // MARK: Private
 
-    @Environment(\.reduceMotion) private var reduceMotion
+    @Environment(\.reduceMotion)
+    private var reduceMotion
 }
 
 // MARK: - HighContrastModifier
@@ -68,7 +69,8 @@ struct HighContrastModifier: ViewModifier {
 
     // MARK: Private
 
-    @Environment(\.highContrast) private var highContrast
+    @Environment(\.highContrast)
+    private var highContrast
 }
 
 extension View {

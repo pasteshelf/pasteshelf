@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  MDMPolicyEnforcerTests.swift
 //  PasteShelfTests
@@ -11,6 +12,7 @@ import Testing
 
 // MARK: - MDMPolicyEnforcerTests
 
+// swiftlint:disable:next type_body_length
 struct MDMPolicyEnforcerTests {
     // MARK: - maxHistoryDays
 

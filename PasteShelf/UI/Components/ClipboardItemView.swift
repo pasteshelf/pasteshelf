@@ -116,8 +116,7 @@ struct ClipboardItemView: View {
 
     // MARK: - Content Preview
 
-    @ViewBuilder
-    private var contentPreview: some View {
+    @ViewBuilder private var contentPreview: some View {
         if item.isSensitive, !isRevealed {
             sensitiveContentView
         } else if item.contentType.isImageType, item.hasThumbnail, settingsManager.appearance.showThumbnails {
@@ -138,11 +137,14 @@ struct ClipboardItemView: View {
                 .foregroundColor(.secondary)
                 .italic()
 
-            Button(action: { isRevealed = true }) {
-                Text("Reveal")
-                    .font(.caption)
-                    .foregroundColor(.blue)
-            }
+            Button(
+                action: { isRevealed = true },
+                label: {
+                    Text("Reveal")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+            )
             .buttonStyle(.plain)
         }
     }
@@ -168,28 +170,30 @@ struct ClipboardItemView: View {
         }
     }
 
-    @ViewBuilder
-    private var ocrTextPreview: some View {
+    @ViewBuilder private var ocrTextPreview: some View {
         if let ocrText = item.ocrText, !ocrText.isEmpty {
             VStack(alignment: .leading, spacing: 2) {
                 // OCR header with toggle
-                Button(action: { isOCRExpanded.toggle() }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "text.viewfinder")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                Button(
+                    action: { isOCRExpanded.toggle() },
+                    label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "text.viewfinder")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
 
-                        Text("Extracted Text")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                            Text("Extracted Text")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
 
-                        Image(systemName: isOCRExpanded ? "chevron.up" : "chevron.down")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                            Image(systemName: isOCRExpanded ? "chevron.up" : "chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
 
-                        Spacer()
+                            Spacer()
+                        }
                     }
-                }
+                )
                 .buttonStyle(.plain)
 
                 // OCR text content

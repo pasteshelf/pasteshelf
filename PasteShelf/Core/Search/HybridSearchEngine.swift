@@ -43,6 +43,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
     // MARK: - SearchEngine Protocol
 
+    // swiftlint:disable:next function_body_length
     func search(query: String, options: SearchOptions) async -> [SearchResult] {
         // Cancel any existing search
         await cancelSearch()
@@ -123,6 +124,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
             logger
                 .debug(
+                    // swiftlint:disable:next line_length
                     "Hybrid search completed: \(merged.count) results (FT: \(fullText.count), Semantic: \(semanticResults.count), OCR: \(ocrResults.count), Fuzzy: \(fuzzyResults.count))"
                 )
             return merged
@@ -253,7 +255,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
     // MARK: - Result Merging
 
     /// Merges full-text, semantic, OCR, and fuzzy results using weighted scoring
-    private func mergeResults(
+    private func mergeResults( // swiftlint:disable:this cyclomatic_complexity function_body_length
         fullText: [SearchResult],
         semantic: [SearchResult],
         ocr: [SearchResult],

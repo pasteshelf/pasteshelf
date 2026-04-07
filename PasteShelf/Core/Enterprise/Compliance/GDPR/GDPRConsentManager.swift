@@ -34,6 +34,13 @@ final class GDPRConsentManager: ObservableObject {
 
     // MARK: Internal
 
+    /// A single consent record entry with category, grant status, and last updated date.
+    struct ConsentRecordEntry: Sendable {
+        let category: GDPRConsentCategory
+        let isGranted: Bool
+        let updatedAt: Date?
+    }
+
     // MARK: - Singleton
 
     static let shared = GDPRConsentManager()
@@ -78,8 +85,8 @@ final class GDPRConsentManager: ObservableObject {
 
     /// Returns all consent records sorted by category.
     ///
-    /// - Returns: An array of tuples containing the category, grant status, and last updated date.
-    func fetchAllRecords() async -> [(category: GDPRConsentCategory, isGranted: Bool, updatedAt: Date?)] {
+    /// - Returns: An array of `ConsentRecordEntry` values.
+    func fetchAllRecords() async -> [ConsentRecordEntry] {
         let context = StorageManager.shared.newBackgroundContext()
         return await context.perform {
             let request = ConsentRecord.allRecordsFetchRequest()
@@ -92,7 +99,11 @@ final class GDPRConsentManager: ObservableObject {
                 else {
                     return nil
                 }
-                return (category: category, isGranted: record.isGranted, updatedAt: record.updatedAt)
+                return ConsentRecordEntry(
+                    category: category,
+                    isGranted: record.isGranted,
+                    updatedAt: record.updatedAt
+                )
             }
         }
     }

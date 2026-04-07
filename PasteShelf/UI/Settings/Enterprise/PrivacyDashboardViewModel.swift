@@ -9,6 +9,24 @@ import Combine
 import Foundation
 import os.log
 
+// MARK: - DataCategoryItem
+
+/// Represents a single data category in the privacy dashboard.
+struct DataCategoryItem {
+    let name: String
+    let count: Int
+    let icon: String
+}
+
+// MARK: - ConnectedServiceItem
+
+/// Represents a connected service entry in the privacy dashboard.
+struct ConnectedServiceItem {
+    let name: String
+    let isActive: Bool
+    let icon: String
+}
+
 // MARK: - PrivacyDashboardViewModel
 
 /// View model for the GDPR privacy dashboard.
@@ -21,8 +39,8 @@ final class PrivacyDashboardViewModel: ObservableObject {
 
     // MARK: - Published State
 
-    @Published var dataCategories: [(name: String, count: Int, icon: String)] = []
-    @Published var connectedServices: [(name: String, isActive: Bool, icon: String)] = []
+    @Published var dataCategories: [DataCategoryItem] = []
+    @Published var connectedServices: [ConnectedServiceItem] = []
     @Published var storageDuration: String = "Not configured"
     @Published var isLoading = false
 
@@ -40,18 +58,18 @@ final class PrivacyDashboardViewModel: ObservableObject {
         let collections = await StorageManager.shared.fetchCollections()
 
         dataCategories = [
-            (name: "Clipboard Items", count: clipboardItems.count, icon: "doc.on.clipboard"),
-            (name: "Tags", count: tags.count, icon: "tag"),
-            (name: "Folders", count: folders.count, icon: "folder"),
-            (name: "Collections", count: collections.count, icon: "tray.full"),
+            DataCategoryItem(name: "Clipboard Items", count: clipboardItems.count, icon: "doc.on.clipboard"),
+            DataCategoryItem(name: "Tags", count: tags.count, icon: "tag"),
+            DataCategoryItem(name: "Folders", count: folders.count, icon: "folder"),
+            DataCategoryItem(name: "Collections", count: collections.count, icon: "tray.full"),
         ]
 
         // Connected services
         let auditEnabled = AuditManager.shared.isEnabled
 
         connectedServices = [
-            (name: "Audit Logging", isActive: auditEnabled, icon: "list.clipboard.fill"),
-            (name: "SSO", isActive: SSOManager.shared.currentSession != nil, icon: "key.fill"),
+            ConnectedServiceItem(name: "Audit Logging", isActive: auditEnabled, icon: "list.clipboard.fill"),
+            ConnectedServiceItem(name: "SSO", isActive: SSOManager.shared.currentSession != nil, icon: "key.fill"),
         ]
 
         // Storage duration

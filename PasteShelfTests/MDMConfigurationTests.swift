@@ -16,12 +16,16 @@ struct PreferenceValueTests {
 
     @Test("PreferenceValue bool true equals bool true")
     func preferenceValueBoolEqualityTrue() {
-        #expect(PreferenceValue.bool(true) == PreferenceValue.bool(true))
+        let value1 = PreferenceValue.bool(true)
+        let value2 = PreferenceValue.bool(true)
+        #expect(value1 == value2)
     }
 
     @Test("PreferenceValue bool false equals bool false")
     func preferenceValueBoolEqualityFalse() {
-        #expect(PreferenceValue.bool(false) == PreferenceValue.bool(false))
+        let value1 = PreferenceValue.bool(false)
+        let value2 = PreferenceValue.bool(false)
+        #expect(value1 == value2)
     }
 
     @Test("PreferenceValue bool true does not equal bool false")
@@ -33,8 +37,12 @@ struct PreferenceValueTests {
 
     @Test("PreferenceValue int equality for same values")
     func preferenceValueIntEquality() {
-        #expect(PreferenceValue.int(42) == PreferenceValue.int(42))
-        #expect(PreferenceValue.int(0) == PreferenceValue.int(0))
+        let int42a = PreferenceValue.int(42)
+        let int42b = PreferenceValue.int(42)
+        #expect(int42a == int42b)
+        let int0a = PreferenceValue.int(0)
+        let int0b = PreferenceValue.int(0)
+        #expect(int0a == int0b)
     }
 
     @Test("PreferenceValue int inequality for different values")
@@ -46,8 +54,12 @@ struct PreferenceValueTests {
 
     @Test("PreferenceValue string equality for same values")
     func preferenceValueStringEquality() {
-        #expect(PreferenceValue.string("dark") == PreferenceValue.string("dark"))
-        #expect(PreferenceValue.string("") == PreferenceValue.string(""))
+        let darkA = PreferenceValue.string("dark")
+        let darkB = PreferenceValue.string("dark")
+        #expect(darkA == darkB)
+        let emptyA = PreferenceValue.string("")
+        let emptyB = PreferenceValue.string("")
+        #expect(emptyA == emptyB)
     }
 
     @Test("PreferenceValue string inequality for different values")
@@ -94,7 +106,7 @@ struct PreferenceValueTests {
     @Test("PreferenceValue string displayValue returns the string itself")
     func preferenceValueDisplayValueString() {
         #expect(PreferenceValue.string("dark").displayValue == "dark")
-        #expect(PreferenceValue.string("").displayValue == "")
+        #expect(PreferenceValue.string("").displayValue.isEmpty)
         #expect(PreferenceValue.string("https://license.acme.com").displayValue == "https://license.acme.com")
     }
 }

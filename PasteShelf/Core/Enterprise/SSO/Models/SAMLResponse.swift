@@ -156,56 +156,7 @@ enum SAMLStatusCode: String, Codable, Sendable {
     // MARK: Lifecycle
 
     init(rawValue: String) {
-        switch rawValue {
-        case SAMLStatusCode.success.rawValue:
-            self = .success
-        case SAMLStatusCode.requester.rawValue:
-            self = .requester
-        case SAMLStatusCode.responder.rawValue:
-            self = .responder
-        case SAMLStatusCode.versionMismatch.rawValue:
-            self = .versionMismatch
-        case SAMLStatusCode.authnFailed.rawValue:
-            self = .authnFailed
-        case SAMLStatusCode.invalidAttrNameOrValue.rawValue:
-            self = .invalidAttrNameOrValue
-        case SAMLStatusCode.invalidNameIDPolicy.rawValue:
-            self = .invalidNameIDPolicy
-        case SAMLStatusCode.noAuthnContext.rawValue:
-            self = .noAuthnContext
-        case SAMLStatusCode.noAvailableIDP.rawValue:
-            self = .noAvailableIDP
-        case SAMLStatusCode.noPassive.rawValue:
-            self = .noPassive
-        case SAMLStatusCode.noSupportedIDP.rawValue:
-            self = .noSupportedIDP
-        case SAMLStatusCode.partialLogout.rawValue:
-            self = .partialLogout
-        case SAMLStatusCode.proxyCountExceeded.rawValue:
-            self = .proxyCountExceeded
-        case SAMLStatusCode.requestDenied.rawValue:
-            self = .requestDenied
-        case SAMLStatusCode.requestUnsupported.rawValue:
-            self = .requestUnsupported
-        case SAMLStatusCode.requestVersionDeprecated.rawValue:
-            self = .requestVersionDeprecated
-        case SAMLStatusCode.requestVersionTooHigh.rawValue:
-            self = .requestVersionTooHigh
-        case SAMLStatusCode.requestVersionTooLow.rawValue:
-            self = .requestVersionTooLow
-        case SAMLStatusCode.resourceNotRecognized.rawValue:
-            self = .resourceNotRecognized
-        case SAMLStatusCode.tooManyResponses.rawValue:
-            self = .tooManyResponses
-        case SAMLStatusCode.unknownAttrProfile.rawValue:
-            self = .unknownAttrProfile
-        case SAMLStatusCode.unknownPrincipal.rawValue:
-            self = .unknownPrincipal
-        case SAMLStatusCode.unsupportedBinding.rawValue:
-            self = .unsupportedBinding
-        default:
-            self = .unknown
-        }
+        self = Self.rawValueLookup[rawValue] ?? .unknown
     }
 
     // MARK: Internal
@@ -262,6 +213,27 @@ enum SAMLStatusCode: String, Codable, Sendable {
             "Unknown error"
         }
     }
+
+    // MARK: Private
+
+    /// Lookup table mapping SAML status URN strings to their enum cases.
+    private static let rawValueLookup: [String: SAMLStatusCode] = {
+        let allKnownCases: [SAMLStatusCode] = [
+            .success, .requester, .responder, .versionMismatch,
+            .authnFailed, .invalidAttrNameOrValue, .invalidNameIDPolicy,
+            .noAuthnContext, .noAvailableIDP, .noPassive, .noSupportedIDP,
+            .partialLogout, .proxyCountExceeded, .requestDenied,
+            .requestUnsupported, .requestVersionDeprecated,
+            .requestVersionTooHigh, .requestVersionTooLow,
+            .resourceNotRecognized, .tooManyResponses,
+            .unknownAttrProfile, .unknownPrincipal, .unsupportedBinding,
+        ]
+        var lookup: [String: SAMLStatusCode] = [:]
+        for code in allKnownCases {
+            lookup[code.rawValue] = code
+        }
+        return lookup
+    }()
 }
 
 // MARK: - SAMLValidationResult

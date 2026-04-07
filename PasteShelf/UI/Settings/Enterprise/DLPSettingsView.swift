@@ -42,9 +42,11 @@ struct DLPSettingsView: View {
         .formStyle(.grouped)
         .alert("Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
-            set: { if !$0 {
-                viewModel.errorMessage = nil
-            } }
+            set: { newValue in
+                if !newValue {
+                    viewModel.errorMessage = nil
+                }
+            }
         )) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {

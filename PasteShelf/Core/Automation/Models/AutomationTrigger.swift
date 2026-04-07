@@ -150,7 +150,7 @@ struct CronExpression: Codable, Equatable, Hashable, Sendable {
         let parts = expression.split(separator: " ").map { String($0) }
 
         // Parse with defaults for missing parts
-        let parsedMinute = parts.count > 0 ? Int(parts[0]) ?? 0 : 0
+        let parsedMinute = !parts.isEmpty ? Int(parts[0]) ?? 0 : 0
         let parsedHour = parts.count > 1 ? Int(parts[1]) ?? 0 : 0
         let parsedDayOfMonth = parts.count > 2 && parts[2] != "*" ? Int(parts[2]) : nil
         let parsedMonth = parts.count > 3 && parts[3] != "*" ? Int(parts[3]) : nil

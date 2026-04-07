@@ -46,9 +46,9 @@ struct GDPRDeletionCategoryResultTests {
 
     @Test("CategoryResult default id is unique")
     func uniqueIds() {
-        let a = GDPRDeletionReport.CategoryResult(name: "A", deletedCount: 1, success: true)
-        let b = GDPRDeletionReport.CategoryResult(name: "A", deletedCount: 1, success: true)
-        #expect(a.id != b.id)
+        let result1 = GDPRDeletionReport.CategoryResult(name: "A", deletedCount: 1, success: true)
+        let result2 = GDPRDeletionReport.CategoryResult(name: "A", deletedCount: 1, success: true)
+        #expect(result1.id != result2.id)
     }
 
     @Test("CategoryResult survives Codable round-trip")
@@ -130,9 +130,9 @@ struct GDPRDeletionReportStructTests {
 
     @Test("Report default id is unique")
     func uniqueId() {
-        let a = GDPRDeletionReport(categories: [])
-        let b = GDPRDeletionReport(categories: [])
-        #expect(a.id != b.id)
+        let report1 = GDPRDeletionReport(categories: [])
+        let report2 = GDPRDeletionReport(categories: [])
+        #expect(report1.id != report2.id)
     }
 
     @Test("Report survives Codable round-trip")

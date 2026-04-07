@@ -41,7 +41,10 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
     ///   - content: The in-memory clipboard content captured from the system pasteboard.
     ///   - rules: The ordered list of `DLPRule` values to evaluate.
     /// - Returns: A `DLPEvaluationResult` aggregating all violations and outcome flags.
-    func evaluate(_ content: ClipboardContent, against rules: [DLPRule]) async -> DLPEvaluationResult {
+    func evaluate( // swiftlint:disable:this function_body_length
+        _ content: ClipboardContent,
+        against rules: [DLPRule]
+    ) async -> DLPEvaluationResult {
         let enabledRules = rules.filter(\.isEnabled)
         guard !enabledRules.isEmpty else {
             return .clean

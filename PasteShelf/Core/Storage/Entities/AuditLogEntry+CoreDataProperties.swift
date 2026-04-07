@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension AuditLogEntry {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<AuditLogEntry> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<AuditLogEntry> {
         NSFetchRequest<AuditLogEntry>(entityName: "AuditLogEntry")
     }
 

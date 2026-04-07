@@ -24,7 +24,6 @@ struct PrivacyTabView: View {
                 Toggle("Pause clipboard monitoring", isOn: $viewModel.isMonitoringPaused)
                     .accessibilityLabel("Pause clipboard monitoring")
                     .accessibilityHint("When enabled, clipboard contents will not be captured")
-
             } header: {
                 Text("Monitoring")
             }
@@ -33,7 +32,8 @@ struct PrivacyTabView: View {
                 Toggle("Detect sensitive data in clipboard", isOn: $viewModel.sensitiveDetectionEnabled)
                     .accessibilityLabel("Detect sensitive data")
                     .accessibilityHint(
-                        "When enabled, clipboard items containing sensitive data like API keys, passwords, and credit cards are labeled as sensitive"
+                        "When enabled, clipboard items containing sensitive data"
+                            + " like API keys, passwords, and credit cards are labeled as sensitive"
                     )
 
                 if viewModel.sensitiveDetectionEnabled {
@@ -57,7 +57,8 @@ struct PrivacyTabView: View {
                 Text("Sensitive Data Detection")
             } footer: {
                 Text(
-                    "Detected items are labeled as sensitive but still captured. This helps you identify and manage sensitive content in your clipboard history."
+                    "Detected items are labeled as sensitive but still captured."
+                        + " This helps you identify and manage sensitive content in your clipboard history."
                 )
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -68,9 +69,10 @@ struct PrivacyTabView: View {
                     HStack {
                         Text("Excluded Applications")
                         Spacer()
-                        Button(action: { showAppPicker = true }) {
-                            Image(systemName: "plus")
-                        }
+                        Button(
+                            action: { showAppPicker = true },
+                            label: { Image(systemName: "plus") }
+                        )
                         .buttonStyle(.borderless)
                         .accessibilityLabel("Add excluded application")
                     }
@@ -82,11 +84,10 @@ struct PrivacyTabView: View {
                             .padding(.vertical, 4)
                     } else {
                         AppExclusionListView(
-                            bundleIds: viewModel.excludedAppBundleIds,
-                            onRemove: { bundleId in
-                                viewModel.removeExcludedApp(bundleId)
-                            }
-                        )
+                            bundleIds: viewModel.excludedAppBundleIds
+                        ) { bundleId in
+                            viewModel.removeExcludedApp(bundleId)
+                        }
                     }
                 }
             } header: {
@@ -147,16 +148,16 @@ struct PrivacyTabView: View {
             }
         } message: {
             Text(
-                "This will permanently delete all clipboard items. Favorites will be preserved. This action cannot be undone."
+                "This will permanently delete all clipboard items."
+                    + " Favorites will be preserved. This action cannot be undone."
             )
         }
         .sheet(isPresented: $showAppPicker) {
             AppPickerSheet(
-                excludedBundleIds: viewModel.excludedAppBundleIds,
-                onSelect: { bundleId in
-                    viewModel.addExcludedApp(bundleId)
-                }
-            )
+                excludedBundleIds: viewModel.excludedAppBundleIds
+            ) { bundleId in
+                viewModel.addExcludedApp(bundleId)
+            }
         }
     }
 
@@ -249,7 +250,8 @@ struct AppPickerSheet: View {
 
     // MARK: Private
 
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)
+    private var dismiss
     @State private var installedApps: [InstalledApp] = []
     @State private var searchText = ""
 

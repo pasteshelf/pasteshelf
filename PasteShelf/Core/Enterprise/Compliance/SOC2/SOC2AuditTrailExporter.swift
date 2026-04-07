@@ -41,7 +41,30 @@ struct SOC2AuditTrailExporter: Sendable {
             throw ComplianceError.notConfigured
         }
 
-        // Fetch events in date range (most recent first from the API)
+        let chainedEvents = try await buildHashChain(storage: storage, dateRange: dateRange)
+
+        let exportDir = try createExportDirectory(prefix: "SOC2-AuditTrail")
+
+        try writeTrailFiles(
+            chainedEvents: chainedEvents,
+            dateRange: dateRange,
+            to: exportDir
+        )
+
+        logger.info("SOC2 audit trail export: completed with \(chainedEvents.count) events")
+        return exportDir
+    }
+
+    // MARK: Private
+
+    private static let logger = Logger.compliance
+
+    /// Fetches audit entries, sorts chronologically, and builds a SHA-256 hash chain.
+    @MainActor
+    private static func buildHashChain(
+        storage: AuditLogStoring,
+        dateRange: ClosedRange<Date>
+    ) async throws -> [ChainedAuditEvent] {
         let entries = try await storage.fetchEvents(
             category: nil,
             from: dateRange.lowerBound,
@@ -49,10 +72,10 @@ struct SOC2AuditTrailExporter: Sendable {
             limit: Int.max
         )
 
-        // Sort chronologically (oldest first) for hash chain
-        let sortedEntries = entries.sorted { ($0.timestamp ?? .distantPast) < ($1.timestamp ?? .distantPast) }
+        let sortedEntries = entries.sorted {
+            ($0.timestamp ?? .distantPast) < ($1.timestamp ?? .distantPast)
+        }
 
-        // Build hash chain
         var chainedEvents: [ChainedAuditEvent] = []
         var previousHash = "GENESIS"
 
@@ -62,7 +85,6 @@ struct SOC2AuditTrailExporter: Sendable {
             let action = entry.action ?? "unknown"
             let category = entry.eventCategory ?? "unknown"
 
-            // SHA256(previousHash + event.id + event.timestamp + event.action + event.category)
             let hashInput = "\(previousHash)\(eventId)\(timestamp)\(action)\(category)"
             let hash = SHA256.hash(data: Data(hashInput.utf8))
             let hashString = hash.compactMap { String(format: "%02x", $0) }.joined()
@@ -92,9 +114,13 @@ struct SOC2AuditTrailExporter: Sendable {
             previousHash = hashString
         }
 
-        // Create export directory
+        return chainedEvents
+    }
+
+    /// Creates a uniquely named temporary export directory.
+    private static func createExportDirectory(prefix: String) throws -> URL {
         let exportDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SOC2-AuditTrail-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("\(prefix)-\(UUID().uuidString)", isDirectory: true)
 
         do {
             try FileManager.default.createDirectory(at: exportDir, withIntermediateDirectories: true)
@@ -102,42 +128,46 @@ struct SOC2AuditTrailExporter: Sendable {
             throw ComplianceError
                 .reportGenerationFailed("Failed to create export directory: \(error.localizedDescription)")
         }
+        return exportDir
+    }
 
+    /// Writes the audit trail JSON, chain verification JSON, and verification instructions.
+    private static func writeTrailFiles(
+        chainedEvents: [ChainedAuditEvent],
+        dateRange: ClosedRange<Date>,
+        to exportDir: URL
+    ) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
 
         do {
-            // 1. Audit trail with hashes
             let trailData = try encoder.encode(chainedEvents)
             try trailData.write(to: exportDir.appendingPathComponent("audit_trail.json"))
 
-            // 2. Chain verification summary
+            let hashFormat = "SHA256(previousHash + event.id + event.timestamp + event.action + event.category)"
+            let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
             let verification = ChainVerification(
                 chainLength: chainedEvents.count,
                 firstEventHash: chainedEvents.first?.integrityHash ?? "EMPTY",
                 lastEventHash: chainedEvents.last?.integrityHash ?? "EMPTY",
                 genesisHash: "GENESIS",
                 hashAlgorithm: "SHA-256",
-                hashInputFormat: "SHA256(previousHash + event.id + event.timestamp + event.action + event.category)",
+                hashInputFormat: hashFormat,
                 dateRangeStart: dateRange.lowerBound,
                 dateRangeEnd: dateRange.upperBound,
                 exportedAt: Date(),
-                applicationVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+                applicationVersion: appVersion
             )
             let verificationData = try encoder.encode(verification)
             try verificationData.write(to: exportDir.appendingPathComponent("chain_verification.json"))
 
-            // 3. Verification instructions
             let instructions = generateVerificationInstructions(verification: verification)
             try instructions.write(
                 to: exportDir.appendingPathComponent("verification_instructions.md"),
                 atomically: true,
                 encoding: .utf8
             )
-
-            logger.info("SOC2 audit trail export: completed with \(chainedEvents.count) events")
-            return exportDir
         } catch let error as ComplianceError {
             throw error
         } catch {
@@ -145,14 +175,12 @@ struct SOC2AuditTrailExporter: Sendable {
         }
     }
 
-    // MARK: Private
-
-    private static let logger = Logger.compliance
-
     // MARK: - Verification Instructions
 
     private static func generateVerificationInstructions(verification: ChainVerification) -> String {
-        """
+        let parameters = chainParametersSection(verification: verification)
+        let procedure = verificationProcedureSection()
+        return """
         # SOC 2 Audit Trail Verification Instructions
 
         ## Overview
@@ -167,14 +195,29 @@ struct SOC2AuditTrailExporter: Sendable {
         - `chain_verification.json` — Summary of the hash chain parameters
         - `verification_instructions.md` — This file
 
+        \(parameters)
+
+        \(procedure)
+        """
+    }
+
+    private static func chainParametersSection(verification: ChainVerification) -> String {
+        let start = verification.dateRangeStart.ISO8601Format()
+        let end = verification.dateRangeEnd.ISO8601Format()
+        let exported = verification.exportedAt.ISO8601Format()
+        return """
         ## Chain Parameters
 
         - **Hash Algorithm**: \(verification.hashAlgorithm)
         - **Genesis Hash**: `\(verification.genesisHash)`
         - **Chain Length**: \(verification.chainLength) events
-        - **Date Range**: \(verification.dateRangeStart.ISO8601Format()) to \(verification.dateRangeEnd.ISO8601Format())
-        - **Exported At**: \(verification.exportedAt.ISO8601Format())
+        - **Date Range**: \(start) to \(end)
+        - **Exported At**: \(exported)
+        """
+    }
 
+    private static func verificationProcedureSection() -> String {
+        """
         ## Verification Procedure
 
         To independently verify the integrity of this audit trail:

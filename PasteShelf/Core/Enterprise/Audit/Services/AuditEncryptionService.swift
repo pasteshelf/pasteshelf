@@ -88,7 +88,7 @@ struct AuditEncryptionService: Sendable {
     /// - Returns: The plaintext key/value detail dictionary.
     /// - Throws: `AuditError.decryptionFailed` if the payload is malformed, the
     ///   authentication tag does not verify, or JSON decoding fails.
-    func decrypt(_ data: Data) throws -> [String: String] {
+    func decrypt(_ data: Data) throws -> [String: String] { // swiftlint:disable:this function_body_length
         guard data.count >= Self.minEncryptedSize else {
             Self.logger.error("Encrypted audit detail too small: \(data.count) bytes")
             throw AuditError.decryptionFailed("Payload too small (\(data.count) bytes)")

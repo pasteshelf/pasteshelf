@@ -232,13 +232,15 @@
 
         private func adjustIndentation(_ json: String, size: Int) -> String {
             let lines = json.components(separatedBy: .newlines)
-            return lines.map { line in
-                // Count leading spaces
-                let leadingSpaces = line.prefix(while: { $0 == " " }).count
-                let indentLevel = leadingSpaces / 2 // Default is 2 spaces
-                let newIndent = String(repeating: " ", count: indentLevel * size)
-                return newIndent + line.dropFirst(leadingSpaces)
-            }.joined(separator: "\n")
+            return lines
+                .map { line in
+                    // Count leading spaces
+                    let leadingSpaces = line.prefix { $0 == " " }.count
+                    let indentLevel = leadingSpaces / 2 // Default is 2 spaces
+                    let newIndent = String(repeating: " ", count: indentLevel * size)
+                    return newIndent + line.dropFirst(leadingSpaces)
+                }
+                .joined(separator: "\n")
         }
     }
 

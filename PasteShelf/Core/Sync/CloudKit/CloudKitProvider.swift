@@ -9,6 +9,15 @@ import CloudKit
 import Foundation
 import os.log
 
+// MARK: - ZoneChangeResult
+
+/// Represents the result of fetching zone changes from CloudKit
+struct ZoneChangeResult {
+    let changes: [SyncChange]
+    let newToken: CKServerChangeToken?
+    let moreComing: Bool
+}
+
 // MARK: - CloudKitProvider
 
 /// CloudKit sync provider implementing SyncProviding protocol
@@ -246,11 +255,9 @@ final class CloudKitProvider: SyncProviding, Sendable {
     }
 
     /// Fetch changes from the zone
-    private func fetchZoneChanges(since token: CKServerChangeToken?) async throws -> (
-        changes: [SyncChange],
-        newToken: CKServerChangeToken?,
-        moreComing: Bool
-    ) {
+    private func fetchZoneChanges( // swiftlint:disable:this function_body_length
+        since token: CKServerChangeToken?
+    ) async throws -> ZoneChangeResult {
         let configuration = CKFetchRecordZoneChangesOperation.ZoneConfiguration()
         configuration.previousServerChangeToken = token
 
@@ -304,7 +311,9 @@ final class CloudKitProvider: SyncProviding, Sendable {
             operation.fetchRecordZoneChangesResultBlock = { result in
                 switch result {
                 case .success:
-                    continuation.resume(returning: (changes, newToken, moreComing))
+                    continuation.resume(returning: ZoneChangeResult(
+                        changes: changes, newToken: newToken, moreComing: moreComing
+                    ))
                 case let .failure(error):
                     let syncError = SyncError.from(error as? CKError ?? CKError(.serverRejectedRequest))
                     continuation.resume(throwing: syncError)

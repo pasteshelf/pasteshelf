@@ -130,7 +130,8 @@ struct AdminSettingsView: View {
                             .font(.headline)
 
                         Text(
-                            "The admin console server has not been configured.\nContact your IT administrator for enrollment."
+                            "The admin console server has not been configured.\n"
+                                + "Contact your IT administrator for enrollment."
                         )
                         .font(.caption)
                         .foregroundStyle(.secondary)

@@ -91,11 +91,9 @@
             // Discover bundled plugins first
             if let bundledDir = bundledPluginsDirectory {
                 let bundled = discoverPlugins(in: bundledDir)
-                for bundle in bundled {
-                    if !seenIdentifiers.contains(bundle.manifest.identifier) {
-                        discoveredBundles.append(bundle)
-                        seenIdentifiers.insert(bundle.manifest.identifier)
-                    }
+                for bundle in bundled where !seenIdentifiers.contains(bundle.manifest.identifier) {
+                    discoveredBundles.append(bundle)
+                    seenIdentifiers.insert(bundle.manifest.identifier)
                 }
                 logger.debug("Discovered \(bundled.count) bundled plugins")
             }
@@ -132,6 +130,7 @@
             } catch let error as PluginLoadError {
                 logger
                     .error(
+                        // swiftlint:disable:next line_length
                         "Failed to load plugin at \(url.lastPathComponent): \(error.localizedDescription ?? "Unknown error")"
                     )
                 return nil

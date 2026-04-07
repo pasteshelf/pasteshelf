@@ -6,6 +6,8 @@
 //  Integrates with ClipboardMonitor to process captured content.
 //
 
+// swiftformat:disable organizeDeclarations
+
 import CoreData
 import Foundation
 import os.log
@@ -51,7 +53,7 @@ enum AutomationError: Error, Sendable {
 
 /// Main automation engine that evaluates and executes rules
 @MainActor
-final class AutomationEngine {
+final class AutomationEngine { // swiftlint:disable:this type_body_length
     // MARK: Lifecycle
 
     // MARK: - Initialization
@@ -74,7 +76,7 @@ final class AutomationEngine {
     ///   - trigger: The trigger that initiated this evaluation
     ///   - sourceApp: The source application (optional)
     /// - Returns: AutomationResult with transformed content and execution details
-    func evaluateRules(
+    func evaluateRules( // swiftlint:disable:this function_body_length
         for content: ClipboardContent,
         trigger: AutomationTrigger,
         sourceApp: SourceApp? = nil
@@ -118,7 +120,6 @@ final class AutomationEngine {
 
                             // Record successful execution
                             await recordRuleExecution(rule)
-
                         } catch let error as AutomationError {
                             logger.error("Action failed: \(error.localizedDescription)")
                             errors.append(error)

@@ -178,6 +178,7 @@
 
         // MARK: - HTML to Markdown Conversion
 
+        // swiftlint:disable:next function_body_length
         private func convertHTMLToMarkdown(_ html: String) -> String {
             var result = html
 

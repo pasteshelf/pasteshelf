@@ -33,13 +33,13 @@ struct SOC2SecurityControlTests {
 
     @Test("SecurityControl default id is unique")
     func defaultIdUnique() {
-        let a = SOC2SecurityControlsReport.SecurityControl(
+        let control1 = SOC2SecurityControlsReport.SecurityControl(
             name: "A", description: "d", status: .pass, evidence: "e"
         )
-        let b = SOC2SecurityControlsReport.SecurityControl(
+        let control2 = SOC2SecurityControlsReport.SecurityControl(
             name: "A", description: "d", status: .pass, evidence: "e"
         )
-        #expect(a.id != b.id)
+        #expect(control1.id != control2.id)
     }
 
     @Test("SecurityControl with recommendation preserves it")
@@ -93,9 +93,9 @@ struct SOC2ControlCategoryTests {
 
     @Test("ControlCategory default id is unique")
     func defaultIdUnique() {
-        let a = SOC2SecurityControlsReport.ControlCategory(name: "A", description: "d", controls: [])
-        let b = SOC2SecurityControlsReport.ControlCategory(name: "A", description: "d", controls: [])
-        #expect(a.id != b.id)
+        let category1 = SOC2SecurityControlsReport.ControlCategory(name: "A", description: "d", controls: [])
+        let category2 = SOC2SecurityControlsReport.ControlCategory(name: "A", description: "d", controls: [])
+        #expect(category1.id != category2.id)
     }
 
     @Test("ControlCategory survives Codable round-trip")
@@ -156,7 +156,7 @@ struct SOC2ReportModelTests {
         let category = SOC2SecurityControlsReport.ControlCategory(name: "C", description: "d", controls: controls)
         let allControls = category.controls
         let passCount = allControls.filter { $0.status == .pass }.count
-        let score = allControls.count > 0 ? (passCount * 100) / allControls.count : 0
+        let score = !allControls.isEmpty ? (passCount * 100) / allControls.count : 0
         #expect(score == 100)
     }
 
@@ -169,7 +169,7 @@ struct SOC2ReportModelTests {
         let category = SOC2SecurityControlsReport.ControlCategory(name: "C", description: "d", controls: controls)
         let allControls = category.controls
         let passCount = allControls.filter { $0.status == .pass }.count
-        let score = allControls.count > 0 ? (passCount * 100) / allControls.count : 0
+        let score = !allControls.isEmpty ? (passCount * 100) / allControls.count : 0
         #expect(score == 0)
     }
 
@@ -181,7 +181,7 @@ struct SOC2ReportModelTests {
         ]
         let allControls = controls
         let passCount = allControls.filter { $0.status == .pass }.count
-        let score = allControls.count > 0 ? (passCount * 100) / allControls.count : 0
+        let score = !allControls.isEmpty ? (passCount * 100) / allControls.count : 0
         #expect(score == 50)
     }
 

@@ -76,13 +76,7 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
     /// - Throws: `AuditError.syncFailed` if the network request fails, or any underlying
     ///   storage error encountered while fetching or updating entries.
     func flush() async throws {
-        let entries: [AuditLogEntry]
-        do {
-            entries = try await storage.fetchUnsyncedEvents(limit: batchSize)
-        } catch {
-            logger.error("Audit sync flush: failed to fetch unsynced entries — \(error.localizedDescription)")
-            throw AuditError.syncFailed("Fetch failed: \(error.localizedDescription)")
-        }
+        let entries = try await fetchUnsyncedEntries()
 
         guard !entries.isEmpty else {
             logger.debug("Audit sync flush: no pending entries — skipping")
@@ -91,79 +85,14 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
 
         logger.info("Audit sync flush: uploading \(entries.count) event(s) to admin console")
 
-        // Reconstruct AuditEvent models from CoreData entities
-        var events: [AuditEvent] = []
-        var ids: [UUID] = []
-
-        for entry in entries {
-            guard
-                let id = entry.id,
-                let actionRaw = entry.action,
-                let action = AuditAction(rawValue: actionRaw),
-                let categoryRaw = entry.eventCategory,
-                let category = AuditEventCategory(rawValue: categoryRaw)
-            else {
-                logger.warning("Skipping malformed AuditLogEntry (missing required fields)")
-                continue
-            }
-
-            let severity: AuditEventSeverity = if let severityRaw = entry.severity,
-                                                  let s = AuditEventSeverity(rawValue: severityRaw)
-            {
-                s
-            } else {
-                .info
-            }
-
-            let detail: [String: String]
-            do {
-                detail = try storage.decryptDetail(for: entry)
-            } catch {
-                logger
-                    .warning(
-                        "Failed to decrypt detail for audit entry \(id): \(error.localizedDescription) — using empty detail"
-                    )
-                detail = [:]
-            }
-
-            let event = AuditEvent(
-                id: id,
-                timestamp: entry.timestamp ?? Date(),
-                category: category,
-                action: action,
-                severity: severity,
-                userId: entry.userId,
-                deviceId: entry.deviceId,
-                resourceType: entry.resourceType,
-                resourceId: entry.resourceId,
-                detail: detail
-            )
-            events.append(event)
-            ids.append(id)
-        }
+        let (events, ids) = reconstructEvents(from: entries)
 
         guard !events.isEmpty else {
             logger.warning("Audit sync flush: all entries were malformed — nothing to upload")
             return
         }
 
-        // Submit to admin console
-        do {
-            try await apiClient.submitAuditEvents(events)
-            logger.info("Audit sync flush: successfully submitted \(events.count) event(s)")
-        } catch {
-            logger.error("Audit sync flush: upload failed — \(error.localizedDescription)")
-            throw AuditError.syncFailed(error.localizedDescription)
-        }
-
-        // Mark as synced in CoreData
-        do {
-            try await storage.markSynced(ids)
-            logger.debug("Audit sync flush: marked \(ids.count) entries as synced")
-        } catch {
-            logger.error("Audit sync flush: markSynced failed — \(error.localizedDescription)")
-            // Not re-throwing: the upload succeeded; a future flush will attempt to mark them again.
-        }
+        try await submitAndMarkSynced(events: events, ids: ids)
     }
 
     /// Starts the periodic auto-flush timer on the main run loop.
@@ -219,4 +148,87 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
     // MARK: - Logger
 
     private let logger = Logger.audit
+
+    /// Fetches unsynced audit log entries from CoreData.
+    private func fetchUnsyncedEntries() async throws -> [AuditLogEntry] {
+        do {
+            return try await storage.fetchUnsyncedEvents(limit: batchSize)
+        } catch {
+            logger.error("Audit sync flush: failed to fetch unsynced entries — \(error.localizedDescription)")
+            throw AuditError.syncFailed("Fetch failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// Reconstructs AuditEvent domain models from CoreData entries.
+    private func reconstructEvents(from entries: [AuditLogEntry]) -> ([AuditEvent], [UUID]) {
+        var events: [AuditEvent] = []
+        var ids: [UUID] = []
+
+        for entry in entries {
+            guard
+                let id = entry.id,
+                let actionRaw = entry.action,
+                let action = AuditAction(rawValue: actionRaw),
+                let categoryRaw = entry.eventCategory,
+                let category = AuditEventCategory(rawValue: categoryRaw)
+            else {
+                logger.warning("Skipping malformed AuditLogEntry (missing required fields)")
+                continue
+            }
+
+            let severity: AuditEventSeverity = if let severityRaw = entry.severity,
+                                                  let parsed = AuditEventSeverity(rawValue: severityRaw)
+            {
+                parsed
+            } else {
+                .info
+            }
+
+            let detail: [String: String]
+            do {
+                detail = try storage.decryptDetail(for: entry)
+            } catch {
+                let errorDesc = error.localizedDescription
+                logger.warning(
+                    "Failed to decrypt detail for audit entry \(id): \(errorDesc) — using empty detail"
+                )
+                detail = [:]
+            }
+
+            let event = AuditEvent(
+                id: id,
+                timestamp: entry.timestamp ?? Date(),
+                category: category,
+                action: action,
+                severity: severity,
+                userId: entry.userId,
+                deviceId: entry.deviceId,
+                resourceType: entry.resourceType,
+                resourceId: entry.resourceId,
+                detail: detail
+            )
+            events.append(event)
+            ids.append(id)
+        }
+
+        return (events, ids)
+    }
+
+    /// Submits events to the admin console and marks them as synced.
+    private func submitAndMarkSynced(events: [AuditEvent], ids: [UUID]) async throws {
+        do {
+            try await apiClient.submitAuditEvents(events)
+            logger.info("Audit sync flush: successfully submitted \(events.count) event(s)")
+        } catch {
+            logger.error("Audit sync flush: upload failed — \(error.localizedDescription)")
+            throw AuditError.syncFailed(error.localizedDescription)
+        }
+
+        do {
+            try await storage.markSynced(ids)
+            logger.debug("Audit sync flush: marked \(ids.count) entries as synced")
+        } catch {
+            logger.error("Audit sync flush: markSynced failed — \(error.localizedDescription)")
+        }
+    }
 }

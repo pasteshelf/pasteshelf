@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension Application {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<Application> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<Application> {
         NSFetchRequest<Application>(entityName: "Application")
     }
 

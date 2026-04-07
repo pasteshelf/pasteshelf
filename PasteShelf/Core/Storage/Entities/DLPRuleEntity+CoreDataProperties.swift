@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension DLPRuleEntity {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<DLPRuleEntity> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<DLPRuleEntity> {
         NSFetchRequest<DLPRuleEntity>(entityName: "DLPRuleEntity")
     }
 

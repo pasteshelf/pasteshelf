@@ -43,9 +43,11 @@ struct AuditLogView: View {
         .formStyle(.grouped)
         .alert("Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
-            set: { if !$0 {
-                viewModel.errorMessage = nil
-            } }
+            set: { newValue in
+                if !newValue {
+                    viewModel.errorMessage = nil
+                }
+            }
         )) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
@@ -53,12 +55,17 @@ struct AuditLogView: View {
                 Text(message)
             }
         }
-        .alert("Change Retention Period?", isPresented: Binding(
-            get: { pendingRetentionDays != nil },
-            set: { if !$0 {
-                pendingRetentionDays = nil
-            } }
-        )) {
+        .alert(
+            "Change Retention Period?",
+            isPresented: Binding(
+                get: { pendingRetentionDays != nil },
+                set: { newValue in
+                    if !newValue {
+                        pendingRetentionDays = nil
+                    }
+                }
+            )
+        ) {
             Button("Apply") {
                 if let days = pendingRetentionDays {
                     viewModel.updateRetentionDays(days)
@@ -72,8 +79,10 @@ struct AuditLogView: View {
             }
         } message: {
             if let days = pendingRetentionDays {
+                let suffix = days == 1 ? "" : "s"
                 Text(
-                    "Setting retention to \(days) day\(days == 1 ? "" : "s") will permanently delete older events during the next pruning pass. This cannot be undone."
+                    "Setting retention to \(days) day\(suffix) will permanently delete"
+                        + " older events during the next pruning pass. This cannot be undone."
                 )
             }
         }
@@ -161,8 +170,10 @@ struct AuditLogView: View {
     private var eventsSection: some View {
         Section("Events (\(viewModel.events.count))") {
             if viewModel.decryptionFailureCount > 0 {
+                let count = viewModel.decryptionFailureCount
+                let suffix = count == 1 ? "" : "s"
                 Label(
-                    "\(viewModel.decryptionFailureCount) event\(viewModel.decryptionFailureCount == 1 ? "" : "s") could not be decrypted",
+                    "\(count) event\(suffix) could not be decrypted",
                     systemImage: "exclamationmark.triangle"
                 )
                 .font(.caption)
@@ -225,7 +236,8 @@ struct AuditLogView: View {
             }
 
             Text(
-                "Events older than the retention window are automatically deleted during the next scheduled pruning pass."
+                "Events older than the retention window are automatically deleted"
+                    + " during the next scheduled pruning pass."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -297,8 +309,9 @@ private struct EventRowView: View {
 
             if !item.detail.isEmpty {
                 DisclosureGroup("Details") {
+                    let sortedDetail = item.detail.sorted { $0.key < $1.key }
                     VStack(alignment: .leading, spacing: 2) {
-                        ForEach(Array(item.detail.sorted(by: { $0.key < $1.key })), id: \.key) { key, value in
+                        ForEach(Array(sortedDetail), id: \.key) { key, value in
                             HStack(alignment: .top, spacing: 6) {
                                 Text(key + ":")
                                     .font(.caption.monospaced())

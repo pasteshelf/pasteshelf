@@ -200,21 +200,21 @@ struct FuzzyMatcher: Sendable {
     // MARK: - Levenshtein Distance
 
     /// Calculates the Levenshtein (edit) distance between two strings
-    /// Uses dynamic programming with O(min(m,n)) space optimization
+    /// Uses dynamic programming with O(min(len1,len2)) space optimization
     func levenshteinDistance(_ s1: String, _ s2: String) -> Int {
-        let m = s1.count
-        let n = s2.count
+        let len1 = s1.count
+        let len2 = s2.count
 
         // Quick returns for edge cases
-        if m == 0 {
-            return n
+        if len1 == 0 {
+            return len2
         }
-        if n == 0 {
-            return m
+        if len2 == 0 {
+            return len1
         }
 
         // Ensure s1 is the shorter string for space optimization
-        if m > n {
+        if len1 > len2 {
             return levenshteinDistance(s2, s1)
         }
 
@@ -222,13 +222,13 @@ struct FuzzyMatcher: Sendable {
         let s2Array = Array(s2)
 
         // Use two rows instead of full matrix (space optimization)
-        var previousRow = Array(0 ... m)
-        var currentRow = [Int](repeating: 0, count: m + 1)
+        var previousRow = Array(0 ... len1)
+        var currentRow = [Int](repeating: 0, count: len1 + 1)
 
-        for j in 1 ... n {
+        for j in 1 ... len2 {
             currentRow[0] = j
 
-            for i in 1 ... m {
+            for i in 1 ... len1 {
                 let cost = s1Array[i - 1] == s2Array[j - 1] ? 0 : 1
 
                 currentRow[i] = min(
@@ -241,7 +241,7 @@ struct FuzzyMatcher: Sendable {
             swap(&previousRow, &currentRow)
         }
 
-        return previousRow[m]
+        return previousRow[len1]
     }
 
     /// Converts a FuzzyMatch to a MatchRange

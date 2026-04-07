@@ -21,9 +21,8 @@ struct AppExclusionListView: View {
         VStack(alignment: .leading, spacing: 4) {
             ForEach(bundleIds, id: \.self) { bundleId in
                 ExcludedAppRow(
-                    bundleId: bundleId,
-                    onRemove: { onRemove(bundleId) }
-                )
+                    bundleId: bundleId
+                ) { onRemove(bundleId) }
             }
         }
     }
@@ -105,11 +104,10 @@ struct ExcludedAppRow: View {
                     "com.apple.Safari",
                     "com.google.Chrome",
                     "com.agilebits.onepassword7",
-                ],
-                onRemove: { _ in }
-            )
-            .frame(width: 300)
-            .padding()
+                ]
+            ) { _ in }
+                .frame(width: 300)
+                .padding()
         }
     }
 #endif

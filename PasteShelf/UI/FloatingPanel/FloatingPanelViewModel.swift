@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  FloatingPanelViewModel.swift
 //  PasteShelf
@@ -6,6 +7,8 @@
 //  Handles item loading, selection, keyboard navigation, search, and paste actions.
 //
 
+// swiftformat:disable organizeDeclarations
+
 import AppKit
 import Combine
 import Foundation
@@ -13,7 +16,7 @@ import os.log
 
 /// ViewModel for the floating panel displaying clipboard history
 @MainActor
-final class FloatingPanelViewModel: ObservableObject {
+final class FloatingPanelViewModel: ObservableObject { // swiftlint:disable:this type_body_length
     // MARK: Lifecycle
 
     // MARK: - Initialization
@@ -402,7 +405,8 @@ final class FloatingPanelViewModel: ObservableObject {
             let pasted = pasteSimulator.simulatePaste()
 
             if !pasted {
-                errorMessage = "Item copied to clipboard. Grant Accessibility permission in System Settings to enable auto-paste."
+                errorMessage = "Item copied to clipboard. "
+                    + "Grant Accessibility permission in System Settings to enable auto-paste."
             }
 
             // Resume monitoring after paste completes
@@ -936,54 +940,79 @@ final class FloatingPanelViewModel: ObservableObject {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
 
-        // Write content based on type
-        switch item.contentType {
+        writeContentToPasteboard(pasteboard, contentType: item.contentType, contentData: contentData)
+
+        return true
+    }
+
+    /// Writes content data to the pasteboard based on the content type
+    private func writeContentToPasteboard(
+        _ pasteboard: NSPasteboard,
+        contentType: ContentType,
+        contentData: ClipboardContent
+    ) {
+        switch contentType {
         case .plainText:
-            if let text = contentData.textContent {
-                pasteboard.setString(text, forType: .string)
-            }
+            writeTextContent(pasteboard, contentData: contentData)
         case .richText:
-            if let rtfData = contentData.rtfData {
-                pasteboard.setData(rtfData, forType: .rtf)
-            }
-            // Also write plain text fallback
-            if let text = contentData.textContent {
-                pasteboard.setString(text, forType: .string)
-            }
+            writeRichTextContent(pasteboard, contentData: contentData)
         case .html:
-            if let htmlData = contentData.htmlData {
-                pasteboard.setData(htmlData, forType: .html)
-            }
-            // Also write plain text fallback
-            if let text = contentData.textContent {
-                pasteboard.setString(text, forType: .string)
-            }
+            writeHTMLContent(pasteboard, contentData: contentData)
         case .png,
              .jpeg,
              .tiff:
-            if let imageData = contentData.imageData,
-               let image = NSImage(data: imageData)
-            {
-                pasteboard.writeObjects([image])
-            }
-        case .url:
-            if let urlString = contentData.textContent,
-               let url = URL(string: urlString)
-            {
-                pasteboard.writeObjects([url as NSURL])
-            }
-        case .fileURL:
-            if let urlString = contentData.textContent,
-               let url = URL(string: urlString)
-            {
-                pasteboard.writeObjects([url as NSURL])
-            }
+            writeImageContent(pasteboard, contentData: contentData)
+        case .url,
+             .fileURL:
+            writeURLContent(pasteboard, contentData: contentData)
         case .pdf:
-            if let pdfData = contentData.pdfData {
-                pasteboard.setData(pdfData, forType: .pdf)
-            }
+            writePDFContent(pasteboard, contentData: contentData)
         }
+    }
 
-        return true
+    private func writeTextContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+        if let text = contentData.textContent {
+            pasteboard.setString(text, forType: .string)
+        }
+    }
+
+    private func writeRichTextContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+        if let rtfData = contentData.rtfData {
+            pasteboard.setData(rtfData, forType: .rtf)
+        }
+        if let text = contentData.textContent {
+            pasteboard.setString(text, forType: .string)
+        }
+    }
+
+    private func writeHTMLContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+        if let htmlData = contentData.htmlData {
+            pasteboard.setData(htmlData, forType: .html)
+        }
+        if let text = contentData.textContent {
+            pasteboard.setString(text, forType: .string)
+        }
+    }
+
+    private func writeImageContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+        if let imageData = contentData.imageData,
+           let image = NSImage(data: imageData)
+        {
+            pasteboard.writeObjects([image])
+        }
+    }
+
+    private func writeURLContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+        if let urlString = contentData.textContent,
+           let url = URL(string: urlString)
+        {
+            pasteboard.writeObjects([url as NSURL])
+        }
+    }
+
+    private func writePDFContent(_ pasteboard: NSPasteboard, contentData: ClipboardContent) {
+        if let pdfData = contentData.pdfData {
+            pasteboard.setData(pdfData, forType: .pdf)
+        }
     }
 }

@@ -175,8 +175,7 @@ struct IdentityProviderFormView: View {
 
     // MARK: - Type-Specific Section
 
-    @ViewBuilder
-    private var typeSpecificSection: some View {
+    @ViewBuilder private var typeSpecificSection: some View {
         switch providerType {
         case .saml:
             samlSection
@@ -184,187 +183,55 @@ struct IdentityProviderFormView: View {
             oidcSection
         }
     }
+}
 
+// MARK: - IdentityProviderFormView + Subviews
+
+extension IdentityProviderFormView {
     // MARK: - SAML Section
 
-    private var samlSection: some View {
+    var samlSection: some View {
         Group {
-            // Metadata URL sub-section (PASTESHELF-149)
-            Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Paste the IdP metadata URL below and click Fetch to auto-populate the SAML configuration.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    HStack(spacing: 8) {
-                        TextField("https://idp.example.com/metadata.xml", text: $samlMetadataURL)
-                            .textFieldStyle(.roundedBorder)
-                            .accessibilityLabel("IdP metadata URL")
-
-                        Button {
-                            fetchSAMLMetadata()
-                        } label: {
-                            if isFetchingMetadata {
-                                ProgressView()
-                                    .controlSize(.small)
-                            } else {
-                                Text("Fetch")
-                            }
-                        }
-                        .disabled(samlMetadataURL.isEmpty || isFetchingMetadata)
-                        .buttonStyle(.bordered)
-                        .frame(width: 70)
-                        .help("Fetch and parse the IdP metadata document")
-                    }
-
-                    if let error = metadataFetchError {
-                        HStack(spacing: 6) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.orange)
-                            Text(error)
-                                .font(.caption)
-                                .foregroundStyle(.orange)
-                        }
-                    }
-                }
-                .padding(.vertical, 4)
-            } header: {
-                Text("Metadata URL")
-            } footer: {
-                Text("Optional: auto-populate settings from your IdP's metadata document.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            // IdP Endpoints
-            Section {
-                LabeledContent("SSO URL") {
-                    TextField("https://idp.example.com/sso/saml", text: $samlSSOURL)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("Single Sign-On URL")
-                }
-
-                LabeledContent("SLO URL") {
-                    TextField("https://idp.example.com/slo/saml (optional)", text: $samlSLOURL)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("Single Logout URL")
-                }
-            } header: {
-                Text("Identity Provider Endpoints")
-            }
-
-            // Certificate
-            Section {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Paste the PEM-encoded X.509 certificate used to verify IdP-signed assertions.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    TextEditor(text: $samlCertificate)
-                        .font(.system(.caption, design: .monospaced))
-                        .frame(minHeight: 100, maxHeight: 160)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-                        )
-                        .accessibilityLabel("IdP signing certificate (PEM)")
-                }
-                .padding(.vertical, 4)
-            } header: {
-                Text("Signing Certificate")
-            }
-
-            // Protocol settings
-            Section {
-                LabeledContent("NameID Format") {
-                    Picker("NameID Format", selection: $samlNameIDFormat) {
-                        Text("Email Address").tag(SAMLNameIDFormat.emailAddress)
-                        Text("Persistent").tag(SAMLNameIDFormat.persistent)
-                        Text("Transient").tag(SAMLNameIDFormat.transient)
-                        Text("Unspecified").tag(SAMLNameIDFormat.unspecified)
-                        Text("Entity").tag(SAMLNameIDFormat.entity)
-                        Text("X.509 Subject").tag(SAMLNameIDFormat.x509SubjectName)
-                        Text("Windows Domain").tag(SAMLNameIDFormat.windowsDomainQualifiedName)
-                        Text("Kerberos").tag(SAMLNameIDFormat.kerberos)
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: 220)
-                }
-
-                LabeledContent("HTTP Binding") {
-                    Picker("HTTP Binding", selection: $samlBinding) {
-                        ForEach(SAMLBinding.allCases, id: \.self) { binding in
-                            Text(binding.displayName).tag(binding)
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: 220)
-                }
-
-                Toggle("Sign AuthnRequests", isOn: $samlSignAuthnRequests)
-                    .accessibilityLabel("Sign outgoing AuthnRequest messages")
-            } header: {
-                Text("Protocol Settings")
-            }
-
-            // Service Provider configuration
-            Section {
-                LabeledContent("ACS URL") {
-                    TextField("https://app.pasteshelf.app/sso/acs", text: $samlACSURL)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("Assertion Consumer Service URL")
-                }
-
-                LabeledContent("Audience Restriction") {
-                    TextField("https://app.pasteshelf.app", text: $samlAudienceRestriction)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("SP entity ID / audience restriction")
-                }
-            } header: {
-                Text("Service Provider")
-            } footer: {
-                Text("Register these values with your identity provider.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            samlMetadataSection
+            samlEndpointsSection
+            samlCertificateSection
+            samlProtocolSection
+            samlServiceProviderSection
         }
     }
 
-    // MARK: - OIDC Section
+    var samlMetadataSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "Paste the IdP metadata URL below and click Fetch"
+                        + " to auto-populate the SAML configuration."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
-    private var oidcSection: some View {
-        Group {
-            // Discovery / Issuer
-            Section {
-                Toggle("Use Discovery Document", isOn: $oidcUseDiscovery)
-                    .accessibilityLabel("Auto-populate endpoints from well-known discovery document")
+                HStack(spacing: 8) {
+                    TextField("https://idp.example.com/metadata.xml", text: $samlMetadataURL)
+                        .textFieldStyle(.roundedBorder)
+                        .accessibilityLabel("IdP metadata URL")
 
-                LabeledContent("Issuer URL") {
-                    HStack(spacing: 8) {
-                        TextField("https://accounts.google.com", text: $oidcIssuerURL)
-                            .textFieldStyle(.roundedBorder)
-                            .accessibilityLabel("OIDC issuer URL")
-
-                        if oidcUseDiscovery {
-                            Button {
-                                discoverOIDCConfig()
-                            } label: {
-                                if isDiscovering {
-                                    ProgressView()
-                                        .controlSize(.small)
-                                } else {
-                                    Text("Discover")
-                                }
-                            }
-                            .disabled(oidcIssuerURL.isEmpty || isDiscovering)
-                            .buttonStyle(.bordered)
-                            .frame(width: 90)
-                            .help("Fetch endpoints from \(oidcIssuerURL)/.well-known/openid-configuration")
+                    Button {
+                        fetchSAMLMetadata()
+                    } label: {
+                        if isFetchingMetadata {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Text("Fetch")
                         }
                     }
+                    .disabled(samlMetadataURL.isEmpty || isFetchingMetadata)
+                    .buttonStyle(.bordered)
+                    .frame(width: 70)
+                    .help("Fetch and parse the IdP metadata document")
                 }
 
-                if let error = discoveryError {
+                if let error = metadataFetchError {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)
@@ -373,134 +240,124 @@ struct IdentityProviderFormView: View {
                             .foregroundStyle(.orange)
                     }
                 }
-            } header: {
-                Text("Provider Discovery")
-            } footer: {
-                Text(
-                    "Enable discovery to auto-populate authorization, token, and JWKS endpoints from the issuer's well-known document."
-                )
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Metadata URL")
+        } footer: {
+            Text("Optional: auto-populate settings from your IdP's metadata document.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    var samlEndpointsSection: some View {
+        Section {
+            LabeledContent("SSO URL") {
+                TextField("https://idp.example.com/sso/saml", text: $samlSSOURL)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel("Single Sign-On URL")
             }
 
-            // Manual endpoints (shown when discovery is off, or populated after discovery)
-            if !oidcUseDiscovery {
-                Section {
-                    LabeledContent("Authorization Endpoint") {
-                        TextField("https://example.com/oauth/authorize", text: $oidcAuthorizationEndpoint)
-                            .textFieldStyle(.roundedBorder)
-                    }
-
-                    LabeledContent("Token Endpoint") {
-                        TextField("https://example.com/oauth/token", text: $oidcTokenEndpoint)
-                            .textFieldStyle(.roundedBorder)
-                    }
-
-                    LabeledContent("JWKS URL") {
-                        TextField("https://example.com/.well-known/jwks.json", text: $oidcJWKSURL)
-                            .textFieldStyle(.roundedBorder)
-                    }
-
-                    LabeledContent("UserInfo Endpoint") {
-                        TextField("https://example.com/userinfo (optional)", text: $oidcUserInfoEndpoint)
-                            .textFieldStyle(.roundedBorder)
-                    }
-
-                    LabeledContent("End-Session Endpoint") {
-                        TextField("https://example.com/logout (optional)", text: $oidcEndSessionEndpoint)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                } header: {
-                    Text("Endpoints")
-                }
-            } else if !oidcAuthorizationEndpoint.isEmpty {
-                // Show discovered endpoints as read-only summary
-                Section {
-                    LabeledContent("Authorization") {
-                        Text(oidcAuthorizationEndpoint)
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                    }
-                    LabeledContent("Token") {
-                        Text(oidcTokenEndpoint)
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                    }
-                    LabeledContent("JWKS") {
-                        Text(oidcJWKSURL)
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                    }
-                } header: {
-                    Text("Discovered Endpoints")
-                } footer: {
-                    Text("Populated automatically from the discovery document.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+            LabeledContent("SLO URL") {
+                TextField("https://idp.example.com/slo/saml (optional)", text: $samlSLOURL)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel("Single Logout URL")
             }
+        } header: {
+            Text("Identity Provider Endpoints")
+        }
+    }
 
-            // Client credentials
-            Section {
-                LabeledContent("Client ID") {
-                    TextField("your-client-id", text: $oidcClientId)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("OIDC client identifier")
-                }
-
-                LabeledContent("Client Secret") {
-                    SecureField("Leave blank for public clients", text: $oidcClientSecret)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("OIDC client secret")
-                }
-
-                LabeledContent("Redirect URI") {
-                    TextField("pasteshelf://auth/callback", text: $oidcRedirectURI)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("OAuth redirect URI")
-                }
-            } header: {
-                Text("Client Credentials")
-            }
-
-            // Flow configuration
-            Section {
-                LabeledContent("Scopes") {
-                    TextField("openid profile email", text: $oidcScopes)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("OAuth scopes (space-separated)")
-                }
-
-                Toggle("Use PKCE", isOn: $oidcUsePKCE)
-                    .accessibilityLabel("Proof Key for Code Exchange")
-                    .accessibilityHint("Recommended for public clients; requires the provider to support S256")
-            } header: {
-                Text("Flow Configuration")
-            } footer: {
-                Text("PKCE is recommended for desktop clients and does not require a client secret.")
+    var samlCertificateSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Paste the PEM-encoded X.509 certificate used to verify IdP-signed assertions.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                TextEditor(text: $samlCertificate)
+                    .font(.system(.caption, design: .monospaced))
+                    .frame(minHeight: 100, maxHeight: 160)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+                    )
+                    .accessibilityLabel("IdP signing certificate (PEM)")
             }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Signing Certificate")
+        }
+    }
+
+    var samlProtocolSection: some View {
+        Section {
+            LabeledContent("NameID Format") {
+                Picker("NameID Format", selection: $samlNameIDFormat) {
+                    Text("Email Address").tag(SAMLNameIDFormat.emailAddress)
+                    Text("Persistent").tag(SAMLNameIDFormat.persistent)
+                    Text("Transient").tag(SAMLNameIDFormat.transient)
+                    Text("Unspecified").tag(SAMLNameIDFormat.unspecified)
+                    Text("Entity").tag(SAMLNameIDFormat.entity)
+                    Text("X.509 Subject").tag(SAMLNameIDFormat.x509SubjectName)
+                    Text("Windows Domain").tag(SAMLNameIDFormat.windowsDomainQualifiedName)
+                    Text("Kerberos").tag(SAMLNameIDFormat.kerberos)
+                }
+                .labelsHidden()
+                .frame(maxWidth: 220)
+            }
+
+            LabeledContent("HTTP Binding") {
+                Picker("HTTP Binding", selection: $samlBinding) {
+                    ForEach(SAMLBinding.allCases, id: \.self) { binding in
+                        Text(binding.displayName).tag(binding)
+                    }
+                }
+                .labelsHidden()
+                .frame(maxWidth: 220)
+            }
+
+            Toggle("Sign AuthnRequests", isOn: $samlSignAuthnRequests)
+                .accessibilityLabel("Sign outgoing AuthnRequest messages")
+        } header: {
+            Text("Protocol Settings")
+        }
+    }
+
+    var samlServiceProviderSection: some View {
+        Section {
+            LabeledContent("ACS URL") {
+                TextField("https://app.pasteshelf.app/sso/acs", text: $samlACSURL)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel("Assertion Consumer Service URL")
+            }
+
+            LabeledContent("Audience Restriction") {
+                TextField("https://app.pasteshelf.app", text: $samlAudienceRestriction)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel("SP entity ID / audience restriction")
+            }
+        } header: {
+            Text("Service Provider")
+        } footer: {
+            Text("Register these values with your identity provider.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
     // MARK: - Test Connection Section (PASTESHELF-150)
 
-    private var testConnectionSection: some View {
+    var testConnectionSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Verify that PasteShelf can reach the identity provider using the current configuration.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Text(
+                    "Verify that PasteShelf can reach the identity provider"
+                        + " using the current configuration."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
                 HStack(spacing: 10) {
                     if isTestingConnection {
@@ -548,7 +405,7 @@ struct IdentityProviderFormView: View {
 
     // MARK: - Footer Buttons
 
-    private var footerButtons: some View {
+    var footerButtons: some View {
         HStack {
             // Validation errors
             if !validationErrors.isEmpty {
@@ -581,287 +438,4 @@ struct IdentityProviderFormView: View {
             .disabled(!isFormValid)
         }
     }
-
-    // MARK: - Save
-
-    private func saveProvider() {
-        validationErrors = []
-
-        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
-            validationErrors = ["Provider name is required."]
-            return
-        }
-
-        guard let built = buildProvider() else {
-            return
-        }
-        onSave(built)
-    }
-
-    /// Constructs an IdentityProvider from the current form state
-    private func buildProvider() -> IdentityProvider? {
-        let id = provider?.id ?? UUID()
-        let now = Date()
-
-        switch providerType {
-        case .saml:
-            guard let ssoURL = URL(string: samlSSOURL), !samlSSOURL.isEmpty else {
-                validationErrors = ["SSO URL is not a valid URL."]
-                return nil
-            }
-
-            let sloURL = samlSLOURL.isEmpty ? nil : URL(string: samlSLOURL)
-
-            let saml = SAMLProviderConfig(
-                ssoURL: ssoURL,
-                sloURL: sloURL,
-                certificate: samlCertificate,
-                signAuthnRequests: samlSignAuthnRequests,
-                nameIDFormat: samlNameIDFormat,
-                binding: samlBinding,
-                assertionConsumerServiceURL: samlACSURL,
-                audienceRestriction: samlAudienceRestriction
-            )
-
-            return IdentityProvider(
-                id: id,
-                name: name.trimmingCharacters(in: .whitespaces),
-                type: .saml,
-                entityId: entityId,
-                isEnabled: isEnabled,
-                createdAt: provider?.createdAt ?? now,
-                updatedAt: now,
-                samlConfig: saml,
-                oidcConfig: nil
-            )
-
-        case .oidc:
-            guard let issuer = URL(string: oidcIssuerURL), !oidcIssuerURL.isEmpty,
-                  let authEndpoint = URL(string: oidcAuthorizationEndpoint), !oidcAuthorizationEndpoint.isEmpty,
-                  let tokenEndpoint = URL(string: oidcTokenEndpoint), !oidcTokenEndpoint.isEmpty,
-                  let jwksURL = URL(string: oidcJWKSURL), !oidcJWKSURL.isEmpty
-            else {
-                validationErrors = ["One or more OIDC endpoint URLs are invalid."]
-                return nil
-            }
-
-            let userInfo = oidcUserInfoEndpoint.isEmpty ? nil : URL(string: oidcUserInfoEndpoint)
-            let endSession = oidcEndSessionEndpoint.isEmpty ? nil : URL(string: oidcEndSessionEndpoint)
-            let secret: String? = oidcClientSecret.isEmpty ? nil : oidcClientSecret
-            let scopes = oidcScopes
-                .components(separatedBy: .whitespaces)
-                .filter { !$0.isEmpty }
-
-            let oidc = OIDCProviderConfig(
-                issuerURL: issuer,
-                authorizationEndpoint: authEndpoint,
-                tokenEndpoint: tokenEndpoint,
-                userInfoEndpoint: userInfo,
-                jwksURL: jwksURL,
-                endSessionEndpoint: endSession,
-                clientId: oidcClientId,
-                clientSecret: secret,
-                scopes: scopes.isEmpty ? ["openid", "profile", "email"] : scopes,
-                responseType: "code",
-                usePKCE: oidcUsePKCE,
-                redirectURI: oidcRedirectURI
-            )
-
-            return IdentityProvider(
-                id: id,
-                name: name.trimmingCharacters(in: .whitespaces),
-                type: .oidc,
-                entityId: entityId,
-                isEnabled: isEnabled,
-                createdAt: provider?.createdAt ?? now,
-                updatedAt: now,
-                samlConfig: nil,
-                oidcConfig: oidc
-            )
-        }
-    }
-
-    // MARK: - Populate from Existing Provider
-
-    private func populateFromProvider() {
-        guard let p = provider else {
-            return
-        }
-
-        name = p.name
-        entityId = p.entityId
-        providerType = p.type
-        isEnabled = p.isEnabled
-
-        if let saml = p.samlConfig {
-            samlSSOURL = saml.ssoURL.absoluteString
-            samlSLOURL = saml.sloURL?.absoluteString ?? ""
-            samlCertificate = saml.certificate
-            samlSignAuthnRequests = saml.signAuthnRequests
-            samlNameIDFormat = saml.nameIDFormat
-            samlBinding = saml.binding
-            samlACSURL = saml.assertionConsumerServiceURL
-            samlAudienceRestriction = saml.audienceRestriction
-        }
-
-        if let oidc = p.oidcConfig {
-            oidcIssuerURL = oidc.issuerURL.absoluteString
-            oidcAuthorizationEndpoint = oidc.authorizationEndpoint.absoluteString
-            oidcTokenEndpoint = oidc.tokenEndpoint.absoluteString
-            oidcUserInfoEndpoint = oidc.userInfoEndpoint?.absoluteString ?? ""
-            oidcJWKSURL = oidc.jwksURL.absoluteString
-            oidcEndSessionEndpoint = oidc.endSessionEndpoint?.absoluteString ?? ""
-            oidcClientId = oidc.clientId
-            oidcClientSecret = oidc.clientSecret ?? ""
-            oidcRedirectURI = oidc.redirectURI
-            oidcScopes = oidc.scopeString
-            oidcUsePKCE = oidc.usePKCE
-            // If we have endpoints, treat as already discovered
-            oidcUseDiscovery = true
-        }
-    }
-
-    // MARK: - OIDC Discovery
-
-    private func discoverOIDCConfig() {
-        guard let url = URL(string: oidcIssuerURL) else {
-            discoveryError = "Invalid issuer URL."
-            return
-        }
-
-        isDiscovering = true
-        discoveryError = nil
-
-        Task {
-            defer { isDiscovering = false }
-
-            do {
-                let discovery = OIDCDiscovery()
-                let doc = try await discovery.discover(issuerURL: url)
-
-                oidcAuthorizationEndpoint = doc.authorizationEndpoint
-                oidcTokenEndpoint = doc.tokenEndpoint
-                oidcJWKSURL = doc.jwksUri
-                oidcUserInfoEndpoint = doc.userinfoEndpoint ?? ""
-                oidcEndSessionEndpoint = doc.endSessionEndpoint ?? ""
-
-                // Pre-fill scopes if empty
-                if oidcScopes.trimmingCharacters(in: .whitespaces).isEmpty,
-                   let supported = doc.scopesSupported
-                {
-                    let defaults = ["openid", "profile", "email"]
-                    let intersection = defaults.filter { supported.contains($0) }
-                    oidcScopes = intersection.joined(separator: " ")
-                }
-
-                // Auto-set entity ID from issuer if empty
-                if entityId.isEmpty {
-                    entityId = doc.issuer
-                }
-
-                discoveryError = nil
-            } catch {
-                discoveryError = error.localizedDescription
-            }
-        }
-    }
-
-    // MARK: - SAML Metadata Fetch
-
-    /// Fetches and parses the IdP metadata XML document, then pre-fills SAML fields.
-    ///
-    /// A full metadata parser is out of scope here; we extract common fields that are
-    /// available in standard IdP metadata documents using basic string scanning.
-    private func fetchSAMLMetadata() {
-        guard let url = URL(string: samlMetadataURL) else {
-            metadataFetchError = "Invalid metadata URL."
-            return
-        }
-
-        isFetchingMetadata = true
-        metadataFetchError = nil
-
-        Task {
-            defer { isFetchingMetadata = false }
-
-            do {
-                let (data, response) = try await URLSession.shared.data(from: url)
-
-                guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-                    metadataFetchError = "Server returned an unexpected response."
-                    return
-                }
-
-                guard let xml = String(data: data, encoding: .utf8) else {
-                    metadataFetchError = "Could not decode metadata document."
-                    return
-                }
-
-                // Extract the SSO URL from SingleSignOnService element
-                if let ssoRange = xml.range(of: "SingleSignOnService"),
-                   let locationStart = xml[ssoRange.upperBound...].range(of: "Location=\""),
-                   let locationEnd = xml[locationStart.upperBound...].range(of: "\"")
-                {
-                    let extracted = String(xml[locationStart.upperBound ..< locationEnd.lowerBound])
-                    if !extracted.isEmpty {
-                        samlSSOURL = extracted
-                    }
-                }
-
-                // Extract entityID from EntityDescriptor
-                if let entityRange = xml.range(of: "entityID=\""),
-                   let entityEnd = xml[entityRange.upperBound...].range(of: "\"")
-                {
-                    let extracted = String(xml[entityRange.upperBound ..< entityEnd.lowerBound])
-                    if !extracted.isEmpty {
-                        entityId = extracted
-                    }
-                }
-
-                // Extract X509Certificate
-                if let certStart = xml.range(of: "<ds:X509Certificate>") ?? xml.range(of: "<X509Certificate>"),
-                   let certTag = xml
-                   .range(of: certStart.lowerBound == xml.startIndex ? "<ds:X509Certificate>" : "<X509Certificate>"),
-                   let certEnd = xml[certTag.upperBound...].range(of: "</")
-                {
-                    let rawCert = String(xml[certTag.upperBound ..< certEnd.lowerBound])
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !rawCert.isEmpty {
-                        samlCertificate = "-----BEGIN CERTIFICATE-----\n\(rawCert)\n-----END CERTIFICATE-----"
-                    }
-                }
-
-                metadataFetchError = nil
-            } catch {
-                metadataFetchError = "Failed to fetch metadata: \(error.localizedDescription)"
-            }
-        }
-    }
 }
-
-// MARK: - SAMLNameIDFormat + CaseIterable
-
-extension SAMLNameIDFormat: CaseIterable {
-    static var allCases: [SAMLNameIDFormat] {
-        [.emailAddress, .persistent, .transient, .unspecified,
-         .entity, .kerberos, .windowsDomainQualifiedName, .x509SubjectName]
-    }
-}
-
-// MARK: - Previews
-
-#if DEBUG
-    struct IdentityProviderFormView_Previews: PreviewProvider {
-        static var previews: some View {
-            IdentityProviderFormView(
-                provider: nil,
-                onSave: { _ in },
-                onCancel: {},
-                onTestConnection: { _ in },
-                testResult: .constant(nil),
-                isTestingConnection: .constant(false)
-            )
-            .frame(width: 560, height: 560)
-        }
-    }
-#endif

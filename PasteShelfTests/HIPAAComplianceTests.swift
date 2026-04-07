@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  HIPAAComplianceTests.swift
 //  PasteShelfTests
@@ -62,31 +63,31 @@ struct HIPAAComplianceModeTests {
 
     @Test("Two HIPAAComplianceModes with same values are equal")
     func equalModes() {
-        let a = HIPAAComplianceMode(
+        let mode1 = HIPAAComplianceMode(
             isEnabled: true,
             sessionTimeoutMinutes: 10,
             requireBiometric: false,
             requireSSO: true
         )
-        let b = HIPAAComplianceMode(
+        let mode2 = HIPAAComplianceMode(
             isEnabled: true,
             sessionTimeoutMinutes: 10,
             requireBiometric: false,
             requireSSO: true
         )
-        #expect(a == b)
+        #expect(mode1 == mode2)
     }
 
     @Test("Two HIPAAComplianceModes with different values are not equal")
     func notEqualModes() {
-        let a = HIPAAComplianceMode.default
-        let b = HIPAAComplianceMode(
+        let mode1 = HIPAAComplianceMode.default
+        let mode2 = HIPAAComplianceMode(
             isEnabled: true,
             sessionTimeoutMinutes: 15,
             requireBiometric: false,
             requireSSO: false
         )
-        #expect(a != b)
+        #expect(mode1 != mode2)
     }
 
     // MARK: Sendable
@@ -460,9 +461,9 @@ struct HIPAAEnhancedAuditLoggerTests {
 struct ComplianceFindingTests {
     @Test("ComplianceFinding default id is a unique UUID")
     func defaultIdIsUnique() {
-        let a = ComplianceFinding(category: "test", status: .pass, description: "ok")
-        let b = ComplianceFinding(category: "test", status: .pass, description: "ok")
-        #expect(a.id != b.id)
+        let finding1 = ComplianceFinding(category: "test", status: .pass, description: "ok")
+        let finding2 = ComplianceFinding(category: "test", status: .pass, description: "ok")
+        #expect(finding1.id != finding2.id)
     }
 
     @Test("ComplianceFinding default recommendation is nil")
@@ -604,15 +605,23 @@ struct ComplianceReportTests {
 struct HIPAAEncryptionReportTests {
     @Test("HIPAAEncryptionReport default id is unique")
     func defaultIdIsUnique() {
-        let a = HIPAAEncryptionReport(
-            findings: [], auditEncryptionActive: false, syncEncryptionActive: false,
-            localDiskEncrypted: false, keyRotationStatus: .warning, overallCompliant: false
+        let report1 = HIPAAEncryptionReport(
+            findings: [],
+            auditEncryptionActive: false,
+            syncEncryptionActive: false,
+            localDiskEncrypted: false,
+            keyRotationStatus: .warning,
+            overallCompliant: false
         )
-        let b = HIPAAEncryptionReport(
-            findings: [], auditEncryptionActive: false, syncEncryptionActive: false,
-            localDiskEncrypted: false, keyRotationStatus: .warning, overallCompliant: false
+        let report2 = HIPAAEncryptionReport(
+            findings: [],
+            auditEncryptionActive: false,
+            syncEncryptionActive: false,
+            localDiskEncrypted: false,
+            keyRotationStatus: .warning,
+            overallCompliant: false
         )
-        #expect(a.id != b.id)
+        #expect(report1.id != report2.id)
     }
 
     @Test("HIPAAEncryptionReport preserves all values")

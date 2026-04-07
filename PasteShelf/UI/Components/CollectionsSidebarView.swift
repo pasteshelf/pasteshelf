@@ -115,8 +115,7 @@ struct CollectionsSidebarView: View {
         }
     }
 
-    @ViewBuilder
-    private var allItemsBackground: some View {
+    @ViewBuilder private var allItemsBackground: some View {
         if selectedCollectionId == nil {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.accentColor.opacity(0.15))
@@ -136,15 +135,18 @@ struct CollectionsSidebarView: View {
             Divider()
                 .padding(.horizontal, 12)
 
-            Button(action: { onCreate?() }) {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 14))
-                    Text("New Collection")
-                        .font(.system(size: 12, weight: .medium))
+            Button(
+                action: { onCreate?() },
+                label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 14))
+                        Text("New Collection")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundColor(.accentColor)
                 }
-                .foregroundColor(.accentColor)
-            }
+            )
             .buttonStyle(.plain)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
@@ -156,11 +158,10 @@ struct CollectionsSidebarView: View {
     private func collectionRow(_ collection: CollectionDisplayModel) -> some View {
         CollectionRowView(
             collection: collection,
-            isSelected: selectedCollectionId == collection.id,
-            onSelect: {
-                selectedCollectionId = collection.id
-            }
-        )
+            isSelected: selectedCollectionId == collection.id
+        ) {
+            selectedCollectionId = collection.id
+        }
         .contextMenu {
             collectionContextMenu(collection)
         }

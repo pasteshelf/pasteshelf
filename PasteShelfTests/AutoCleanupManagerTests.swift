@@ -128,11 +128,13 @@ extension AutoCleanupManager {
             return false
         }
 
-        let cutoffDate = Calendar.current.date(
+        guard let cutoffDate = Calendar.current.date(
             byAdding: .day,
             value: -settings.autoDeleteDays,
             to: Date()
-        )!
+        ) else {
+            return false
+        }
 
         return itemDate < cutoffDate
     }

@@ -140,7 +140,9 @@ struct GDPRSettingsView: View {
             }
         } message: {
             Text(
-                "This will permanently delete all clipboard items, tags, folders, collections, audit logs, and encryption keys. This action cannot be undone."
+                "This will permanently delete all clipboard items, tags, folders,"
+                    + " collections, audit logs, and encryption keys."
+                    + " This action cannot be undone."
             )
         }
         .sheet(isPresented: $showPrivacyDashboard) {

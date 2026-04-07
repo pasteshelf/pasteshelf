@@ -143,7 +143,10 @@
                 files: [filename: GistFile(content: text)]
             )
 
-            var request = URLRequest(url: URL(string: "https://api.github.com/gists")!)
+            guard let gistAPIURL = URL(string: "https://api.github.com/gists") else {
+                throw PluginError.executionFailed("Invalid GitHub API URL")
+            }
+            var request = URLRequest(url: gistAPIURL)
             request.httpMethod = "POST"
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -166,7 +169,10 @@
             let gistResponse = try JSONDecoder().decode(GistCreateResponse.self, from: data)
 
             // Return URL to the created gist
-            let result = PluginClipboardContent(url: URL(string: gistResponse.htmlURL)!)
+            guard let gistURL = URL(string: gistResponse.htmlURL) else {
+                throw PluginError.executionFailed("Invalid gist response URL")
+            }
+            let result = PluginClipboardContent(url: gistURL)
             result.text = gistResponse.htmlURL
             result.metadata["gistId"] = gistResponse.id
             result.metadata["originalContent"] = text
@@ -301,7 +307,7 @@
                         "Create a token with 'gist' scope",
                         destination: URL(
                             string: "https://github.com/settings/tokens/new?scopes=gist&description=PasteShelf"
-                        )!
+                        )! // swiftlint:disable:this force_unwrapping
                     )
                     .font(.caption)
                 }

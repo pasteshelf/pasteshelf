@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension SmartCollection {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<SmartCollection> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<SmartCollection> {
         NSFetchRequest<SmartCollection>(entityName: "SmartCollection")
     }
 

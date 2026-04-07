@@ -47,79 +47,15 @@ struct GDPRDataExportService: Sendable {
         encoder.dateEncodingStrategy = .iso8601
 
         do {
-            // 1. Clipboard items (30% of progress)
-            progressHandler?(0.0)
-            let clipboardData = try await exportClipboardItems()
-            try writeJSON(clipboardData, to: exportDir.appendingPathComponent("clipboard_items.json"), encoder: encoder)
-            progressHandler?(0.15)
-
-            // 2. Tags (5%)
-            let tagsData = try await exportTags()
-            try writeJSON(tagsData, to: exportDir.appendingPathComponent("tags.json"), encoder: encoder)
-            progressHandler?(0.20)
-
-            // 3. Folders (5%)
-            let foldersData = try await exportFolders()
-            try writeJSON(foldersData, to: exportDir.appendingPathComponent("folders.json"), encoder: encoder)
-            progressHandler?(0.25)
-
-            // 4. Collections (5%)
-            let collectionsData = try await exportCollections()
-            try writeJSON(collectionsData, to: exportDir.appendingPathComponent("collections.json"), encoder: encoder)
-            progressHandler?(0.30)
-
-            // 5. Audit logs (30%)
-            let auditData = try await exportAuditLogs()
-            try writeJSON(auditData, to: exportDir.appendingPathComponent("audit_logs.json"), encoder: encoder)
-            progressHandler?(0.60)
-
-            // 6. Settings (5%)
-            let settingsData = try exportSettings()
-            try writeJSON(settingsData, to: exportDir.appendingPathComponent("settings.json"), encoder: encoder)
-            progressHandler?(0.65)
-
-            // 7. Consent records (5%)
-            let consentData = try await exportConsentRecords()
-            try writeJSON(consentData, to: exportDir.appendingPathComponent("consent_records.json"), encoder: encoder)
-            progressHandler?(0.70)
-
-            // 8. Manifest (5%)
-            let manifest = ExportManifest(
-                exportDate: Date(),
-                applicationVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown",
-                files: [
-                    "clipboard_items.json",
-                    "tags.json",
-                    "folders.json",
-                    "collections.json",
-                    "audit_logs.json",
-                    "settings.json",
-                    "consent_records.json",
-                ],
-                clipboardItemCount: clipboardData.count,
-                tagCount: tagsData.count,
-                folderCount: foldersData.count,
-                collectionCount: collectionsData.count,
-                auditLogCount: auditData.count,
-                consentRecordCount: consentData.count
+            let counts = try await exportAllCategories(
+                to: exportDir,
+                encoder: encoder,
+                progressHandler: progressHandler
             )
-            let manifestData = try encoder.encode(manifest)
-            try manifestData.write(to: exportDir.appendingPathComponent("manifest.json"))
+            try writeManifest(to: exportDir, encoder: encoder, counts: counts)
             progressHandler?(1.0)
 
-            // Log the export
-            await AuditManager.shared.logComplianceEvent(
-                action: .dataExported,
-                severity: .info,
-                detail: [
-                    "clipboardItems": "\(clipboardData.count)",
-                    "tags": "\(tagsData.count)",
-                    "folders": "\(foldersData.count)",
-                    "collections": "\(collectionsData.count)",
-                    "auditLogs": "\(auditData.count)",
-                    "consentRecords": "\(consentData.count)",
-                ]
-            )
+            await logExportAuditEvent(counts: counts)
 
             logger.info("GDPR data export: completed to \(exportDir.lastPathComponent)")
             return exportDir
@@ -133,6 +69,94 @@ struct GDPRDataExportService: Sendable {
     // MARK: Private
 
     private static let logger = Logger.compliance
+
+    /// Exports all data categories to the given directory and returns their counts.
+    @MainActor
+    private static func exportAllCategories(
+        to exportDir: URL,
+        encoder: JSONEncoder,
+        progressHandler: ((Double) -> Void)?
+    ) async throws -> ExportCounts {
+        progressHandler?(0.0)
+        let clipboardData = try await exportClipboardItems()
+        try writeJSON(clipboardData, to: exportDir.appendingPathComponent("clipboard_items.json"), encoder: encoder)
+        progressHandler?(0.15)
+
+        let tagsData = try await exportTags()
+        try writeJSON(tagsData, to: exportDir.appendingPathComponent("tags.json"), encoder: encoder)
+        progressHandler?(0.20)
+
+        let foldersData = try await exportFolders()
+        try writeJSON(foldersData, to: exportDir.appendingPathComponent("folders.json"), encoder: encoder)
+        progressHandler?(0.25)
+
+        let collectionsData = try await exportCollections()
+        try writeJSON(collectionsData, to: exportDir.appendingPathComponent("collections.json"), encoder: encoder)
+        progressHandler?(0.30)
+
+        let auditData = try await exportAuditLogs()
+        try writeJSON(auditData, to: exportDir.appendingPathComponent("audit_logs.json"), encoder: encoder)
+        progressHandler?(0.60)
+
+        let settingsData = try exportSettings()
+        try writeJSON(settingsData, to: exportDir.appendingPathComponent("settings.json"), encoder: encoder)
+        progressHandler?(0.65)
+
+        let consentData = try await exportConsentRecords()
+        try writeJSON(consentData, to: exportDir.appendingPathComponent("consent_records.json"), encoder: encoder)
+        progressHandler?(0.70)
+
+        return ExportCounts(
+            clipboard: clipboardData.count,
+            tags: tagsData.count,
+            folders: foldersData.count,
+            collections: collectionsData.count,
+            auditLogs: auditData.count,
+            consent: consentData.count
+        )
+    }
+
+    /// Writes the export manifest file.
+    private static func writeManifest(
+        to exportDir: URL,
+        encoder: JSONEncoder,
+        counts: ExportCounts
+    ) throws {
+        let manifest = ExportManifest(
+            exportDate: Date(),
+            applicationVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown",
+            files: [
+                "clipboard_items.json", "tags.json", "folders.json",
+                "collections.json", "audit_logs.json",
+                "settings.json", "consent_records.json",
+            ],
+            clipboardItemCount: counts.clipboard,
+            tagCount: counts.tags,
+            folderCount: counts.folders,
+            collectionCount: counts.collections,
+            auditLogCount: counts.auditLogs,
+            consentRecordCount: counts.consent
+        )
+        let manifestData = try encoder.encode(manifest)
+        try manifestData.write(to: exportDir.appendingPathComponent("manifest.json"))
+    }
+
+    /// Logs the GDPR export as an audit event.
+    @MainActor
+    private static func logExportAuditEvent(counts: ExportCounts) async {
+        await AuditManager.shared.logComplianceEvent(
+            action: .dataExported,
+            severity: .info,
+            detail: [
+                "clipboardItems": "\(counts.clipboard)",
+                "tags": "\(counts.tags)",
+                "folders": "\(counts.folders)",
+                "collections": "\(counts.collections)",
+                "auditLogs": "\(counts.auditLogs)",
+                "consentRecords": "\(counts.consent)",
+            ]
+        )
+    }
 
     // MARK: - Individual Exporters
 
@@ -277,6 +301,18 @@ struct GDPRDataExportService: Sendable {
         let data = try encoder.encode(value)
         try data.write(to: url)
     }
+}
+
+// MARK: - ExportCounts
+
+/// Internal struct holding export counts for each data category.
+private struct ExportCounts {
+    let clipboard: Int
+    let tags: Int
+    let folders: Int
+    let collections: Int
+    let auditLogs: Int
+    let consent: Int
 }
 
 // MARK: - ExportManifest

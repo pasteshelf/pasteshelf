@@ -124,10 +124,11 @@ final class AnalyticsReporter {
             try await apiClient.submitAnalyticsEvents(eventsToSubmit)
             logger.info("Successfully submitted \(eventsToSubmit.count) analytics event(s).")
         } catch {
-            logger
-                .error(
-                    "Failed to submit analytics events: \(error.localizedDescription). Re-queuing \(eventsToSubmit.count) event(s)."
-                )
+            let errorDesc = error.localizedDescription
+            let count = eventsToSubmit.count
+            logger.error(
+                "Failed to submit analytics events: \(errorDesc). Re-queuing \(count) event(s)."
+            )
             // Restore events to the front of the pending queue (best effort).
             lock.lock()
             pendingEvents = eventsToSubmit + pendingEvents

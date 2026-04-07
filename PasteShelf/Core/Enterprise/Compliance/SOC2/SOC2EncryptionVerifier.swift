@@ -79,10 +79,9 @@ struct SOC2EncryptionVerifier: Sendable {
         let passingCount = findings.filter { $0.status == .pass }.count
         let overallScore = findings.isEmpty ? 0 : Int((Double(passingCount) / Double(findings.count)) * 100)
 
-        logger
-            .info(
-                "SOC2 encryption verification complete — score: \(overallScore)% (\(passingCount)/\(findings.count) checks passed)"
-            )
+        let totalCount = findings.count
+        let summary = "\(overallScore)% (\(passingCount)/\(totalCount) checks passed)"
+        logger.info("SOC2 encryption verification complete — score: \(summary)")
 
         return SOC2EncryptionReport(
             findings: findings,
@@ -147,7 +146,8 @@ struct SOC2EncryptionVerifier: Sendable {
                 category: category,
                 status: .fail,
                 description: "\(description) is missing from Keychain",
-                recommendation: "Configure the encryption subsystem to generate and store keys before enabling compliance features"
+                recommendation: "Configure the encryption subsystem to generate "
+                    + "and store keys before enabling compliance features"
             )
         }
     }
@@ -258,16 +258,20 @@ struct SOC2EncryptionVerifier: Sendable {
             return ComplianceFinding(
                 category: "Key Management",
                 status: .fail,
-                description: "Audit and sync encryption keys are both missing — key management policy cannot be enforced",
-                recommendation: "Initialise both the audit and sync encryption subsystems to generate managed keys"
+                description: "Audit and sync encryption keys are both missing "
+                    + "— key management policy cannot be enforced",
+                recommendation: "Initialise both the audit and sync encryption "
+                    + "subsystems to generate managed keys"
             )
         default:
             logger.warning("Key management check warning — one encryption key is missing")
             return ComplianceFinding(
                 category: "Key Management",
                 status: .warning,
-                description: "One or more encryption keys are missing — key rotation compliance cannot be fully verified",
-                recommendation: "Ensure all encryption subsystems are configured so key rotation can be audited"
+                description: "One or more encryption keys are missing "
+                    + "— key rotation compliance cannot be fully verified",
+                recommendation: "Ensure all encryption subsystems are configured "
+                    + "so key rotation can be audited"
             )
         }
     }

@@ -21,11 +21,11 @@ final class MockURLProtocol: URLProtocol, @unchecked Sendable {
     /// Captures the most recent request for assertion purposes.
     nonisolated(unsafe) static var lastRequest: URLRequest?
 
-    override class func canInit(with request: URLRequest) -> Bool {
+    override static func canInit(with request: URLRequest) -> Bool {
         true
     }
 
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+    override static func canonicalRequest(for request: URLRequest) -> URLRequest {
         request
     }
 
@@ -86,16 +86,19 @@ private func makeSuccessResponse(
     for url: URL?,
     statusCode: Int = 200
 ) -> HTTPURLResponse {
+    // swiftlint:disable force_unwrapping
     HTTPURLResponse(
         url: url ?? URL(string: "https://admin.example.com")!,
         statusCode: statusCode,
         httpVersion: "HTTP/1.1",
         headerFields: ["Content-Type": "application/json"]
     )!
+    // swiftlint:enable force_unwrapping
 }
 
 // MARK: - AdminAPIClientTests
 
+// swiftlint:disable:next type_body_length
 struct AdminAPIClientTests {
     // MARK: - Request Construction
 

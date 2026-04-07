@@ -13,7 +13,8 @@ import Foundation
 // MARK: - GetClipboardHistoryCommand
 
 /// Handles the "get clipboard history" AppleScript command
-@MainActor @objc(GetClipboardHistoryCommand)
+@MainActor
+@objc(GetClipboardHistoryCommand)
 class GetClipboardHistoryCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         // Get parameters
@@ -53,7 +54,8 @@ class GetClipboardHistoryCommand: NSScriptCommand {
 // MARK: - SearchClipboardCommand
 
 /// Handles the "search clipboard" AppleScript command
-@MainActor @objc(SearchClipboardCommand)
+@MainActor
+@objc(SearchClipboardCommand)
 class SearchClipboardCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         // Get search query from direct parameter
@@ -96,7 +98,8 @@ class SearchClipboardCommand: NSScriptCommand {
 // MARK: - CopyItemCommand
 
 /// Handles the "copy item" AppleScript command
-@MainActor @objc(CopyItemCommand)
+@MainActor
+@objc(CopyItemCommand)
 class CopyItemCommand: NSScriptCommand {
     // MARK: Internal
 
@@ -237,6 +240,7 @@ class TransformTextCommand: NSScriptCommand {
 
     // MARK: Private
 
+    // swiftlint:disable:next cyclomatic_complexity
     private func transformationCodeToPreset(_ code: String) -> TransformPreset? {
         // Map AppleScript four-char codes to TransformPreset
         switch code {
@@ -290,7 +294,8 @@ class TransformTextCommand: NSScriptCommand {
 // MARK: - DeleteItemCommand
 
 /// Handles the "delete item" AppleScript command
-@MainActor @objc(DeleteItemCommand)
+@MainActor
+@objc(DeleteItemCommand)
 class DeleteItemCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         // Get the item from direct parameter
@@ -336,7 +341,8 @@ class DeleteItemCommand: NSScriptCommand {
 // MARK: - ClearHistoryCommand
 
 /// Handles the "clear history" AppleScript command
-@MainActor @objc(ClearHistoryCommand)
+@MainActor
+@objc(ClearHistoryCommand)
 class ClearHistoryCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         let keepFavorites = (evaluatedArguments?["keepFavorites"] as? Bool) ?? true

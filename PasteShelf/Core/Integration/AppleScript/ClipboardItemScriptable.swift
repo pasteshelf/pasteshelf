@@ -13,7 +13,8 @@ import Foundation
 // MARK: - ClipboardItemScriptable
 
 /// Scriptable wrapper for ClipboardItem that provides AppleScript access
-@MainActor @objc(ClipboardItemScriptable)
+@MainActor
+@objc(ClipboardItemScriptable)
 class ClipboardItemScriptable: NSObject {
     // MARK: Lifecycle
 
@@ -39,10 +40,14 @@ class ClipboardItemScriptable: NSObject {
             return nil
         }
 
-        let appDescription = NSApplication.shared.classDescription as? NSScriptClassDescription
+        guard let appDescription = NSApplication.shared.classDescription as? NSScriptClassDescription
+            ?? NSScriptClassDescription(for: NSApplication.self)
+        else {
+            return nil
+        }
 
         return NSUniqueIDSpecifier(
-            containerClassDescription: appDescription!,
+            containerClassDescription: appDescription,
             containerSpecifier: nil,
             key: "clipboardItems",
             uniqueID: uniqueID
@@ -193,7 +198,8 @@ extension NSApplication {
     }
 
     /// Get a clipboard item by unique ID
-    @objc func clipboardItem(withUniqueID uniqueID: String) -> ClipboardItemScriptable? {
+    @objc
+    func clipboardItem(withUniqueID uniqueID: String) -> ClipboardItemScriptable? {
         guard let uuid = UUID(uuidString: uniqueID) else {
             return nil
         }

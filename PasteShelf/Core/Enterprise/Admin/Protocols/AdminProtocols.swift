@@ -320,7 +320,8 @@ enum AdminError: Error, LocalizedError, Sendable {
         case .notEnrolled:
             "Enroll this device from Settings > Enterprise > Admin Console and sign in with your SSO credentials."
         case .enrollmentFailed:
-            "Contact your IT administrator to verify the admin console is reachable and your account has enrollment permission."
+            "Contact your IT administrator to verify the admin console is reachable "
+                + "and your account has enrollment permission."
         case .networkError:
             "Check your network connection and verify the admin console server URL is correct."
         case .authenticationRequired:

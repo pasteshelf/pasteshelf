@@ -16,6 +16,7 @@ disabled_rules:
   - trailing_comma
   - opening_brace
   - statement_position
+  - number_separator
 
 opt_in_rules:
   - array_init
@@ -57,7 +58,6 @@ opt_in_rules:
   - multiline_parameters
   - nimble_operator
   - nslocalizedstring_key
-  - number_separator
   - object_literal
   - operator_usage_whitespace
   - overridden_super_call

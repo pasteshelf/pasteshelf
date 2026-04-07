@@ -89,6 +89,7 @@ final class AuditRetentionService {
         configuration = newConfiguration
         logger
             .info(
+                // swiftlint:disable:next line_length
                 "Audit retention configuration updated to \(newConfiguration.retentionDays) days (immutable: \(newConfiguration.isImmutable))"
             )
     }

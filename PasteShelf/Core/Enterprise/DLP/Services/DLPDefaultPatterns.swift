@@ -90,7 +90,7 @@ enum DLPDefaultPatterns {
     /// - `bearerToken` → `.high`, `[.alert, .logOnly]`
     ///
     /// - Returns: An array of `DLPRule` values covering the major API key/token formats.
-    static func apiKeyRules() -> [DLPRule] {
+    static func apiKeyRules() -> [DLPRule] { // swiftlint:disable:this function_body_length
         [
             DLPRule(
                 name: "AWS Access Keys",
@@ -144,6 +144,7 @@ enum DLPDefaultPatterns {
             DLPRule(
                 name: "Generic API Keys",
                 patternCategory: .apiKey,
+                // swiftlint:disable:next line_length
                 pattern: "['\"]?(?:api[_-]?key|apikey|api[_-]?secret|secret[_-]?key)['\"]?\\s*[:=]\\s*['\"][^'\"]{16,}['\"]",
                 severity: .high,
                 actions: [.alert, .logOnly]

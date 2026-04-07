@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension AutomationRuleEntity {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<AutomationRuleEntity> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<AutomationRuleEntity> {
         NSFetchRequest<AutomationRuleEntity>(entityName: "AutomationRuleEntity")
     }
 

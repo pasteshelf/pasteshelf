@@ -161,7 +161,8 @@
         private static let resourcesPath = "Contents/Resources"
         private static let iconPath = "Contents/Resources/icon.png"
 
-        /// Plugin icon (128x128)
+        // Plugin icon (128x128)
+        // swiftlint:disable:next modifier_order
         private nonisolated(unsafe) var _icon: NSImage?
 
         // MARK: - Bundle Validation

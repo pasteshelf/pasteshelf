@@ -37,6 +37,7 @@ struct PermissionStepView: View {
 
             // Description
             Text(
+                // swiftlint:disable:next line_length
                 "PasteShelf needs accessibility permission to paste items into other apps. Your data stays private and is never shared."
             )
             .font(.body)

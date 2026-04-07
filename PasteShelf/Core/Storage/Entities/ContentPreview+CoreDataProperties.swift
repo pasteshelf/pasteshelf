@@ -9,7 +9,8 @@ import CoreData
 import Foundation
 
 public extension ContentPreview {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<ContentPreview> {
+    @nonobjc
+    class func fetchRequest() -> NSFetchRequest<ContentPreview> {
         NSFetchRequest<ContentPreview>(entityName: "ContentPreview")
     }
 

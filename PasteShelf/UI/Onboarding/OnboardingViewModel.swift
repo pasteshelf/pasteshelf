@@ -166,8 +166,10 @@ final class OnboardingViewModel: ObservableObject {
     func startPermissionChecking() {
         #if !APP_STORE
             stopPermissionChecking()
-            permissionCheckTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
-                [weak self] _ in
+            permissionCheckTimer = Timer.scheduledTimer(
+                withTimeInterval: 1.0,
+                repeats: true
+            ) { [weak self] _ in
                 Task { @MainActor in
                     self?.checkAccessibilityPermission()
                 }
@@ -215,8 +217,10 @@ final class OnboardingViewModel: ObservableObject {
     /// Start periodic notification permission checking
     func startNotificationChecking() {
         stopNotificationChecking()
-        notificationCheckTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
-            [weak self] _ in
+        notificationCheckTimer = Timer.scheduledTimer(
+            withTimeInterval: 1.0,
+            repeats: true
+        ) { [weak self] _ in
             Task { @MainActor in
                 await self?.checkNotificationPermission()
             }

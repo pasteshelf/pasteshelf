@@ -104,8 +104,7 @@ struct CollectionRowView: View {
 
     // MARK: - Background View
 
-    @ViewBuilder
-    private var backgroundView: some View {
+    @ViewBuilder private var backgroundView: some View {
         if isSelected {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.accentColor.opacity(0.15))
@@ -130,27 +129,23 @@ struct CollectionRowView: View {
             VStack(spacing: 2) {
                 CollectionRowView(
                     collection: .sampleImages,
-                    isSelected: true,
-                    onSelect: {}
-                )
+                    isSelected: true
+                ) {}
 
                 CollectionRowView(
                     collection: .sampleFromSafari,
-                    isSelected: false,
-                    onSelect: {}
-                )
+                    isSelected: false
+                ) {}
 
                 CollectionRowView(
                     collection: .sampleRecentLinks,
-                    isSelected: false,
-                    onSelect: {}
-                )
+                    isSelected: false
+                ) {}
 
                 CollectionRowView(
                     collection: .sampleFavorites,
-                    isSelected: false,
-                    onSelect: {}
-                )
+                    isSelected: false
+                ) {}
             }
             .frame(width: 200)
             .padding(.vertical, 8)

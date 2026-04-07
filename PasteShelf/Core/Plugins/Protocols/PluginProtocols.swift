@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 #if !APP_STORE
 //
     //  PluginProtocols.swift
@@ -19,14 +20,17 @@
     public protocol PasteShelfPlugin: NSObjectProtocol {
         /// Called when the plugin is loaded
         /// - Parameter context: The plugin context providing access to host APIs
-        @objc func didLoad(with context: any PluginContext)
+        @objc
+        func didLoad(with context: any PluginContext)
 
         /// Called before the plugin is unloaded
-        @objc optional func willUnload()
+        @objc
+        optional func willUnload()
 
         /// Returns menu items to add to the PasteShelf UI
         /// - Returns: Array of menu items, or empty array if none
-        @objc optional func menuItems() -> [PluginMenuItem]
+        @objc
+        optional func menuItems() -> [PluginMenuItem]
     }
 
     /// Extended protocol for Swift plugins that can provide settings views
@@ -96,7 +100,8 @@
         /// Checks if a permission is currently granted
         /// - Parameter permission: The permission identifier string
         /// - Returns: True if the permission is granted
-        @objc func hasPermission(_ permission: String) -> Bool
+        @objc
+        func hasPermission(_ permission: String) -> Bool
     }
 
     /// Swift-friendly permission methods
@@ -256,19 +261,23 @@
 
         // MARK: Public
 
-        @objc public func debug(_ message: String) {
+        @objc
+        public func debug(_ message: String) {
             log(level: .debug, message: message)
         }
 
-        @objc public func info(_ message: String) {
+        @objc
+        public func info(_ message: String) {
             log(level: .info, message: message)
         }
 
-        @objc public func warning(_ message: String) {
+        @objc
+        public func warning(_ message: String) {
             log(level: .warning, message: message)
         }
 
-        @objc public func error(_ message: String) {
+        @objc
+        public func error(_ message: String) {
             log(level: .error, message: message)
         }
 
@@ -306,7 +315,8 @@
         // MARK: Lifecycle
 
         /// Creates content with plain text
-        @objc public init(text: String) {
+        @objc
+        public init(text: String) {
             self.text = text
             contentTypeIdentifier = ContentType.plainText.rawValue
             timestamp = Date()
@@ -315,7 +325,8 @@
         }
 
         /// Creates content with an image
-        @objc public init(image: NSImage) {
+        @objc
+        public init(image: NSImage) {
             self.image = image
             imageData = image.tiffRepresentation
             contentTypeIdentifier = ContentType.png.rawValue
@@ -325,7 +336,8 @@
         }
 
         /// Creates content with a URL
-        @objc public init(url: URL) {
+        @objc
+        public init(url: URL) {
             self.url = url
             text = url.absoluteString
             contentTypeIdentifier = ContentType.url.rawValue
@@ -335,7 +347,8 @@
         }
 
         /// Creates empty content
-        @objc override public init() {
+        @objc
+        override public init() {
             contentTypeIdentifier = ContentType.plainText.rawValue
             timestamp = Date()
             metadata = [:]
@@ -396,7 +409,8 @@
         ///   - iconName: SF Symbol name
         ///   - shortcutKey: Keyboard shortcut string
         ///   - isEnabled: Whether enabled (default true)
-        @objc public init(
+        @objc
+        public init(
             title: String,
             iconName: String? = nil,
             shortcutKey: String? = nil,
@@ -435,7 +449,8 @@
         }
 
         /// Creates a submenu item
-        @objc public init(title: String, iconName: String? = nil, submenuItems: [PluginMenuItem]) {
+        @objc
+        public init(title: String, iconName: String? = nil, submenuItems: [PluginMenuItem]) {
             self.title = title
             self.iconName = iconName
             shortcutKey = nil

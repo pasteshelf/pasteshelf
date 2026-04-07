@@ -10,6 +10,24 @@ import CryptoKit
 import Foundation
 import os.log
 
+// MARK: - OCRCacheEntry
+
+/// Represents an OCR cache entry with extracted text and metadata
+struct OCRCacheEntry {
+    let text: String
+    let confidence: Double
+    let language: String?
+}
+
+// MARK: - OCRResult
+
+/// Represents an OCR result with its associated clipboard item
+struct OCRResult {
+    let itemId: UUID
+    let text: String
+    let confidence: Double
+}
+
 extension StorageManager {
     // MARK: - Create Operations
 
@@ -122,7 +140,7 @@ extension StorageManager {
     /// Fetches the full OCR cache entry for a clipboard item
     /// - Parameter itemId: The clipboard item ID
     /// - Returns: OCR cache data or nil if not found
-    func fetchOCRCache(for itemId: UUID) async -> (text: String, confidence: Double, language: String?)? {
+    func fetchOCRCache(for itemId: UUID) async -> OCRCacheEntry? {
         let context = newBackgroundContext()
 
         return await context.perform {
@@ -139,7 +157,7 @@ extension StorageManager {
             else {
                 return nil
             }
-            return (text, cache.confidence, cache.language)
+            return OCRCacheEntry(text: text, confidence: cache.confidence, language: cache.language)
         }
     }
 
@@ -178,7 +196,7 @@ extension StorageManager {
     /// Fetches all OCR results with their clipboard item IDs
     /// - Parameter limit: Maximum number of results to fetch
     /// - Returns: Array of (itemId, text, confidence) tuples
-    func fetchAllOCRResults(limit: Int = 1000) async -> [(itemId: UUID, text: String, confidence: Double)] {
+    func fetchAllOCRResults(limit: Int = 1000) async -> [OCRResult] {
         let context = newBackgroundContext()
 
         return await context.perform {
@@ -195,7 +213,7 @@ extension StorageManager {
                 guard let itemId = cache.clipboardItemId, let text = cache.extractedText else {
                     return nil
                 }
-                return (itemId, text, cache.confidence)
+                return OCRResult(itemId: itemId, text: text, confidence: cache.confidence)
             }
         }
     }

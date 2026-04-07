@@ -188,9 +188,13 @@ struct SOC2AuditTrailHashChainTests {
     // MARK: Private
 
     /// Independently computes the hash chain to verify the algorithm matches.
-    private func computeHash(previousHash: String, eventId: String, timestamp: String, action: String,
-                             category: String) -> String
-    {
+    private func computeHash(
+        previousHash: String,
+        eventId: String,
+        timestamp: String,
+        action: String,
+        category: String
+    ) -> String {
         let input = "\(previousHash)\(eventId)\(timestamp)\(action)\(category)"
         let hash = SHA256.hash(data: Data(input.utf8))
         return hash.compactMap { String(format: "%02x", $0) }.joined()

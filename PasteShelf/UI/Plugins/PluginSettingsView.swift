@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 #if !APP_STORE
 //
     //  PluginSettingsView.swift
@@ -162,87 +163,66 @@
         private func pluginDetail(_ plugin: LoadedPlugin) -> some View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Header
-                    HStack(spacing: 16) {
-                        Image(nsImage: plugin.bundle.icon)
-                            .resizable()
-                            .frame(width: 64, height: 64)
-                            .cornerRadius(12)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(plugin.bundle.manifest.name)
-                                .font(.title2)
-                                .fontWeight(.semibold)
-
-                            if let description = plugin.bundle.manifest.pluginDescription {
-                                Text(description)
-                                    .font(.body)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            HStack(spacing: 8) {
-                                Text("v\(plugin.bundle.manifest.shortVersion)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-
-                                if let author = plugin.bundle.manifest.author {
-                                    Text("by \(author)")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-
-                        Spacer()
-
-                        // Enable/Disable toggle
-                        Toggle("", isOn: viewModel.binding(for: plugin.id))
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                    }
-                    .padding()
-                    .background(Color(nsColor: .controlBackgroundColor))
-                    .cornerRadius(12)
-
-                    // Status
-                    if plugin.state == .failed, let error = plugin.loadError {
-                        HStack(spacing: 8) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.red)
-                            Text(error)
-                                .font(.callout)
-                        }
-                        .padding()
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(8)
-                    }
-
-                    // Permissions section
+                    pluginDetailHeader(plugin)
+                    pluginDetailErrorBanner(plugin)
                     permissionsSection(plugin)
-
-                    // Categories section
                     if !plugin.bundle.manifest.categories.isEmpty {
                         categoriesSection(plugin)
                     }
-
-                    // Actions section
                     if !viewModel.actions(for: plugin.id).isEmpty {
                         actionsSection(plugin)
                     }
-
-                    // Plugin settings
                     if let settingsView = viewModel.settingsView(for: plugin.id) {
-                        GroupBox("Settings") {
-                            settingsView
-                        }
+                        GroupBox("Settings") { settingsView }
                     }
-
-                    // Info section
                     infoSection(plugin)
-
                     Spacer()
                 }
                 .padding()
+            }
+        }
+
+        private func pluginDetailHeader(_ plugin: LoadedPlugin) -> some View {
+            HStack(spacing: 16) {
+                Image(nsImage: plugin.bundle.icon)
+                    .resizable()
+                    .frame(width: 64, height: 64)
+                    .cornerRadius(12)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(plugin.bundle.manifest.name)
+                        .font(.title2).fontWeight(.semibold)
+                    if let description = plugin.bundle.manifest.pluginDescription {
+                        Text(description).font(.body).foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: 8) {
+                        Text("v\(plugin.bundle.manifest.shortVersion)")
+                            .font(.caption).foregroundStyle(.secondary)
+                        if let author = plugin.bundle.manifest.author {
+                            Text("by \(author)")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                Spacer()
+                Toggle("", isOn: viewModel.binding(for: plugin.id))
+                    .toggleStyle(.switch).labelsHidden()
+            }
+            .padding()
+            .background(Color(nsColor: .controlBackgroundColor))
+            .cornerRadius(12)
+        }
+
+        @ViewBuilder
+        private func pluginDetailErrorBanner(_ plugin: LoadedPlugin) -> some View {
+            if plugin.state == .failed, let error = plugin.loadError {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.red)
+                    Text(error).font(.callout)
+                }
+                .padding()
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(8)
             }
         }
 
@@ -461,15 +441,21 @@
 
         // MARK: Private
 
+        private struct Placement {
+            let x: CGFloat
+            let y: CGFloat
+            let size: CGSize
+        }
+
         private struct ArrangementResult {
             let width: CGFloat
             let height: CGFloat
-            let placements: [(x: CGFloat, y: CGFloat, size: CGSize)]
+            let placements: [Placement]
         }
 
         private func arrangeSubviews(proposal: ProposedViewSize, subviews: Subviews) -> ArrangementResult {
             let maxWidth = proposal.width ?? .infinity
-            var placements: [(x: CGFloat, y: CGFloat, size: CGSize)] = []
+            var placements: [Placement] = []
             var currentX: CGFloat = 0
             var currentY: CGFloat = 0
             var rowHeight: CGFloat = 0
@@ -484,7 +470,7 @@
                     rowHeight = 0
                 }
 
-                placements.append((currentX, currentY, size))
+                placements.append(Placement(x: currentX, y: currentY, size: size))
                 rowHeight = max(rowHeight, size.height)
                 currentX += size.width + spacing
                 totalWidth = max(totalWidth, currentX)
@@ -538,12 +524,15 @@
 
         // MARK: Private
 
-        @Environment(\.dismiss) private var dismiss
+        @Environment(\.dismiss)
+        private var dismiss
         @State private var isDragging = false
 
         private func browseForPlugin() {
             let panel = NSOpenPanel()
-            panel.allowedContentTypes = [.init(filenameExtension: "pasteshelfplugin")!]
+            if let pluginType = UTType(filenameExtension: "pasteshelfplugin") {
+                panel.allowedContentTypes = [pluginType]
+            }
             panel.allowsMultipleSelection = false
             panel.canChooseDirectories = false
 

@@ -35,6 +35,7 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
 
     // MARK: - SearchEngine Protocol
 
+    // swiftlint:disable:next function_body_length
     func search(query: String, options: SearchOptions) async -> [SearchResult] {
         // Cancel any existing search
         await cancelSearch()

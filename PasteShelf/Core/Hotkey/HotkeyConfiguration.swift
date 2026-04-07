@@ -59,12 +59,14 @@ struct HotkeyConfiguration: Codable, Equatable {
     }
 
     /// Loads the configuration from SettingsManager
-    @MainActor static func load() -> HotkeyConfiguration {
+    @MainActor
+    static func load() -> HotkeyConfiguration {
         SettingsManager.shared.shortcuts.globalHotkey.toHotkeyConfiguration
     }
 
     /// Resets to default configuration
-    @MainActor static func reset() {
+    @MainActor
+    static func reset() {
         SettingsManager.shared.shortcuts = ShortcutsSettings(
             globalHotkey: .default,
             quickPasteEnabled: SettingsManager.shared.shortcuts.quickPasteEnabled
@@ -74,7 +76,8 @@ struct HotkeyConfiguration: Codable, Equatable {
     // MARK: - Persistence (delegates to SettingsManager)
 
     /// Saves the configuration via SettingsManager
-    @MainActor func save() {
+    @MainActor
+    func save() {
         SettingsManager.shared.shortcuts = ShortcutsSettings(
             globalHotkey: StoredHotkey(from: self),
             quickPasteEnabled: SettingsManager.shared.shortcuts.quickPasteEnabled

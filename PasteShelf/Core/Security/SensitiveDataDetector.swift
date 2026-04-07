@@ -122,6 +122,7 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
 
         Logger.security
             .debug(
+                // swiftlint:disable:next line_length
                 "Sensitive data scan: \(uniqueDetections.count) detections, severity: \(String(describing: highestSeverity))"
             )
 

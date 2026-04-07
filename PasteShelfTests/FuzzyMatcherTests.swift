@@ -159,7 +159,7 @@ final class FuzzyMatcherTests: XCTestCase {
 
         // Should find "test" and potentially "testing" and "tested" depending on threshold
         XCTAssertTrue(matches.count >= 1)
-        XCTAssertTrue(matches.contains(where: { $0.matchedText == "test" }))
+        XCTAssertTrue(matches.contains { $0.matchedText == "test" })
     }
 
     func testFindAllMatches_maxLimit() {

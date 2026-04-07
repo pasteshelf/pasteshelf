@@ -1,3 +1,4 @@
+// swiftlint:disable single_test_class
 //
 //  PerformanceTests.swift
 //  PasteShelfTests
@@ -164,7 +165,7 @@ final class PerformanceTests: XCTestCase {
         return (0 ..< count).map { _ in
             let wordCount = Int.random(in: 5 ... 20)
             return (0 ..< wordCount)
-                .map { _ in words.randomElement()! }
+                .compactMap { _ in words.randomElement() }
                 .joined(separator: " ")
         }
     }

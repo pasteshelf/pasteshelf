@@ -8,6 +8,16 @@
 import CoreData
 import CryptoKit
 import Foundation
+
+// MARK: - EmbeddingEntry
+
+/// Represents an embedding to be saved in batch
+struct EmbeddingEntry {
+    let itemId: UUID
+    let text: String
+    let embedding: [Double]
+}
+
 import os.log
 
 extension StorageManager {
@@ -57,11 +67,14 @@ extension StorageManager {
     /// Saves multiple embeddings in batch
     /// - Parameter embeddings: Array of (itemId, text, embedding) tuples
     /// - Returns: Number of embeddings saved
-    func saveEmbeddings(_ embeddings: [(itemId: UUID, text: String, embedding: [Double])]) async -> Int {
+    func saveEmbeddings(_ embeddings: [EmbeddingEntry]) async -> Int {
         let result = await performBackgroundTaskSafe { context -> Int in
             var savedCount = 0
 
-            for (itemId, text, embedding) in embeddings {
+            for entry in embeddings {
+                let itemId = entry.itemId
+                let text = entry.text
+                let embedding = entry.embedding
                 // Check for existing
                 let request = EmbeddingCache.fetchRequest()
                 request.predicate = NSPredicate(format: "clipboardItemId == %@", itemId as CVarArg)

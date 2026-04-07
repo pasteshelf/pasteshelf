@@ -169,11 +169,11 @@ extension [ClipboardItemDisplayModel] {
             let now = Date()
             return [
                 .today: now,
-                .yesterday: calendar.date(byAdding: .day, value: -1, to: now)!,
-                .thisWeek: calendar.date(byAdding: .day, value: -3, to: now)!,
-                .lastWeek: calendar.date(byAdding: .day, value: -8, to: now)!,
-                .thisMonth: calendar.date(byAdding: .day, value: -20, to: now)!,
-                .older: calendar.date(byAdding: .month, value: -2, to: now)!,
+                .yesterday: calendar.date(byAdding: .day, value: -1, to: now) ?? now,
+                .thisWeek: calendar.date(byAdding: .day, value: -3, to: now) ?? now,
+                .lastWeek: calendar.date(byAdding: .day, value: -8, to: now) ?? now,
+                .thisMonth: calendar.date(byAdding: .day, value: -20, to: now) ?? now,
+                .older: calendar.date(byAdding: .month, value: -2, to: now) ?? now,
             ]
         }
     }

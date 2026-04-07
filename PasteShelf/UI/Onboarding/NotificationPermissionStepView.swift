@@ -37,6 +37,7 @@ struct NotificationPermissionStepView: View {
 
             // Description
             Text(
+                // swiftlint:disable:next line_length
                 "PasteShelf can notify you when sensitive content is copied or when automation rules trigger. Allow notifications to stay informed."
             )
             .font(.body)
