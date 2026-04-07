@@ -2,6 +2,7 @@
 //  AuditLoggerTests.swift
 //  PasteShelfTests
 //
+// swiftformat:disable redundantAsync
 //  Tests for AuditLogger: convenience logging methods, batch operations,
 //  and error handling using a mock AuditLogStoring implementation.
 //
@@ -56,7 +57,7 @@ struct AuditLoggerTests {
     @Test("log persists event to storage")
     func logPersistsEvent() async {
         let storage = MockAuditLogStorage()
-        let logger = AuditLogger(
+        let logger = await AuditLogger(
             storage: storage,
             deviceIdProvider: { nil },
             userIdProvider: { nil }
@@ -72,7 +73,7 @@ struct AuditLoggerTests {
     @Test("logBatch persists all events to storage")
     func logBatchPersistsEvents() async {
         let storage = MockAuditLogStorage()
-        let logger = AuditLogger(
+        let logger = await AuditLogger(
             storage: storage,
             deviceIdProvider: { nil },
             userIdProvider: { nil }
@@ -93,7 +94,7 @@ struct AuditLoggerTests {
     @Test("logClipboardEvent persists event with correct category")
     func logClipboardEventPersists() async {
         let storage = MockAuditLogStorage()
-        let logger = AuditLogger(
+        let logger = await AuditLogger(
             storage: storage,
             deviceIdProvider: { "dev-001" },
             userIdProvider: { "user-abc" }
@@ -112,7 +113,7 @@ struct AuditLoggerTests {
     @Test("logUserAction persists event with correct category")
     func logUserActionPersists() async {
         let storage = MockAuditLogStorage()
-        let logger = AuditLogger(
+        let logger = await AuditLogger(
             storage: storage,
             deviceIdProvider: { nil },
             userIdProvider: { nil }
@@ -126,7 +127,7 @@ struct AuditLoggerTests {
     @Test("logPolicyEvent persists event with correct category")
     func logPolicyEventPersists() async {
         let storage = MockAuditLogStorage()
-        let logger = AuditLogger(
+        let logger = await AuditLogger(
             storage: storage,
             deviceIdProvider: { nil },
             userIdProvider: { nil }
@@ -140,7 +141,7 @@ struct AuditLoggerTests {
     @Test("logAuthEvent persists event with correct category")
     func logAuthEventPersists() async {
         let storage = MockAuditLogStorage()
-        let logger = AuditLogger(
+        let logger = await AuditLogger(
             storage: storage,
             deviceIdProvider: { nil },
             userIdProvider: { nil }
@@ -157,7 +158,7 @@ struct AuditLoggerTests {
     func logDoesNotThrowWhenStorageFails() async {
         let storage = MockAuditLogStorage()
         storage.shouldFail = true
-        let logger = AuditLogger(
+        let logger = await AuditLogger(
             storage: storage,
             deviceIdProvider: { nil },
             userIdProvider: { nil }
@@ -176,7 +177,7 @@ struct AuditLoggerTests {
     func deviceIdProviderIsConsulted() async {
         var providerCalled = false
         let storage = MockAuditLogStorage()
-        let logger = AuditLogger(
+        let logger = await AuditLogger(
             storage: storage,
             deviceIdProvider: {
                 providerCalled = true
@@ -195,7 +196,7 @@ struct AuditLoggerTests {
     func userIdProviderIsConsulted() async {
         var providerCalled = false
         let storage = MockAuditLogStorage()
-        let logger = AuditLogger(
+        let logger = await AuditLogger(
             storage: storage,
             deviceIdProvider: { nil },
             userIdProvider: {
@@ -296,7 +297,7 @@ struct AuditLoggerTests {
     @Test("logBatch with empty array results in no storage calls")
     func logBatchEmptyArrayNoStorageCalls() async {
         let storage = MockAuditLogStorage()
-        let logger = AuditLogger(
+        let logger = await AuditLogger(
             storage: storage,
             deviceIdProvider: { nil },
             userIdProvider: { nil }
