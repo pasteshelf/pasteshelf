@@ -21,13 +21,7 @@ import os.log
 /// collaborators, keeping it decoupled from `@MainActor` singletons and making it fully
 /// testable without running on the main thread.
 final class HealthReportingService: HealthReporting {
-
-    // MARK: - Properties
-
-    private let apiClient: AdminAPIProviding
-    private let registrationProvider: DeviceRegistrationProviding
-    private var reportTimer: Timer?
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "health-reporting")
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -40,6 +34,8 @@ final class HealthReportingService: HealthReporting {
         self.apiClient = apiClient
         self.registrationProvider = registrationProvider
     }
+
+    // MARK: Internal
 
     // MARK: - HealthReporting
 
@@ -86,6 +82,13 @@ final class HealthReportingService: HealthReporting {
         try await apiClient.submitHealthReport(report)
         logger.info("Health report submitted for device \(registration.deviceId)")
     }
+
+    // MARK: Private
+
+    private let apiClient: AdminAPIProviding
+    private let registrationProvider: DeviceRegistrationProviding
+    private var reportTimer: Timer?
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "health-reporting")
 
     // MARK: - Report Building
 

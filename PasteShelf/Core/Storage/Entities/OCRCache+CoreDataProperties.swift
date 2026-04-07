@@ -8,36 +8,36 @@
 import CoreData
 import Foundation
 
-extension OCRCache {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<OCRCache> {
+public extension OCRCache {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<OCRCache> {
         NSFetchRequest<OCRCache>(entityName: "OCRCache")
     }
 
     // MARK: - Attributes
 
     /// Unique identifier for this cache entry
-    @NSManaged public var id: UUID?
+    @NSManaged var id: UUID?
 
     /// ID of the associated clipboard item
-    @NSManaged public var clipboardItemId: UUID?
+    @NSManaged var clipboardItemId: UUID?
 
     /// Extracted text from the image
-    @NSManaged public var extractedText: String?
+    @NSManaged var extractedText: String?
 
     /// Version of the OCR model (for cache invalidation)
-    @NSManaged public var ocrVersion: Int16
+    @NSManaged var ocrVersion: Int16
 
     /// SHA256 hash of the image data (for deduplication)
-    @NSManaged public var imageHash: String?
+    @NSManaged var imageHash: String?
 
     /// Average confidence score of text recognition (0.0 to 1.0)
-    @NSManaged public var confidence: Double
+    @NSManaged var confidence: Double
 
     /// Detected language of the text
-    @NSManaged public var language: String?
+    @NSManaged var language: String?
 
     /// When this OCR result was created
-    @NSManaged public var createdAt: Date?
+    @NSManaged var createdAt: Date?
 }
 
 // MARK: - Convenience Methods
@@ -45,18 +45,24 @@ extension OCRCache {
 extension OCRCache {
     /// Returns whether this cache entry has valid text
     var hasText: Bool {
-        guard let text = extractedText else { return false }
+        guard let text = extractedText else {
+            return false
+        }
         return !text.isEmpty
     }
 
     /// Returns the text preview (first 100 characters)
     var textPreview: String? {
-        guard let text = extractedText, !text.isEmpty else { return nil }
+        guard let text = extractedText, !text.isEmpty else {
+            return nil
+        }
         if text.count <= 100 {
             return text
         }
         return String(text.prefix(100)) + "..."
     }
 }
+
+// MARK: - OCRCache + Identifiable
 
 extension OCRCache: Identifiable {}

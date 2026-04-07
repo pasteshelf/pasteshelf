@@ -8,6 +8,8 @@
 import CloudKit
 import Foundation
 
+// MARK: - SyncError
+
 /// Errors that can occur during sync operations
 public enum SyncError: Error, Equatable, Sendable {
     // MARK: - Account Errors
@@ -94,7 +96,7 @@ public enum SyncError: Error, Equatable, Sendable {
     case unknown(message: String)
 }
 
-// MARK: - LocalizedError Conformance
+// MARK: LocalizedError
 
 extension SyncError: LocalizedError {
     public var errorDescription: String? {
@@ -160,7 +162,9 @@ extension SyncError: LocalizedError {
             return String(localized: "Failed to connect to sync server: \(message)")
 
         case .certificatePinningFailed:
-            return String(localized: "Server certificate validation failed. The server's identity could not be verified.")
+            return String(
+                localized: "Server certificate validation failed. The server's identity could not be verified."
+            )
 
         case .authenticationTokenExpired:
             return String(localized: "Your authentication has expired. Please sign in again.")
@@ -176,34 +180,36 @@ extension SyncError: LocalizedError {
     public var recoverySuggestion: String? {
         switch self {
         case .noAccount:
-            return String(localized: "Open System Settings > Apple ID > iCloud to sign in.")
+            String(localized: "Open System Settings > Apple ID > iCloud to sign in.")
         case .quotaExceeded:
-            return String(localized: "Manage your iCloud storage in System Settings.")
+            String(localized: "Manage your iCloud storage in System Settings.")
         case .networkUnavailable:
-            return String(localized: "Check your internet connection.")
-        case .encryptionKeyMissing, .keyMismatch:
-            return String(localized: "Go to Preferences > Sync > Reset Sync to reconfigure.")
+            String(localized: "Check your internet connection.")
+        case .encryptionKeyMissing,
+             .keyMismatch:
+            String(localized: "Go to Preferences > Sync > Reset Sync to reconfigure.")
         case .serverConnectionFailed:
-            return String(localized: "Check the server URL and ensure the sync server is running.")
+            String(localized: "Check the server URL and ensure the sync server is running.")
         case .certificatePinningFailed:
-            return String(localized: "Verify the server certificate in Preferences > Sync > Self-Hosted.")
+            String(localized: "Verify the server certificate in Preferences > Sync > Self-Hosted.")
         case .authenticationTokenExpired:
-            return String(localized: "Sign in again via Preferences > Sync > Self-Hosted.")
+            String(localized: "Sign in again via Preferences > Sync > Self-Hosted.")
         default:
-            return nil
+            nil
         }
     }
 }
 
 // MARK: - CKError Conversion
 
-extension SyncError {
+public extension SyncError {
     /// Create SyncError from CloudKit error
-    public static func from(_ ckError: CKError) -> SyncError {
+    static func from(_ ckError: CKError) -> SyncError {
         switch ckError.code {
         case .notAuthenticated:
             return .noAccount
-        case .networkUnavailable, .networkFailure:
+        case .networkUnavailable,
+             .networkFailure:
             return .networkUnavailable
         case .serviceUnavailable:
             return .accountTemporarilyUnavailable
@@ -238,8 +244,8 @@ extension SyncError {
 
 // MARK: - Equatable Conformance
 
-extension SyncError {
-    public static func == (lhs: SyncError, rhs: SyncError) -> Bool {
+public extension SyncError {
+    static func == (lhs: SyncError, rhs: SyncError) -> Bool {
         switch (lhs, rhs) {
         case (.noAccount, .noAccount),
              (.accountRestricted, .accountRestricted),
@@ -257,23 +263,23 @@ extension SyncError {
              (.recordTooLarge, .recordTooLarge),
              (.certificatePinningFailed, .certificatePinningFailed),
              (.authenticationTokenExpired, .authenticationTokenExpired):
-            return true
+            true
         case let (.serverError(lhsCode), .serverError(rhsCode)):
-            return lhsCode == rhsCode
+            lhsCode == rhsCode
         case let (.rateLimited(lhsRetry), .rateLimited(rhsRetry)):
-            return lhsRetry == rhsRetry
+            lhsRetry == rhsRetry
         case let (.partialFailure(lhsErrors), .partialFailure(rhsErrors)):
-            return lhsErrors == rhsErrors
+            lhsErrors == rhsErrors
         case let (.invalidData(lhsReason), .invalidData(rhsReason)):
-            return lhsReason == rhsReason
+            lhsReason == rhsReason
         case let (.serverConnectionFailed(lhsMsg), .serverConnectionFailed(rhsMsg)):
-            return lhsMsg == rhsMsg
+            lhsMsg == rhsMsg
         case let (.selfHostedServerError(lhsCode, lhsMsg), .selfHostedServerError(rhsCode, rhsMsg)):
-            return lhsCode == rhsCode && lhsMsg == rhsMsg
+            lhsCode == rhsCode && lhsMsg == rhsMsg
         case let (.unknown(lhsMessage), .unknown(rhsMessage)):
-            return lhsMessage == rhsMessage
+            lhsMessage == rhsMessage
         default:
-            return false
+            false
         }
     }
 }

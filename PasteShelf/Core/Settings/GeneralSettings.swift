@@ -8,30 +8,11 @@
 
 import Foundation
 
+// MARK: - GeneralSettings
+
 /// General application settings
 struct GeneralSettings: Codable, Equatable {
-    // MARK: - Properties
-
-    /// Whether to launch at login
-    var launchAtLogin: Bool
-
-    /// Whether to show the app in the Dock
-    var showInDock: Bool
-
-    /// Maximum number of clipboard items to keep in history
-    var historyLimit: HistoryLimit
-
-    /// Whether to capture text content (plain text, rich text, HTML)
-    var captureTextContent: Bool
-
-    /// Whether to capture image content (PNG, JPEG, TIFF)
-    var captureImageContent: Bool
-
-    /// Whether to capture file content (file references, PDFs)
-    var captureFileContent: Bool
-
-    /// Whether to capture link content (URLs)
-    var captureLinkContent: Bool
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -66,26 +47,54 @@ struct GeneralSettings: Codable, Equatable {
         captureLinkContent = try container.decodeIfPresent(Bool.self, forKey: .captureLinkContent) ?? true
     }
 
-    // MARK: - Capture Filtering
-
-    /// Whether a given content type should be captured based on settings
-    func shouldCapture(_ type: ContentType) -> Bool {
-        if type.isTextType { return captureTextContent }
-        if type.isImageType { return captureImageContent }
-        switch type {
-        case .pdf, .fileURL: return captureFileContent
-        case .url: return captureLinkContent
-        default: return true
-        }
-    }
+    // MARK: Internal
 
     // MARK: - Default Configuration
 
     /// Default general settings
     static let `default` = GeneralSettings()
+
+    /// Whether to launch at login
+    var launchAtLogin: Bool
+
+    /// Whether to show the app in the Dock
+    var showInDock: Bool
+
+    /// Maximum number of clipboard items to keep in history
+    var historyLimit: HistoryLimit
+
+    /// Whether to capture text content (plain text, rich text, HTML)
+    var captureTextContent: Bool
+
+    /// Whether to capture image content (PNG, JPEG, TIFF)
+    var captureImageContent: Bool
+
+    /// Whether to capture file content (file references, PDFs)
+    var captureFileContent: Bool
+
+    /// Whether to capture link content (URLs)
+    var captureLinkContent: Bool
+
+    // MARK: - Capture Filtering
+
+    /// Whether a given content type should be captured based on settings
+    func shouldCapture(_ type: ContentType) -> Bool {
+        if type.isTextType {
+            return captureTextContent
+        }
+        if type.isImageType {
+            return captureImageContent
+        }
+        switch type {
+        case .pdf,
+             .fileURL: return captureFileContent
+        case .url: return captureLinkContent
+        default: return true
+        }
+    }
 }
 
-// MARK: - History Limit
+// MARK: - HistoryLimit
 
 /// Options for clipboard history limit
 enum HistoryLimit: Int, Codable, CaseIterable, Identifiable {
@@ -94,23 +103,27 @@ enum HistoryLimit: Int, Codable, CaseIterable, Identifiable {
     case large = 1000
     case unlimited = 0
 
-    var id: Int { rawValue }
+    // MARK: Internal
+
+    var id: Int {
+        rawValue
+    }
 
     /// Display name for the limit
     var displayName: String {
         switch self {
-        case .small: return "100 items"
-        case .medium: return "500 items"
-        case .large: return "1,000 items"
-        case .unlimited: return "Unlimited"
+        case .small: "100 items"
+        case .medium: "500 items"
+        case .large: "1,000 items"
+        case .unlimited: "Unlimited"
         }
     }
 
     /// Actual limit value (nil for unlimited)
     var limit: Int? {
         switch self {
-        case .unlimited: return nil
-        default: return rawValue
+        case .unlimited: nil
+        default: rawValue
         }
     }
 }

@@ -7,35 +7,13 @@
 
 import Combine
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - ManagedPreferencesReaderTests
 
 struct ManagedPreferencesReaderTests {
-
-    // MARK: - Helpers
-
-    /// Creates a fresh reader backed by a volatile in-memory UserDefaults suite.
-    /// The returned suite name can be used to clean up after the test.
-    private func makeReader(
-        populateWith block: ((UserDefaults) -> Void)? = nil
-    ) -> (reader: ManagedPreferencesReader, defaults: UserDefaults, suiteName: String) {
-        let suiteName = "com.pasteshelf.test.mdm.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        block?(defaults)
-        let reader = ManagedPreferencesReader(
-            preferenceDomain: "com.pasteshelf.test",
-            userDefaults: defaults,
-            pollingInterval: 999_999 // very long to avoid timer interference
-        )
-        return (reader, defaults, suiteName)
-    }
-
-    private func cleanup(suiteName: String, defaults: UserDefaults) {
-        defaults.removePersistentDomain(forName: suiteName)
-    }
+    // MARK: Internal
 
     // MARK: - Empty State
 
@@ -58,7 +36,6 @@ struct ManagedPreferencesReaderTests {
 
         #expect(reader.isKeyForced(.theme) == false)
         #expect(reader.isKeyForced(.maxHistoryItems) == false)
-
     }
 
     // MARK: - Nested ManagedPreferences Dictionary
@@ -346,5 +323,30 @@ struct ManagedPreferencesReaderTests {
         #expect(config.isManaged == true)
         #expect(config.forcedPreferences[.theme] == .string("dark"))
         #expect(config.defaultPreferences[.dlpEnabled] == .bool(true))
+    }
+
+    // MARK: Private
+
+    // MARK: - Helpers
+
+    /// Creates a fresh reader backed by a volatile in-memory UserDefaults suite.
+    /// The returned suite name can be used to clean up after the test.
+    private func makeReader(
+        populateWith block: ((UserDefaults) -> Void)? = nil
+    ) -> (reader: ManagedPreferencesReader, defaults: UserDefaults, suiteName: String) {
+        let suiteName = "com.pasteshelf.test.mdm.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        block?(defaults)
+        let reader = ManagedPreferencesReader(
+            preferenceDomain: "com.pasteshelf.test",
+            userDefaults: defaults,
+            pollingInterval: 999_999 // very long to avoid timer interference
+        )
+        return (reader, defaults, suiteName)
+    }
+
+    private func cleanup(suiteName: String, defaults: UserDefaults) {
+        defaults.removePersistentDomain(forName: suiteName)
     }
 }

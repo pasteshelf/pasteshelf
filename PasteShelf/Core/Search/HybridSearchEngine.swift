@@ -11,6 +11,143 @@ import os.log
 
 /// Search engine that combines full-text, semantic, and OCR search
 final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(
+        storageManager: StorageManager = .shared,
+        fuzzyMatcher: FuzzyMatcher = .default
+    ) {
+        self.storageManager = storageManager
+        fullTextEngine = FullTextSearchEngine(storageManager: storageManager)
+        semanticEngine = SemanticSearchEngine(storageManager: storageManager)
+        ocrEngine = OCRSearchEngine(storageManager: storageManager)
+        self.fuzzyMatcher = fuzzyMatcher
+        queryParser = NaturalLanguageQueryParser.self
+    }
+
+    // MARK: Internal
+
+    // MARK: - Availability
+
+    /// Whether semantic search is available (system support)
+    var isSemanticSearchAvailable: Bool {
+        semanticEngine.isAvailable
+    }
+
+    /// Whether OCR search is available (system support)
+    var isOCRSearchAvailable: Bool {
+        ocrEngine.isAvailable
+    }
+
+    // MARK: - SearchEngine Protocol
+
+    func search(query: String, options: SearchOptions) async -> [SearchResult] {
+        // Cancel any existing search
+        await cancelSearch()
+
+        // Trim and validate query
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedQuery.isEmpty else {
+            return []
+        }
+
+        // Create and store the search task
+        let task = Task<[SearchResult], Never> { [weak self] in
+            guard let self else {
+                return []
+            }
+
+            // Parse the natural language query
+            let parsedQuery = queryParser.parse(trimmedQuery)
+
+            // Build options from parsed query
+            let enhancedOptions = applyParsedQueryFilters(parsedQuery, to: options)
+
+            // Determine which engines to use
+            let useSemanticSearch = shouldUseSemanticSearch(options: enhancedOptions)
+            let useOCRSearch = shouldUseOCRSearch(options: enhancedOptions)
+
+            logger.debug("Hybrid search: query='\(trimmedQuery)', semantic=\(useSemanticSearch), ocr=\(useOCRSearch)")
+
+            // Always run full-text search
+            async let fullTextResults = fullTextEngine.search(query: trimmedQuery, options: enhancedOptions)
+
+            // Conditionally run semantic search
+            let semanticText = parsedQuery.semanticText.isEmpty ? trimmedQuery : parsedQuery.semanticText
+            let semanticResults: [SearchResult] = if useSemanticSearch {
+                await semanticEngine.search(query: semanticText, options: enhancedOptions)
+            } else {
+                []
+            }
+
+            // Conditionally run OCR search
+            let ocrResults: [SearchResult] = if useOCRSearch {
+                await ocrEngine.search(query: trimmedQuery, options: enhancedOptions)
+            } else {
+                []
+            }
+
+            let fullText = await fullTextResults
+
+            // Check for cancellation
+            if Task.isCancelled {
+                return []
+            }
+
+            // Run fuzzy search as fallback when full-text returns few results
+            let fuzzyResults: [SearchResult]
+            if enhancedOptions.fuzzyMatching, fullText.count < enhancedOptions.limit / 2 {
+                let existingIds = Set(fullText.map(\.itemId))
+                    .union(semanticResults.map(\.itemId))
+                    .union(ocrResults.map(\.itemId))
+                fuzzyResults = await performFuzzySearch(
+                    query: trimmedQuery,
+                    options: enhancedOptions,
+                    excluding: existingIds
+                )
+            } else {
+                fuzzyResults = []
+            }
+
+            // Merge results from all engines
+            let merged = mergeResults(
+                fullText: fullText,
+                semantic: semanticResults,
+                ocr: ocrResults,
+                fuzzy: fuzzyResults,
+                limit: options.limit
+            )
+
+            logger
+                .debug(
+                    "Hybrid search completed: \(merged.count) results (FT: \(fullText.count), Semantic: \(semanticResults.count), OCR: \(ocrResults.count), Fuzzy: \(fuzzyResults.count))"
+                )
+            return merged
+        }
+
+        lock.lock()
+        currentSearchTask = task
+        lock.unlock()
+
+        return await task.value
+    }
+
+    func cancelSearch() async {
+        lock.lock()
+        currentSearchTask?.cancel()
+        currentSearchTask = nil
+        lock.unlock()
+
+        await fullTextEngine.cancelSearch()
+        await semanticEngine.cancelSearch()
+        await ocrEngine.cancelSearch()
+    }
+
+    // MARK: Private
+
     // MARK: - Configuration
 
     /// Weight for full-text search results (0.0 to 1.0)
@@ -24,8 +161,6 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
     /// Weight for fuzzy search results (0.0 to 1.0)
     private let fuzzyWeight: Double = 0.3
-
-    // MARK: - Properties
 
     /// Full-text search engine
     private let fullTextEngine: FullTextSearchEngine
@@ -56,122 +191,6 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
     /// Lock for thread-safe task management
     private let lock = NSLock()
-
-    // MARK: - Initialization
-
-    init(
-        storageManager: StorageManager = .shared,
-        fuzzyMatcher: FuzzyMatcher = .default
-    ) {
-        self.storageManager = storageManager
-        self.fullTextEngine = FullTextSearchEngine(storageManager: storageManager)
-        self.semanticEngine = SemanticSearchEngine(storageManager: storageManager)
-        self.ocrEngine = OCRSearchEngine(storageManager: storageManager)
-        self.fuzzyMatcher = fuzzyMatcher
-        self.queryParser = NaturalLanguageQueryParser.self
-    }
-
-    // MARK: - SearchEngine Protocol
-
-    func search(query: String, options: SearchOptions) async -> [SearchResult] {
-        // Cancel any existing search
-        await cancelSearch()
-
-        // Trim and validate query
-        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard !trimmedQuery.isEmpty else {
-            return []
-        }
-
-        // Create and store the search task
-        let task = Task<[SearchResult], Never> { [weak self] in
-            guard let self else { return [] }
-
-            // Parse the natural language query
-            let parsedQuery = queryParser.parse(trimmedQuery)
-
-            // Build options from parsed query
-            let enhancedOptions = applyParsedQueryFilters(parsedQuery, to: options)
-
-            // Determine which engines to use
-            let useSemanticSearch = shouldUseSemanticSearch(options: enhancedOptions)
-            let useOCRSearch = shouldUseOCRSearch(options: enhancedOptions)
-
-            logger.debug("Hybrid search: query='\(trimmedQuery)', semantic=\(useSemanticSearch), ocr=\(useOCRSearch)")
-
-            // Always run full-text search
-            async let fullTextResults = fullTextEngine.search(query: trimmedQuery, options: enhancedOptions)
-
-            // Conditionally run semantic search
-            let semanticText = parsedQuery.semanticText.isEmpty ? trimmedQuery : parsedQuery.semanticText
-            let semanticResults: [SearchResult]
-            if useSemanticSearch {
-                semanticResults = await semanticEngine.search(query: semanticText, options: enhancedOptions)
-            } else {
-                semanticResults = []
-            }
-
-            // Conditionally run OCR search
-            let ocrResults: [SearchResult]
-            if useOCRSearch {
-                ocrResults = await ocrEngine.search(query: trimmedQuery, options: enhancedOptions)
-            } else {
-                ocrResults = []
-            }
-
-            let fullText = await fullTextResults
-
-            // Check for cancellation
-            if Task.isCancelled {
-                return []
-            }
-
-            // Run fuzzy search as fallback when full-text returns few results
-            let fuzzyResults: [SearchResult]
-            if enhancedOptions.fuzzyMatching, fullText.count < enhancedOptions.limit / 2 {
-                let existingIds = Set(fullText.map(\.itemId))
-                    .union(semanticResults.map(\.itemId))
-                    .union(ocrResults.map(\.itemId))
-                fuzzyResults = await self.performFuzzySearch(
-                    query: trimmedQuery,
-                    options: enhancedOptions,
-                    excluding: existingIds
-                )
-            } else {
-                fuzzyResults = []
-            }
-
-            // Merge results from all engines
-            let merged = mergeResults(
-                fullText: fullText,
-                semantic: semanticResults,
-                ocr: ocrResults,
-                fuzzy: fuzzyResults,
-                limit: options.limit
-            )
-
-            logger.debug("Hybrid search completed: \(merged.count) results (FT: \(fullText.count), Semantic: \(semanticResults.count), OCR: \(ocrResults.count), Fuzzy: \(fuzzyResults.count))")
-            return merged
-        }
-
-        lock.lock()
-        currentSearchTask = task
-        lock.unlock()
-
-        return await task.value
-    }
-
-    func cancelSearch() async {
-        lock.lock()
-        currentSearchTask?.cancel()
-        currentSearchTask = nil
-        lock.unlock()
-
-        await fullTextEngine.cancelSearch()
-        await semanticEngine.cancelSearch()
-        await ocrEngine.cancelSearch()
-    }
 
     // MARK: - Query Processing
 
@@ -305,7 +324,7 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
                 if matchRanges.isEmpty {
                     matchRanges = ocr.matchRanges
                 }
-                if matchType != .hybrid && ftResult == nil {
+                if matchType != .hybrid, ftResult == nil {
                     matchType = .ocr
                 }
                 matchCount += 1
@@ -368,10 +387,14 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
 
         var results: [SearchResult] = []
         for item in items {
-            guard let id = item.id, !existingIds.contains(id) else { continue }
+            guard let id = item.id, !existingIds.contains(id) else {
+                continue
+            }
 
             let preview = item.plainTextPreview ?? ""
-            guard !preview.isEmpty else { continue }
+            guard !preview.isEmpty else {
+                continue
+            }
 
             if let match = matcher.findBestMatch(in: preview, for: query) {
                 let matchRange = matcher.toMatchRange(match, in: preview)
@@ -391,17 +414,5 @@ final class HybridSearchEngine: SearchEngine, @unchecked Sendable {
                 .sorted { $0.relevanceScore > $1.relevanceScore }
                 .prefix(options.limit)
         )
-    }
-
-    // MARK: - Availability
-
-    /// Whether semantic search is available (system support)
-    var isSemanticSearchAvailable: Bool {
-        semanticEngine.isAvailable
-    }
-
-    /// Whether OCR search is available (system support)
-    var isOCRSearchAvailable: Bool {
-        ocrEngine.isAvailable
     }
 }

@@ -8,24 +8,19 @@
 import Foundation
 import os.log
 
+// MARK: - ConflictResolver
+
 /// Resolves sync conflicts between local and remote changes
 final class ConflictResolver: ConflictResolving, Sendable {
-    // MARK: - Properties
-
-    private let encryptionManager: SyncEncryptionManager
-
-    // MARK: - Logger
-
-    private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "conflict-resolver"
-    )
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     init(encryptionManager: SyncEncryptionManager = SyncEncryptionManager()) {
         self.encryptionManager = encryptionManager
     }
+
+    // MARK: Internal
 
     // MARK: - ConflictResolving Protocol
 
@@ -77,6 +72,17 @@ final class ConflictResolver: ConflictResolving, Sendable {
 
         return resolutions
     }
+
+    // MARK: Private
+
+    // MARK: - Logger
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "conflict-resolver"
+    )
+
+    private let encryptionManager: SyncEncryptionManager
 
     // MARK: - Merge Strategy
 
@@ -155,7 +161,10 @@ final class ConflictResolver: ConflictResolving, Sendable {
         let remoteTags = Set(remote.tagNames ?? [])
         merged.tagNames = Array(localTags.union(remoteTags))
 
-        Self.logger.debug("Merged payload: favorite=\(merged.isFavorite), accessCount=\(merged.accessCount), tags=\(merged.tagNames?.count ?? 0)")
+        Self.logger
+            .debug(
+                "Merged payload: favorite=\(merged.isFavorite), accessCount=\(merged.accessCount), tags=\(merged.tagNames?.count ?? 0)"
+            )
 
         return merged
     }

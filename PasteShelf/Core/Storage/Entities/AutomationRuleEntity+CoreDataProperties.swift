@@ -8,49 +8,51 @@
 import CoreData
 import Foundation
 
-extension AutomationRuleEntity {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<AutomationRuleEntity> {
+public extension AutomationRuleEntity {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<AutomationRuleEntity> {
         NSFetchRequest<AutomationRuleEntity>(entityName: "AutomationRuleEntity")
     }
 
     // MARK: - Attributes
 
     /// Unique identifier
-    @NSManaged public var id: UUID?
+    @NSManaged var id: UUID?
 
     /// User-defined rule name
-    @NSManaged public var name: String?
+    @NSManaged var name: String?
 
     /// Whether the rule is currently enabled
-    @NSManaged public var isEnabled: Bool
+    @NSManaged var isEnabled: Bool
 
     /// Trigger type: "onCapture", "onPaste", "manual", "schedule"
-    @NSManaged public var triggerType: String?
+    @NSManaged var triggerType: String?
 
     /// Optional trigger value (e.g., cron expression for schedule triggers)
-    @NSManaged public var triggerValue: String?
+    @NSManaged var triggerValue: String?
 
     /// JSON-serialized CollectionRules for matching conditions
-    @NSManaged public var conditionsJSON: String?
+    @NSManaged var conditionsJSON: String?
 
     /// JSON-serialized array of AutomationAction for actions to execute
-    @NSManaged public var actionsJSON: String?
+    @NSManaged var actionsJSON: String?
 
     /// Rule priority (lower = higher priority, executes first)
-    @NSManaged public var priority: Int32
+    @NSManaged var priority: Int32
 
     /// Timestamp when the rule was created
-    @NSManaged public var createdAt: Date?
+    @NSManaged var createdAt: Date?
 
     /// Timestamp when the rule was last modified
-    @NSManaged public var modifiedAt: Date?
+    @NSManaged var modifiedAt: Date?
 
     /// Timestamp when the rule was last executed (nil if never)
-    @NSManaged public var lastExecutedAt: Date?
+    @NSManaged var lastExecutedAt: Date?
 
     /// Number of times the rule has been executed
-    @NSManaged public var executionCount: Int64
+    @NSManaged var executionCount: Int64
 }
+
+// MARK: - AutomationRuleEntity + Identifiable
 
 extension AutomationRuleEntity: Identifiable {}
 
@@ -66,14 +68,14 @@ extension AutomationRuleEntity {
         priority: Int32 = 100
     ) {
         self.init(context: context)
-        self.id = UUID()
+        id = UUID()
         self.name = name
         self.triggerType = triggerType
         self.isEnabled = isEnabled
         self.priority = priority
-        self.createdAt = Date()
-        self.modifiedAt = Date()
-        self.executionCount = 0
+        createdAt = Date()
+        modifiedAt = Date()
+        executionCount = 0
     }
 }
 
@@ -86,7 +88,7 @@ extension AutomationRuleEntity {
         request.predicate = NSPredicate(format: "isEnabled == YES")
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \AutomationRuleEntity.priority, ascending: true),
-            NSSortDescriptor(keyPath: \AutomationRuleEntity.createdAt, ascending: true)
+            NSSortDescriptor(keyPath: \AutomationRuleEntity.createdAt, ascending: true),
         ]
         return request
     }
@@ -100,7 +102,7 @@ extension AutomationRuleEntity {
         )
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \AutomationRuleEntity.priority, ascending: true),
-            NSSortDescriptor(keyPath: \AutomationRuleEntity.createdAt, ascending: true)
+            NSSortDescriptor(keyPath: \AutomationRuleEntity.createdAt, ascending: true),
         ]
         return request
     }
@@ -110,7 +112,7 @@ extension AutomationRuleEntity {
         let request = fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \AutomationRuleEntity.priority, ascending: true),
-            NSSortDescriptor(keyPath: \AutomationRuleEntity.createdAt, ascending: true)
+            NSSortDescriptor(keyPath: \AutomationRuleEntity.createdAt, ascending: true),
         ]
         return request
     }
@@ -121,33 +123,32 @@ extension AutomationRuleEntity {
 extension AutomationRuleEntity {
     /// Converts this entity to an AutomationRule model
     func toAutomationRule() -> AutomationRule? {
-        guard let id = id,
-              let name = name,
+        guard let id,
+              let name,
               let triggerTypeString = triggerType
         else {
             return nil
         }
 
         // Parse trigger
-        let trigger: AutomationTrigger
-        switch triggerTypeString {
+        let trigger: AutomationTrigger = switch triggerTypeString {
         case "onCapture":
-            trigger = .onCapture
+            .onCapture
         case "onPaste":
-            trigger = .onPaste
+            .onPaste
         case "manual":
-            trigger = .manual
+            .manual
         case "schedule":
             if let value = triggerValue,
                let cronData = value.data(using: .utf8),
                let cron = try? JSONDecoder().decode(CronExpression.self, from: cronData)
             {
-                trigger = .schedule(cron)
+                .schedule(cron)
             } else {
-                trigger = .manual // Fallback
+                .manual // Fallback
             }
         default:
-            trigger = .onCapture
+            .onCapture
         }
 
         // Parse conditions (reusing CollectionRules)
@@ -173,31 +174,31 @@ extension AutomationRuleEntity {
 
     /// Updates this entity from an AutomationRule model
     func update(from rule: AutomationRule) {
-        self.id = rule.id
-        self.name = rule.name
-        self.isEnabled = rule.isEnabled
-        self.triggerType = rule.trigger.rawType
-        self.priority = rule.priority
-        self.createdAt = rule.createdAt
-        self.modifiedAt = Date()
-        self.lastExecutedAt = rule.lastExecutedAt
-        self.executionCount = rule.executionCount
+        id = rule.id
+        name = rule.name
+        isEnabled = rule.isEnabled
+        triggerType = rule.trigger.rawType
+        priority = rule.priority
+        createdAt = rule.createdAt
+        modifiedAt = Date()
+        lastExecutedAt = rule.lastExecutedAt
+        executionCount = rule.executionCount
 
         // Serialize trigger value if schedule
-        if case .schedule(let cron) = rule.trigger {
+        if case let .schedule(cron) = rule.trigger {
             if let cronData = try? JSONEncoder().encode(cron),
                let cronString = String(data: cronData, encoding: .utf8)
             {
-                self.triggerValue = cronString
+                triggerValue = cronString
             }
         } else {
-            self.triggerValue = nil
+            triggerValue = nil
         }
 
         // Serialize conditions
-        self.conditionsJSON = rule.conditions.toJSON()
+        conditionsJSON = rule.conditions.toJSON()
 
         // Serialize actions
-        self.actionsJSON = rule.actions.toJSON()
+        actionsJSON = rule.actions.toJSON()
     }
 }

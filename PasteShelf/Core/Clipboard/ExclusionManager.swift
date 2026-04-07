@@ -10,9 +10,22 @@ import AppKit
 import Foundation
 import os.log
 
+// MARK: - ExclusionManager
+
 /// Manages which applications should be excluded from clipboard capture
 @MainActor
 final class ExclusionManager: AppExcluding {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    private init(excludeOwnApp: Bool = true) {
+        self.excludeOwnApp = excludeOwnApp
+        ownBundleId = Bundle.main.bundleIdentifier ?? "com.pasteshelf.PasteShelf"
+    }
+
+    // MARK: Internal
+
     // MARK: - Singleton
 
     /// Shared instance for app-wide use
@@ -42,10 +55,8 @@ final class ExclusionManager: AppExcluding {
 
         // Other Security Tools
         "com.apple.dt.Xcode.sourcecontrol.Git",
-        "com.apple.Terminal"
+        "com.apple.Terminal",
     ]
-
-    // MARK: - Properties
 
     /// User-customized excluded bundle IDs (delegates to SettingsManager)
     var userExcludedBundleIds: Set<String> {
@@ -60,20 +71,13 @@ final class ExclusionManager: AppExcluding {
         }
     }
 
-    /// Whether to exclude own app by default
-    private let excludeOwnApp: Bool
-
-    /// Own bundle ID
-    private let ownBundleId: String
-
-    /// Override for testing (bypasses SettingsManager)
-    private var testUserExclusions: Set<String>?
-
-    // MARK: - Initialization
-
-    private init(excludeOwnApp: Bool = true) {
-        self.excludeOwnApp = excludeOwnApp
-        self.ownBundleId = Bundle.main.bundleIdentifier ?? "com.pasteshelf.PasteShelf"
+    var excludedBundleIds: [String] {
+        var allExcluded = Set(defaultExcludedBundleIds)
+        allExcluded.formUnion(effectiveUserExclusions)
+        if excludeOwnApp {
+            allExcluded.insert(ownBundleId)
+        }
+        return Array(allExcluded).sorted()
     }
 
     /// Creates an ExclusionManager for testing
@@ -87,25 +91,9 @@ final class ExclusionManager: AppExcluding {
         return manager
     }
 
-    // MARK: - AppExcluding
-
-    /// Effective user exclusions (uses test override if set)
-    private var effectiveUserExclusions: Set<String> {
-        testUserExclusions ?? userExcludedBundleIds
-    }
-
-    var excludedBundleIds: [String] {
-        var allExcluded = Set(defaultExcludedBundleIds)
-        allExcluded.formUnion(effectiveUserExclusions)
-        if excludeOwnApp {
-            allExcluded.insert(ownBundleId)
-        }
-        return Array(allExcluded).sorted()
-    }
-
     func isExcluded(bundleId: String) -> Bool {
         // Check own app
-        if excludeOwnApp && bundleId == ownBundleId {
+        if excludeOwnApp, bundleId == ownBundleId {
             return true
         }
 
@@ -165,7 +153,8 @@ final class ExclusionManager: AppExcluding {
     /// Check if current capture should be excluded based on frontmost app
     func shouldExcludeCurrentCapture() -> (excluded: Bool, reason: ExclusionReason?) {
         guard let frontApp = NSWorkspace.shared.frontmostApplication,
-              let bundleId = frontApp.bundleIdentifier else {
+              let bundleId = frontApp.bundleIdentifier
+        else {
             return (false, nil)
         }
 
@@ -179,7 +168,9 @@ final class ExclusionManager: AppExcluding {
 
     /// Returns info about why an app is excluded (for UI display)
     func exclusionInfo(for bundleId: String) -> ExclusionInfo? {
-        guard isExcluded(bundleId: bundleId) else { return nil }
+        guard isExcluded(bundleId: bundleId) else {
+            return nil
+        }
 
         if bundleId == ownBundleId {
             return ExclusionInfo(
@@ -206,9 +197,27 @@ final class ExclusionManager: AppExcluding {
             isRemovable: true
         )
     }
+
+    // MARK: Private
+
+    /// Whether to exclude own app by default
+    private let excludeOwnApp: Bool
+
+    /// Own bundle ID
+    private let ownBundleId: String
+
+    /// Override for testing (bypasses SettingsManager)
+    private var testUserExclusions: Set<String>?
+
+    // MARK: - AppExcluding
+
+    /// Effective user exclusions (uses test override if set)
+    private var effectiveUserExclusions: Set<String> {
+        testUserExclusions ?? userExcludedBundleIds
+    }
 }
 
-// MARK: - Supporting Types
+// MARK: - ExclusionInfo
 
 /// Information about why an app is excluded
 struct ExclusionInfo {

@@ -21,18 +21,13 @@ import os.log
 /// Text is extracted from `ClipboardContent` using the same approach as `SensitiveDataDetector`:
 /// plain text, HTML, and URL string representations are concatenated for scanning.
 final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
-
-    // MARK: - Dependencies
-
-    private let logger = Logger.security
-
-    /// Cache of compiled regex patterns keyed by pattern string to avoid repeated compilation.
-    private var regexCache: [String: NSRegularExpression] = [:]
-    private let cacheLock = NSLock()
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     init() {}
+
+    // MARK: Internal
 
     // MARK: - DLPRuleEvaluating
 
@@ -80,7 +75,9 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
                 let matches = regex.matches(in: fieldText, options: [], range: nsRange)
 
                 for match in matches {
-                    guard let range = Range(match.range, in: fieldText) else { continue }
+                    guard let range = Range(match.range, in: fieldText) else {
+                        continue
+                    }
 
                     let matchedText = String(fieldText[range])
                     let primaryAction = rule.actions.first ?? .logOnly
@@ -106,7 +103,10 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
                         // Apply redaction to the specific field that matched
                         switch fieldName {
                         case "plainText":
-                            redactedPlainText = redactedPlainText?.replacingOccurrences(of: matchedText, with: redactedPreview)
+                            redactedPlainText = redactedPlainText?.replacingOccurrences(
+                                of: matchedText,
+                                with: redactedPreview
+                            )
                         case "html":
                             redactedHTML = redactedHTML?.replacingOccurrences(of: matchedText, with: redactedPreview)
                         case "url":
@@ -123,7 +123,8 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
         let uniqueViolations = deduplicateViolations(violations)
 
         if !uniqueViolations.isEmpty {
-            logger.info("DLP: \(uniqueViolations.count) violation(s) found, block=\(shouldBlock), redact=\(shouldRedact)")
+            logger
+                .info("DLP: \(uniqueViolations.count) violation(s) found, block=\(shouldBlock), redact=\(shouldRedact)")
         }
 
         // Build per-field redacted content
@@ -134,7 +135,8 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
         ) : nil
 
         // Legacy composite redacted content for backward compatibility
-        let compositeRedacted: String? = shouldRedact ? [redactedPlainText, redactedHTML, redactedURL].compactMap { $0 }.joined(separator: "\n") : nil
+        let compositeRedacted: String? = shouldRedact ? [redactedPlainText, redactedHTML, redactedURL].compactMap { $0 }
+            .joined(separator: "\n") : nil
 
         return DLPEvaluationResult(
             violations: uniqueViolations,
@@ -144,6 +146,16 @@ final class DLPRuleEngine: DLPRuleEvaluating, @unchecked Sendable {
             redactedFields: perFieldRedaction
         )
     }
+
+    // MARK: Private
+
+    // MARK: - Dependencies
+
+    private let logger = Logger.security
+
+    /// Cache of compiled regex patterns keyed by pattern string to avoid repeated compilation.
+    private var regexCache: [String: NSRegularExpression] = [:]
+    private let cacheLock = NSLock()
 
     // MARK: - Text Extraction
 

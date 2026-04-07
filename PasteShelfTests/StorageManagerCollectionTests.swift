@@ -5,8 +5,8 @@
 //  Unit tests for StorageManager collection operations.
 //
 
-@testable import PasteShelf
 import CoreData
+@testable import PasteShelf
 import XCTest
 
 final class StorageManagerCollectionTests: XCTestCase {
@@ -326,7 +326,7 @@ final class StorageManagerCollectionTests: XCTestCase {
         }
 
         // Create multiple items and add them
-        for i in 0..<3 {
+        for i in 0 ..< 3 {
             let content = ClipboardContent(
                 primaryType: .plainText,
                 availableTypes: [.plainText],
@@ -424,7 +424,7 @@ final class StorageManagerCollectionTests: XCTestCase {
         }
 
         // Create text items
-        for i in 0..<3 {
+        for i in 0 ..< 3 {
             let content = ClipboardContent(
                 primaryType: .plainText,
                 availableTypes: [.plainText],

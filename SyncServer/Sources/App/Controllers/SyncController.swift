@@ -11,6 +11,8 @@ import SQLKit
 import Vapor
 
 struct SyncController: RouteCollection {
+    // MARK: Internal
+
     func boot(routes: any RoutesBuilder) throws {
         let sync = routes.grouped("api", "v1", "sync")
         sync.post("push", use: push)
@@ -49,7 +51,7 @@ struct SyncController: RouteCollection {
             {
                 // Version check for optimistic concurrency
                 let clientVersion = change.clientVersion ?? 0
-                if clientVersion != 0 && clientVersion != existing.version {
+                if clientVersion != 0, clientVersion != existing.version {
                     // Conflict: client has stale data
                     conflicts.append(SyncConflictDTO(
                         entityID: change.entityID,
@@ -266,6 +268,8 @@ struct SyncController: RouteCollection {
         )
     }
 
+    // MARK: Private
+
     // MARK: - Helpers
 
     private func updateSyncToken(userID: UUID, deviceID: String, tokenValue: String, on db: Database) async throws {
@@ -275,7 +279,9 @@ struct SyncController: RouteCollection {
             .filter(\.$deviceID == deviceID)
             .first(),
             let devicePK = device.id
-        else { return }
+        else {
+            return
+        }
 
         // Upsert sync token
         if let existing = try await SyncToken.query(on: db)
@@ -297,7 +303,9 @@ struct SyncController: RouteCollection {
             .filter(\.$deviceID == deviceID)
             .first(),
             let devicePK = device.id
-        else { return nil }
+        else {
+            return nil
+        }
 
         return try await SyncToken.query(on: db)
             .filter(\.$device.$id == devicePK)

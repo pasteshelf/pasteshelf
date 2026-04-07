@@ -80,7 +80,9 @@ extension StorageManager {
     ///   - sortOrder: The new sort order
     /// - Returns: True if update succeeded
     func updateFolderSortOrder(_ folder: Folder, sortOrder: Int32) async -> Bool {
-        guard let folderId = folder.id else { return false }
+        guard let folderId = folder.id else {
+            return false
+        }
 
         do {
             try await performBackgroundTask { context in

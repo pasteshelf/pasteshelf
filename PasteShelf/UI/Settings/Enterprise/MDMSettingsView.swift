@@ -17,16 +17,17 @@ import SwiftUI
 /// profile. When the the enterprise features are not configured, a setup guide is
 /// shown instead.
 struct MDMSettingsView: View {
-
-    // MARK: - Properties
-
-    @StateObject private var viewModel = MDMSettingsViewModel()
+    // MARK: Internal
 
     // MARK: - Body
 
     var body: some View {
         mdmContent
     }
+
+    // MARK: Private
+
+    @StateObject private var viewModel = MDMSettingsViewModel()
 
     // MARK: - MDM Content
 
@@ -107,7 +108,6 @@ struct MDMSettingsView: View {
         }
         .formStyle(.grouped)
     }
-
 }
 
 // MARK: - Previews

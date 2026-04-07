@@ -7,16 +7,47 @@
 
 import AppKit
 #if !APP_STORE
-import ApplicationServices
+    import ApplicationServices
 #endif
 import Combine
 import Foundation
-import UserNotifications
 import os.log
+import UserNotifications
+
+// MARK: - OnboardingViewModel
 
 /// View model for managing onboarding state
 @MainActor
 final class OnboardingViewModel: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init() {
+        #if !APP_STORE
+            checkAccessibilityPermission()
+        #endif
+        Task { await checkNotificationPermission() }
+    }
+
+    deinit {
+        permissionCheckTimer?.invalidate()
+        notificationCheckTimer?.invalidate()
+    }
+
+    // MARK: Internal
+
+    // MARK: - Constants
+
+    /// UserDefaults key for tracking onboarding completion
+    static let onboardingCompletedKey = "hasCompletedOnboarding"
+
+    /// UserDefaults key for onboarding version (for future re-onboarding)
+    static let onboardingVersionKey = "onboardingVersion"
+
+    /// Current onboarding version
+    static let currentOnboardingVersion = 1
+
     // MARK: - Published Properties
 
     /// Current step in the onboarding flow
@@ -31,44 +62,6 @@ final class OnboardingViewModel: ObservableObject {
     /// Whether the onboarding is complete
     @Published var isComplete = false
 
-    /// Timer for permission checking
-    private var permissionCheckTimer: Timer?
-
-    /// Timer for notification permission checking
-    private var notificationCheckTimer: Timer?
-
-    // MARK: - Private Properties
-
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "onboarding"
-    )
-
-    // MARK: - Constants
-
-    /// UserDefaults key for tracking onboarding completion
-    static let onboardingCompletedKey = "hasCompletedOnboarding"
-
-    /// UserDefaults key for onboarding version (for future re-onboarding)
-    static let onboardingVersionKey = "onboardingVersion"
-
-    /// Current onboarding version
-    static let currentOnboardingVersion = 1
-
-    // MARK: - Initialization
-
-    init() {
-        #if !APP_STORE
-        checkAccessibilityPermission()
-        #endif
-        Task { await checkNotificationPermission() }
-    }
-
-    deinit {
-        permissionCheckTimer?.invalidate()
-        notificationCheckTimer?.invalidate()
-    }
-
     // MARK: - Public Methods
 
     /// Check if onboarding should be shown
@@ -79,6 +72,13 @@ final class OnboardingViewModel: ObservableObject {
 
         // Show if never completed or version is outdated
         return !hasCompleted || savedVersion < currentOnboardingVersion
+    }
+
+    /// Reset onboarding (for testing)
+    static func resetOnboarding() {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: onboardingCompletedKey)
+        defaults.removeObject(forKey: onboardingVersionKey)
     }
 
     /// Mark onboarding as complete
@@ -99,9 +99,9 @@ final class OnboardingViewModel: ObservableObject {
             logger.debug("Moved to step: \(next.title)")
 
             #if !APP_STORE
-            if next == .permissions {
-                startPermissionChecking()
-            }
+                if next == .permissions {
+                    startPermissionChecking()
+                }
             #endif
             if next == .notifications {
                 startNotificationChecking()
@@ -121,55 +121,57 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Skip the current step if allowed
     func skipStep() {
-        guard currentStep.isSkippable else { return }
+        guard currentStep.isSkippable else {
+            return
+        }
         nextStep()
     }
 
     /// Check accessibility permission status
     func checkAccessibilityPermission() {
         #if !APP_STORE
-        #if DEBUG
-        if CommandLine.arguments.contains("--bypass-permissions") {
-            hasAccessibilityPermission = true
-            return
-        }
-        #endif
-        hasAccessibilityPermission = AXIsProcessTrusted()
-        logger.debug("Accessibility permission: \(self.hasAccessibilityPermission)")
+            #if DEBUG
+                if CommandLine.arguments.contains("--bypass-permissions") {
+                    hasAccessibilityPermission = true
+                    return
+                }
+            #endif
+            hasAccessibilityPermission = AXIsProcessTrusted()
+            logger.debug("Accessibility permission: \(hasAccessibilityPermission)")
         #endif
     }
 
     /// Request accessibility permission by opening System Settings
     func requestAccessibilityPermission() {
         #if !APP_STORE
-        // Create prompt options to trigger the system permission dialog
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
-        let trusted = AXIsProcessTrustedWithOptions(options as CFDictionary)
+            // Create prompt options to trigger the system permission dialog
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+            let trusted = AXIsProcessTrustedWithOptions(options as CFDictionary)
 
-        if !trusted {
-            // Open System Settings to Accessibility pane
-            if let url = URL(
-                string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
-            ) {
-                NSWorkspace.shared.open(url)
+            if !trusted {
+                // Open System Settings to Accessibility pane
+                if let url = URL(
+                    string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+                ) {
+                    NSWorkspace.shared.open(url)
+                }
             }
-        }
 
-        hasAccessibilityPermission = trusted
-        logger.info("Requested accessibility permission, trusted: \(trusted)")
+            hasAccessibilityPermission = trusted
+            logger.info("Requested accessibility permission, trusted: \(trusted)")
         #endif
     }
 
     /// Start periodic permission checking
     func startPermissionChecking() {
         #if !APP_STORE
-        stopPermissionChecking()
-        permissionCheckTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
-            [weak self] _ in
-            Task { @MainActor in
-                self?.checkAccessibilityPermission()
+            stopPermissionChecking()
+            permissionCheckTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
+                [weak self] _ in
+                Task { @MainActor in
+                    self?.checkAccessibilityPermission()
+                }
             }
-        }
         #endif
     }
 
@@ -185,7 +187,7 @@ final class OnboardingViewModel: ObservableObject {
     func checkNotificationPermission() async {
         let settings = await UNUserNotificationCenter.current().notificationSettings()
         hasNotificationPermission = settings.authorizationStatus == .authorized
-        logger.debug("Notification permission: \(self.hasNotificationPermission)")
+        logger.debug("Notification permission: \(hasNotificationPermission)")
     }
 
     /// Request notification permission
@@ -210,15 +212,6 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
-    /// Opens System Settings to the Notifications pane for PasteShelf
-    private func openNotificationSettings() {
-        if let bundleId = Bundle.main.bundleIdentifier,
-           let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(bundleId)")
-        {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
     /// Start periodic notification permission checking
     func startNotificationChecking() {
         stopNotificationChecking()
@@ -236,10 +229,27 @@ final class OnboardingViewModel: ObservableObject {
         notificationCheckTimer = nil
     }
 
-    /// Reset onboarding (for testing)
-    static func resetOnboarding() {
-        let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: onboardingCompletedKey)
-        defaults.removeObject(forKey: onboardingVersionKey)
+    // MARK: Private
+
+    /// Timer for permission checking
+    private var permissionCheckTimer: Timer?
+
+    /// Timer for notification permission checking
+    private var notificationCheckTimer: Timer?
+
+    // MARK: - Private Properties
+
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "onboarding"
+    )
+
+    /// Opens System Settings to the Notifications pane for PasteShelf
+    private func openNotificationSettings() {
+        if let bundleId = Bundle.main.bundleIdentifier,
+           let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(bundleId)")
+        {
+            NSWorkspace.shared.open(url)
+        }
     }
 }

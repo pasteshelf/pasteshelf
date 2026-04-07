@@ -11,15 +11,11 @@ import Foundation
 import os.log
 import UniformTypeIdentifiers
 
+// MARK: - ContentParser
+
 /// Parses clipboard content from NSPasteboard
 final class ContentParser: ContentParsing, Sendable {
-    // MARK: - Properties
-
-    /// Image processor for handling image content
-    private let imageProcessor: ImageProcessing
-
-    /// Deduplicator for computing content hash
-    private let deduplicator: Deduplicating
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -30,6 +26,8 @@ final class ContentParser: ContentParsing, Sendable {
         self.imageProcessor = imageProcessor
         self.deduplicator = deduplicator
     }
+
+    // MARK: Internal
 
     // MARK: - ContentParsing
 
@@ -93,7 +91,9 @@ final class ContentParser: ContentParsing, Sendable {
             // Also extract plain text for preview
             content.plainText = pasteboard.string(forType: .string)
 
-        case .png, .jpeg, .tiff:
+        case .png,
+             .jpeg,
+             .tiff:
             extractImageContent(from: pasteboard, into: &content)
 
         case .pdf:
@@ -113,6 +113,14 @@ final class ContentParser: ContentParsing, Sendable {
         content.contentHash = deduplicator.computeHash(for: content)
         return content
     }
+
+    // MARK: Private
+
+    /// Image processor for handling image content
+    private let imageProcessor: ImageProcessing
+
+    /// Deduplicator for computing content hash
+    private let deduplicator: Deduplicating
 
     // MARK: - Type Detection
 
@@ -252,13 +260,14 @@ final class ContentParser: ContentParsing, Sendable {
             options: [.urlReadingFileURLsOnly: true]
         ) as? [URL]
 
-        content.fileURLs = urls?.filter { $0.isFileURL }
+        content.fileURLs = urls?.filter(\.isFileURL)
     }
 
     private func extractWebURL(from pasteboard: NSPasteboard, into content: inout ClipboardContent) {
         // Try URL type first
         if let urlString = pasteboard.string(forType: .URL),
-           let url = URL(string: urlString) {
+           let url = URL(string: urlString)
+        {
             content.url = url
             return
         }
@@ -275,7 +284,8 @@ final class ContentParser: ContentParsing, Sendable {
         if content.url == nil,
            let text = pasteboard.string(forType: .string),
            let url = URL(string: text),
-           url.scheme != nil {
+           url.scheme != nil
+        {
             content.url = url
         }
     }
@@ -293,9 +303,11 @@ final class ContentParser: ContentParsing, Sendable {
 
         // If primary is plain text and content is a valid URL, upgrade to URL type
         if content.primaryType == .plainText,
-           content.url != nil || isURL(content.plainText) {
+           content.url != nil || isURL(content.plainText)
+        {
             if content.url == nil, let text = content.plainText,
-               let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)) {
+               let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines))
+            {
                 content.url = url
             }
             content.primaryType = .url
@@ -314,12 +326,16 @@ final class ContentParser: ContentParsing, Sendable {
               let url = URL(string: text),
               let scheme = url.scheme?.lowercased(),
               ["http", "https", "ftp", "ftps", "ssh"].contains(scheme)
-        else { return false }
+        else {
+            return false
+        }
         return true
     }
 
     private func extractPlainTextFromRTF(_ pasteboard: NSPasteboard, into content: inout ClipboardContent) {
-        guard let rtfData = pasteboard.data(forType: .rtf) else { return }
+        guard let rtfData = pasteboard.data(forType: .rtf) else {
+            return
+        }
 
         do {
             let attributedString = try NSAttributedString(

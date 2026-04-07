@@ -67,7 +67,7 @@ final class CollectionRuleTests: XCTestCase {
 
     // MARK: - JSON Serialization Tests
 
-    func testCollectionRulesJSONSerialization() throws {
+    func testCollectionRulesJSONSerialization() {
         let rules = CollectionRules(
             conditions: [
                 RuleCondition(field: .contentType, comparisonOperator: .equals, value: "images"),
@@ -87,7 +87,7 @@ final class CollectionRuleTests: XCTestCase {
         XCTAssertEqual(deserializedRules?.logicalOperator, .and)
     }
 
-    func testCollectionRulesJSONWithOrOperator() throws {
+    func testCollectionRulesJSONWithOrOperator() {
         let rules = CollectionRules(
             conditions: [
                 RuleCondition(field: .sourceApp, comparisonOperator: .contains, value: "Safari"),
@@ -156,16 +156,16 @@ final class CollectionRuleTests: XCTestCase {
 
     // MARK: - DateRangeValue Tests
 
-    func testDateRangeValueStartDate() {
+    func testDateRangeValueStartDate() throws {
         let lastHour = DateRangeValue.lastHour.startDate
         let now = Date()
 
         // Start date should be within last hour
-        let hourAgo = Calendar.current.date(byAdding: .hour, value: -1, to: now)!
+        let hourAgo = try XCTUnwrap(Calendar.current.date(byAdding: .hour, value: -1, to: now))
         XCTAssertTrue(lastHour >= hourAgo.addingTimeInterval(-1)) // Allow 1 second tolerance
 
         let last7Days = DateRangeValue.last7Days.startDate
-        let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: now)!
+        let weekAgo = try XCTUnwrap(Calendar.current.date(byAdding: .day, value: -7, to: now))
         XCTAssertTrue(last7Days >= weekAgo.addingTimeInterval(-1))
     }
 

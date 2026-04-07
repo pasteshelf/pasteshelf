@@ -21,27 +21,7 @@ import os.log
 /// A manual `runNow()` entry point is provided for immediate pruning on demand (e.g.
 /// when the retention policy is changed by the administrator).
 final class AuditRetentionService {
-
-    // MARK: - Constants
-
-    /// `UserDefaults` key used to persist the timestamp of the last successful cleanup pass.
-    private static let lastCleanupKey = "com.pasteshelf.audit.lastRetentionCleanup"
-
-    /// The minimum interval between successive cleanup passes (24 hours).
-    private static let cleanupInterval: TimeInterval = 24 * 60 * 60
-
-    // MARK: - Dependencies
-
-    private let storage: AuditLogStoring
-    private var configuration: AuditRetentionConfiguration
-
-    // MARK: - Timer State
-
-    private var cleanupTimer: Timer?
-
-    // MARK: - Logger
-
-    private let logger = Logger.audit
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -59,7 +39,7 @@ final class AuditRetentionService {
         self.configuration = configuration
     }
 
-    // MARK: - Lifecycle
+    // MARK: Internal
 
     /// Starts the daily cleanup timer.
     ///
@@ -73,13 +53,15 @@ final class AuditRetentionService {
             withTimeInterval: Self.cleanupInterval,
             repeats: true
         ) { [weak self] _ in
-            guard let self else { return }
-            self.logger.debug("Audit retention timer fired — checking for expired entries")
+            guard let self else {
+                return
+            }
+            logger.debug("Audit retention timer fired — checking for expired entries")
             Task {
                 _ = await self.runIfDue()
             }
         }
-        logger.info("Audit retention service started (retentionDays: \(self.configuration.retentionDays))")
+        logger.info("Audit retention service started (retentionDays: \(configuration.retentionDays))")
 
         // Run an initial check at startup without waiting for the first timer fire.
         Task {
@@ -105,7 +87,10 @@ final class AuditRetentionService {
     /// - Parameter newConfiguration: The replacement retention policy.
     func updateConfiguration(_ newConfiguration: AuditRetentionConfiguration) {
         configuration = newConfiguration
-        logger.info("Audit retention configuration updated to \(newConfiguration.retentionDays) days (immutable: \(newConfiguration.isImmutable))")
+        logger
+            .info(
+                "Audit retention configuration updated to \(newConfiguration.retentionDays) days (immutable: \(newConfiguration.isImmutable))"
+            )
     }
 
     /// Immediately prunes expired audit log entries, regardless of the regular schedule.
@@ -119,7 +104,7 @@ final class AuditRetentionService {
             logger.info("Audit retention: pruning skipped — immutable retention policy active (HIPAA)")
             return 0
         }
-        logger.info("Audit retention: running manual pruning pass (retentionDays: \(self.configuration.retentionDays))")
+        logger.info("Audit retention: running manual pruning pass (retentionDays: \(configuration.retentionDays))")
         do {
             let count = try await storage.pruneExpired(retentionDays: configuration.retentionDays)
             UserDefaults.standard.set(Date(), forKey: Self.lastCleanupKey)
@@ -131,6 +116,29 @@ final class AuditRetentionService {
         }
     }
 
+    // MARK: Private
+
+    // MARK: - Constants
+
+    /// `UserDefaults` key used to persist the timestamp of the last successful cleanup pass.
+    private static let lastCleanupKey = "com.pasteshelf.audit.lastRetentionCleanup"
+
+    /// The minimum interval between successive cleanup passes (24 hours).
+    private static let cleanupInterval: TimeInterval = 24 * 60 * 60
+
+    // MARK: - Dependencies
+
+    private let storage: AuditLogStoring
+    private var configuration: AuditRetentionConfiguration
+
+    // MARK: - Timer State
+
+    private var cleanupTimer: Timer?
+
+    // MARK: - Logger
+
+    private let logger = Logger.audit
+
     // MARK: - Private Helpers
 
     /// Runs a pruning pass only if 24 hours have elapsed since the last cleanup.
@@ -139,11 +147,10 @@ final class AuditRetentionService {
     @discardableResult
     private func runIfDue() async -> Int {
         let lastCleanup = UserDefaults.standard.object(forKey: Self.lastCleanupKey) as? Date
-        let isDue: Bool
-        if let lastCleanup {
-            isDue = Date().timeIntervalSince(lastCleanup) >= Self.cleanupInterval
+        let isDue: Bool = if let lastCleanup {
+            Date().timeIntervalSince(lastCleanup) >= Self.cleanupInterval
         } else {
-            isDue = true // Never cleaned up before
+            true // Never cleaned up before
         }
 
         guard isDue else {

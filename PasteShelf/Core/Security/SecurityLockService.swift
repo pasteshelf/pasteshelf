@@ -24,6 +24,19 @@ import os.log
 /// floating panel must satisfy **both** locks before showing content.
 @MainActor
 final class SecurityLockService: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    private init() {}
+
+    // MARK: - Cleanup
+
+    deinit {
+        timeoutTimer?.invalidate()
+    }
+
+    // MARK: Internal
 
     // MARK: - Singleton
 
@@ -36,23 +49,6 @@ final class SecurityLockService: ObservableObject {
 
     /// Whether an authentication attempt is in progress.
     @Published private(set) var isAuthenticating: Bool = false
-
-    // MARK: - Private State
-
-    /// Timestamp of the last user activity (used for inactivity timeout).
-    private var lastActivityTimestamp: Date = Date()
-
-    /// Timer that periodically checks for session inactivity.
-    private var timeoutTimer: Timer?
-
-    /// The interval at which the timeout timer checks for inactivity.
-    private static let timeoutCheckInterval: TimeInterval = 15
-
-    private let logger = Logger.security
-
-    // MARK: - Initialization
-
-    private init() {}
 
     // MARK: - Configuration
 
@@ -110,7 +106,9 @@ final class SecurityLockService: ObservableObject {
 
     /// Locks the application, requiring re-authentication.
     func lock() {
-        guard SettingsManager.shared.security.requireBiometricAuth else { return }
+        guard SettingsManager.shared.security.requireBiometricAuth else {
+            return
+        }
         isLocked = true
         logger.info("Security lock: application locked")
     }
@@ -121,6 +119,21 @@ final class SecurityLockService: ObservableObject {
     func recordActivity() {
         lastActivityTimestamp = Date()
     }
+
+    // MARK: Private
+
+    /// The interval at which the timeout timer checks for inactivity.
+    private static let timeoutCheckInterval: TimeInterval = 15
+
+    // MARK: - Private State
+
+    /// Timestamp of the last user activity (used for inactivity timeout).
+    private var lastActivityTimestamp: Date = .init()
+
+    /// Timer that periodically checks for session inactivity.
+    private var timeoutTimer: Timer?
+
+    private let logger = Logger.security
 
     // MARK: - Timeout Timer
 
@@ -134,14 +147,20 @@ final class SecurityLockService: ObservableObject {
             repeats: true
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                guard let self else { return }
-                guard SettingsManager.shared.security.requireBiometricAuth else { return }
-                guard !self.isLocked else { return }
+                guard let self else {
+                    return
+                }
+                guard SettingsManager.shared.security.requireBiometricAuth else {
+                    return
+                }
+                guard !isLocked else {
+                    return
+                }
 
-                let elapsed = Date().timeIntervalSince(self.lastActivityTimestamp)
+                let elapsed = Date().timeIntervalSince(lastActivityTimestamp)
                 if elapsed >= timeoutInterval {
-                    self.lock()
-                    self.logger.info(
+                    lock()
+                    logger.info(
                         "Security lock: auto-locked after \(Int(elapsed))s of inactivity"
                     )
                 }
@@ -167,11 +186,10 @@ final class SecurityLockService: ObservableObject {
         }
 
         do {
-            let success = try await context.evaluatePolicy(
+            return try await context.evaluatePolicy(
                 .deviceOwnerAuthenticationWithBiometrics,
                 localizedReason: "Authenticate to access PasteShelf clipboard data"
             )
-            return success
         } catch {
             logger.warning("Biometric auth failed: \(error.localizedDescription)")
             return false
@@ -182,20 +200,13 @@ final class SecurityLockService: ObservableObject {
     /// are unavailable (e.g. no Touch ID hardware, biometrics locked out).
     private func performDeviceOwnerAuth(context: LAContext) async -> Bool {
         do {
-            let success = try await context.evaluatePolicy(
+            return try await context.evaluatePolicy(
                 .deviceOwnerAuthentication,
                 localizedReason: "Authenticate to access PasteShelf clipboard data"
             )
-            return success
         } catch {
             logger.warning("Device owner auth failed: \(error.localizedDescription)")
             return false
         }
-    }
-
-    // MARK: - Cleanup
-
-    deinit {
-        timeoutTimer?.invalidate()
     }
 }

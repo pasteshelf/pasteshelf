@@ -10,7 +10,7 @@ import AppKit
 import CryptoKit
 import Foundation
 
-// MARK: - Transform Preset
+// MARK: - TransformPreset
 
 /// Built-in text transformation presets
 enum TransformPreset: String, Codable, CaseIterable, Sendable {
@@ -20,7 +20,7 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
     case uppercase = "UPPERCASE"
 
     /// Convert to lowercase
-    case lowercase = "lowercase"
+    case lowercase
 
     /// Convert to Title Case
     case titleCase = "Title Case"
@@ -97,7 +97,7 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
     /// Generate SHA-256 hash
     case sha256Hash = "SHA-256 Hash"
 
-    // MARK: - Properties
+    // MARK: Internal
 
     /// Human-readable display name
     var displayName: String {
@@ -108,93 +108,124 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
     var description: String {
         switch self {
         case .uppercase:
-            return String(localized: "Convert all letters to uppercase")
+            String(localized: "Convert all letters to uppercase")
         case .lowercase:
-            return String(localized: "Convert all letters to lowercase")
+            String(localized: "Convert all letters to lowercase")
         case .titleCase:
-            return String(localized: "Capitalize the first letter of each word")
+            String(localized: "Capitalize the first letter of each word")
         case .sentenceCase:
-            return String(localized: "Capitalize the first letter of each sentence")
+            String(localized: "Capitalize the first letter of each sentence")
         case .trimWhitespace:
-            return String(localized: "Remove leading and trailing whitespace")
+            String(localized: "Remove leading and trailing whitespace")
         case .removeNewlines:
-            return String(localized: "Replace all newlines with spaces")
+            String(localized: "Replace all newlines with spaces")
         case .collapseSpaces:
-            return String(localized: "Replace multiple spaces with a single space")
+            String(localized: "Replace multiple spaces with a single space")
         case .removeAllWhitespace:
-            return String(localized: "Remove all whitespace characters")
+            String(localized: "Remove all whitespace characters")
         case .sortLines:
-            return String(localized: "Sort all lines alphabetically")
+            String(localized: "Sort all lines alphabetically")
         case .uniqueLines:
-            return String(localized: "Remove duplicate lines")
+            String(localized: "Remove duplicate lines")
         case .reverseLines:
-            return String(localized: "Reverse the order of lines")
+            String(localized: "Reverse the order of lines")
         case .shuffleLines:
-            return String(localized: "Randomize the order of lines")
+            String(localized: "Randomize the order of lines")
         case .base64Encode:
-            return String(localized: "Encode text to Base64 format")
+            String(localized: "Encode text to Base64 format")
         case .base64Decode:
-            return String(localized: "Decode text from Base64 format")
+            String(localized: "Decode text from Base64 format")
         case .urlEncode:
-            return String(localized: "URL-encode special characters")
+            String(localized: "URL-encode special characters")
         case .urlDecode:
-            return String(localized: "Decode URL-encoded characters")
+            String(localized: "Decode URL-encoded characters")
         case .formatJSON:
-            return String(localized: "Format JSON with proper indentation")
+            String(localized: "Format JSON with proper indentation")
         case .minifyJSON:
-            return String(localized: "Remove whitespace from JSON")
+            String(localized: "Remove whitespace from JSON")
         case .escapeHTML:
-            return String(localized: "Convert HTML special characters to entities")
+            String(localized: "Convert HTML special characters to entities")
         case .unescapeHTML:
-            return String(localized: "Convert HTML entities to characters")
+            String(localized: "Convert HTML entities to characters")
         case .stripHTMLTags:
-            return String(localized: "Remove all HTML tags from text")
+            String(localized: "Remove all HTML tags from text")
         case .md5Hash:
-            return String(localized: "Generate MD5 hash of the text")
+            String(localized: "Generate MD5 hash of the text")
         case .sha256Hash:
-            return String(localized: "Generate SHA-256 hash of the text")
+            String(localized: "Generate SHA-256 hash of the text")
         }
     }
 
     /// SF Symbol icon for the transformation
     var iconName: String {
         switch self {
-        case .uppercase, .lowercase, .titleCase, .sentenceCase:
-            return "textformat"
-        case .trimWhitespace, .removeNewlines, .collapseSpaces, .removeAllWhitespace:
-            return "text.alignleft"
-        case .sortLines, .uniqueLines, .reverseLines, .shuffleLines:
-            return "list.bullet"
-        case .base64Encode, .base64Decode:
-            return "01.square"
-        case .urlEncode, .urlDecode:
-            return "link"
-        case .formatJSON, .minifyJSON:
-            return "curlybraces"
-        case .escapeHTML, .unescapeHTML, .stripHTMLTags:
-            return "chevron.left.forwardslash.chevron.right"
-        case .md5Hash, .sha256Hash:
-            return "number"
+        case .uppercase,
+             .lowercase,
+             .titleCase,
+             .sentenceCase:
+            "textformat"
+        case .trimWhitespace,
+             .removeNewlines,
+             .collapseSpaces,
+             .removeAllWhitespace:
+            "text.alignleft"
+        case .sortLines,
+             .uniqueLines,
+             .reverseLines,
+             .shuffleLines:
+            "list.bullet"
+        case .base64Encode,
+             .base64Decode:
+            "01.square"
+        case .urlEncode,
+             .urlDecode:
+            "link"
+        case .formatJSON,
+             .minifyJSON:
+            "curlybraces"
+        case .escapeHTML,
+             .unescapeHTML,
+             .stripHTMLTags:
+            "chevron.left.forwardslash.chevron.right"
+        case .md5Hash,
+             .sha256Hash:
+            "number"
         }
     }
 
     /// Category for grouping in UI
     var category: TransformCategory {
         switch self {
-        case .uppercase, .lowercase, .titleCase, .sentenceCase:
-            return .caseConversion
-        case .trimWhitespace, .removeNewlines, .collapseSpaces, .removeAllWhitespace:
-            return .whitespace
-        case .sortLines, .uniqueLines, .reverseLines, .shuffleLines:
-            return .lines
-        case .base64Encode, .base64Decode, .urlEncode, .urlDecode:
-            return .encoding
-        case .formatJSON, .minifyJSON:
-            return .json
-        case .escapeHTML, .unescapeHTML, .stripHTMLTags:
-            return .html
-        case .md5Hash, .sha256Hash:
-            return .hashing
+        case .uppercase,
+             .lowercase,
+             .titleCase,
+             .sentenceCase:
+            .caseConversion
+        case .trimWhitespace,
+             .removeNewlines,
+             .collapseSpaces,
+             .removeAllWhitespace:
+            .whitespace
+        case .sortLines,
+             .uniqueLines,
+             .reverseLines,
+             .shuffleLines:
+            .lines
+        case .base64Encode,
+             .base64Decode,
+             .urlEncode,
+             .urlDecode:
+            .encoding
+        case .formatJSON,
+             .minifyJSON:
+            .json
+        case .escapeHTML,
+             .unescapeHTML,
+             .stripHTMLTags:
+            .html
+        case .md5Hash,
+             .sha256Hash:
+            .hashing
         }
     }
 
@@ -207,82 +238,84 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
         switch self {
         // Case transformations
         case .uppercase:
-            return input.uppercased()
+            input.uppercased()
 
         case .lowercase:
-            return input.lowercased()
+            input.lowercased()
 
         case .titleCase:
-            return input.capitalized
+            input.capitalized
 
         case .sentenceCase:
-            return transformToSentenceCase(input)
+            transformToSentenceCase(input)
 
         // Whitespace transformations
         case .trimWhitespace:
-            return input.trimmingCharacters(in: .whitespacesAndNewlines)
+            input.trimmingCharacters(in: .whitespacesAndNewlines)
 
         case .removeNewlines:
-            return input.replacingOccurrences(of: "\n", with: " ")
+            input.replacingOccurrences(of: "\n", with: " ")
                 .replacingOccurrences(of: "\r", with: " ")
 
         case .collapseSpaces:
-            return collapseMultipleSpaces(input)
+            collapseMultipleSpaces(input)
 
         case .removeAllWhitespace:
-            return input.components(separatedBy: .whitespacesAndNewlines).joined()
+            input.components(separatedBy: .whitespacesAndNewlines).joined()
 
         // Line transformations
         case .sortLines:
-            return input.components(separatedBy: .newlines).sorted().joined(separator: "\n")
+            input.components(separatedBy: .newlines).sorted().joined(separator: "\n")
 
         case .uniqueLines:
-            return uniqueLines(input)
+            uniqueLines(input)
 
         case .reverseLines:
-            return input.components(separatedBy: .newlines).reversed().joined(separator: "\n")
+            input.components(separatedBy: .newlines).reversed().joined(separator: "\n")
 
         case .shuffleLines:
-            return input.components(separatedBy: .newlines).shuffled().joined(separator: "\n")
+            input.components(separatedBy: .newlines).shuffled().joined(separator: "\n")
 
         // Encoding transformations
         case .base64Encode:
-            return Data(input.utf8).base64EncodedString()
+            Data(input.utf8).base64EncodedString()
 
         case .base64Decode:
-            return decodeBase64(input) ?? input
+            decodeBase64(input) ?? input
 
         case .urlEncode:
-            return input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? input
+            input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? input
 
         case .urlDecode:
-            return input.removingPercentEncoding ?? input
+            input.removingPercentEncoding ?? input
 
         // JSON transformations
         case .formatJSON:
-            return formatJSON(input) ?? input
+            formatJSON(input) ?? input
 
         case .minifyJSON:
-            return minifyJSON(input) ?? input
+            minifyJSON(input) ?? input
 
         // HTML transformations
         case .escapeHTML:
-            return escapeHTML(input)
+            escapeHTML(input)
 
         case .unescapeHTML:
-            return unescapeHTML(input)
+            unescapeHTML(input)
 
         case .stripHTMLTags:
-            return stripHTMLTags(input)
+            stripHTMLTags(input)
 
         // Hash transformations
         case .md5Hash:
-            return md5Hash(input)
+            md5Hash(input)
 
         case .sha256Hash:
-            return sha256Hash(input)
+            sha256Hash(input)
         }
     }
+
+    // MARK: Private
 
     // MARK: - Private Helpers
 
@@ -343,7 +376,9 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
     }
 
     private func decodeBase64(_ input: String) -> String? {
-        guard let data = Data(base64Encoded: input) else { return nil }
+        guard let data = Data(base64Encoded: input) else {
+            return nil
+        }
         return String(data: data, encoding: .utf8)
     }
 
@@ -394,11 +429,13 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
     }
 
     private func stripHTMLTags(_ input: String) -> String {
-        guard let data = input.data(using: .utf8) else { return input }
+        guard let data = input.data(using: .utf8) else {
+            return input
+        }
 
         let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
             .documentType: NSAttributedString.DocumentType.html,
-            .characterEncoding: String.Encoding.utf8.rawValue
+            .characterEncoding: String.Encoding.utf8.rawValue,
         ]
 
         if let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) {
@@ -426,7 +463,7 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
     }
 }
 
-// MARK: - Transform Category
+// MARK: - TransformCategory
 
 /// Categories for grouping transform presets in UI
 enum TransformCategory: String, CaseIterable, Sendable {
@@ -438,6 +475,8 @@ enum TransformCategory: String, CaseIterable, Sendable {
     case html = "HTML"
     case hashing = "Hashing"
 
+    // MARK: Internal
+
     /// Display name for the category
     var displayName: String {
         rawValue
@@ -446,13 +485,13 @@ enum TransformCategory: String, CaseIterable, Sendable {
     /// SF Symbol icon for the category
     var iconName: String {
         switch self {
-        case .caseConversion: return "textformat.abc"
-        case .whitespace: return "space"
-        case .lines: return "list.bullet"
-        case .encoding: return "doc.text"
-        case .json: return "curlybraces"
-        case .html: return "chevron.left.forwardslash.chevron.right"
-        case .hashing: return "number"
+        case .caseConversion: "textformat.abc"
+        case .whitespace: "space"
+        case .lines: "list.bullet"
+        case .encoding: "doc.text"
+        case .json: "curlybraces"
+        case .html: "chevron.left.forwardslash.chevron.right"
+        case .hashing: "number"
         }
     }
 

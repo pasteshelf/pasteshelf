@@ -11,7 +11,6 @@ import Foundation
 
 /// The lifecycle state of a device's enrollment with the admin console.
 enum DeviceEnrollmentStatus: String, Codable, Sendable {
-
     /// The device has not been enrolled and has no record on the admin console.
     case notEnrolled
 
@@ -42,6 +41,51 @@ enum DeviceEnrollmentStatus: String, Codable, Sendable {
 /// It also surfaces the current `enrollmentStatus` so the application can adapt its
 /// behaviour accordingly (e.g., blocking features when `suspended` or `revoked`).
 struct DeviceRegistration: Codable, Sendable, Identifiable, Equatable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates a device registration record with the given enrollment details.
+    ///
+    /// - Parameters:
+    ///   - id: A locally generated UUID for this record. Defaults to a new `UUID()`.
+    ///   - deviceId: The server-assigned device identifier.
+    ///   - organizationID: The organization this device belongs to.
+    ///   - userId: The SSO user ID of the enrolling user.
+    ///   - enrollmentStatus: The initial enrollment lifecycle state. Defaults to `.notEnrolled`.
+    ///   - enrolledAt: The enrollment timestamp. Defaults to the current date.
+    ///   - lastCheckIn: The last check-in timestamp. Defaults to the current date.
+    ///   - deviceName: The human-readable device name.
+    ///   - osVersion: The macOS version string.
+    ///   - appVersion: The PasteShelf version string.
+    ///   - serialNumber: The hardware serial number, if available.
+    init(
+        id: UUID = UUID(),
+        deviceId: String,
+        organizationID: String,
+        userId: String,
+        enrollmentStatus: DeviceEnrollmentStatus = .notEnrolled,
+        enrolledAt: Date = Date(),
+        lastCheckIn: Date = Date(),
+        deviceName: String,
+        osVersion: String,
+        appVersion: String,
+        serialNumber: String? = nil
+    ) {
+        self.id = id
+        self.deviceId = deviceId
+        self.organizationID = organizationID
+        self.userId = userId
+        self.enrollmentStatus = enrollmentStatus
+        self.enrolledAt = enrolledAt
+        self.lastCheckIn = lastCheckIn
+        self.deviceName = deviceName
+        self.osVersion = osVersion
+        self.appVersion = appVersion
+        self.serialNumber = serialNumber
+    }
+
+    // MARK: Internal
 
     // MARK: - Identity
 
@@ -89,50 +133,6 @@ struct DeviceRegistration: Codable, Sendable, Identifiable, Equatable {
     /// May be `nil` on virtual machines or in sandboxed environments where the
     /// serial number is not accessible.
     let serialNumber: String?
-
-    // MARK: - Initialization
-
-    /// Creates a device registration record with the given enrollment details.
-    ///
-    /// - Parameters:
-    ///   - id: A locally generated UUID for this record. Defaults to a new `UUID()`.
-    ///   - deviceId: The server-assigned device identifier.
-    ///   - organizationID: The organization this device belongs to.
-    ///   - userId: The SSO user ID of the enrolling user.
-    ///   - enrollmentStatus: The initial enrollment lifecycle state. Defaults to `.notEnrolled`.
-    ///   - enrolledAt: The enrollment timestamp. Defaults to the current date.
-    ///   - lastCheckIn: The last check-in timestamp. Defaults to the current date.
-    ///   - deviceName: The human-readable device name.
-    ///   - osVersion: The macOS version string.
-    ///   - appVersion: The PasteShelf version string.
-    ///   - serialNumber: The hardware serial number, if available.
-    init(
-        id: UUID = UUID(),
-        deviceId: String,
-        organizationID: String,
-        userId: String,
-        enrollmentStatus: DeviceEnrollmentStatus = .notEnrolled,
-        enrolledAt: Date = Date(),
-        lastCheckIn: Date = Date(),
-        deviceName: String,
-        osVersion: String,
-        appVersion: String,
-        serialNumber: String? = nil
-    ) {
-        self.id = id
-        self.deviceId = deviceId
-        self.organizationID = organizationID
-        self.userId = userId
-        self.enrollmentStatus = enrollmentStatus
-        self.enrolledAt = enrolledAt
-        self.lastCheckIn = lastCheckIn
-        self.deviceName = deviceName
-        self.osVersion = osVersion
-        self.appVersion = appVersion
-        self.serialNumber = serialNumber
-    }
-
-    // MARK: - Computed Properties
 
     /// `true` when the device is fully enrolled and not suspended or revoked.
     ///

@@ -7,44 +7,14 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - DLPRuleEngineTests
 
 @Suite("DLP Rule Engine Tests")
 struct DLPRuleEngineTests {
-
-    // MARK: - Helpers
-
-    /// Creates a fresh DLPRuleEngine instance.
-    private func makeEngine() -> DLPRuleEngine {
-        DLPRuleEngine()
-    }
-
-    /// Creates a ClipboardContent with the given plain text.
-    private func makeContent(text: String) -> ClipboardContent {
-        ClipboardContent(
-            primaryType: .plainText,
-            availableTypes: [.plainText],
-            plainText: text
-        )
-    }
-
-    /// Creates a DLPRule with the given parameters and sensible defaults for the rest.
-    private func makeRule(
-        name: String = "Test Rule",
-        pattern: String,
-        actions: [DLPAction] = [.alert, .logOnly]
-    ) -> DLPRule {
-        DLPRule(
-            name: name,
-            patternCategory: .custom,
-            pattern: pattern,
-            severity: .high,
-            actions: actions
-        )
-    }
+    // MARK: Internal
 
     // MARK: - Basic Evaluation
 
@@ -260,5 +230,38 @@ struct DLPRuleEngineTests {
             // The original card number must NOT appear verbatim in the redacted output
             #expect(!redacted.contains("4111111111111111"))
         }
+    }
+
+    // MARK: Private
+
+    // MARK: - Helpers
+
+    /// Creates a fresh DLPRuleEngine instance.
+    private func makeEngine() -> DLPRuleEngine {
+        DLPRuleEngine()
+    }
+
+    /// Creates a ClipboardContent with the given plain text.
+    private func makeContent(text: String) -> ClipboardContent {
+        ClipboardContent(
+            primaryType: .plainText,
+            availableTypes: [.plainText],
+            plainText: text
+        )
+    }
+
+    /// Creates a DLPRule with the given parameters and sensible defaults for the rest.
+    private func makeRule(
+        name: String = "Test Rule",
+        pattern: String,
+        actions: [DLPAction] = [.alert, .logOnly]
+    ) -> DLPRule {
+        DLPRule(
+            name: name,
+            patternCategory: .custom,
+            pattern: pattern,
+            severity: .high,
+            actions: actions
+        )
     }
 }

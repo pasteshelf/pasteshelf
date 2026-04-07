@@ -13,22 +13,17 @@ import os.log
 /// Storage manager for automation rules
 @MainActor
 final class AutomationRuleStorage {
-    // MARK: - Singleton
-
-    static let shared = AutomationRuleStorage()
-
-    // MARK: - Properties
-
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "automation.storage"
-    )
-
-    private let storageManager = StorageManager.shared
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     private init() {}
+
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    static let shared = AutomationRuleStorage()
 
     // MARK: - Fetch Operations
 
@@ -141,9 +136,9 @@ final class AutomationRuleStorage {
     @discardableResult
     func saveRule(_ rule: AutomationRule) async -> Bool {
         if await fetchRule(id: rule.id) != nil {
-            return await updateRule(rule)
+            await updateRule(rule)
         } else {
-            return await createRule(rule)
+            await createRule(rule)
         }
     }
 
@@ -323,11 +318,20 @@ final class AutomationRuleStorage {
 
         // Example rules (disabled by default, user can enable if wanted)
         let examples: [AutomationRule] = [
-            AutomationRule.notifySensitive
+            AutomationRule.notifySensitive,
         ]
 
         for rule in examples {
             await createRule(rule)
         }
     }
+
+    // MARK: Private
+
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "automation.storage"
+    )
+
+    private let storageManager = StorageManager.shared
 }

@@ -15,7 +15,6 @@ import Foundation
 /// device management workflow.  The raw `String` value is used as the event-type
 /// discriminator when serializing events to the admin console API.
 enum AdminAnalyticsEventType: String, Codable, Sendable {
-
     /// A device successfully completed enrollment with the admin console.
     case deviceEnrolled
 
@@ -55,6 +54,36 @@ enum AdminAnalyticsEventType: String, Codable, Sendable {
 /// The `metadata` dictionary carries event-specific key/value pairs (e.g. policy ID,
 /// error codes, or SSO provider identifiers) without requiring a rigid per-event schema.
 struct AdminAnalyticsEvent: Codable, Sendable, Identifiable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates an analytics event.
+    ///
+    /// - Parameters:
+    ///   - id: A locally generated UUID for this event. Defaults to a new `UUID()`.
+    ///   - deviceId: The server-assigned device identifier.
+    ///   - userId: The SSO user ID, if a session is active. Defaults to `nil`.
+    ///   - eventType: The category of action or state change.
+    ///   - timestamp: When the event occurred. Defaults to the current date.
+    ///   - metadata: Arbitrary key/value context for this event. Defaults to an empty dictionary.
+    init(
+        id: UUID = UUID(),
+        deviceId: String,
+        userId: String? = nil,
+        eventType: AdminAnalyticsEventType,
+        timestamp: Date = Date(),
+        metadata: [String: String] = [:]
+    ) {
+        self.id = id
+        self.deviceId = deviceId
+        self.userId = userId
+        self.eventType = eventType
+        self.timestamp = timestamp
+        self.metadata = metadata
+    }
+
+    // MARK: Internal
 
     // MARK: - Identity
 
@@ -86,31 +115,4 @@ struct AdminAnalyticsEvent: Codable, Sendable, Identifiable {
     /// - `["policyId": "pol-123", "policyVersion": "4"]` for a `policyApplied` event.
     /// - `["errorCode": "SAML_ASSERTION_EXPIRED"]` for a `loginFailure` event.
     var metadata: [String: String]
-
-    // MARK: - Initialization
-
-    /// Creates an analytics event.
-    ///
-    /// - Parameters:
-    ///   - id: A locally generated UUID for this event. Defaults to a new `UUID()`.
-    ///   - deviceId: The server-assigned device identifier.
-    ///   - userId: The SSO user ID, if a session is active. Defaults to `nil`.
-    ///   - eventType: The category of action or state change.
-    ///   - timestamp: When the event occurred. Defaults to the current date.
-    ///   - metadata: Arbitrary key/value context for this event. Defaults to an empty dictionary.
-    init(
-        id: UUID = UUID(),
-        deviceId: String,
-        userId: String? = nil,
-        eventType: AdminAnalyticsEventType,
-        timestamp: Date = Date(),
-        metadata: [String: String] = [:]
-    ) {
-        self.id = id
-        self.deviceId = deviceId
-        self.userId = userId
-        self.eventType = eventType
-        self.timestamp = timestamp
-        self.metadata = metadata
-    }
 }

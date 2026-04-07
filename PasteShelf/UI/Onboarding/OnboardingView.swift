@@ -7,13 +7,13 @@
 
 import SwiftUI
 
+// MARK: - OnboardingView
+
 /// Main onboarding container view
 struct OnboardingView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     @ObservedObject var viewModel: OnboardingViewModel
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Body
 
@@ -47,9 +47,9 @@ struct OnboardingView: View {
                     WelcomeStepView()
                 case .permissions:
                     #if APP_STORE
-                    EmptyView()
+                        EmptyView()
                     #else
-                    PermissionStepView(viewModel: viewModel)
+                        PermissionStepView(viewModel: viewModel)
                     #endif
                 case .notifications:
                     NotificationPermissionStepView(viewModel: viewModel)
@@ -119,23 +119,28 @@ struct OnboardingView: View {
         .background(Color(nsColor: .windowBackgroundColor))
     }
 
-    private static func currentStepNumber(for step: OnboardingStep) -> Int {
-        (OnboardingStep.activeSteps.firstIndex(of: step) ?? 0) + 1
-    }
+    // MARK: Private
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var canProceed: Bool {
         switch viewModel.currentStep {
         case .permissions:
             #if APP_STORE
-            return true
+                return true
             #else
-            return viewModel.hasAccessibilityPermission
+                return viewModel.hasAccessibilityPermission
             #endif
         case .notifications:
             return true
         default:
             return true
         }
+    }
+
+    private static func currentStepNumber(for step: OnboardingStep) -> Int {
+        (OnboardingStep.activeSteps.firstIndex(of: step) ?? 0) + 1
     }
 }
 

@@ -127,7 +127,9 @@ extension String {
 
     /// Merges overlapping ranges into non-overlapping ranges.
     private func mergeOverlappingRanges(_ ranges: [MatchRange]) -> [MatchRange] {
-        guard !ranges.isEmpty else { return [] }
+        guard !ranges.isEmpty else {
+            return []
+        }
 
         var merged: [MatchRange] = []
         var current = ranges[0]
@@ -208,7 +210,9 @@ extension MatchRange {
     /// Converts to an AttributedString range.
     func attributedStringRange(in attrString: AttributedString) -> Range<AttributedString.Index>? {
         let string = String(attrString.characters)
-        guard let stringRange = range(in: string) else { return nil }
+        guard let stringRange = range(in: string) else {
+            return nil
+        }
 
         let startOffset = string.distance(from: string.startIndex, to: stringRange.lowerBound)
         let endOffset = string.distance(from: string.startIndex, to: stringRange.upperBound)

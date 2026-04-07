@@ -8,8 +8,8 @@
 
 import CoreData
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - Test Helpers
 
@@ -41,10 +41,9 @@ private func makeInMemoryEntry(
     return entry
 }
 
-// MARK: - AuditEventCategory Tests
+// MARK: - AuditEventCategoryTests
 
 struct AuditEventCategoryTests {
-
     // MARK: Raw Values
 
     @Test("AuditEventCategory.clipboard raw value is 'clipboard'")
@@ -119,10 +118,9 @@ struct AuditEventCategoryTests {
     }
 }
 
-// MARK: - AuditEventSeverity Tests
+// MARK: - AuditEventSeverityTests
 
 struct AuditEventSeverityTests {
-
     // MARK: Raw Values
 
     @Test("AuditEventSeverity.info raw value is 'info'")
@@ -167,10 +165,9 @@ struct AuditEventSeverityTests {
     }
 }
 
-// MARK: - AuditAction Tests
+// MARK: - AuditActionTests
 
 struct AuditActionTests {
-
     // MARK: Raw Values (Sampling)
 
     @Test("AuditAction.copyCaptured raw value is 'copy_captured'")
@@ -240,10 +237,9 @@ struct AuditActionTests {
     }
 }
 
-// MARK: - AuditEvent Tests
+// MARK: - AuditEventTests
 
 struct AuditEventTests {
-
     // MARK: Default Init Values
 
     @Test("AuditEvent default init produces non-nil id")
@@ -406,10 +402,9 @@ struct AuditEventTests {
     }
 }
 
-// MARK: - AuditRetentionConfiguration Tests
+// MARK: - AuditRetentionConfigurationTests
 
 struct AuditRetentionConfigurationTests {
-
     @Test("AuditRetentionConfiguration.default has retentionDays of 90")
     func defaultRetentionDaysIs90() {
         #expect(AuditRetentionConfiguration.default.retentionDays == 90)
@@ -454,10 +449,9 @@ struct AuditRetentionConfigurationTests {
     }
 }
 
-// MARK: - AuditLogDisplayItem Tests
+// MARK: - AuditLogDisplayItemTests
 
 struct AuditLogDisplayItemTests {
-
     // MARK: Factory from(_:decryptedDetail:)
 
     @Test("AuditLogDisplayItem.from returns nil when entry has no id")

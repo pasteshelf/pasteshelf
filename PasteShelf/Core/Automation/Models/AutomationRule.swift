@@ -8,10 +8,42 @@
 
 import Foundation
 
-// MARK: - Automation Rule
+// MARK: - AutomationRule
 
 /// An automation rule that executes actions when conditions are met
 struct AutomationRule: Codable, Equatable, Identifiable, Sendable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        isEnabled: Bool = true,
+        trigger: AutomationTrigger = .onCapture,
+        conditions: CollectionRules = CollectionRules(),
+        actions: [AutomationAction] = [],
+        priority: Int32 = 100,
+        createdAt: Date = Date(),
+        modifiedAt: Date = Date(),
+        lastExecutedAt: Date? = nil,
+        executionCount: Int64 = 0
+    ) {
+        self.id = id
+        self.name = name
+        self.isEnabled = isEnabled
+        self.trigger = trigger
+        self.conditions = conditions
+        self.actions = actions
+        self.priority = priority
+        self.createdAt = createdAt
+        self.modifiedAt = modifiedAt
+        self.lastExecutedAt = lastExecutedAt
+        self.executionCount = executionCount
+    }
+
+    // MARK: Internal
+
     /// Unique identifier for this rule
     let id: UUID
 
@@ -46,36 +78,6 @@ struct AutomationRule: Codable, Equatable, Identifiable, Sendable {
     /// Number of times the rule has been executed
     var executionCount: Int64
 
-    // MARK: - Initialization
-
-    init(
-        id: UUID = UUID(),
-        name: String,
-        isEnabled: Bool = true,
-        trigger: AutomationTrigger = .onCapture,
-        conditions: CollectionRules = CollectionRules(),
-        actions: [AutomationAction] = [],
-        priority: Int32 = 100,
-        createdAt: Date = Date(),
-        modifiedAt: Date = Date(),
-        lastExecutedAt: Date? = nil,
-        executionCount: Int64 = 0
-    ) {
-        self.id = id
-        self.name = name
-        self.isEnabled = isEnabled
-        self.trigger = trigger
-        self.conditions = conditions
-        self.actions = actions
-        self.priority = priority
-        self.createdAt = createdAt
-        self.modifiedAt = modifiedAt
-        self.lastExecutedAt = lastExecutedAt
-        self.executionCount = executionCount
-    }
-
-    // MARK: - Properties
-
     /// Whether this rule has any conditions defined
     var hasConditions: Bool {
         !conditions.isEmpty
@@ -90,7 +92,6 @@ struct AutomationRule: Codable, Equatable, Identifiable, Sendable {
     var isValid: Bool {
         !name.isEmpty && hasActions
     }
-
 
     // MARK: - Mutation Helpers
 
@@ -142,7 +143,7 @@ struct AutomationRule: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
-// MARK: - Comparable by Priority
+// MARK: Comparable
 
 extension AutomationRule: Comparable {
     static func < (lhs: AutomationRule, rhs: AutomationRule) -> Bool {
@@ -169,11 +170,11 @@ extension AutomationRule {
                         field: .sourceApp,
                         comparisonOperator: .contains,
                         value: "Terminal"
-                    )
+                    ),
                 ]
             ),
             actions: [
-                .transform(preset: .uppercase)
+                .transform(preset: .uppercase),
             ]
         )
     }
@@ -189,11 +190,11 @@ extension AutomationRule {
                         field: .contentType,
                         comparisonOperator: .equals,
                         value: ContentTypeValue.links.rawValue
-                    )
+                    ),
                 ]
             ),
             actions: [
-                .transform(preset: .trimWhitespace)
+                .transform(preset: .trimWhitespace),
             ],
             priority: 50
         )
@@ -211,14 +212,14 @@ extension AutomationRule {
                         field: .isSensitive,
                         comparisonOperator: .equals,
                         value: "true"
-                    )
+                    ),
                 ]
             ),
             actions: [
                 .notify(
                     title: "Sensitive Content Copied",
                     message: "A sensitive item was added to your clipboard history"
-                )
+                ),
             ]
         )
     }
@@ -232,23 +233,50 @@ extension AutomationRule {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
         encoder.dateEncodingStrategy = .iso8601
-        guard let data = try? encoder.encode(self) else { return nil }
+        guard let data = try? encoder.encode(self) else {
+            return nil
+        }
         return String(data: data, encoding: .utf8)
     }
 
     /// Deserializes a rule from JSON string
     static func fromJSON(_ json: String?) -> AutomationRule? {
-        guard let json, let data = json.data(using: .utf8) else { return nil }
+        guard let json, let data = json.data(using: .utf8) else {
+            return nil
+        }
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return try? decoder.decode(AutomationRule.self, from: data)
     }
 }
 
-// MARK: - Display Model
+// MARK: - AutomationRuleDisplayModel
 
 /// A display-friendly representation of an AutomationRule
 struct AutomationRuleDisplayModel: Identifiable, Sendable {
+    // MARK: Lifecycle
+
+    init(from rule: AutomationRule) {
+        id = rule.id
+        name = rule.name
+        isEnabled = rule.isEnabled
+        triggerDescription = rule.trigger.displayName
+        triggerIcon = rule.trigger.iconName
+        conditionCount = rule.conditions.conditions.count
+        actionCount = rule.actions.count
+        executionCount = rule.executionCount
+
+        if let lastExecuted = rule.lastExecutedAt {
+            let formatter = RelativeDateTimeFormatter()
+            formatter.unitsStyle = .abbreviated
+            lastExecutedDescription = formatter.localizedString(for: lastExecuted, relativeTo: Date())
+        } else {
+            lastExecutedDescription = nil
+        }
+    }
+
+    // MARK: Internal
+
     let id: UUID
     let name: String
     let isEnabled: Bool
@@ -258,22 +286,4 @@ struct AutomationRuleDisplayModel: Identifiable, Sendable {
     let actionCount: Int
     let lastExecutedDescription: String?
     let executionCount: Int64
-    init(from rule: AutomationRule) {
-        self.id = rule.id
-        self.name = rule.name
-        self.isEnabled = rule.isEnabled
-        self.triggerDescription = rule.trigger.displayName
-        self.triggerIcon = rule.trigger.iconName
-        self.conditionCount = rule.conditions.conditions.count
-        self.actionCount = rule.actions.count
-        self.executionCount = rule.executionCount
-
-        if let lastExecuted = rule.lastExecutedAt {
-            let formatter = RelativeDateTimeFormatter()
-            formatter.unitsStyle = .abbreviated
-            self.lastExecutedDescription = formatter.localizedString(for: lastExecuted, relativeTo: Date())
-        } else {
-            self.lastExecutedDescription = nil
-        }
-    }
 }

@@ -10,32 +10,11 @@ import CryptoKit
 import Foundation
 import os.log
 
+// MARK: - SyncEncryptionManager
+
 /// Handles end-to-end encryption for sync data using AES-256-GCM
 final class SyncEncryptionManager: SyncEncrypting, Sendable {
-    // MARK: - Constants
-
-    /// Current encryption format version
-    private static let currentVersion: UInt8 = 1
-
-    /// Size of the nonce in bytes (96 bits for GCM)
-    private static let nonceSize = 12
-
-    /// Size of the authentication tag in bytes (128 bits)
-    private static let tagSize = 16
-
-    /// Minimum size of encrypted data (version + nonce + tag)
-    private static let minEncryptedSize = 1 + nonceSize + tagSize
-
-    // MARK: - Dependencies
-
-    private let keyManager: SyncKeyManager
-
-    // MARK: - Logger
-
-    private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "sync-encryption"
-    )
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -43,12 +22,19 @@ final class SyncEncryptionManager: SyncEncrypting, Sendable {
         self.keyManager = keyManager
     }
 
+    // MARK: Internal
+
     // MARK: - SyncEncrypting Protocol
 
     var hasEncryptionKey: Bool {
         get async {
             keyManager.hasKey
         }
+    }
+
+    /// Check if encryption is available
+    var isAvailable: Bool {
+        keyManager.hasKey
     }
 
     func getOrCreateKey() async throws -> Data {
@@ -69,6 +55,75 @@ final class SyncEncryptionManager: SyncEncrypting, Sendable {
         _ = try keyManager.rotateKey()
         Self.logger.info("Encryption key rotated - all data needs re-encryption")
     }
+
+    // MARK: - Convenience Methods
+
+    /// Encrypt a string
+    func encrypt(_ string: String) async throws -> Data {
+        guard let data = string.data(using: .utf8) else {
+            throw SyncError.invalidData(reason: "String encoding failed")
+        }
+        return try await encrypt(data)
+    }
+
+    /// Decrypt to string
+    func decryptString(_ encryptedData: Data) async throws -> String {
+        let data = try await decrypt(encryptedData)
+        guard let string = String(data: data, encoding: .utf8) else {
+            throw SyncError.invalidData(reason: "String decoding failed")
+        }
+        return string
+    }
+
+    /// Encrypt a Codable object
+    func encrypt(_ object: some Encodable) async throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(object)
+        return try await encrypt(data)
+    }
+
+    /// Decrypt to Codable object
+    func decrypt<T: Decodable>(_ encryptedData: Data, as type: T.Type) async throws -> T {
+        let data = try await decrypt(encryptedData)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(type, from: data)
+    }
+
+    // MARK: - Key Management
+
+    /// Delete encryption keys (for sync reset)
+    func deleteKeys() throws {
+        try keyManager.deleteKeys()
+    }
+
+    // MARK: Private
+
+    // MARK: - Constants
+
+    /// Current encryption format version
+    private static let currentVersion: UInt8 = 1
+
+    /// Size of the nonce in bytes (96 bits for GCM)
+    private static let nonceSize = 12
+
+    /// Size of the authentication tag in bytes (128 bits)
+    private static let tagSize = 16
+
+    /// Minimum size of encrypted data (version + nonce + tag)
+    private static let minEncryptedSize = 1 + nonceSize + tagSize
+
+    // MARK: - Logger
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "sync-encryption"
+    )
+
+    // MARK: - Dependencies
+
+    private let keyManager: SyncKeyManager
 
     // MARK: - Encryption Implementation
 
@@ -164,70 +219,13 @@ final class SyncEncryptionManager: SyncEncrypting, Sendable {
             throw SyncError.decryptionFailed
         }
     }
-
-    // MARK: - Convenience Methods
-
-    /// Encrypt a string
-    func encrypt(_ string: String) async throws -> Data {
-        guard let data = string.data(using: .utf8) else {
-            throw SyncError.invalidData(reason: "String encoding failed")
-        }
-        return try await encrypt(data)
-    }
-
-    /// Decrypt to string
-    func decryptString(_ encryptedData: Data) async throws -> String {
-        let data = try await decrypt(encryptedData)
-        guard let string = String(data: data, encoding: .utf8) else {
-            throw SyncError.invalidData(reason: "String decoding failed")
-        }
-        return string
-    }
-
-    /// Encrypt a Codable object
-    func encrypt<T: Encodable>(_ object: T) async throws -> Data {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        let data = try encoder.encode(object)
-        return try await encrypt(data)
-    }
-
-    /// Decrypt to Codable object
-    func decrypt<T: Decodable>(_ encryptedData: Data, as type: T.Type) async throws -> T {
-        let data = try await decrypt(encryptedData)
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(type, from: data)
-    }
-
-    // MARK: - Key Management
-
-    /// Delete encryption keys (for sync reset)
-    func deleteKeys() throws {
-        try keyManager.deleteKeys()
-    }
-
-    /// Check if encryption is available
-    var isAvailable: Bool {
-        keyManager.hasKey
-    }
 }
 
-// MARK: - Encrypted Payload
+// MARK: - EncryptedPayload
 
 /// Wrapper for encrypted sync data with metadata
 struct EncryptedPayload: Codable, Sendable {
-    /// Encrypted data (version + nonce + ciphertext + tag)
-    let data: Data
-
-    /// Entity type for routing
-    let entityType: String
-
-    /// Entity UUID
-    let entityID: UUID
-
-    /// Timestamp of encryption (for ordering)
-    let encryptedAt: Date
+    // MARK: Lifecycle
 
     init(
         data: Data,
@@ -240,4 +238,18 @@ struct EncryptedPayload: Codable, Sendable {
         self.entityID = entityID
         self.encryptedAt = encryptedAt
     }
+
+    // MARK: Internal
+
+    /// Encrypted data (version + nonce + ciphertext + tag)
+    let data: Data
+
+    /// Entity type for routing
+    let entityType: String
+
+    /// Entity UUID
+    let entityID: UUID
+
+    /// Timestamp of encryption (for ordering)
+    let encryptedAt: Date
 }

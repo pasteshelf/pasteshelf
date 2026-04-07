@@ -9,9 +9,67 @@
 import AppKit
 import Foundation
 
+// MARK: - ClipboardContent
+
 /// Represents clipboard content with all available data representations
 struct ClipboardContent: Sendable {
-    // MARK: - Properties
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates a new ClipboardContent with a primary type
+    /// - Parameter primaryType: The primary content type
+    init(primaryType: ContentType = .plainText) {
+        id = UUID()
+        timestamp = Date()
+        self.primaryType = primaryType
+        availableTypes = [primaryType]
+    }
+
+    /// Creates a ClipboardContent with full configuration
+    init(
+        id: UUID = UUID(),
+        timestamp: Date = Date(),
+        primaryType: ContentType,
+        availableTypes: [ContentType],
+        plainText: String? = nil,
+        rtfData: Data? = nil,
+        html: String? = nil,
+        imageData: Data? = nil,
+        thumbnailData: Data? = nil,
+        imageWidth: Int? = nil,
+        imageHeight: Int? = nil,
+        isImageCompressed: Bool = false,
+        pdfData: Data? = nil,
+        url: URL? = nil,
+        fileURLs: [URL]? = nil,
+        contentHash: String? = nil,
+        isSensitive: Bool = false,
+        sensitiveTypes: [String] = [],
+        sourceApp: SourceApp? = nil
+    ) {
+        self.id = id
+        self.timestamp = timestamp
+        self.primaryType = primaryType
+        self.availableTypes = availableTypes
+        self.plainText = plainText
+        self.rtfData = rtfData
+        self.html = html
+        self.imageData = imageData
+        self.thumbnailData = thumbnailData
+        self.imageWidth = imageWidth
+        self.imageHeight = imageHeight
+        self.isImageCompressed = isImageCompressed
+        self.pdfData = pdfData
+        self.url = url
+        self.fileURLs = fileURLs
+        self.contentHash = contentHash
+        self.isSensitive = isSensitive
+        self.sensitiveTypes = sensitiveTypes
+        self.sourceApp = sourceApp
+    }
+
+    // MARK: Internal
 
     /// Unique identifier for this content
     let id: UUID
@@ -78,65 +136,11 @@ struct ClipboardContent: Sendable {
     /// The application that was the source of this content
     var sourceApp: SourceApp?
 
-    // MARK: - Initialization
-
-    /// Creates a new ClipboardContent with a primary type
-    /// - Parameter primaryType: The primary content type
-    init(primaryType: ContentType = .plainText) {
-        self.id = UUID()
-        self.timestamp = Date()
-        self.primaryType = primaryType
-        self.availableTypes = [primaryType]
-    }
-
-    /// Creates a ClipboardContent with full configuration
-    init(
-        id: UUID = UUID(),
-        timestamp: Date = Date(),
-        primaryType: ContentType,
-        availableTypes: [ContentType],
-        plainText: String? = nil,
-        rtfData: Data? = nil,
-        html: String? = nil,
-        imageData: Data? = nil,
-        thumbnailData: Data? = nil,
-        imageWidth: Int? = nil,
-        imageHeight: Int? = nil,
-        isImageCompressed: Bool = false,
-        pdfData: Data? = nil,
-        url: URL? = nil,
-        fileURLs: [URL]? = nil,
-        contentHash: String? = nil,
-        isSensitive: Bool = false,
-        sensitiveTypes: [String] = [],
-        sourceApp: SourceApp? = nil
-    ) {
-        self.id = id
-        self.timestamp = timestamp
-        self.primaryType = primaryType
-        self.availableTypes = availableTypes
-        self.plainText = plainText
-        self.rtfData = rtfData
-        self.html = html
-        self.imageData = imageData
-        self.thumbnailData = thumbnailData
-        self.imageWidth = imageWidth
-        self.imageHeight = imageHeight
-        self.isImageCompressed = isImageCompressed
-        self.pdfData = pdfData
-        self.url = url
-        self.fileURLs = fileURLs
-        self.contentHash = contentHash
-        self.isSensitive = isSensitive
-        self.sensitiveTypes = sensitiveTypes
-        self.sourceApp = sourceApp
-    }
-
-    // MARK: - Computed Properties
-
     /// Returns a preview string suitable for display (first 500 characters)
     var previewText: String? {
-        guard let text = plainText else { return nil }
+        guard let text = plainText else {
+            return nil
+        }
         if text.count <= 500 {
             return text
         }
@@ -150,7 +154,9 @@ struct ClipboardContent: Sendable {
 
     /// Returns the word count of plain text content
     var wordCount: Int? {
-        guard let text = plainText else { return nil }
+        guard let text = plainText else {
+            return nil
+        }
         let words = text.components(separatedBy: .whitespacesAndNewlines)
             .filter { !$0.isEmpty }
         return words.count
@@ -214,7 +220,7 @@ struct ClipboardContent: Sendable {
     }
 }
 
-// MARK: - Equatable
+// MARK: Equatable
 
 extension ClipboardContent: Equatable {
     static func == (lhs: ClipboardContent, rhs: ClipboardContent) -> Bool {
@@ -222,7 +228,7 @@ extension ClipboardContent: Equatable {
     }
 }
 
-// MARK: - Hashable
+// MARK: Hashable
 
 extension ClipboardContent: Hashable {
     func hash(into hasher: inout Hasher) {

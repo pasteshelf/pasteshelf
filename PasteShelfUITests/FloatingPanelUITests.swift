@@ -8,6 +8,8 @@
 import XCTest
 
 final class FloatingPanelUITests: XCTestCase {
+    // MARK: Internal
+
     var app: XCUIApplication!
 
     override func setUpWithError() throws {
@@ -26,7 +28,7 @@ final class FloatingPanelUITests: XCTestCase {
     // MARK: - Panel Visibility Tests
 
     @MainActor
-    func testPanelShowsWithHotkey() throws {
+    func testPanelShowsWithHotkey() {
         // Simulate hotkey press (Cmd+Shift+V)
         // Note: In UI tests, we typically need to use menu items or buttons
         // since keyboard shortcuts require accessibility permissions
@@ -49,7 +51,7 @@ final class FloatingPanelUITests: XCTestCase {
     }
 
     @MainActor
-    func testPanelShowsClipboardHistory() throws {
+    func testPanelShowsClipboardHistory() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -63,7 +65,7 @@ final class FloatingPanelUITests: XCTestCase {
     }
 
     @MainActor
-    func testPanelHasSearchField() throws {
+    func testPanelHasSearchField() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -78,7 +80,7 @@ final class FloatingPanelUITests: XCTestCase {
     }
 
     @MainActor
-    func testPanelHasFilterChips() throws {
+    func testPanelHasFilterChips() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -103,7 +105,7 @@ final class FloatingPanelUITests: XCTestCase {
     // MARK: - Keyboard Navigation Tests
 
     @MainActor
-    func testKeyboardNavigationUpDown() throws {
+    func testKeyboardNavigationUpDown() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -120,7 +122,7 @@ final class FloatingPanelUITests: XCTestCase {
     }
 
     @MainActor
-    func testEscapeClosesPanel() throws {
+    func testEscapeClosesPanel() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -137,7 +139,7 @@ final class FloatingPanelUITests: XCTestCase {
     }
 
     @MainActor
-    func testCmdFocusesSearchField() throws {
+    func testCmdFocusesSearchField() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -155,7 +157,7 @@ final class FloatingPanelUITests: XCTestCase {
     // MARK: - Search Tests
 
     @MainActor
-    func testSearchFiltersItems() throws {
+    func testSearchFiltersItems() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -179,7 +181,7 @@ final class FloatingPanelUITests: XCTestCase {
     }
 
     @MainActor
-    func testClearSearchButton() throws {
+    func testClearSearchButton() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -206,7 +208,7 @@ final class FloatingPanelUITests: XCTestCase {
     // MARK: - Filter Tests
 
     @MainActor
-    func testFilterByContentType() throws {
+    func testFilterByContentType() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -225,7 +227,7 @@ final class FloatingPanelUITests: XCTestCase {
     }
 
     @MainActor
-    func testToggleFavoritesFilter() throws {
+    func testToggleFavoritesFilter() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -246,7 +248,7 @@ final class FloatingPanelUITests: XCTestCase {
     // MARK: - Empty State Tests
 
     @MainActor
-    func testEmptyStateDisplays() throws {
+    func testEmptyStateDisplays() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -260,6 +262,8 @@ final class FloatingPanelUITests: XCTestCase {
         // May or may not exist depending on clipboard content
         _ = emptyState
     }
+
+    // MARK: Private
 
     // MARK: - Helper Methods
 

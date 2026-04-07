@@ -10,6 +10,8 @@ import Foundation
 import os.log
 import Security
 
+// MARK: - HIPAAEncryptionVerifier
+
 /// Verifies that all encryption requirements are met for HIPAA compliance.
 ///
 /// `HIPAAEncryptionVerifier` performs runtime checks across all data protection layers:
@@ -17,13 +19,7 @@ import Security
 /// and key rotation status. The results are compiled into an `HIPAAEncryptionReport`
 /// with individual `ComplianceFinding` entries for each check.
 struct HIPAAEncryptionVerifier: Sendable {
-
-    private static let logger = Logger.compliance
-
-    // MARK: - Keychain Constants
-
-    private static let auditKeyTag = "com.pasteshelf.audit.detail.key"
-    private static let syncKeyTag = "com.pasteshelf.sync.encryption.key"
+    // MARK: Internal
 
     // MARK: - Public API
 
@@ -66,6 +62,15 @@ struct HIPAAEncryptionVerifier: Sendable {
         )
     }
 
+    // MARK: Private
+
+    private static let logger = Logger.compliance
+
+    // MARK: - Keychain Constants
+
+    private static let auditKeyTag = "com.pasteshelf.audit.detail.key"
+    private static let syncKeyTag = "com.pasteshelf.sync.encryption.key"
+
     // MARK: - Individual Checks
 
     /// Verifies that a symmetric key exists in the Keychain for the given tag.
@@ -74,7 +79,7 @@ struct HIPAAEncryptionVerifier: Sendable {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: tag,
             kSecReturnData as String: false,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
         ]
 
         let status = SecItemCopyMatching(query as CFDictionary, nil)
@@ -100,52 +105,52 @@ struct HIPAAEncryptionVerifier: Sendable {
     /// Verifies that the local disk is encrypted (FileVault on macOS).
     private static func verifyDiskEncryption() -> ComplianceFinding {
         #if APP_STORE
-        // Process() is unavailable in sandboxed App Store builds; assume encrypted.
-        return ComplianceFinding(
-            category: "Disk Encryption",
-            status: .warning,
-            description: "Unable to determine FileVault status in App Store build",
-            recommendation: "Manually verify FileVault is enabled in System Settings"
-        )
-        #else
-        // Check FileVault status via fdesetup
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/fdesetup")
-        process.arguments = ["isactive"]
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = pipe
-
-        do {
-            try process.run()
-            process.waitUntilExit()
-
-            if process.terminationStatus == 0 {
-                logger.debug("FileVault is active")
-                return ComplianceFinding(
-                    category: "Disk Encryption",
-                    status: .pass,
-                    description: "FileVault full-disk encryption is active"
-                )
-            } else {
-                logger.warning("FileVault is NOT active")
-                return ComplianceFinding(
-                    category: "Disk Encryption",
-                    status: .fail,
-                    description: "FileVault full-disk encryption is not active",
-                    recommendation: "Enable FileVault in System Settings > Privacy & Security > FileVault"
-                )
-            }
-        } catch {
-            logger.warning("Unable to determine FileVault status: \(error.localizedDescription)")
+            // Process() is unavailable in sandboxed App Store builds; assume encrypted.
             return ComplianceFinding(
                 category: "Disk Encryption",
                 status: .warning,
-                description: "Unable to determine FileVault status",
+                description: "Unable to determine FileVault status in App Store build",
                 recommendation: "Manually verify FileVault is enabled in System Settings"
             )
-        }
+        #else
+            // Check FileVault status via fdesetup
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/fdesetup")
+            process.arguments = ["isactive"]
+
+            let pipe = Pipe()
+            process.standardOutput = pipe
+            process.standardError = pipe
+
+            do {
+                try process.run()
+                process.waitUntilExit()
+
+                if process.terminationStatus == 0 {
+                    logger.debug("FileVault is active")
+                    return ComplianceFinding(
+                        category: "Disk Encryption",
+                        status: .pass,
+                        description: "FileVault full-disk encryption is active"
+                    )
+                } else {
+                    logger.warning("FileVault is NOT active")
+                    return ComplianceFinding(
+                        category: "Disk Encryption",
+                        status: .fail,
+                        description: "FileVault full-disk encryption is not active",
+                        recommendation: "Enable FileVault in System Settings > Privacy & Security > FileVault"
+                    )
+                }
+            } catch {
+                logger.warning("Unable to determine FileVault status: \(error.localizedDescription)")
+                return ComplianceFinding(
+                    category: "Disk Encryption",
+                    status: .warning,
+                    description: "Unable to determine FileVault status",
+                    recommendation: "Manually verify FileVault is enabled in System Settings"
+                )
+            }
         #endif
     }
 
@@ -157,7 +162,7 @@ struct HIPAAEncryptionVerifier: Sendable {
         let auditKeyExists = keychainKeyExists(tag: auditKeyTag)
         let syncKeyExists = keychainKeyExists(tag: syncKeyTag)
 
-        if auditKeyExists && syncKeyExists {
+        if auditKeyExists, syncKeyExists {
             return ComplianceFinding(
                 category: "Key Rotation",
                 status: .pass,
@@ -178,7 +183,7 @@ struct HIPAAEncryptionVerifier: Sendable {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: tag,
             kSecReturnData as String: false,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
         ]
         return SecItemCopyMatching(query as CFDictionary, nil) == errSecSuccess
     }
@@ -188,6 +193,29 @@ struct HIPAAEncryptionVerifier: Sendable {
 
 /// Report produced by `HIPAAEncryptionVerifier` summarizing the encryption compliance status.
 struct HIPAAEncryptionReport: Codable, Sendable, Identifiable {
+    // MARK: Lifecycle
+
+    init(
+        id: UUID = UUID(),
+        findings: [ComplianceFinding],
+        auditEncryptionActive: Bool,
+        syncEncryptionActive: Bool,
+        localDiskEncrypted: Bool,
+        keyRotationStatus: ComplianceFindingStatus,
+        overallCompliant: Bool,
+        verifiedAt: Date = Date()
+    ) {
+        self.id = id
+        self.findings = findings
+        self.auditEncryptionActive = auditEncryptionActive
+        self.syncEncryptionActive = syncEncryptionActive
+        self.localDiskEncrypted = localDiskEncrypted
+        self.keyRotationStatus = keyRotationStatus
+        self.overallCompliant = overallCompliant
+        self.verifiedAt = verifiedAt
+    }
+
+    // MARK: Internal
 
     let id: UUID
     let findings: [ComplianceFinding]
@@ -209,24 +237,4 @@ struct HIPAAEncryptionReport: Codable, Sendable, Identifiable {
 
     /// When this verification was performed.
     let verifiedAt: Date
-
-    init(
-        id: UUID = UUID(),
-        findings: [ComplianceFinding],
-        auditEncryptionActive: Bool,
-        syncEncryptionActive: Bool,
-        localDiskEncrypted: Bool,
-        keyRotationStatus: ComplianceFindingStatus,
-        overallCompliant: Bool,
-        verifiedAt: Date = Date()
-    ) {
-        self.id = id
-        self.findings = findings
-        self.auditEncryptionActive = auditEncryptionActive
-        self.syncEncryptionActive = syncEncryptionActive
-        self.localDiskEncrypted = localDiskEncrypted
-        self.keyRotationStatus = keyRotationStatus
-        self.overallCompliant = overallCompliant
-        self.verifiedAt = verifiedAt
-    }
 }

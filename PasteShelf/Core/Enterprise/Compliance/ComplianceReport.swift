@@ -20,12 +20,7 @@ enum ComplianceFindingStatus: String, Codable, Sendable {
 
 /// An individual finding in a compliance report.
 struct ComplianceFinding: Codable, Sendable, Identifiable {
-    let id: UUID
-    let category: String
-    let status: ComplianceFindingStatus
-    let description: String
-    let recommendation: String?
-    let timestamp: Date
+    // MARK: Lifecycle
 
     init(
         id: UUID = UUID(),
@@ -42,23 +37,22 @@ struct ComplianceFinding: Codable, Sendable, Identifiable {
         self.recommendation = recommendation
         self.timestamp = timestamp
     }
+
+    // MARK: Internal
+
+    let id: UUID
+    let category: String
+    let status: ComplianceFindingStatus
+    let description: String
+    let recommendation: String?
+    let timestamp: Date
 }
 
 // MARK: - ComplianceReport
 
 /// A compliance report containing findings and an overall status.
 struct ComplianceReport: Codable, Sendable, Identifiable {
-    let id: UUID
-    let reportType: String
-    let findings: [ComplianceFinding]
-    let summary: String
-
-    /// The worst status among all findings. Returns `.pass` when there are no findings.
-    var overallStatus: ComplianceFindingStatus {
-        if findings.contains(where: { $0.status == .fail }) { return .fail }
-        if findings.contains(where: { $0.status == .warning }) { return .warning }
-        return .pass
-    }
+    // MARK: Lifecycle
 
     init(
         id: UUID = UUID(),
@@ -70,5 +64,23 @@ struct ComplianceReport: Codable, Sendable, Identifiable {
         self.reportType = reportType
         self.findings = findings
         self.summary = summary
+    }
+
+    // MARK: Internal
+
+    let id: UUID
+    let reportType: String
+    let findings: [ComplianceFinding]
+    let summary: String
+
+    /// The worst status among all findings. Returns `.pass` when there are no findings.
+    var overallStatus: ComplianceFindingStatus {
+        if findings.contains(where: { $0.status == .fail }) {
+            return .fail
+        }
+        if findings.contains(where: { $0.status == .warning }) {
+            return .warning
+        }
+        return .pass
     }
 }

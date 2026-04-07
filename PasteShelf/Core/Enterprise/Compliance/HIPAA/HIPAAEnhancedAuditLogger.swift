@@ -20,11 +20,7 @@ import os.log
 ///
 /// When HIPAA mode is disabled, events are passed through to the delegate unchanged.
 final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
-
-    // MARK: - Dependencies
-
-    private let delegate: AuditLogging
-    private let logger = Logger.compliance
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -35,27 +31,7 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
         self.delegate = delegate
     }
 
-    // MARK: - AuditLogging
-
-    func log(_ event: AuditEvent) async {
-        let enriched = enrichIfHIPAAEnabled(event)
-        await delegate.log(enriched)
-    }
-
-    func logBatch(_ events: [AuditEvent]) async {
-        let enriched = events.map { enrichIfHIPAAEnabled($0) }
-        await delegate.logBatch(enriched)
-    }
-
-    // MARK: - HIPAA Mode Cache
-
-    /// Cached HIPAA compliance mode to avoid JSON-decoding from UserDefaults on every audit event.
-    private static var _cachedMode: HIPAAComplianceMode?
-    private static var _cacheTimestamp: Date = .distantPast
-    private static let cacheTTL: TimeInterval = 60
-
-    /// Returns the cached HIPAA compliance mode, refreshing from UserDefaults at most every 60 seconds.
-    private static let cacheLock = NSLock()
+    // MARK: Internal
 
     static var cachedMode: HIPAAComplianceMode {
         cacheLock.lock()
@@ -86,7 +62,9 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
     /// - Returns: The event with HIPAA fields injected, or the original event if HIPAA mode is disabled.
     static func enrichIfNeeded(_ event: AuditEvent) -> AuditEvent {
         let config = cachedMode
-        guard config.isEnabled else { return event }
+        guard config.isEnabled else {
+            return event
+        }
 
         var enrichedDetail = event.detail
         if enrichedDetail["hipaa.accessReason"] == nil {
@@ -113,31 +91,53 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
         )
     }
 
-    /// Enriches an audit event with HIPAA-required metadata if HIPAA mode is active.
-    ///
-    /// - Parameter event: The original audit event.
-    /// - Returns: The event with HIPAA fields injected into `detail`, or the original event if HIPAA mode is disabled.
-    private func enrichIfHIPAAEnabled(_ event: AuditEvent) -> AuditEvent {
-        Self.enrichIfNeeded(event)
+    // MARK: - AuditLogging
+
+    func log(_ event: AuditEvent) async {
+        let enriched = enrichIfHIPAAEnabled(event)
+        await delegate.log(enriched)
     }
+
+    func logBatch(_ events: [AuditEvent]) async {
+        let enriched = events.map { enrichIfHIPAAEnabled($0) }
+        await delegate.logBatch(enriched)
+    }
+
+    // MARK: Private
+
+    // MARK: - HIPAA Mode Cache
+
+    /// Cached HIPAA compliance mode to avoid JSON-decoding from UserDefaults on every audit event.
+    private static var _cachedMode: HIPAAComplianceMode?
+    private static var _cacheTimestamp: Date = .distantPast
+    private static let cacheTTL: TimeInterval = 60
+
+    /// Returns the cached HIPAA compliance mode, refreshing from UserDefaults at most every 60 seconds.
+    private static let cacheLock = NSLock()
+
+    // MARK: - Dependencies
+
+    private let delegate: AuditLogging
+    private let logger = Logger.compliance
 
     /// Derives a default access reason from the event's action.
     private static func accessReason(for event: AuditEvent) -> String {
         switch event.action {
-        case .copyCaptured, .copyBlocked:
-            return "clipboard_capture"
+        case .copyCaptured,
+             .copyBlocked:
+            "clipboard_capture"
         case .pastePerformed:
-            return "paste_operation"
+            "paste_operation"
         case .searchPerformed:
-            return "content_search"
+            "content_search"
         case .itemDeleted:
-            return "data_management"
+            "data_management"
         case .dataExported:
-            return "data_portability"
+            "data_portability"
         case .dataDeleted:
-            return "data_erasure"
+            "data_erasure"
         default:
-            return "system_operation"
+            "system_operation"
         }
     }
 
@@ -149,10 +149,20 @@ final class HIPAAEnhancedAuditLogger: AuditLogging, @unchecked Sendable {
         }
         // Clipboard capture and paste may involve PHI
         switch event.action {
-        case .copyCaptured, .copyBlocked, .pastePerformed:
+        case .copyCaptured,
+             .copyBlocked,
+             .pastePerformed:
             return "possible"
         default:
             return "false"
         }
+    }
+
+    /// Enriches an audit event with HIPAA-required metadata if HIPAA mode is active.
+    ///
+    /// - Parameter event: The original audit event.
+    /// - Returns: The event with HIPAA fields injected into `detail`, or the original event if HIPAA mode is disabled.
+    private func enrichIfHIPAAEnabled(_ event: AuditEvent) -> AuditEvent {
+        Self.enrichIfNeeded(event)
     }
 }

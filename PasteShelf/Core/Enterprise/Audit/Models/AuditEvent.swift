@@ -16,7 +16,6 @@ import Foundation
 /// or authentication events. The raw `String` value is persisted in CoreData
 /// and transmitted when syncing to the admin console.
 enum AuditEventCategory: String, Codable, Sendable, CaseIterable {
-
     /// Events related to clipboard content capture, paste, and item management.
     case clipboard
 
@@ -41,7 +40,6 @@ enum AuditEventCategory: String, Codable, Sendable, CaseIterable {
 /// routine activity, `warning` flags anomalies or near-violations, and `critical`
 /// marks events that require immediate administrator attention.
 enum AuditEventSeverity: String, Codable, Sendable {
-
     /// Routine operational events logged for observability.
     case info
 
@@ -60,7 +58,6 @@ enum AuditEventSeverity: String, Codable, Sendable {
 /// The raw `String` value is used as the action discriminator when persisting and
 /// transmitting audit events, and is displayed in human-readable form in the UI.
 enum AuditAction: String, Codable, Sendable {
-
     // MARK: Clipboard Actions
 
     /// A new clipboard item was captured from the system clipboard.
@@ -139,6 +136,48 @@ enum AuditAction: String, Codable, Sendable {
 /// The `detail` dictionary carries action-specific key/value pairs (e.g. item IDs,
 /// search queries, policy identifiers) without requiring a per-action schema.
 struct AuditEvent: Codable, Sendable, Identifiable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates a new audit event.
+    ///
+    /// - Parameters:
+    ///   - id: A locally generated UUID for this event. Defaults to a new `UUID()`.
+    ///   - timestamp: When the action occurred. Defaults to the current date.
+    ///   - category: The high-level functional area of the event.
+    ///   - action: The specific action being recorded.
+    ///   - severity: The operational significance of this event. Defaults to `.info`.
+    ///   - userId: The SSO user ID, if a session is active. Defaults to `nil`.
+    ///   - deviceId: The server-assigned device identifier. Defaults to `nil`.
+    ///   - resourceType: The type of resource affected, if any. Defaults to `nil`.
+    ///   - resourceId: The identifier of the affected resource, if any. Defaults to `nil`.
+    ///   - detail: Arbitrary key/value context for this event. Defaults to an empty dictionary.
+    init(
+        id: UUID = UUID(),
+        timestamp: Date = Date(),
+        category: AuditEventCategory,
+        action: AuditAction,
+        severity: AuditEventSeverity = .info,
+        userId: String? = nil,
+        deviceId: String? = nil,
+        resourceType: String? = nil,
+        resourceId: String? = nil,
+        detail: [String: String] = [:]
+    ) {
+        self.id = id
+        self.timestamp = timestamp
+        self.category = category
+        self.action = action
+        self.severity = severity
+        self.userId = userId
+        self.deviceId = deviceId
+        self.resourceType = resourceType
+        self.resourceId = resourceId
+        self.detail = detail
+    }
+
+    // MARK: Internal
 
     // MARK: - Identity
 
@@ -192,43 +231,4 @@ struct AuditEvent: Codable, Sendable, Identifiable {
     /// - `["policyId": "pol-007", "ruleName": "NoSensitiveData"]` for `policyViolation`.
     /// - `["provider": "Okta", "errorCode": "SAML_EXPIRED"]` for `loginFailure`.
     let detail: [String: String]
-
-    // MARK: - Initialization
-
-    /// Creates a new audit event.
-    ///
-    /// - Parameters:
-    ///   - id: A locally generated UUID for this event. Defaults to a new `UUID()`.
-    ///   - timestamp: When the action occurred. Defaults to the current date.
-    ///   - category: The high-level functional area of the event.
-    ///   - action: The specific action being recorded.
-    ///   - severity: The operational significance of this event. Defaults to `.info`.
-    ///   - userId: The SSO user ID, if a session is active. Defaults to `nil`.
-    ///   - deviceId: The server-assigned device identifier. Defaults to `nil`.
-    ///   - resourceType: The type of resource affected, if any. Defaults to `nil`.
-    ///   - resourceId: The identifier of the affected resource, if any. Defaults to `nil`.
-    ///   - detail: Arbitrary key/value context for this event. Defaults to an empty dictionary.
-    init(
-        id: UUID = UUID(),
-        timestamp: Date = Date(),
-        category: AuditEventCategory,
-        action: AuditAction,
-        severity: AuditEventSeverity = .info,
-        userId: String? = nil,
-        deviceId: String? = nil,
-        resourceType: String? = nil,
-        resourceId: String? = nil,
-        detail: [String: String] = [:]
-    ) {
-        self.id = id
-        self.timestamp = timestamp
-        self.category = category
-        self.action = action
-        self.severity = severity
-        self.userId = userId
-        self.deviceId = deviceId
-        self.resourceType = resourceType
-        self.resourceId = resourceId
-        self.detail = detail
-    }
 }

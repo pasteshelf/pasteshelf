@@ -267,68 +267,70 @@ enum AdminError: Error, LocalizedError, Sendable {
     /// The server returned a response that could not be decoded into the expected model.
     case invalidResponse
 
+    // MARK: Internal
+
     // MARK: - LocalizedError
 
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "The admin console has not been configured. A server URL and organization ID are required."
+            "The admin console has not been configured. A server URL and organization ID are required."
         case .notEnrolled:
-            return "This device is not enrolled with the admin console. Enrollment is required to use this feature."
-        case .enrollmentFailed(let reason):
-            return "Device enrollment with the admin console failed: \(reason)"
-        case .networkError(let reason):
-            return "A network error prevented communication with the admin console: \(reason)"
+            "This device is not enrolled with the admin console. Enrollment is required to use this feature."
+        case let .enrollmentFailed(reason):
+            "Device enrollment with the admin console failed: \(reason)"
+        case let .networkError(reason):
+            "A network error prevented communication with the admin console: \(reason)"
         case .authenticationRequired:
-            return "An active SSO session is required to perform this operation. Please sign in and try again."
-        case .policyFetchFailed(let reason):
-            return "Failed to retrieve the admin policy from the server: \(reason)"
-        case .serverError(let statusCode, let message):
-            return "The admin console server returned an error (HTTP \(statusCode)): \(message)"
+            "An active SSO session is required to perform this operation. Please sign in and try again."
+        case let .policyFetchFailed(reason):
+            "Failed to retrieve the admin policy from the server: \(reason)"
+        case let .serverError(statusCode, message):
+            "The admin console server returned an error (HTTP \(statusCode)): \(message)"
         case .invalidResponse:
-            return "The admin console server returned a response that could not be understood."
+            "The admin console server returned a response that could not be understood."
         }
     }
 
     var failureReason: String? {
         switch self {
         case .notConfigured:
-            return "No admin console server URL or organization ID has been provided."
+            "No admin console server URL or organization ID has been provided."
         case .notEnrolled:
-            return "No device registration record was found on this device."
-        case .enrollmentFailed(let reason):
-            return reason
-        case .networkError(let reason):
-            return reason
+            "No device registration record was found on this device."
+        case let .enrollmentFailed(reason):
+            reason
+        case let .networkError(reason):
+            reason
         case .authenticationRequired:
-            return "No valid SSO session is currently active."
-        case .policyFetchFailed(let reason):
-            return reason
-        case .serverError(let statusCode, let message):
-            return "HTTP \(statusCode): \(message)"
+            "No valid SSO session is currently active."
+        case let .policyFetchFailed(reason):
+            reason
+        case let .serverError(statusCode, message):
+            "HTTP \(statusCode): \(message)"
         case .invalidResponse:
-            return "The server response could not be decoded into the expected data model."
+            "The server response could not be decoded into the expected data model."
         }
     }
 
     var recoverySuggestion: String? {
         switch self {
         case .notConfigured:
-            return "Open Settings > Enterprise > Admin Console and enter the server URL and organization ID."
+            "Open Settings > Enterprise > Admin Console and enter the server URL and organization ID."
         case .notEnrolled:
-            return "Enroll this device from Settings > Enterprise > Admin Console and sign in with your SSO credentials."
+            "Enroll this device from Settings > Enterprise > Admin Console and sign in with your SSO credentials."
         case .enrollmentFailed:
-            return "Contact your IT administrator to verify the admin console is reachable and your account has enrollment permission."
+            "Contact your IT administrator to verify the admin console is reachable and your account has enrollment permission."
         case .networkError:
-            return "Check your network connection and verify the admin console server URL is correct."
+            "Check your network connection and verify the admin console server URL is correct."
         case .authenticationRequired:
-            return "Sign in via Settings > Enterprise > Single Sign-On and retry the operation."
+            "Sign in via Settings > Enterprise > Single Sign-On and retry the operation."
         case .policyFetchFailed:
-            return "Contact your IT administrator to ensure a policy has been assigned to this device in the admin console."
+            "Contact your IT administrator to ensure a policy has been assigned to this device in the admin console."
         case .serverError:
-            return "Contact your IT administrator if the error persists, or check the admin console server status."
+            "Contact your IT administrator if the error persists, or check the admin console server status."
         case .invalidResponse:
-            return "Ensure the PasteShelf app is up to date and that the admin console server is running a compatible version."
+            "Ensure the PasteShelf app is up to date and that the admin console server is running a compatible version."
         }
     }
 }

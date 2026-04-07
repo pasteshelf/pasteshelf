@@ -21,12 +21,7 @@ import Security
 ///
 /// Unenrollment revokes the device on the server and removes the locally stored record.
 final class DeviceRegistrationService: DeviceRegistrationProviding, @unchecked Sendable {
-
-    // MARK: - Properties
-
-    private let apiClient: AdminAPIProviding
-    private let store: DeviceRegistrationStore
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "device-registration")
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -38,6 +33,16 @@ final class DeviceRegistrationService: DeviceRegistrationProviding, @unchecked S
     init(apiClient: AdminAPIProviding, store: DeviceRegistrationStore) {
         self.apiClient = apiClient
         self.store = store
+    }
+
+    // MARK: Internal
+
+    /// Whether the device currently has an active, locally persisted enrollment record.
+    ///
+    /// Returns `true` only when a stored registration exists and its `enrollmentStatus`
+    /// is `.enrolled`. This check is synchronous and local only.
+    var isEnrolled: Bool {
+        store.load()?.isActive == true
     }
 
     // MARK: - DeviceRegistrationProviding
@@ -144,13 +149,11 @@ final class DeviceRegistrationService: DeviceRegistrationProviding, @unchecked S
         store.load()
     }
 
-    /// Whether the device currently has an active, locally persisted enrollment record.
-    ///
-    /// Returns `true` only when a stored registration exists and its `enrollmentStatus`
-    /// is `.enrolled`. This check is synchronous and local only.
-    var isEnrolled: Bool {
-        store.load()?.isActive == true
-    }
+    // MARK: Private
+
+    private let apiClient: AdminAPIProviding
+    private let store: DeviceRegistrationStore
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "device-registration")
 
     // MARK: - Device Metadata
 
@@ -158,7 +161,9 @@ final class DeviceRegistrationService: DeviceRegistrationProviding, @unchecked S
     ///
     /// - Returns: A tuple containing the device name, OS version string, app version string,
     ///   and hardware serial number (always `nil` in a sandboxed environment).
-    private func collectDeviceMetadata() -> (deviceName: String, osVersion: String, appVersion: String, serialNumber: String?) {
+    private func collectDeviceMetadata()
+        -> (deviceName: String, osVersion: String, appVersion: String, serialNumber: String?)
+    {
         let deviceName = Host.current().localizedName ?? "Unknown Mac"
         let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
@@ -176,15 +181,7 @@ final class DeviceRegistrationService: DeviceRegistrationProviding, @unchecked S
 /// to the `com.pasteshelf.admin.registration` service so that it survives application
 /// restarts, is excluded from iCloud backups, and benefits from the OS sandbox.
 final class KeychainDeviceRegistrationStore: DeviceRegistrationStore, @unchecked Sendable {
-
-    // MARK: - Properties
-
-    private let service = "com.pasteshelf.admin.registration"
-    private let account = "device-registration"
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "device-registration-store")
-
-    private let encoder: JSONEncoder
-    private let decoder: JSONDecoder
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -198,6 +195,8 @@ final class KeychainDeviceRegistrationStore: DeviceRegistrationStore, @unchecked
         decoder.dateDecodingStrategy = .iso8601
         self.decoder = decoder
     }
+
+    // MARK: Internal
 
     // MARK: - DeviceRegistrationStore
 
@@ -263,8 +262,7 @@ final class KeychainDeviceRegistrationStore: DeviceRegistrationStore, @unchecked
         }
 
         do {
-            let registration = try decoder.decode(DeviceRegistration.self, from: data)
-            return registration
+            return try decoder.decode(DeviceRegistration.self, from: data)
         } catch {
             logger.error("Failed to decode registration from Keychain: \(error.localizedDescription)")
             return nil
@@ -287,6 +285,15 @@ final class KeychainDeviceRegistrationStore: DeviceRegistrationStore, @unchecked
         logger.debug("Deleted registration record from Keychain")
     }
 
+    // MARK: Private
+
+    private let service = "com.pasteshelf.admin.registration"
+    private let account = "device-registration"
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "device-registration-store")
+
+    private let encoder: JSONEncoder
+    private let decoder: JSONDecoder
+
     // MARK: - Private Helpers
 
     /// Builds the base Keychain query dictionary scoped to this service and account.
@@ -294,7 +301,7 @@ final class KeychainDeviceRegistrationStore: DeviceRegistrationStore, @unchecked
         [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: account
+            kSecAttrAccount as String: account,
         ]
     }
 }

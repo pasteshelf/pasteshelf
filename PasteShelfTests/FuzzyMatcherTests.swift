@@ -5,8 +5,8 @@
 //  Unit tests for FuzzyMatcher Levenshtein distance and fuzzy matching.
 //
 
-import XCTest
 @testable import PasteShelf
+import XCTest
 
 final class FuzzyMatcherTests: XCTestCase {
     // MARK: - Levenshtein Distance Tests

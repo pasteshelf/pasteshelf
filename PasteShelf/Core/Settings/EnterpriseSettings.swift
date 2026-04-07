@@ -10,29 +10,7 @@ import Foundation
 
 /// Enterprise-specific settings typically managed via MDM policies.
 struct EnterpriseSettings: Codable, Equatable {
-    /// Whether cloud sync (iCloud or self-hosted) is enabled.
-    /// When `false`, sync is completely disabled.
-    var cloudSyncEnabled: Bool
-
-    /// When `true`, data must remain on the local device only.
-    /// Overrides `cloudSyncEnabled` — if both are set, local-only wins.
-    var localStorageOnly: Bool
-
-    /// Whether the plugin system is enabled.
-    /// When `false`, plugins will not be initialized or loaded.
-    var pluginsEnabled: Bool
-
-    /// Whether GDPR compliance features are enabled.
-    /// When `false`, GDPR consent management and data export/deletion are inactive.
-    var gdprEnabled: Bool
-
-    /// Whether SOC 2 compliance features are enabled.
-    /// When `false`, SOC 2 reporting and evidence collection are inactive.
-    var soc2Enabled: Bool
-
-    /// Whether HIPAA compliance mode is enabled via MDM.
-    /// When `false`, HIPAA mode can still be enabled locally via `HIPAAComplianceMode`.
-    var hipaaEnabled: Bool
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -64,6 +42,8 @@ struct EnterpriseSettings: Codable, Equatable {
         hipaaEnabled = try container.decodeIfPresent(Bool.self, forKey: .hipaaEnabled) ?? false
     }
 
+    // MARK: Internal
+
     // MARK: - Defaults
 
     static let `default` = EnterpriseSettings(
@@ -74,4 +54,28 @@ struct EnterpriseSettings: Codable, Equatable {
         soc2Enabled: false,
         hipaaEnabled: false
     )
+
+    /// Whether cloud sync (iCloud or self-hosted) is enabled.
+    /// When `false`, sync is completely disabled.
+    var cloudSyncEnabled: Bool
+
+    /// When `true`, data must remain on the local device only.
+    /// Overrides `cloudSyncEnabled` — if both are set, local-only wins.
+    var localStorageOnly: Bool
+
+    /// Whether the plugin system is enabled.
+    /// When `false`, plugins will not be initialized or loaded.
+    var pluginsEnabled: Bool
+
+    /// Whether GDPR compliance features are enabled.
+    /// When `false`, GDPR consent management and data export/deletion are inactive.
+    var gdprEnabled: Bool
+
+    /// Whether SOC 2 compliance features are enabled.
+    /// When `false`, SOC 2 reporting and evidence collection are inactive.
+    var soc2Enabled: Bool
+
+    /// Whether HIPAA compliance mode is enabled via MDM.
+    /// When `false`, HIPAA mode can still be enabled locally via `HIPAAComplianceMode`.
+    var hipaaEnabled: Bool
 }

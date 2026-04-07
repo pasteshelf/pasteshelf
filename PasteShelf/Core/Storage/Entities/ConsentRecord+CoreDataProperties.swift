@@ -8,41 +8,42 @@
 import CoreData
 import Foundation
 
-extension ConsentRecord {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<ConsentRecord> {
+public extension ConsentRecord {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<ConsentRecord> {
         NSFetchRequest<ConsentRecord>(entityName: "ConsentRecord")
     }
 
     // MARK: - Attributes
 
     /// The consent category identifier (e.g. "clipboardMonitoring", "analytics").
-    @NSManaged public var category: String?
+    @NSManaged var category: String?
 
     /// When consent was granted for this category.
-    @NSManaged public var grantedAt: Date?
+    @NSManaged var grantedAt: Date?
 
     /// A locally generated UUID that uniquely identifies this consent record.
-    @NSManaged public var id: UUID?
+    @NSManaged var id: UUID?
 
     /// Whether consent is currently granted for this category.
-    @NSManaged public var isGranted: Bool
+    @NSManaged var isGranted: Bool
 
     /// When consent was last revoked for this category, if applicable.
-    @NSManaged public var revokedAt: Date?
+    @NSManaged var revokedAt: Date?
 
     /// When this record was last updated.
-    @NSManaged public var updatedAt: Date?
+    @NSManaged var updatedAt: Date?
 
     /// The consent version string for re-consent tracking.
-    @NSManaged public var version: String?
+    @NSManaged var version: String?
 }
+
+// MARK: - ConsentRecord + Identifiable
 
 extension ConsentRecord: Identifiable {}
 
 // MARK: - Fetch Requests
 
 extension ConsentRecord {
-
     /// Returns a fetch request for the consent record matching a specific category.
     ///
     /// - Parameter category: The consent category to look up.
@@ -58,7 +59,7 @@ extension ConsentRecord {
     static func allRecordsFetchRequest() -> NSFetchRequest<ConsentRecord> {
         let request = fetchRequest()
         request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \ConsentRecord.category, ascending: true)
+            NSSortDescriptor(keyPath: \ConsentRecord.category, ascending: true),
         ]
         return request
     }

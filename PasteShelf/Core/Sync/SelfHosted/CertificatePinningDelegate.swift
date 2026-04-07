@@ -19,11 +19,7 @@ import Security
 /// validates the server's TLS certificate against stored pinned certificates.
 /// If the certificate doesn't match, the connection is rejected.
 final class CertificatePinningDelegate: NSObject, URLSessionDelegate, @unchecked Sendable {
-
-    // MARK: - Properties
-
-    private let configuration: SelfHostedSyncConfiguration
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "cert-pinning")
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -31,6 +27,8 @@ final class CertificatePinningDelegate: NSObject, URLSessionDelegate, @unchecked
         self.configuration = configuration
         super.init()
     }
+
+    // MARK: Internal
 
     // MARK: - URLSessionDelegate
 
@@ -76,6 +74,11 @@ final class CertificatePinningDelegate: NSObject, URLSessionDelegate, @unchecked
         completionHandler(.useCredential, credential)
     }
 
+    // MARK: Private
+
+    private let configuration: SelfHostedSyncConfiguration
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "cert-pinning")
+
     // MARK: - Certificate Validation
 
     /// Validate the server's certificate chain against the pinned certificate data.
@@ -84,12 +87,16 @@ final class CertificatePinningDelegate: NSObject, URLSessionDelegate, @unchecked
     /// against the hash of the pinned certificate's public key.
     private func validatePinnedCertificate(serverTrust: SecTrust, pinnedData: Data) -> Bool {
         let certificateCount = SecTrustGetCertificateCount(serverTrust)
-        guard certificateCount > 0 else { return false }
+        guard certificateCount > 0 else {
+            return false
+        }
 
         // Get the leaf certificate (index 0)
         guard let certificates = SecTrustCopyCertificateChain(serverTrust) as? [SecCertificate],
               let serverCertificate = certificates.first
-        else { return false }
+        else {
+            return false
+        }
 
         // Extract public key hash from server certificate
         guard let serverPublicKeyHash = publicKeyHash(for: serverCertificate) else {
@@ -110,7 +117,9 @@ final class CertificatePinningDelegate: NSObject, URLSessionDelegate, @unchecked
 
     /// Compute the SHA-256 hash of a certificate's public key.
     private func publicKeyHash(for certificate: SecCertificate) -> String? {
-        guard let publicKey = SecCertificateCopyKey(certificate) else { return nil }
+        guard let publicKey = SecCertificateCopyKey(certificate) else {
+            return nil
+        }
 
         var error: Unmanaged<CFError>?
         guard let publicKeyData = SecKeyCopyExternalRepresentation(publicKey, &error) as Data? else {

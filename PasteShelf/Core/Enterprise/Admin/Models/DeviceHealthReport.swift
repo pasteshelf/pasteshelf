@@ -11,7 +11,6 @@ import Foundation
 
 /// The overall compliance state of a device relative to its assigned admin policy.
 enum ComplianceStatus: String, Codable, Sendable {
-
     /// The device satisfies all requirements imposed by its assigned policy.
     case compliant
 
@@ -35,6 +34,57 @@ enum ComplianceStatus: String, Codable, Sendable {
 /// the admin console dashboard.  A new report is generated and uploaded whenever the
 /// device checks in with the server.
 struct DeviceHealthReport: Codable, Sendable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates a device health report with the given snapshot data.
+    ///
+    /// - Parameters:
+    ///   - deviceId: The server-assigned device identifier.
+    ///   - timestamp: When the snapshot was captured. Defaults to the current date.
+    ///   - appVersion: The PasteShelf version string.
+    ///   - osVersion: The macOS version string.
+    ///   - isSSOActive: Whether an active SSO session exists.
+    ///   - isMDMManaged: Whether the device is MDM-managed.
+    ///   - isSyncEnabled: Whether iCloud sync is active.
+    ///   - isEncryptionEnabled: Whether local encryption is enabled.
+    ///   - clipboardItemCount: The number of stored clipboard items.
+    ///   - lastSyncDate: The most recent successful sync date, if any.
+    ///   - policyVersion: The version string of the active policy, if any.
+    ///   - activePolicyId: The server-assigned ID of the active policy, if any.
+    ///   - complianceStatus: The overall compliance verdict. Defaults to `.unknown`.
+    init(
+        deviceId: String,
+        timestamp: Date = Date(),
+        appVersion: String,
+        osVersion: String,
+        isSSOActive: Bool,
+        isMDMManaged: Bool,
+        isSyncEnabled: Bool,
+        isEncryptionEnabled: Bool,
+        clipboardItemCount: Int,
+        lastSyncDate: Date? = nil,
+        policyVersion: String? = nil,
+        activePolicyId: String? = nil,
+        complianceStatus: ComplianceStatus = .unknown
+    ) {
+        self.deviceId = deviceId
+        self.timestamp = timestamp
+        self.appVersion = appVersion
+        self.osVersion = osVersion
+        self.isSSOActive = isSSOActive
+        self.isMDMManaged = isMDMManaged
+        self.isSyncEnabled = isSyncEnabled
+        self.isEncryptionEnabled = isEncryptionEnabled
+        self.clipboardItemCount = clipboardItemCount
+        self.lastSyncDate = lastSyncDate
+        self.policyVersion = policyVersion
+        self.activePolicyId = activePolicyId
+        self.complianceStatus = complianceStatus
+    }
+
+    // MARK: Internal
 
     // MARK: - Identity
 
@@ -87,52 +137,4 @@ struct DeviceHealthReport: Codable, Sendable {
 
     /// The overall compliance verdict for this device at report time.
     let complianceStatus: ComplianceStatus
-
-    // MARK: - Initialization
-
-    /// Creates a device health report with the given snapshot data.
-    ///
-    /// - Parameters:
-    ///   - deviceId: The server-assigned device identifier.
-    ///   - timestamp: When the snapshot was captured. Defaults to the current date.
-    ///   - appVersion: The PasteShelf version string.
-    ///   - osVersion: The macOS version string.
-    ///   - isSSOActive: Whether an active SSO session exists.
-    ///   - isMDMManaged: Whether the device is MDM-managed.
-    ///   - isSyncEnabled: Whether iCloud sync is active.
-    ///   - isEncryptionEnabled: Whether local encryption is enabled.
-    ///   - clipboardItemCount: The number of stored clipboard items.
-    ///   - lastSyncDate: The most recent successful sync date, if any.
-    ///   - policyVersion: The version string of the active policy, if any.
-    ///   - activePolicyId: The server-assigned ID of the active policy, if any.
-    ///   - complianceStatus: The overall compliance verdict. Defaults to `.unknown`.
-    init(
-        deviceId: String,
-        timestamp: Date = Date(),
-        appVersion: String,
-        osVersion: String,
-        isSSOActive: Bool,
-        isMDMManaged: Bool,
-        isSyncEnabled: Bool,
-        isEncryptionEnabled: Bool,
-        clipboardItemCount: Int,
-        lastSyncDate: Date? = nil,
-        policyVersion: String? = nil,
-        activePolicyId: String? = nil,
-        complianceStatus: ComplianceStatus = .unknown
-    ) {
-        self.deviceId = deviceId
-        self.timestamp = timestamp
-        self.appVersion = appVersion
-        self.osVersion = osVersion
-        self.isSSOActive = isSSOActive
-        self.isMDMManaged = isMDMManaged
-        self.isSyncEnabled = isSyncEnabled
-        self.isEncryptionEnabled = isEncryptionEnabled
-        self.clipboardItemCount = clipboardItemCount
-        self.lastSyncDate = lastSyncDate
-        self.policyVersion = policyVersion
-        self.activePolicyId = activePolicyId
-        self.complianceStatus = complianceStatus
-    }
 }

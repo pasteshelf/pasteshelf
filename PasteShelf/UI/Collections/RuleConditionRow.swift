@@ -7,19 +7,17 @@
 
 import SwiftUI
 
+// MARK: - RuleConditionRow
+
 /// Displays and edits a single rule condition
 struct RuleConditionRow: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     /// The condition being edited
     @Binding var condition: RuleCondition
 
     /// Called when delete is requested
     var onDelete: (() -> Void)?
-
-    // MARK: - State
-
-    @State private var isHovered = false
 
     // MARK: - Body
 
@@ -72,6 +70,12 @@ struct RuleConditionRow: View {
         }
     }
 
+    // MARK: Private
+
+    // MARK: - State
+
+    @State private var isHovered = false
+
     // MARK: - Value Input
 
     @ViewBuilder
@@ -91,7 +95,8 @@ struct RuleConditionRow: View {
         case .dateCreated:
             dateRangePicker
 
-        case .isFavorite, .isSensitive:
+        case .isFavorite,
+             .isSensitive:
             booleanPicker
         }
     }
@@ -151,13 +156,15 @@ struct RuleConditionRow: View {
     private func defaultValue(for field: RuleField) -> String {
         switch field {
         case .contentType:
-            return ContentTypeValue.text.rawValue
-        case .sourceApp, .textContent:
-            return ""
+            ContentTypeValue.text.rawValue
+        case .sourceApp,
+             .textContent:
+            ""
         case .dateCreated:
-            return DateRangeValue.last7Days.rawValue
-        case .isFavorite, .isSensitive:
-            return "true"
+            DateRangeValue.last7Days.rawValue
+        case .isFavorite,
+             .isSensitive:
+            "true"
         }
     }
 
@@ -177,11 +184,7 @@ struct RuleConditionRow: View {
 #if DEBUG
     struct RuleConditionRow_Previews: PreviewProvider {
         struct PreviewWrapper: View {
-            @State private var condition = RuleCondition(
-                field: .contentType,
-                comparisonOperator: .equals,
-                value: "images"
-            )
+            // MARK: Internal
 
             var body: some View {
                 VStack(spacing: 12) {
@@ -199,6 +202,14 @@ struct RuleConditionRow: View {
                 }
                 .padding()
             }
+
+            // MARK: Private
+
+            @State private var condition = RuleCondition(
+                field: .contentType,
+                comparisonOperator: .equals,
+                value: "images"
+            )
         }
 
         static var previews: some View {

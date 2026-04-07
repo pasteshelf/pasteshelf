@@ -7,13 +7,11 @@
 
 import SwiftUI
 
+// MARK: - EmptyStateView
+
 /// A reusable empty state view
 struct EmptyStateView: View {
-    let icon: String
-    let title: String
-    let message: String
-    let actionTitle: String?
-    let action: (() -> Void)?
+    // MARK: Lifecycle
 
     init(
         icon: String,
@@ -28,6 +26,14 @@ struct EmptyStateView: View {
         self.actionTitle = actionTitle
         self.action = action
     }
+
+    // MARK: Internal
+
+    let icon: String
+    let title: String
+    let message: String
+    let actionTitle: String?
+    let action: (() -> Void)?
 
     var body: some View {
         VStack(spacing: 16) {

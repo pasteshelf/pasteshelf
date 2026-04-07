@@ -5,11 +5,13 @@
 //  Unit tests for StorageManager fetch operations.
 //
 
-@testable import PasteShelf
 import CoreData
+@testable import PasteShelf
 import XCTest
 
 final class StorageManagerFetchTests: XCTestCase {
+    // MARK: Internal
+
     var storageManager: StorageManager!
 
     override func setUp() async throws {
@@ -20,20 +22,6 @@ final class StorageManagerFetchTests: XCTestCase {
     override func tearDown() async throws {
         storageManager = nil
         try await super.tearDown()
-    }
-
-    // MARK: - Setup Helpers
-
-    private func createTestItems(count: Int) async {
-        for i in 1...count {
-            let content = ClipboardContent(
-                primaryType: .plainText,
-                availableTypes: [.plainText],
-                plainText: "Item \(i)",
-                contentHash: "hash_\(i)"
-            )
-            _ = await storageManager.save(content: content, from: nil)
-        }
     }
 
     // MARK: - Fetch Recent Items Tests
@@ -213,7 +201,8 @@ final class StorageManagerFetchTests: XCTestCase {
         // properties by re-fetching from the view context instead.
         let folders = await storageManager.fetchFolders()
         guard let fetched = folders.first(where: { $0.name == "Test Folder" }),
-              let folderId = fetched.id else {
+              let folderId = fetched.id
+        else {
             XCTFail("Failed to create folder")
             return
         }
@@ -245,5 +234,21 @@ final class StorageManagerFetchTests: XCTestCase {
         XCTAssertTrue(isExcluded)
         XCTAssertFalse(isIncluded)
         XCTAssertFalse(unknown)
+    }
+
+    // MARK: Private
+
+    // MARK: - Setup Helpers
+
+    private func createTestItems(count: Int) async {
+        for i in 1 ... count {
+            let content = ClipboardContent(
+                primaryType: .plainText,
+                availableTypes: [.plainText],
+                plainText: "Item \(i)",
+                contentHash: "hash_\(i)"
+            )
+            _ = await storageManager.save(content: content, from: nil)
+        }
     }
 }

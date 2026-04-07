@@ -9,10 +9,10 @@
 import AppKit
 import Foundation
 
+// MARK: - ClipboardItemDisplayModel
+
 /// UI-friendly model for displaying clipboard items
 struct ClipboardItemDisplayModel: Identifiable, Hashable {
-    // MARK: - Properties
-
     /// Unique identifier
     let id: UUID
 
@@ -49,8 +49,6 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
     /// OCR-extracted text from image
     var ocrText: String?
 
-    // MARK: - Computed Properties
-
     /// Whether this item has OCR text available
     var hasOCRText: Bool {
         ocrText != nil && !(ocrText?.isEmpty ?? true)
@@ -58,7 +56,9 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
 
     /// Short OCR text preview (truncated)
     var ocrTextPreview: String? {
-        guard let text = ocrText, !text.isEmpty else { return nil }
+        guard let text = ocrText, !text.isEmpty else {
+            return nil
+        }
         let cleaned = text
             .replacingOccurrences(of: "\n", with: " ")
             .trimmingCharacters(in: .whitespaces)
@@ -85,7 +85,9 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
 
     /// NSImage from thumbnail data
     var thumbnailImage: NSImage? {
-        guard let data = thumbnailData else { return nil }
+        guard let data = thumbnailData else {
+            return nil
+        }
         return NSImage(data: data)
     }
 
@@ -122,6 +124,10 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
         return "[\(contentTypeName)]"
     }
 
+    static func == (lhs: ClipboardItemDisplayModel, rhs: ClipboardItemDisplayModel) -> Bool {
+        lhs.id == rhs.id
+    }
+
     /// Short display text (single line, truncated)
     func shortDisplayText(maxLength: Int = 50) -> String {
         let text = displayText
@@ -139,10 +145,6 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-    }
-
-    static func == (lhs: ClipboardItemDisplayModel, rhs: ClipboardItemDisplayModel) -> Bool {
-        lhs.id == rhs.id
     }
 }
 

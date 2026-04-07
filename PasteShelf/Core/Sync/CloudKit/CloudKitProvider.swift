@@ -9,31 +9,11 @@ import CloudKit
 import Foundation
 import os.log
 
+// MARK: - CloudKitProvider
+
 /// CloudKit sync provider implementing SyncProviding protocol
 final class CloudKitProvider: SyncProviding, Sendable {
-    // MARK: - Properties
-
-    /// CloudKit container
-    private let container: CKContainer
-
-    /// Private database for user data
-    private let database: CKDatabase
-
-    /// Zone manager for custom zone operations
-    private let zoneManager: CloudKitZoneManager
-
-    /// Record mapper for entity conversion
-    private let recordMapper: CloudKitRecordMapper
-
-    /// Maximum records per batch operation (CloudKit limit is 400)
-    private static let maxBatchSize = 200
-
-    // MARK: - Logger
-
-    private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "cloudkit-provider"
-    )
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -41,13 +21,22 @@ final class CloudKitProvider: SyncProviding, Sendable {
         containerIdentifier: String = "iCloud.com.pasteshelf.PasteShelf",
         encryptionManager: SyncEncryptionManager = SyncEncryptionManager()
     ) {
-        self.container = CKContainer(identifier: containerIdentifier)
-        self.database = container.privateCloudDatabase
-        self.zoneManager = CloudKitZoneManager(container: container)
-        self.recordMapper = CloudKitRecordMapper(
+        container = CKContainer(identifier: containerIdentifier)
+        database = container.privateCloudDatabase
+        zoneManager = CloudKitZoneManager(container: container)
+        recordMapper = CloudKitRecordMapper(
             zoneID: zoneManager.zoneID,
             encryptionManager: encryptionManager
         )
+    }
+
+    // MARK: Internal
+
+    // MARK: - Additional Methods
+
+    /// Get the zone ID for external use
+    var zoneID: CKRecordZone.ID {
+        zoneManager.zoneID
     }
 
     // MARK: - SyncProviding Protocol
@@ -64,7 +53,8 @@ final class CloudKitProvider: SyncProviding, Sendable {
                 throw SyncError.noAccount
             case .restricted:
                 throw SyncError.accountRestricted
-            case .couldNotDetermine, .temporarilyUnavailable:
+            case .couldNotDetermine,
+                 .temporarilyUnavailable:
                 throw SyncError.accountTemporarilyUnavailable
             @unknown default:
                 throw SyncError.accountTemporarilyUnavailable
@@ -152,8 +142,7 @@ final class CloudKitProvider: SyncProviding, Sendable {
         Self.logger.debug("Fetching record: \(recordID.recordName)")
 
         do {
-            let record = try await database.record(for: recordID)
-            return record
+            return try await database.record(for: recordID)
         } catch let error as CKError where error.code == .unknownItem {
             return nil
         } catch {
@@ -166,6 +155,41 @@ final class CloudKitProvider: SyncProviding, Sendable {
         try await zoneManager.createSubscriptionIfNeeded()
     }
 
+    /// Reset all CloudKit data (teardown + recreate)
+    func reset() async throws {
+        try await zoneManager.teardown()
+        try await zoneManager.setup()
+    }
+
+    /// Delete all CloudKit data without recreating
+    func teardownOnly() async throws {
+        try await zoneManager.teardown()
+    }
+
+    // MARK: Private
+
+    /// Maximum records per batch operation (CloudKit limit is 400)
+    private static let maxBatchSize = 200
+
+    // MARK: - Logger
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "cloudkit-provider"
+    )
+
+    /// CloudKit container
+    private let container: CKContainer
+
+    /// Private database for user data
+    private let database: CKDatabase
+
+    /// Zone manager for custom zone operations
+    private let zoneManager: CloudKitZoneManager
+
+    /// Record mapper for entity conversion
+    private let recordMapper: CloudKitRecordMapper
+
     // MARK: - Private Methods
 
     /// Push a batch of changes to CloudKit
@@ -175,7 +199,8 @@ final class CloudKitProvider: SyncProviding, Sendable {
 
         for change in changes {
             switch change.changeType {
-            case .insert, .update:
+            case .insert,
+                 .update:
                 if let encryptedData = change.encryptedData {
                     let record = recordMapper.createRecord(
                         for: change,
@@ -288,24 +313,6 @@ final class CloudKitProvider: SyncProviding, Sendable {
 
             self.database.add(operation)
         }
-    }
-
-    // MARK: - Additional Methods
-
-    /// Get the zone ID for external use
-    var zoneID: CKRecordZone.ID {
-        zoneManager.zoneID
-    }
-
-    /// Reset all CloudKit data (teardown + recreate)
-    func reset() async throws {
-        try await zoneManager.teardown()
-        try await zoneManager.setup()
-    }
-
-    /// Delete all CloudKit data without recreating
-    func teardownOnly() async throws {
-        try await zoneManager.teardown()
     }
 }
 

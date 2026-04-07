@@ -23,8 +23,190 @@ import os.log
 /// - **Flat keys**: Each key at the top level of the preference domain
 /// - **Nested dictionaries**: `ManagedPreferences` and `DefaultPreferences` dicts
 final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfigurationObserving {
+    // MARK: Lifecycle
 
-    // MARK: - Properties
+    // MARK: - Initialization
+
+    /// Creates a reader for the specified preference domain.
+    ///
+    /// - Parameters:
+    ///   - preferenceDomain: The application preference domain (default: `com.pasteshelf.PasteShelf`).
+    ///   - userDefaults: The `UserDefaults` instance to read from (default: `.standard`).
+    ///   - pollingInterval: Interval in seconds for fallback polling (default: 60).
+    init(
+        preferenceDomain: String = "com.pasteshelf.PasteShelf",
+        userDefaults: UserDefaults = .standard,
+        pollingInterval: TimeInterval = 60
+    ) {
+        self.preferenceDomain = preferenceDomain
+        self.userDefaults = userDefaults
+        self.pollingInterval = pollingInterval
+    }
+
+    deinit {
+        stopObserving()
+    }
+
+    // MARK: Internal
+
+    // MARK: - MDMConfigurationObserving
+
+    var configurationDidChange: AnyPublisher<MDMConfiguration, Never> {
+        configurationSubject.eraseToAnyPublisher()
+    }
+
+    // MARK: - ManagedPreferencesReading
+
+    func readConfiguration() -> MDMConfiguration {
+        var forced: [ManagedPreferenceKey: PreferenceValue] = [:]
+        var defaults: [ManagedPreferenceKey: PreferenceValue] = [:]
+
+        // Strategy 1: Check flat keys via objectIsForced
+        for key in ManagedPreferenceKey.allCases {
+            if userDefaults.objectIsForced(forKey: key.rawValue) {
+                if let value = readPreferenceValue(for: key) {
+                    forced[key] = value
+                }
+            }
+        }
+
+        // Strategy 2: Check nested ManagedPreferences / DefaultPreferences dicts
+        if let managedDict = userDefaults.dictionary(forKey: "ManagedPreferences") {
+            for key in ManagedPreferenceKey.allCases {
+                guard forced[key] == nil else {
+                    continue
+                } // Flat forced takes priority
+                if let rawValue = managedDict[key.rawValue] {
+                    if let value = convertToPreferenceValue(rawValue) {
+                        forced[key] = value
+                    }
+                }
+            }
+        }
+
+        if let defaultDict = userDefaults.dictionary(forKey: "DefaultPreferences") {
+            for key in ManagedPreferenceKey.allCases {
+                if let rawValue = defaultDict[key.rawValue] {
+                    if let value = convertToPreferenceValue(rawValue) {
+                        defaults[key] = value
+                    }
+                }
+            }
+        }
+
+        // Strategy 3: Non-forced flat keys that exist become defaults
+        for key in ManagedPreferenceKey.allCases {
+            guard forced[key] == nil, defaults[key] == nil else {
+                continue
+            }
+            if userDefaults.object(forKey: key.rawValue) != nil,
+               !userDefaults.objectIsForced(forKey: key.rawValue)
+            {
+                if let value = readPreferenceValue(for: key) {
+                    defaults[key] = value
+                }
+            }
+        }
+
+        let config = MDMConfiguration(
+            forcedPreferences: forced,
+            defaultPreferences: defaults
+        )
+
+        if config.isManaged {
+            logger.info("MDM configuration loaded: \(forced.count) forced, \(defaults.count) default keys")
+        }
+
+        return config
+    }
+
+    func isKeyForced(_ key: ManagedPreferenceKey) -> Bool {
+        // Check flat key forced status
+        if userDefaults.objectIsForced(forKey: key.rawValue) {
+            return true
+        }
+
+        // Check nested ManagedPreferences dict
+        if let managedDict = userDefaults.dictionary(forKey: "ManagedPreferences"),
+           managedDict[key.rawValue] != nil
+        {
+            return true
+        }
+
+        return false
+    }
+
+    func value<T>(for key: ManagedPreferenceKey) -> T? {
+        // Try flat key first
+        if let value = userDefaults.object(forKey: key.rawValue) as? T {
+            return value
+        }
+
+        // Try nested ManagedPreferences
+        if let managedDict = userDefaults.dictionary(forKey: "ManagedPreferences"),
+           let value = managedDict[key.rawValue] as? T
+        {
+            return value
+        }
+
+        // Try nested DefaultPreferences
+        if let defaultDict = userDefaults.dictionary(forKey: "DefaultPreferences"),
+           let value = defaultDict[key.rawValue] as? T
+        {
+            return value
+        }
+
+        return nil
+    }
+
+    func startObserving() {
+        guard !isObserving else {
+            return
+        }
+        isObserving = true
+
+        // Read initial configuration
+        lastConfiguration = readConfiguration()
+        configurationSubject.send(lastConfiguration)
+
+        // Observe UserDefaults changes via DistributedNotificationCenter
+        notificationObserver = DistributedNotificationCenter.default().addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.checkForConfigurationChanges()
+        }
+
+        // Fallback polling timer (MDM profile changes don't always trigger notifications)
+        pollingTimer = Timer.scheduledTimer(
+            withTimeInterval: pollingInterval,
+            repeats: true
+        ) { [weak self] _ in
+            self?.checkForConfigurationChanges()
+        }
+
+        logger.debug("MDM observation started (polling interval: \(pollingInterval)s)")
+    }
+
+    func stopObserving() {
+        guard isObserving else {
+            return
+        }
+        isObserving = false
+
+        if let observer = notificationObserver {
+            DistributedNotificationCenter.default().removeObserver(observer)
+            notificationObserver = nil
+        }
+
+        pollingTimer?.invalidate()
+        pollingTimer = nil
+
+        logger.debug("MDM observation stopped")
+    }
+
+    // MARK: Private
 
     /// The preference domain to read from
     private let preferenceDomain: String
@@ -53,178 +235,13 @@ final class ManagedPreferencesReader: ManagedPreferencesReading, MDMConfiguratio
     /// Last known configuration for change detection
     private var lastConfiguration: MDMConfiguration = .empty
 
-    // MARK: - Initialization
-
-    /// Creates a reader for the specified preference domain.
-    ///
-    /// - Parameters:
-    ///   - preferenceDomain: The application preference domain (default: `com.pasteshelf.PasteShelf`).
-    ///   - userDefaults: The `UserDefaults` instance to read from (default: `.standard`).
-    ///   - pollingInterval: Interval in seconds for fallback polling (default: 60).
-    init(
-        preferenceDomain: String = "com.pasteshelf.PasteShelf",
-        userDefaults: UserDefaults = .standard,
-        pollingInterval: TimeInterval = 60
-    ) {
-        self.preferenceDomain = preferenceDomain
-        self.userDefaults = userDefaults
-        self.pollingInterval = pollingInterval
-    }
-
-    deinit {
-        stopObserving()
-    }
-
-    // MARK: - ManagedPreferencesReading
-
-    func readConfiguration() -> MDMConfiguration {
-        var forced: [ManagedPreferenceKey: PreferenceValue] = [:]
-        var defaults: [ManagedPreferenceKey: PreferenceValue] = [:]
-
-        // Strategy 1: Check flat keys via objectIsForced
-        for key in ManagedPreferenceKey.allCases {
-            if userDefaults.objectIsForced(forKey: key.rawValue) {
-                if let value = readPreferenceValue(for: key) {
-                    forced[key] = value
-                }
-            }
-        }
-
-        // Strategy 2: Check nested ManagedPreferences / DefaultPreferences dicts
-        if let managedDict = userDefaults.dictionary(forKey: "ManagedPreferences") {
-            for key in ManagedPreferenceKey.allCases {
-                guard forced[key] == nil else { continue } // Flat forced takes priority
-                if let rawValue = managedDict[key.rawValue] {
-                    if let value = convertToPreferenceValue(rawValue) {
-                        forced[key] = value
-                    }
-                }
-            }
-        }
-
-        if let defaultDict = userDefaults.dictionary(forKey: "DefaultPreferences") {
-            for key in ManagedPreferenceKey.allCases {
-                if let rawValue = defaultDict[key.rawValue] {
-                    if let value = convertToPreferenceValue(rawValue) {
-                        defaults[key] = value
-                    }
-                }
-            }
-        }
-
-        // Strategy 3: Non-forced flat keys that exist become defaults
-        for key in ManagedPreferenceKey.allCases {
-            guard forced[key] == nil, defaults[key] == nil else { continue }
-            if userDefaults.object(forKey: key.rawValue) != nil,
-               !userDefaults.objectIsForced(forKey: key.rawValue) {
-                if let value = readPreferenceValue(for: key) {
-                    defaults[key] = value
-                }
-            }
-        }
-
-        let config = MDMConfiguration(
-            forcedPreferences: forced,
-            defaultPreferences: defaults
-        )
-
-        if config.isManaged {
-            logger.info("MDM configuration loaded: \(forced.count) forced, \(defaults.count) default keys")
-        }
-
-        return config
-    }
-
-    func isKeyForced(_ key: ManagedPreferenceKey) -> Bool {
-        // Check flat key forced status
-        if userDefaults.objectIsForced(forKey: key.rawValue) {
-            return true
-        }
-
-        // Check nested ManagedPreferences dict
-        if let managedDict = userDefaults.dictionary(forKey: "ManagedPreferences"),
-           managedDict[key.rawValue] != nil {
-            return true
-        }
-
-        return false
-    }
-
-    func value<T>(for key: ManagedPreferenceKey) -> T? {
-        // Try flat key first
-        if let value = userDefaults.object(forKey: key.rawValue) as? T {
-            return value
-        }
-
-        // Try nested ManagedPreferences
-        if let managedDict = userDefaults.dictionary(forKey: "ManagedPreferences"),
-           let value = managedDict[key.rawValue] as? T {
-            return value
-        }
-
-        // Try nested DefaultPreferences
-        if let defaultDict = userDefaults.dictionary(forKey: "DefaultPreferences"),
-           let value = defaultDict[key.rawValue] as? T {
-            return value
-        }
-
-        return nil
-    }
-
-    // MARK: - MDMConfigurationObserving
-
-    var configurationDidChange: AnyPublisher<MDMConfiguration, Never> {
-        configurationSubject.eraseToAnyPublisher()
-    }
-
-    func startObserving() {
-        guard !isObserving else { return }
-        isObserving = true
-
-        // Read initial configuration
-        lastConfiguration = readConfiguration()
-        configurationSubject.send(lastConfiguration)
-
-        // Observe UserDefaults changes via DistributedNotificationCenter
-        notificationObserver = DistributedNotificationCenter.default().addObserver(
-            forName: UserDefaults.didChangeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.checkForConfigurationChanges()
-        }
-
-        // Fallback polling timer (MDM profile changes don't always trigger notifications)
-        pollingTimer = Timer.scheduledTimer(
-            withTimeInterval: pollingInterval,
-            repeats: true
-        ) { [weak self] _ in
-            self?.checkForConfigurationChanges()
-        }
-
-        logger.debug("MDM observation started (polling interval: \(self.pollingInterval)s)")
-    }
-
-    func stopObserving() {
-        guard isObserving else { return }
-        isObserving = false
-
-        if let observer = notificationObserver {
-            DistributedNotificationCenter.default().removeObserver(observer)
-            notificationObserver = nil
-        }
-
-        pollingTimer?.invalidate()
-        pollingTimer = nil
-
-        logger.debug("MDM observation stopped")
-    }
-
     // MARK: - Private Helpers
 
     /// Reads a single preference value from flat UserDefaults keys.
     private func readPreferenceValue(for key: ManagedPreferenceKey) -> PreferenceValue? {
-        guard let raw = userDefaults.object(forKey: key.rawValue) else { return nil }
+        guard let raw = userDefaults.object(forKey: key.rawValue) else {
+            return nil
+        }
         return convertToPreferenceValue(raw)
     }
 

@@ -10,20 +10,20 @@ import AppKit
 import CoreData
 import Foundation
 
-// MARK: - URL Scheme Handler
+// MARK: - URLSchemeHandler
 
 /// Handles pasteshelf:// URL scheme
-@MainActor final class URLSchemeHandler {
-    // MARK: - Singleton
+@MainActor
+final class URLSchemeHandler {
+    // MARK: Lifecycle
 
-    static let shared = URLSchemeHandler()
     private init() {}
+
+    // MARK: Internal
 
     // MARK: - URL Scheme Constants
 
     enum URLScheme {
-        static let scheme = "pasteshelf"
-
         enum Host: String {
             case copy
             case search
@@ -34,7 +34,13 @@ import Foundation
             case favorite
             case delete
         }
+
+        static let scheme = "pasteshelf"
     }
+
+    // MARK: - Singleton
+
+    static let shared = URLSchemeHandler()
 
     // MARK: - Handle URL
 
@@ -78,6 +84,8 @@ import Foundation
             return handleDelete(parameters: parameters)
         }
     }
+
+    // MARK: Private
 
     // MARK: - Copy Action
 
@@ -426,7 +434,7 @@ extension URLSchemeHandler {
         components.scheme = URLScheme.scheme
         components.host = URLScheme.Host.search.rawValue
         var queryItems = [URLQueryItem(name: "query", value: query)]
-        if let limit = limit {
+        if let limit {
             queryItems.append(URLQueryItem(name: "limit", value: String(limit)))
         }
         components.queryItems = queryItems
@@ -440,7 +448,7 @@ extension URLSchemeHandler {
         components.host = URLScheme.Host.show.rawValue
 
         var queryItems: [URLQueryItem] = []
-        if let view = view {
+        if let view {
             queryItems.append(URLQueryItem(name: "view", value: view))
         }
         if let id = highlightItem {

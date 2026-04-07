@@ -8,9 +8,11 @@
 
 import SwiftUI
 
+// MARK: - SearchFieldView
+
 /// Search text field with clear button and keyboard handling
 struct SearchFieldView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     /// The search query text
     @Binding var text: String
@@ -26,10 +28,6 @@ struct SearchFieldView: View {
 
     /// Whether the field should be focused on appear
     var autoFocus: Bool = true
-
-    // MARK: - State
-
-    @FocusState private var isFocused: Bool
 
     // MARK: - Body
 
@@ -84,7 +82,11 @@ struct SearchFieldView: View {
         .animation(.easeInOut(duration: 0.15), value: text.isEmpty)
     }
 
-    // MARK: - Actions
+    // MARK: Private
+
+    // MARK: - State
+
+    @FocusState private var isFocused: Bool
 
     private func clearSearch() {
         text = ""
@@ -102,6 +104,8 @@ extension View {
     }
 }
 
+// MARK: - SearchFieldStyleModifier
+
 struct SearchFieldStyleModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
@@ -116,8 +120,7 @@ struct SearchFieldStyleModifier: ViewModifier {
 #if DEBUG
     struct SearchFieldView_Previews: PreviewProvider {
         struct PreviewWrapper: View {
-            @State private var searchText = ""
-            @State private var searchTextWithContent = "hello world"
+            // MARK: Internal
 
             var body: some View {
                 VStack(spacing: 16) {
@@ -139,6 +142,11 @@ struct SearchFieldStyleModifier: ViewModifier {
                 .padding()
                 .frame(width: 300)
             }
+
+            // MARK: Private
+
+            @State private var searchText = ""
+            @State private var searchTextWithContent = "hello world"
         }
 
         static var previews: some View {

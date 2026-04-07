@@ -11,6 +11,8 @@ import Foundation
 import os.log
 import Security
 
+// MARK: - SOC2EncryptionVerifier
+
 /// Verifies that all encryption requirements are met for SOC 2 compliance.
 ///
 /// `SOC2EncryptionVerifier` performs runtime checks across a broader set of data
@@ -19,13 +21,7 @@ import Security
 /// (FileVault), and key management practices. The results are compiled into a
 /// `SOC2EncryptionReport` with individual `ComplianceFinding` entries for each check.
 struct SOC2EncryptionVerifier: Sendable {
-
-    private static let logger = Logger.compliance
-
-    // MARK: - Keychain Constants
-
-    private static let auditKeyTag = "com.pasteshelf.audit.detail.key"
-    private static let syncKeyTag = "com.pasteshelf.sync.encryption.key"
+    // MARK: Internal
 
     // MARK: - Public API
 
@@ -83,7 +79,10 @@ struct SOC2EncryptionVerifier: Sendable {
         let passingCount = findings.filter { $0.status == .pass }.count
         let overallScore = findings.isEmpty ? 0 : Int((Double(passingCount) / Double(findings.count)) * 100)
 
-        logger.info("SOC2 encryption verification complete — score: \(overallScore)% (\(passingCount)/\(findings.count) checks passed)")
+        logger
+            .info(
+                "SOC2 encryption verification complete — score: \(overallScore)% (\(passingCount)/\(findings.count) checks passed)"
+            )
 
         return SOC2EncryptionReport(
             findings: findings,
@@ -97,6 +96,15 @@ struct SOC2EncryptionVerifier: Sendable {
             verifiedAt: Date()
         )
     }
+
+    // MARK: Private
+
+    private static let logger = Logger.compliance
+
+    // MARK: - Keychain Constants
+
+    private static let auditKeyTag = "com.pasteshelf.audit.detail.key"
+    private static let syncKeyTag = "com.pasteshelf.sync.encryption.key"
 
     // MARK: - Individual Checks
 
@@ -121,7 +129,7 @@ struct SOC2EncryptionVerifier: Sendable {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: tag,
             kSecReturnData as String: false,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
         ]
 
         let status = SecItemCopyMatching(query as CFDictionary, nil)
@@ -183,51 +191,51 @@ struct SOC2EncryptionVerifier: Sendable {
     /// Verifies that the local disk is encrypted using FileVault.
     private static func verifyAtRestEncryption() -> ComplianceFinding {
         #if APP_STORE
-        // Process() is unavailable in sandboxed App Store builds; assume encrypted.
-        return ComplianceFinding(
-            category: "At-Rest Encryption",
-            status: .warning,
-            description: "Unable to determine FileVault status in App Store build",
-            recommendation: "Manually verify FileVault is enabled in System Settings"
-        )
-        #else
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/fdesetup")
-        process.arguments = ["isactive"]
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = pipe
-
-        do {
-            try process.run()
-            process.waitUntilExit()
-
-            if process.terminationStatus == 0 {
-                logger.debug("FileVault at-rest encryption is active")
-                return ComplianceFinding(
-                    category: "At-Rest Encryption",
-                    status: .pass,
-                    description: "FileVault full-disk encryption is active, protecting all data at rest"
-                )
-            } else {
-                logger.warning("FileVault at-rest encryption is NOT active")
-                return ComplianceFinding(
-                    category: "At-Rest Encryption",
-                    status: .fail,
-                    description: "FileVault full-disk encryption is not active — data at rest is unprotected",
-                    recommendation: "Enable FileVault in System Settings > Privacy & Security > FileVault"
-                )
-            }
-        } catch {
-            logger.warning("Unable to determine FileVault status: \(error.localizedDescription)")
+            // Process() is unavailable in sandboxed App Store builds; assume encrypted.
             return ComplianceFinding(
                 category: "At-Rest Encryption",
                 status: .warning,
-                description: "Unable to determine FileVault status",
+                description: "Unable to determine FileVault status in App Store build",
                 recommendation: "Manually verify FileVault is enabled in System Settings"
             )
-        }
+        #else
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/fdesetup")
+            process.arguments = ["isactive"]
+
+            let pipe = Pipe()
+            process.standardOutput = pipe
+            process.standardError = pipe
+
+            do {
+                try process.run()
+                process.waitUntilExit()
+
+                if process.terminationStatus == 0 {
+                    logger.debug("FileVault at-rest encryption is active")
+                    return ComplianceFinding(
+                        category: "At-Rest Encryption",
+                        status: .pass,
+                        description: "FileVault full-disk encryption is active, protecting all data at rest"
+                    )
+                } else {
+                    logger.warning("FileVault at-rest encryption is NOT active")
+                    return ComplianceFinding(
+                        category: "At-Rest Encryption",
+                        status: .fail,
+                        description: "FileVault full-disk encryption is not active — data at rest is unprotected",
+                        recommendation: "Enable FileVault in System Settings > Privacy & Security > FileVault"
+                    )
+                }
+            } catch {
+                logger.warning("Unable to determine FileVault status: \(error.localizedDescription)")
+                return ComplianceFinding(
+                    category: "At-Rest Encryption",
+                    status: .warning,
+                    description: "Unable to determine FileVault status",
+                    recommendation: "Manually verify FileVault is enabled in System Settings"
+                )
+            }
         #endif
     }
 
@@ -271,7 +279,7 @@ struct SOC2EncryptionVerifier: Sendable {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: tag,
             kSecReturnData as String: false,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
         ]
         return SecItemCopyMatching(query as CFDictionary, nil) == errSecSuccess
     }
@@ -282,6 +290,33 @@ struct SOC2EncryptionVerifier: Sendable {
 /// Report produced by `SOC2EncryptionVerifier` summarising the SOC 2 encryption
 /// compliance status across all data-protection layers.
 struct SOC2EncryptionReport: Codable, Sendable, Identifiable {
+    // MARK: Lifecycle
+
+    init(
+        id: UUID = UUID(),
+        findings: [ComplianceFinding],
+        overallScore: Int,
+        coreDataEncrypted: Bool,
+        keychainSecure: Bool,
+        auditLogEncrypted: Bool,
+        transportEncrypted: Bool,
+        atRestEncrypted: Bool,
+        keyManagementCompliant: Bool,
+        verifiedAt: Date = Date()
+    ) {
+        self.id = id
+        self.findings = findings
+        self.overallScore = overallScore
+        self.coreDataEncrypted = coreDataEncrypted
+        self.keychainSecure = keychainSecure
+        self.auditLogEncrypted = auditLogEncrypted
+        self.transportEncrypted = transportEncrypted
+        self.atRestEncrypted = atRestEncrypted
+        self.keyManagementCompliant = keyManagementCompliant
+        self.verifiedAt = verifiedAt
+    }
+
+    // MARK: Internal
 
     let id: UUID
     let findings: [ComplianceFinding]
@@ -309,28 +344,4 @@ struct SOC2EncryptionReport: Codable, Sendable, Identifiable {
 
     /// When this verification was performed.
     let verifiedAt: Date
-
-    init(
-        id: UUID = UUID(),
-        findings: [ComplianceFinding],
-        overallScore: Int,
-        coreDataEncrypted: Bool,
-        keychainSecure: Bool,
-        auditLogEncrypted: Bool,
-        transportEncrypted: Bool,
-        atRestEncrypted: Bool,
-        keyManagementCompliant: Bool,
-        verifiedAt: Date = Date()
-    ) {
-        self.id = id
-        self.findings = findings
-        self.overallScore = overallScore
-        self.coreDataEncrypted = coreDataEncrypted
-        self.keychainSecure = keychainSecure
-        self.auditLogEncrypted = auditLogEncrypted
-        self.transportEncrypted = transportEncrypted
-        self.atRestEncrypted = atRestEncrypted
-        self.keyManagementCompliant = keyManagementCompliant
-        self.verifiedAt = verifiedAt
-    }
 }

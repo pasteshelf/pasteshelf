@@ -2,7 +2,11 @@ import Crypto
 import JWT
 import Vapor
 
+// MARK: - JWTAuthMiddleware
+
 struct JWTAuthMiddleware: AsyncMiddleware {
+    // MARK: Internal
+
     func respond(to request: Request, chainingTo next: any AsyncResponder) async throws -> Response {
         if let bearer = request.headers.bearerAuthorization {
             let payload = try await request.jwt.verify(bearer.token, as: JWTPayload.self)
@@ -39,18 +43,27 @@ struct JWTAuthMiddleware: AsyncMiddleware {
         throw Abort(.unauthorized, reason: "Authentication required")
     }
 
+    // MARK: Private
+
     private func extractAPIKeyFromAuth(_ request: Request) -> String? {
         guard let auth = request.headers.first(name: .authorization),
-              auth.hasPrefix("Api-Key ") else { return nil }
+              auth.hasPrefix("Api-Key ")
+        else {
+            return nil
+        }
         return String(auth.dropFirst("Api-Key ".count))
     }
 }
+
+// MARK: - AuthenticatedUser
 
 struct AuthenticatedUser: Authenticatable {
     let id: UUID
     let orgID: String
     let deviceID: String?
 }
+
+// MARK: - APIKeyHasher
 
 enum APIKeyHasher {
     static func hash(_ string: String) -> String {

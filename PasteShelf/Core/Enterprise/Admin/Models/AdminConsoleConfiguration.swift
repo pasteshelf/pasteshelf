@@ -20,6 +20,46 @@ import Foundation
 /// attempting a connection.  Use `.empty` as a safe default value when no
 /// configuration has been provided.
 struct AdminConsoleConfiguration: Codable, Equatable, Sendable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates an admin console configuration with the given connection parameters.
+    ///
+    /// - Parameters:
+    ///   - serverURL: The base URL of the admin console server.
+    ///   - organizationID: The tenant organization identifier.
+    ///   - apiKey: An optional API key for request authentication.
+    ///   - isEnabled: Whether the integration is active. Defaults to `false`.
+    ///   - pollingInterval: How often to poll for policy updates, in seconds. Defaults to `300`.
+    init(
+        serverURL: URL? = nil,
+        organizationID: String = "",
+        apiKey: String? = nil,
+        isEnabled: Bool = false,
+        pollingInterval: TimeInterval = 300
+    ) {
+        self.serverURL = serverURL
+        self.organizationID = organizationID
+        self.apiKey = apiKey
+        self.isEnabled = isEnabled
+        self.pollingInterval = pollingInterval
+    }
+
+    // MARK: Internal
+
+    // MARK: - Empty Sentinel
+
+    /// An `AdminConsoleConfiguration` with no server, no organization, and the integration disabled.
+    ///
+    /// Use this as a safe zero-value before any admin console configuration has been applied.
+    static let empty = AdminConsoleConfiguration(
+        serverURL: nil,
+        organizationID: "",
+        apiKey: nil,
+        isEnabled: false,
+        pollingInterval: 300
+    )
 
     // MARK: - Connection
 
@@ -54,49 +94,10 @@ struct AdminConsoleConfiguration: Codable, Equatable, Sendable {
     /// value appropriate for their organization's network constraints and policy cadence.
     var pollingInterval: TimeInterval
 
-    // MARK: - Initialization
-
-    /// Creates an admin console configuration with the given connection parameters.
-    ///
-    /// - Parameters:
-    ///   - serverURL: The base URL of the admin console server.
-    ///   - organizationID: The tenant organization identifier.
-    ///   - apiKey: An optional API key for request authentication.
-    ///   - isEnabled: Whether the integration is active. Defaults to `false`.
-    ///   - pollingInterval: How often to poll for policy updates, in seconds. Defaults to `300`.
-    init(
-        serverURL: URL? = nil,
-        organizationID: String = "",
-        apiKey: String? = nil,
-        isEnabled: Bool = false,
-        pollingInterval: TimeInterval = 300
-    ) {
-        self.serverURL = serverURL
-        self.organizationID = organizationID
-        self.apiKey = apiKey
-        self.isEnabled = isEnabled
-        self.pollingInterval = pollingInterval
-    }
-
-    // MARK: - Computed Properties
-
     /// `true` when both a server URL and a non-empty organization ID have been supplied.
     ///
     /// Use this to guard connection attempts and to show configuration-required prompts in the UI.
     var isConfigured: Bool {
         serverURL != nil && !organizationID.isEmpty
     }
-
-    // MARK: - Empty Sentinel
-
-    /// An `AdminConsoleConfiguration` with no server, no organization, and the integration disabled.
-    ///
-    /// Use this as a safe zero-value before any admin console configuration has been applied.
-    static let empty = AdminConsoleConfiguration(
-        serverURL: nil,
-        organizationID: "",
-        apiKey: nil,
-        isEnabled: false,
-        pollingInterval: 300
-    )
 }

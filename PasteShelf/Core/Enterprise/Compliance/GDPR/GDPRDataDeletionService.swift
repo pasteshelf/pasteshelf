@@ -21,8 +21,7 @@ import Security
 /// A `GDPRDeletionReport` is returned describing the outcome of each category.
 /// The deletion event itself is logged to the audit trail *before* audit logs are erased.
 struct GDPRDataDeletionService: Sendable {
-
-    private static let logger = Logger.compliance
+    // MARK: Internal
 
     // MARK: - Deletion
 
@@ -94,7 +93,11 @@ struct GDPRDataDeletionService: Sendable {
 
         // 9. Keychain items
         let keychainSuccess = deleteKeychainItems()
-        categories.append(.init(name: "Keychain Items", deletedCount: keychainSuccess ? 2 : 0, success: keychainSuccess))
+        categories.append(.init(
+            name: "Keychain Items",
+            deletedCount: keychainSuccess ? 2 : 0,
+            success: keychainSuccess
+        ))
 
         // 10. UserDefaults
         let defaultsCount = clearUserDefaults()
@@ -105,9 +108,16 @@ struct GDPRDataDeletionService: Sendable {
             completedAt: Date()
         )
 
-        logger.info("GDPR data deletion: complete. \(report.totalDeleted) items removed across \(categories.count) categories")
+        logger
+            .info(
+                "GDPR data deletion: complete. \(report.totalDeleted) items removed across \(categories.count) categories"
+            )
         return report
     }
+
+    // MARK: Private
+
+    private static let logger = Logger.compliance
 
     // MARK: - Entity Deletion
 
@@ -118,7 +128,7 @@ struct GDPRDataDeletionService: Sendable {
     ///   - entityName: The entity name in the CoreData model.
     /// - Returns: The number of deleted records, or -1 if the operation failed.
     @MainActor
-    private static func deleteAllEntities<T: NSManagedObject>(_ type: T.Type, entityName: String) async -> Int {
+    private static func deleteAllEntities(_ type: (some NSManagedObject).Type, entityName: String) async -> Int {
         let context = StorageManager.shared.newBackgroundContext()
 
         return await context.perform {
@@ -144,17 +154,17 @@ struct GDPRDataDeletionService: Sendable {
     private static func deleteKeychainItems() -> Bool {
         let tags = [
             "com.pasteshelf.audit.detail.key",
-            "com.pasteshelf.sync.encryption.key"
+            "com.pasteshelf.sync.encryption.key",
         ]
 
         var allSuccess = true
         for tag in tags {
             let query: [String: Any] = [
                 kSecClass as String: kSecClassGenericPassword,
-                kSecAttrService as String: tag
+                kSecAttrService as String: tag,
             ]
             let status = SecItemDelete(query as CFDictionary)
-            if status != errSecSuccess && status != errSecItemNotFound {
+            if status != errSecSuccess, status != errSecItemNotFound {
                 logger.warning("GDPR deletion: failed to delete Keychain item \(tag) (status: \(status))")
                 allSuccess = false
             }
@@ -177,7 +187,7 @@ struct GDPRDataDeletionService: Sendable {
             "maxHistoryCount",
             "autoDeleteAfterDays",
             "excludeSensitiveData",
-            "monitoringEnabled"
+            "monitoringEnabled",
         ]
 
         var count = 0
@@ -199,6 +209,34 @@ struct GDPRDataDeletionService: Sendable {
 
 /// Report detailing the outcome of a GDPR Article 17 data deletion.
 struct GDPRDeletionReport: Codable, Sendable, Identifiable {
+    // MARK: Lifecycle
+
+    init(id: UUID = UUID(), categories: [CategoryResult], completedAt: Date = Date()) {
+        self.id = id
+        self.categories = categories
+        self.completedAt = completedAt
+    }
+
+    // MARK: Internal
+
+    /// Result for a single data category in the deletion process.
+    struct CategoryResult: Codable, Sendable, Identifiable {
+        // MARK: Lifecycle
+
+        init(id: UUID = UUID(), name: String, deletedCount: Int, success: Bool) {
+            self.id = id
+            self.name = name
+            self.deletedCount = deletedCount
+            self.success = success
+        }
+
+        // MARK: Internal
+
+        let id: UUID
+        let name: String
+        let deletedCount: Int
+        let success: Bool
+    }
 
     let id: UUID
     let categories: [CategoryResult]
@@ -217,26 +255,5 @@ struct GDPRDeletionReport: Codable, Sendable, Identifiable {
     /// Categories that failed during deletion.
     var failedCategories: [CategoryResult] {
         categories.filter { !$0.success }
-    }
-
-    init(id: UUID = UUID(), categories: [CategoryResult], completedAt: Date = Date()) {
-        self.id = id
-        self.categories = categories
-        self.completedAt = completedAt
-    }
-
-    /// Result for a single data category in the deletion process.
-    struct CategoryResult: Codable, Sendable, Identifiable {
-        let id: UUID
-        let name: String
-        let deletedCount: Int
-        let success: Bool
-
-        init(id: UUID = UUID(), name: String, deletedCount: Int, success: Bool) {
-            self.id = id
-            self.name = name
-            self.deletedCount = deletedCount
-            self.success = success
-        }
     }
 }

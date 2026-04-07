@@ -2,6 +2,19 @@ import Fluent
 import Vapor
 
 final class User: Model, Content, @unchecked Sendable {
+    // MARK: Lifecycle
+
+    init() {}
+
+    init(id: UUID? = nil, externalID: String, orgID: String, email: String? = nil) {
+        self.id = id
+        self.externalID = externalID
+        self.orgID = orgID
+        self.email = email
+    }
+
+    // MARK: Internal
+
     static let schema = "users"
 
     @ID(key: .id) var id: UUID?
@@ -13,13 +26,4 @@ final class User: Model, Content, @unchecked Sendable {
 
     @Children(for: \.$user) var devices: [Device]
     @Children(for: \.$user) var syncRecords: [SyncRecord]
-
-    init() {}
-
-    init(id: UUID? = nil, externalID: String, orgID: String, email: String? = nil) {
-        self.id = id
-        self.externalID = externalID
-        self.orgID = orgID
-        self.email = email
-    }
 }

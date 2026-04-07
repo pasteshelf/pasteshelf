@@ -6,8 +6,10 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
+
+// MARK: - SensitiveDataDetectorTests
 
 struct SensitiveDataDetectorTests {
     let detector = SensitiveDataDetector()
@@ -42,7 +44,7 @@ struct SensitiveDataDetectorTests {
 
     @Test("Detects valid Visa card number")
     func detectsValidVisaCard() {
-        let text = "Card: 4111111111111111"  // Valid Luhn
+        let text = "Card: 4111111111111111" // Valid Luhn
         let result = detector.analyze(text: text)
 
         #expect(result.isSensitive)
@@ -51,7 +53,7 @@ struct SensitiveDataDetectorTests {
 
     @Test("Detects formatted credit card")
     func detectsFormattedCreditCard() {
-        let text = "Card: 4111-1111-1111-1111"  // Valid Luhn with dashes
+        let text = "Card: 4111-1111-1111-1111" // Valid Luhn with dashes
         let result = detector.analyze(text: text)
 
         #expect(result.isSensitive)
@@ -59,7 +61,7 @@ struct SensitiveDataDetectorTests {
 
     @Test("Rejects invalid Luhn number")
     func rejectsInvalidLuhnNumber() {
-        let text = "Number: 4111111111111112"  // Invalid Luhn
+        let text = "Number: 4111111111111112" // Invalid Luhn
         let result = detector.analyze(text: text)
 
         // Should not detect as credit card due to failed Luhn check
@@ -202,7 +204,7 @@ struct SensitiveDataDetectorTests {
     }
 }
 
-// MARK: - Luhn Validator Tests
+// MARK: - LuhnValidatorTests
 
 struct LuhnValidatorTests {
     @Test("Valid Visa number passes Luhn")

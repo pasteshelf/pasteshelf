@@ -7,9 +7,11 @@
 
 import SwiftUI
 
+// MARK: - RuleBuilderView
+
 /// View for building and editing collection rules
 struct RuleBuilderView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     /// The rules being edited
     @Binding var rules: CollectionRules
@@ -31,6 +33,8 @@ struct RuleBuilderView: View {
         .background(Color.secondary.opacity(0.05))
         .cornerRadius(8)
     }
+
+    // MARK: Private
 
     // MARK: - Header
 
@@ -111,8 +115,6 @@ struct RuleBuilderView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Actions
-
     private func addCondition() {
         let newCondition = RuleCondition(
             field: .contentType,
@@ -132,6 +134,15 @@ struct RuleBuilderView: View {
 #if DEBUG
     struct RuleBuilderView_Previews: PreviewProvider {
         struct PreviewWrapper: View {
+            // MARK: Internal
+
+            var body: some View {
+                RuleBuilderView(rules: $rules)
+                    .padding()
+            }
+
+            // MARK: Private
+
             @State private var rules = CollectionRules(
                 conditions: [
                     RuleCondition(field: .contentType, comparisonOperator: .equals, value: "images"),
@@ -139,11 +150,6 @@ struct RuleBuilderView: View {
                 ],
                 logicalOperator: .and
             )
-
-            var body: some View {
-                RuleBuilderView(rules: $rules)
-                    .padding()
-            }
         }
 
         static var previews: some View {

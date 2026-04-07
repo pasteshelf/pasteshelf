@@ -6,9 +6,9 @@
 //
 
 import Foundation
+@testable import PasteShelf
 import Testing
 import UniformTypeIdentifiers
-@testable import PasteShelf
 
 struct ContentTypeTests {
     // MARK: - Priority Tests

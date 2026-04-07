@@ -24,8 +24,7 @@ import os.log
 /// - `chain_verification.json` — summary of the hash chain
 /// - `verification_instructions.md` — instructions for independent verification
 struct SOC2AuditTrailExporter: Sendable {
-
-    private static let logger = Logger.compliance
+    // MARK: Internal
 
     // MARK: - Export
 
@@ -68,11 +67,10 @@ struct SOC2AuditTrailExporter: Sendable {
             let hash = SHA256.hash(data: Data(hashInput.utf8))
             let hashString = hash.compactMap { String(format: "%02x", $0) }.joined()
 
-            let detail: [String: String]?
-            if let detailDict = try? storage.decryptDetail(for: entry) {
-                detail = detailDict
+            let detail: [String: String]? = if let detailDict = try? storage.decryptDetail(for: entry) {
+                detailDict
             } else {
-                detail = nil
+                nil
             }
 
             let chained = ChainedAuditEvent(
@@ -101,7 +99,8 @@ struct SOC2AuditTrailExporter: Sendable {
         do {
             try FileManager.default.createDirectory(at: exportDir, withIntermediateDirectories: true)
         } catch {
-            throw ComplianceError.reportGenerationFailed("Failed to create export directory: \(error.localizedDescription)")
+            throw ComplianceError
+                .reportGenerationFailed("Failed to create export directory: \(error.localizedDescription)")
         }
 
         let encoder = JSONEncoder()
@@ -145,6 +144,10 @@ struct SOC2AuditTrailExporter: Sendable {
             throw ComplianceError.reportGenerationFailed("Export failed: \(error.localizedDescription)")
         }
     }
+
+    // MARK: Private
+
+    private static let logger = Logger.compliance
 
     // MARK: - Verification Instructions
 
@@ -216,7 +219,7 @@ struct SOC2AuditTrailExporter: Sendable {
     }
 }
 
-// MARK: - Supporting Types
+// MARK: - ChainedAuditEvent
 
 /// An audit event with its integrity hash for the hash chain.
 private struct ChainedAuditEvent: Codable, Sendable {
@@ -233,6 +236,8 @@ private struct ChainedAuditEvent: Codable, Sendable {
     let integrityHash: String
     let previousHash: String
 }
+
+// MARK: - ChainVerification
 
 /// Summary of the hash chain for independent verification.
 private struct ChainVerification: Codable, Sendable {

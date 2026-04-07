@@ -15,7 +15,9 @@ extension StorageManager {
     /// - Parameter item: The item to delete
     /// - Returns: True if deletion succeeded
     func delete(item: ClipboardItem) async -> Bool {
-        guard let itemId = item.id else { return false }
+        guard let itemId = item.id else {
+            return false
+        }
 
         do {
             try await performBackgroundTask { context in
@@ -71,7 +73,7 @@ extension StorageManager {
             let request = ClipboardItem.fetchRequest()
 
             var predicates: [NSPredicate] = [
-                NSPredicate(format: "timestamp < %@", date as NSDate)
+                NSPredicate(format: "timestamp < %@", date as NSDate),
             ]
 
             if keepFavorites {
@@ -181,7 +183,9 @@ extension StorageManager {
     /// - Parameter tag: The tag to delete
     /// - Returns: True if deletion succeeded
     func delete(tag: Tag) async -> Bool {
-        guard let tagId = tag.id else { return false }
+        guard let tagId = tag.id else {
+            return false
+        }
 
         do {
             try await performBackgroundTask { context in
@@ -205,7 +209,9 @@ extension StorageManager {
     /// - Parameter folder: The folder to delete
     /// - Returns: True if deletion succeeded
     func delete(folder: Folder) async -> Bool {
-        guard let folderId = folder.id else { return false }
+        guard let folderId = folder.id else {
+            return false
+        }
 
         do {
             try await performBackgroundTask { context in
@@ -246,7 +252,9 @@ extension StorageManager {
     ///   - itemIds: The clipboard item IDs whose caches should be removed
     ///   - context: The managed object context to use
     static func deleteCacheEntries(for itemIds: [UUID], in context: NSManagedObjectContext) {
-        guard !itemIds.isEmpty else { return }
+        guard !itemIds.isEmpty else {
+            return
+        }
 
         // Delete embedding cache entries
         let embeddingRequest = EmbeddingCache.fetchRequest()

@@ -17,16 +17,7 @@ import os.log
 /// batch size threshold is reached or when the auto-flush timer fires. This
 /// reduces network overhead and improves reliability on intermittent connections.
 final class AnalyticsReporter {
-
-    // MARK: - Properties
-
-    private let apiClient: AdminAPIProviding
-    private var pendingEvents: [AdminAnalyticsEvent] = []
-    private var flushTimer: Timer?
-    private let batchSize: Int
-    private let flushInterval: TimeInterval
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "analytics")
-    private let lock = NSLock()
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -46,6 +37,17 @@ final class AnalyticsReporter {
         self.apiClient = apiClient
         self.batchSize = batchSize
         self.flushInterval = flushInterval
+    }
+
+    // MARK: Internal
+
+    // MARK: - Accessors
+
+    /// The number of events currently waiting to be flushed to the admin console.
+    var pendingCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return pendingEvents.count
     }
 
     // MARK: - Tracking
@@ -80,10 +82,10 @@ final class AnalyticsReporter {
         let shouldFlush = pendingEvents.count >= batchSize
         lock.unlock()
 
-        logger.debug("Tracked event '\(eventType.rawValue)' for device '\(deviceId)'. Pending: \(self.pendingCount).")
+        logger.debug("Tracked event '\(eventType.rawValue)' for device '\(deviceId)'. Pending: \(pendingCount).")
 
         if shouldFlush {
-            logger.info("Batch size threshold reached (\(self.batchSize)). Triggering async flush.")
+            logger.info("Batch size threshold reached (\(batchSize)). Triggering async flush.")
             Task {
                 do {
                     try await flush()
@@ -122,7 +124,10 @@ final class AnalyticsReporter {
             try await apiClient.submitAnalyticsEvents(eventsToSubmit)
             logger.info("Successfully submitted \(eventsToSubmit.count) analytics event(s).")
         } catch {
-            logger.error("Failed to submit analytics events: \(error.localizedDescription). Re-queuing \(eventsToSubmit.count) event(s).")
+            logger
+                .error(
+                    "Failed to submit analytics events: \(error.localizedDescription). Re-queuing \(eventsToSubmit.count) event(s)."
+                )
             // Restore events to the front of the pending queue (best effort).
             lock.lock()
             pendingEvents = eventsToSubmit + pendingEvents
@@ -141,8 +146,10 @@ final class AnalyticsReporter {
     func startAutoFlush() {
         stopAutoFlush()
         flushTimer = Timer.scheduledTimer(withTimeInterval: flushInterval, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            self.logger.debug("Auto-flush timer fired.")
+            guard let self else {
+                return
+            }
+            logger.debug("Auto-flush timer fired.")
             Task {
                 do {
                     try await self.flush()
@@ -151,7 +158,7 @@ final class AnalyticsReporter {
                 }
             }
         }
-        logger.info("Auto-flush timer started with interval \(self.flushInterval)s.")
+        logger.info("Auto-flush timer started with interval \(flushInterval)s.")
     }
 
     /// Stops the periodic auto-flush timer.
@@ -164,12 +171,13 @@ final class AnalyticsReporter {
         logger.debug("Auto-flush timer stopped.")
     }
 
-    // MARK: - Accessors
+    // MARK: Private
 
-    /// The number of events currently waiting to be flushed to the admin console.
-    var pendingCount: Int {
-        lock.lock()
-        defer { lock.unlock() }
-        return pendingEvents.count
-    }
+    private let apiClient: AdminAPIProviding
+    private var pendingEvents: [AdminAnalyticsEvent] = []
+    private var flushTimer: Timer?
+    private let batchSize: Int
+    private let flushInterval: TimeInterval
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "analytics")
+    private let lock = NSLock()
 }

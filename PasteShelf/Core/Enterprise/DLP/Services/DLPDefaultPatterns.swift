@@ -18,7 +18,6 @@ import Foundation
 /// All rules default to `isEnabled == true` and are ready to be inserted into a
 /// `DLPPolicy` without further configuration.
 enum DLPDefaultPatterns {
-
     // MARK: - Credit Card Patterns
 
     /// Returns DLP rules for detecting payment card numbers.
@@ -43,7 +42,7 @@ enum DLPDefaultPatterns {
                 pattern: "\\b(?:\\d{4}[- ]?){3}\\d{4}\\b",
                 severity: .high,
                 actions: [.alert, .logOnly]
-            )
+            ),
         ]
     }
 
@@ -71,7 +70,7 @@ enum DLPDefaultPatterns {
                 pattern: "\\b(?:ssn|social[_\\s-]?security)[:\\s]+\\d{9}\\b",
                 severity: .high,
                 actions: [.alert, .logOnly]
-            )
+            ),
         ]
     }
 
@@ -155,7 +154,7 @@ enum DLPDefaultPatterns {
                 pattern: "[Bb]earer\\s+[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+",
                 severity: .high,
                 actions: [.alert, .logOnly]
-            )
+            ),
         ]
     }
 
@@ -183,7 +182,7 @@ enum DLPDefaultPatterns {
                 pattern: "\\b(?:passport)[:\\s]+[A-Z0-9]{6,9}\\b",
                 severity: .high,
                 actions: [.alert, .logOnly]
-            )
+            ),
         ]
     }
 
@@ -211,7 +210,7 @@ enum DLPDefaultPatterns {
                 pattern: "\\b(?:member[_\\s-]?id|insurance[_\\s-]?id)[:\\s]+[A-Z0-9]{8,15}\\b",
                 severity: .high,
                 actions: [.alert, .logOnly]
-            )
+            ),
         ]
     }
 
@@ -258,7 +257,7 @@ enum DLPDefaultPatterns {
                 pattern: "-----BEGIN PGP PRIVATE KEY BLOCK-----",
                 severity: .critical,
                 actions: [.block, .alert, .logOnly]
-            )
+            ),
         ]
     }
 

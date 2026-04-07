@@ -8,23 +8,11 @@
 
 import SwiftUI
 
+// MARK: - SearchTabView
+
 /// Search settings tab view
 struct SearchTabView: View {
-    // MARK: - Properties
-
-    @ObservedObject private var settingsManager = SettingsManager.shared
-    @ObservedObject private var embeddingGenerator = EmbeddingGenerator.shared
-    @ObservedObject private var ocrGenerator = OCRGenerator.shared
-
-    @State private var showingClearConfirmation = false
-    @State private var showingOCRClearConfirmation = false
-    @State private var indexedCount: Int = 0
-    @State private var ocrProcessedCount: Int = 0
-
-    private var semanticSearchEnabled: Bool { settingsManager.search.semanticSearchEnabled }
-    private var semanticThreshold: Double { settingsManager.search.semanticThreshold }
-    private var ocrSearchEnabled: Bool { settingsManager.search.ocrSearchEnabled }
-    private var ocrConfidenceThreshold: Double { settingsManager.search.ocrConfidenceThreshold }
+    // MARK: Internal
 
     // MARK: - Body
 
@@ -84,8 +72,37 @@ struct SearchTabView: View {
                 clearOCRCache()
             }
         } message: {
-            Text("This will delete all extracted text from images. The cache will be rebuilt when you process images again.")
+            Text(
+                "This will delete all extracted text from images. The cache will be rebuilt when you process images again."
+            )
         }
+    }
+
+    // MARK: Private
+
+    @ObservedObject private var settingsManager = SettingsManager.shared
+    @ObservedObject private var embeddingGenerator = EmbeddingGenerator.shared
+    @ObservedObject private var ocrGenerator = OCRGenerator.shared
+
+    @State private var showingClearConfirmation = false
+    @State private var showingOCRClearConfirmation = false
+    @State private var indexedCount: Int = 0
+    @State private var ocrProcessedCount: Int = 0
+
+    private var semanticSearchEnabled: Bool {
+        settingsManager.search.semanticSearchEnabled
+    }
+
+    private var semanticThreshold: Double {
+        settingsManager.search.semanticThreshold
+    }
+
+    private var ocrSearchEnabled: Bool {
+        settingsManager.search.ocrSearchEnabled
+    }
+
+    private var ocrConfidenceThreshold: Double {
+        settingsManager.search.ocrConfidenceThreshold
     }
 
     // MARK: - Search Settings Section
@@ -124,9 +141,11 @@ struct SearchTabView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            Text("Find items with natural language like \"that email from last week\" or \"code snippet with function\".")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text(
+                "Find items with natural language like \"that email from last week\" or \"code snippet with function\"."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
 
@@ -145,7 +164,7 @@ struct SearchTabView: View {
                     get: { settingsManager.search.semanticThreshold },
                     set: { newValue in settingsManager.update { $0.search.semanticThreshold = newValue } }
                 ),
-                in: 0.3...0.8,
+                in: 0.3 ... 0.8,
                 step: 0.05
             )
 
@@ -196,7 +215,7 @@ struct SearchTabView: View {
                     get: { settingsManager.search.ocrConfidenceThreshold },
                     set: { newValue in settingsManager.update { $0.search.ocrConfidenceThreshold = newValue } }
                 ),
-                in: 0.3...0.9,
+                in: 0.3 ... 0.9,
                 step: 0.05
             )
 
@@ -336,8 +355,6 @@ struct SearchTabView: View {
             .disabled(embeddingGenerator.isIndexing)
         }
     }
-
-    // MARK: - Actions
 
     private func loadIndexedCount() async {
         indexedCount = await embeddingGenerator.indexedItemCount()

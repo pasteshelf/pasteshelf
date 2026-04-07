@@ -8,7 +8,7 @@
 
 import Foundation
 
-// MARK: - SyncBackend Protocol
+// MARK: - SyncBackend
 
 /// Backend-agnostic protocol for sync operations.
 ///
@@ -19,7 +19,6 @@ import Foundation
 /// Implementations must be `Sendable` because `SyncManager` may call methods from
 /// different isolation contexts (e.g., background tasks, network callbacks).
 public protocol SyncBackend: Sendable {
-
     /// Check whether the backend is reachable and the user is authenticated.
     func checkAvailability() async throws -> SyncBackendStatus
 
@@ -73,6 +72,22 @@ public enum SyncBackendStatus: Sendable, Equatable {
 
 /// Result of pushing changes to a sync backend.
 public struct SyncPushResult: Sendable {
+    // MARK: Lifecycle
+
+    public init(
+        accepted: Int,
+        conflicts: [SyncConflict] = [],
+        newToken: Data? = nil,
+        serverTimestamp: Date = Date()
+    ) {
+        self.accepted = accepted
+        self.conflicts = conflicts
+        self.newToken = newToken
+        self.serverTimestamp = serverTimestamp
+    }
+
+    // MARK: Public
+
     /// Number of changes accepted by the server.
     public let accepted: Int
 
@@ -87,24 +102,22 @@ public struct SyncPushResult: Sendable {
 
     /// Server timestamp at the time of processing.
     public let serverTimestamp: Date
-
-    public init(
-        accepted: Int,
-        conflicts: [SyncConflict] = [],
-        newToken: Data? = nil,
-        serverTimestamp: Date = Date()
-    ) {
-        self.accepted = accepted
-        self.conflicts = conflicts
-        self.newToken = newToken
-        self.serverTimestamp = serverTimestamp
-    }
 }
 
 // MARK: - SyncConflict
 
 /// A conflict between a local change and the server's current version.
 public struct SyncConflict: Sendable {
+    // MARK: Lifecycle
+
+    public init(entityID: UUID, serverEncryptedData: Data?, serverTimestamp: Date) {
+        self.entityID = entityID
+        self.serverEncryptedData = serverEncryptedData
+        self.serverTimestamp = serverTimestamp
+    }
+
+    // MARK: Public
+
     /// The entity that has a conflict.
     public let entityID: UUID
 
@@ -113,18 +126,22 @@ public struct SyncConflict: Sendable {
 
     /// When the server's version was last modified.
     public let serverTimestamp: Date
-
-    public init(entityID: UUID, serverEncryptedData: Data?, serverTimestamp: Date) {
-        self.entityID = entityID
-        self.serverEncryptedData = serverEncryptedData
-        self.serverTimestamp = serverTimestamp
-    }
 }
 
 // MARK: - SyncPullResult
 
 /// Result of pulling changes from a sync backend.
 public struct SyncPullResult: Sendable {
+    // MARK: Lifecycle
+
+    public init(changes: [SyncChange], newToken: Data?, hasMore: Bool = false) {
+        self.changes = changes
+        self.newToken = newToken
+        self.hasMore = hasMore
+    }
+
+    // MARK: Public
+
     /// Remote changes since the requested token.
     public let changes: [SyncChange]
 
@@ -134,12 +151,6 @@ public struct SyncPullResult: Sendable {
     /// If `true`, more changes are available. Call `pullChanges` again with
     /// the `newToken` to continue.
     public let hasMore: Bool
-
-    public init(changes: [SyncChange], newToken: Data?, hasMore: Bool = false) {
-        self.changes = changes
-        self.newToken = newToken
-        self.hasMore = hasMore
-    }
 }
 
 // MARK: - SyncNotification
@@ -149,17 +160,7 @@ public struct SyncPullResult: Sendable {
 /// Delivered via `subscribeToChanges`. The client should call `pullChanges`
 /// in response rather than expecting data in the notification itself.
 public struct SyncNotification: Sendable {
-    /// The type of notification.
-    public let type: NotificationType
-
-    /// An opaque token indicating the point-in-time of the notification.
-    public let sinceToken: Data?
-
-    /// Number of changes available (hint for UI).
-    public let changeCount: Int
-
-    /// The device that originated the changes (if known).
-    public let sourceDeviceID: String?
+    // MARK: Lifecycle
 
     public init(
         type: NotificationType,
@@ -172,6 +173,8 @@ public struct SyncNotification: Sendable {
         self.changeCount = changeCount
         self.sourceDeviceID = sourceDeviceID
     }
+
+    // MARK: Public
 
     /// Types of sync notifications.
     public enum NotificationType: String, Sendable {
@@ -187,6 +190,18 @@ public struct SyncNotification: Sendable {
         /// Authentication has expired and must be refreshed.
         case authExpired = "auth_expired"
     }
+
+    /// The type of notification.
+    public let type: NotificationType
+
+    /// An opaque token indicating the point-in-time of the notification.
+    public let sinceToken: Data?
+
+    /// Number of changes available (hint for UI).
+    public let changeCount: Int
+
+    /// The device that originated the changes (if known).
+    public let sourceDeviceID: String?
 }
 
 // MARK: - SyncBackendType

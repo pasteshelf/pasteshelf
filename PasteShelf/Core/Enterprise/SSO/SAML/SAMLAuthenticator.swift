@@ -12,18 +12,13 @@ import AuthenticationServices
 import Foundation
 import os.log
 
+// MARK: - SAMLAuthenticator
+
 /// SAML 2.0 SSO provider that handles the full SP-initiated authentication flow
 final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
-    // MARK: - Properties
+    // MARK: Internal
 
     let providerType: IdentityProviderType = .saml
-
-    private let parser = SAMLParser()
-    private let logoutHandler = SAMLLogoutHandler()
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "saml-auth")
-
-    /// Callback URL scheme for receiving SAML responses
-    private let callbackScheme = "pasteshelf"
 
     // MARK: - SSOProvider
 
@@ -85,7 +80,7 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
     func validateSession(_ session: SSOSession) async throws -> Bool {
         // SAML sessions are validated by checking expiry locally;
         // there is no standard SAML session validation endpoint
-        return session.isValid
+        session.isValid
     }
 
     func logout(session: SSOSession) async throws {
@@ -93,7 +88,8 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
         guard let providerStore = await SSOManager.shared.providerStore,
               let provider = try await providerStore.load(id: session.providerId),
               let samlConfig = provider.samlConfig,
-              samlConfig.sloURL != nil else {
+              samlConfig.sloURL != nil
+        else {
             logger.info("No SLO endpoint configured, skipping IdP logout")
             return
         }
@@ -160,6 +156,15 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
         </samlp:AuthnRequest>
         """
     }
+
+    // MARK: Private
+
+    private let parser = SAMLParser()
+    private let logoutHandler = SAMLLogoutHandler()
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "saml-auth")
+
+    /// Callback URL scheme for receiving SAML responses
+    private let callbackScheme = "pasteshelf"
 
     // MARK: - Browser Authentication
 
@@ -267,7 +272,7 @@ final class SAMLAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
     }
 }
 
-// MARK: - ASWebAuthenticationPresentationContextProviding
+// MARK: ASWebAuthenticationPresentationContextProviding
 
 extension SAMLAuthenticator: ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {

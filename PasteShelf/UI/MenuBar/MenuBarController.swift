@@ -10,34 +10,12 @@ import AppKit
 import Combine
 import os.log
 
+// MARK: - MenuBarController
+
 /// Manages the menu bar status item and its interactions
 @MainActor
 final class MenuBarController: NSObject, ObservableObject {
-    // MARK: - Properties
-
-    /// The status item displayed in the menu bar
-    private var statusItem: NSStatusItem?
-
-    /// Current menu bar state
-    @Published private(set) var state: MenuBarState = .idle
-
-    /// Reference to the floating panel controller
-    weak var panelController: FloatingPanelController?
-
-    /// Storage manager for fetching recent items
-    private let storageManager: StorageManager
-
-    /// Cancellables for Combine subscriptions
-    private var cancellables = Set<AnyCancellable>()
-
-    /// Maximum number of recent items to show in menu
-    private let maxRecentItems = 5
-
-    /// Logger for menu bar operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "menubar"
-    )
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -45,6 +23,14 @@ final class MenuBarController: NSObject, ObservableObject {
         self.storageManager = storageManager
         super.init()
     }
+
+    // MARK: Internal
+
+    /// Current menu bar state
+    @Published private(set) var state: MenuBarState = .idle
+
+    /// Reference to the floating panel controller
+    weak var panelController: FloatingPanelController?
 
     // MARK: - Setup
 
@@ -67,20 +53,20 @@ final class MenuBarController: NSObject, ObservableObject {
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
 
         #if !APP_STORE
-        // Observe plugin changes to refresh menu when plugin items change
-        NotificationCenter.default.publisher(for: .pluginMenuItemsChanged)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.logger.debug("Plugin menu items changed, menu will refresh on next open")
-            }
-            .store(in: &cancellables)
+            // Observe plugin changes to refresh menu when plugin items change
+            NotificationCenter.default.publisher(for: .pluginMenuItemsChanged)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    self?.logger.debug("Plugin menu items changed, menu will refresh on next open")
+                }
+                .store(in: &cancellables)
 
-        NotificationCenter.default.publisher(for: .pluginActionsChanged)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.logger.debug("Plugin actions changed, menu will refresh on next open")
-            }
-            .store(in: &cancellables)
+            NotificationCenter.default.publisher(for: .pluginActionsChanged)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    self?.logger.debug("Plugin actions changed, menu will refresh on next open")
+                }
+                .store(in: &cancellables)
         #endif
 
         logger.info("Menu bar status item configured")
@@ -88,7 +74,7 @@ final class MenuBarController: NSObject, ObservableObject {
 
     /// Removes the status item from the menu bar
     func teardown() {
-        if let statusItem = statusItem {
+        if let statusItem {
             NSStatusBar.system.removeStatusItem(statusItem)
         }
         statusItem = nil
@@ -114,6 +100,26 @@ final class MenuBarController: NSObject, ObservableObject {
             self?.updateState(previousState == .active ? .idle : previousState)
         }
     }
+
+    // MARK: Private
+
+    /// The status item displayed in the menu bar
+    private var statusItem: NSStatusItem?
+
+    /// Storage manager for fetching recent items
+    private let storageManager: StorageManager
+
+    /// Cancellables for Combine subscriptions
+    private var cancellables = Set<AnyCancellable>()
+
+    /// Maximum number of recent items to show in menu
+    private let maxRecentItems = 5
+
+    /// Logger for menu bar operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "menubar"
+    )
 
     // MARK: - Click Handling
 
@@ -238,11 +244,10 @@ final class MenuBarController: NSObject, ObservableObject {
                 .replacingOccurrences(of: "\t", with: " ")
                 .trimmingCharacters(in: .whitespaces)
 
-            let result: String
-            if cleaned.count <= maxLength {
-                result = cleaned
+            let result: String = if cleaned.count <= maxLength {
+                cleaned
             } else {
-                result = String(cleaned.prefix(maxLength - 3)) + "..."
+                String(cleaned.prefix(maxLength - 3)) + "..."
             }
 
             // Also cap by rendered pixel width to handle wide glyphs (em dashes, CJK)
@@ -297,7 +302,9 @@ final class MenuBarController: NSObject, ObservableObject {
     }
 
     @objc private func recentItemClicked(_ sender: NSMenuItem) {
-        guard let itemId = sender.representedObject as? UUID else { return }
+        guard let itemId = sender.representedObject as? UUID else {
+            return
+        }
 
         // Post notification to paste the item
         NotificationCenter.default.post(

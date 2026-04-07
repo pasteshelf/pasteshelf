@@ -23,20 +23,7 @@ import Foundation
 /// Use `effectiveValue(for:)` to retrieve the right value for any key without
 /// having to check both dictionaries manually.
 struct MDMConfiguration: Equatable, Sendable {
-
-    // MARK: - Properties
-
-    /// Admin-locked settings that users cannot change.
-    ///
-    /// Typically sourced from the `forcedPreferences` key inside a
-    /// `com.apple.configuration.managed` payload.
-    let forcedPreferences: [ManagedPreferenceKey: PreferenceValue]
-
-    /// Admin-supplied default settings that users may override.
-    ///
-    /// Typically sourced from the `defaultPreferences` key inside a
-    /// `com.apple.configuration.managed` payload.
-    let defaultPreferences: [ManagedPreferenceKey: PreferenceValue]
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -53,7 +40,24 @@ struct MDMConfiguration: Equatable, Sendable {
         self.defaultPreferences = defaultPreferences
     }
 
-    // MARK: - Computed Properties
+    // MARK: Internal
+
+    // MARK: - Empty Sentinel
+
+    /// An MDMConfiguration with no preferences — represents an unmanaged device.
+    static let empty = MDMConfiguration(forcedPreferences: [:], defaultPreferences: [:])
+
+    /// Admin-locked settings that users cannot change.
+    ///
+    /// Typically sourced from the `forcedPreferences` key inside a
+    /// `com.apple.configuration.managed` payload.
+    let forcedPreferences: [ManagedPreferenceKey: PreferenceValue]
+
+    /// Admin-supplied default settings that users may override.
+    ///
+    /// Typically sourced from the `defaultPreferences` key inside a
+    /// `com.apple.configuration.managed` payload.
+    let defaultPreferences: [ManagedPreferenceKey: PreferenceValue]
 
     /// `true` when at least one forced or default preference has been set by an MDM administrator.
     ///
@@ -80,9 +84,4 @@ struct MDMConfiguration: Equatable, Sendable {
     func effectiveValue(for key: ManagedPreferenceKey) -> PreferenceValue? {
         forcedPreferences[key] ?? defaultPreferences[key]
     }
-
-    // MARK: - Empty Sentinel
-
-    /// An MDMConfiguration with no preferences — represents an unmanaged device.
-    static let empty = MDMConfiguration(forcedPreferences: [:], defaultPreferences: [:])
 }

@@ -8,6 +8,8 @@
 import XCTest
 
 final class OnboardingUITests: XCTestCase {
+    // MARK: Internal
+
     var app: XCUIApplication!
 
     override func setUpWithError() throws {
@@ -27,7 +29,7 @@ final class OnboardingUITests: XCTestCase {
     // MARK: - Welcome Step Tests
 
     @MainActor
-    func testWelcomeScreenDisplaysCorrectly() throws {
+    func testWelcomeScreenDisplaysCorrectly() {
         let window = app.windows["Welcome to PasteShelf"]
 
         // Check welcome screen elements
@@ -45,68 +47,68 @@ final class OnboardingUITests: XCTestCase {
     }
 
     #if !APP_STORE
-    @MainActor
-    func testContinueFromWelcomeToPermissions() throws {
-        let window = app.windows["Welcome to PasteShelf"]
+        @MainActor
+        func testContinueFromWelcomeToPermissions() {
+            let window = app.windows["Welcome to PasteShelf"]
 
-        // Click Continue
-        window.buttons["Continue"].click()
+            // Click Continue
+            window.buttons["Continue"].click()
 
-        // Wait for permissions screen
-        let permissionsText = window.staticTexts["Accessibility Permission"]
-        XCTAssertTrue(permissionsText.waitForExistence(timeout: 2))
-    }
+            // Wait for permissions screen
+            let permissionsText = window.staticTexts["Accessibility Permission"]
+            XCTAssertTrue(permissionsText.waitForExistence(timeout: 2))
+        }
 
-    // MARK: - Permissions Step Tests
+        // MARK: - Permissions Step Tests
 
-    @MainActor
-    func testPermissionsScreenDisplaysCorrectly() throws {
-        let window = app.windows["Welcome to PasteShelf"]
+        @MainActor
+        func testPermissionsScreenDisplaysCorrectly() {
+            let window = app.windows["Welcome to PasteShelf"]
 
-        // Navigate to permissions
-        window.buttons["Continue"].click()
+            // Navigate to permissions
+            window.buttons["Continue"].click()
 
-        // Check permissions screen elements
-        XCTAssertTrue(window.staticTexts["Accessibility Permission"].waitForExistence(timeout: 2))
+            // Check permissions screen elements
+            XCTAssertTrue(window.staticTexts["Accessibility Permission"].waitForExistence(timeout: 2))
 
-        // Check Open System Settings button
-        let settingsButton = window.buttons["Open System Settings"]
-        XCTAssertTrue(settingsButton.exists || window.staticTexts["Permission granted"].exists)
-    }
+            // Check Open System Settings button
+            let settingsButton = window.buttons["Open System Settings"]
+            XCTAssertTrue(settingsButton.exists || window.staticTexts["Permission granted"].exists)
+        }
 
-    @MainActor
-    func testBackButtonReturnsToWelcome() throws {
-        let window = app.windows["Welcome to PasteShelf"]
+        @MainActor
+        func testBackButtonReturnsToWelcome() {
+            let window = app.windows["Welcome to PasteShelf"]
 
-        // Navigate to permissions
-        window.buttons["Continue"].click()
+            // Navigate to permissions
+            window.buttons["Continue"].click()
 
-        // Wait for permissions screen
-        XCTAssertTrue(window.staticTexts["Accessibility Permission"].waitForExistence(timeout: 2))
+            // Wait for permissions screen
+            XCTAssertTrue(window.staticTexts["Accessibility Permission"].waitForExistence(timeout: 2))
 
-        // Click Back
-        window.buttons["Back"].click()
+            // Click Back
+            window.buttons["Back"].click()
 
-        // Should be back at welcome
-        XCTAssertTrue(window.staticTexts["Welcome to PasteShelf"].waitForExistence(timeout: 2))
-    }
+            // Should be back at welcome
+            XCTAssertTrue(window.staticTexts["Welcome to PasteShelf"].waitForExistence(timeout: 2))
+        }
     #else
-    @MainActor
-    func testContinueFromWelcomeToNotifications() throws {
-        let window = app.windows["Welcome to PasteShelf"]
+        @MainActor
+        func testContinueFromWelcomeToNotifications() {
+            let window = app.windows["Welcome to PasteShelf"]
 
-        // Click Continue — App Store skips Permissions, goes to Notifications
-        window.buttons["Continue"].click()
+            // Click Continue — App Store skips Permissions, goes to Notifications
+            window.buttons["Continue"].click()
 
-        let notificationsText = window.staticTexts["Notifications"]
-        XCTAssertTrue(notificationsText.waitForExistence(timeout: 2))
-    }
+            let notificationsText = window.staticTexts["Notifications"]
+            XCTAssertTrue(notificationsText.waitForExistence(timeout: 2))
+        }
     #endif
 
     // MARK: - Tutorial Step Tests
 
     @MainActor
-    func testTutorialScreenDisplaysCorrectly() throws {
+    func testTutorialScreenDisplaysCorrectly() {
         // Skip to tutorial (requires accessibility permission to be granted)
         navigateToTutorial()
 
@@ -118,7 +120,7 @@ final class OnboardingUITests: XCTestCase {
     }
 
     @MainActor
-    func testTutorialCanBeSkipped() throws {
+    func testTutorialCanBeSkipped() {
         navigateToTutorial()
 
         let window = app.windows["Welcome to PasteShelf"]
@@ -138,7 +140,7 @@ final class OnboardingUITests: XCTestCase {
     // MARK: - Hotkey Setup Tests
 
     @MainActor
-    func testHotkeySetupScreenDisplaysCorrectly() throws {
+    func testHotkeySetupScreenDisplaysCorrectly() {
         navigateToHotkeySetup()
 
         let window = app.windows["Welcome to PasteShelf"]
@@ -150,7 +152,7 @@ final class OnboardingUITests: XCTestCase {
     }
 
     @MainActor
-    func testHotkeyPresetButtons() throws {
+    func testHotkeyPresetButtons() {
         navigateToHotkeySetup()
 
         let window = app.windows["Welcome to PasteShelf"]
@@ -163,7 +165,7 @@ final class OnboardingUITests: XCTestCase {
     }
 
     @MainActor
-    func testCompleteOnboarding() throws {
+    func testCompleteOnboarding() {
         navigateToHotkeySetup()
 
         let window = app.windows["Welcome to PasteShelf"]
@@ -181,40 +183,42 @@ final class OnboardingUITests: XCTestCase {
     // MARK: - Progress Indicator Tests
 
     @MainActor
-    func testProgressIndicatorUpdates() throws {
+    func testProgressIndicatorUpdates() {
         let window = app.windows["Welcome to PasteShelf"]
 
         // Move to step 2
         window.buttons["Continue"].click()
 
         #if APP_STORE
-        // App Store: Welcome -> Notifications (skips Permissions)
-        XCTAssertTrue(window.staticTexts["Notifications"].waitForExistence(timeout: 2))
+            // App Store: Welcome -> Notifications (skips Permissions)
+            XCTAssertTrue(window.staticTexts["Notifications"].waitForExistence(timeout: 2))
         #else
-        // Direct: Welcome -> Permissions
-        XCTAssertTrue(window.staticTexts["Accessibility Permission"].waitForExistence(timeout: 2))
+            // Direct: Welcome -> Permissions
+            XCTAssertTrue(window.staticTexts["Accessibility Permission"].waitForExistence(timeout: 2))
         #endif
     }
+
+    // MARK: Private
 
     // MARK: - Helper Methods
 
     private func navigateToTutorial() {
         let window = app.windows["Welcome to PasteShelf"]
 
-        window.buttons["Continue"].click()  // Welcome -> next step
+        window.buttons["Continue"].click() // Welcome -> next step
 
         #if !APP_STORE
-        // Direct distribution: Welcome -> Permissions -> Notifications -> Tutorial
-        _ = window.staticTexts["Accessibility Permission"].waitForExistence(timeout: 2)
-        let continueButton = window.buttons["Continue"]
-        if continueButton.isEnabled {
-            continueButton.click()  // Permissions -> Notifications
-        }
+            // Direct distribution: Welcome -> Permissions -> Notifications -> Tutorial
+            _ = window.staticTexts["Accessibility Permission"].waitForExistence(timeout: 2)
+            let continueButton = window.buttons["Continue"]
+            if continueButton.isEnabled {
+                continueButton.click() // Permissions -> Notifications
+            }
         #endif
 
         // Both builds: now on Notifications
         _ = window.staticTexts["Notifications"].waitForExistence(timeout: 2)
-        window.buttons["Continue"].click()  // Notifications -> Tutorial
+        window.buttons["Continue"].click() // Notifications -> Tutorial
     }
 
     private func navigateToHotkeySetup() {

@@ -10,15 +10,11 @@ import AppKit
 import Foundation
 import os.log
 
+// MARK: - SensitiveDataDetector
+
 /// Detects sensitive data in clipboard content using pattern matching
 final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
-    // MARK: - Properties
-
-    /// Patterns to scan for
-    private let patterns: [SensitivePatterns.Pattern]
-
-    /// Whether to include low-severity patterns (email, phone)
-    private let includeLowSeverity: Bool
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -37,6 +33,8 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
         }
         self.includeLowSeverity = includeLowSeverity
     }
+
+    // MARK: Internal
 
     /// Creates a detector optimized for high-priority detection only
     static func highPriorityOnly() -> SensitiveDataDetector {
@@ -62,7 +60,8 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
 
         // Extract text from RTF data for analysis
         if let rtfData = content.rtfData,
-           let attrString = NSAttributedString(rtf: rtfData, documentAttributes: nil) {
+           let attrString = NSAttributedString(rtf: rtfData, documentAttributes: nil)
+        {
             textToAnalyze.append(attrString.string)
         }
 
@@ -87,17 +86,23 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
             let matches = pattern.regex.matches(in: text, options: [], range: nsRange)
 
             for match in matches {
-                guard let range = Range(match.range, in: text) else { continue }
+                guard let range = Range(match.range, in: text) else {
+                    continue
+                }
 
                 let matchedText = String(text[range])
 
                 // Run optional validator if present
                 if let validator = pattern.validator {
-                    guard validator(matchedText) else { continue }
+                    guard validator(matchedText) else {
+                        continue
+                    }
                 }
 
                 // Skip obvious placeholders
-                guard Validators.isNotPlaceholder(matchedText) else { continue }
+                guard Validators.isNotPlaceholder(matchedText) else {
+                    continue
+                }
 
                 let detection = SensitiveDetection(
                     type: pattern.name,
@@ -115,7 +120,10 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
 
         let highestSeverity = uniqueDetections.map(\.severity).max() ?? .none
 
-        Logger.security.debug("Sensitive data scan: \(uniqueDetections.count) detections, severity: \(String(describing: highestSeverity))")
+        Logger.security
+            .debug(
+                "Sensitive data scan: \(uniqueDetections.count) detections, severity: \(String(describing: highestSeverity))"
+            )
 
         return SensitiveDataResult(
             isSensitive: !uniqueDetections.isEmpty,
@@ -123,6 +131,14 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
             highestSeverity: highestSeverity
         )
     }
+
+    // MARK: Private
+
+    /// Patterns to scan for
+    private let patterns: [SensitivePatterns.Pattern]
+
+    /// Whether to include low-severity patterns (email, phone)
+    private let includeLowSeverity: Bool
 
     // MARK: - Private Helpers
 
@@ -133,11 +149,10 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
 
         for detection in detections.sorted(by: { $0.severity > $1.severity }) {
             // Create a key based on the range
-            let key: String
-            if let range = detection.range {
-                key = "\(range.lowerBound)-\(range.upperBound)"
+            let key: String = if let range = detection.range {
+                "\(range.lowerBound)-\(range.upperBound)"
             } else {
-                key = detection.type + (detection.redactedPreview ?? "")
+                detection.type + (detection.redactedPreview ?? "")
             }
 
             if !seen.contains(key) {
@@ -158,7 +173,8 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
         let length = text.count
 
         switch type {
-        case "Credit Card", "Credit Card (Formatted)":
+        case "Credit Card",
+             "Credit Card (Formatted)":
             // Show last 4 digits only
             let cleaned = text.replacingOccurrences(of: "[- ]", with: "", options: .regularExpression)
             if cleaned.count >= 4 {
@@ -166,7 +182,8 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
             }
             return "****-****-****-****"
 
-        case "Social Security Number", "SSN (No Dashes)":
+        case "Social Security Number",
+             "SSN (No Dashes)":
             return "***-**-" + String(text.suffix(4))
 
         case "Email Address":
@@ -178,7 +195,8 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
             }
             return "***@***"
 
-        case "Phone Number", "International Phone":
+        case "Phone Number",
+             "International Phone":
             // Show last 4 digits
             let digits = text.filter(\.isNumber)
             if digits.count >= 4 {
@@ -193,10 +211,12 @@ final class SensitiveDataDetector: SensitiveDataDetecting, Sendable {
         case "GitHub Token":
             return "ghp_************************************"
 
-        case "SSH Private Key", "PGP Private Key":
+        case "SSH Private Key",
+             "PGP Private Key":
             return "[Private Key Detected]"
 
-        case "Password", "Connection String":
+        case "Password",
+             "Connection String":
             return "[Credential Detected]"
 
         default:

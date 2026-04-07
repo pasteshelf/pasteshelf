@@ -7,15 +7,14 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
-// MARK: - Mock API Client
+// MARK: - MockAdminAPIClient
 
 /// A mock `AdminAPIProviding` implementation that records calls and returns
 /// pre-configured results for testing service-level logic without network access.
 final class MockAdminAPIClient: AdminAPIProviding, @unchecked Sendable {
-
     // MARK: - Call Tracking
 
     var registerDeviceCalls: [DeviceRegistration] = []
@@ -74,11 +73,10 @@ final class MockAdminAPIClient: AdminAPIProviding, @unchecked Sendable {
     }
 }
 
-// MARK: - Mock Registration Store
+// MARK: - MockDeviceRegistrationStore
 
 /// A mock `DeviceRegistrationStore` that stores data in memory for testing.
 final class MockDeviceRegistrationStore: DeviceRegistrationStore, @unchecked Sendable {
-
     var savedRegistration: DeviceRegistration?
     var shouldFailOnSave = false
     var shouldFailOnDelete = false
@@ -138,7 +136,6 @@ private func makeConfirmedRegistration() -> DeviceRegistration {
 // MARK: - DeviceRegistrationServiceTests
 
 struct DeviceRegistrationServiceTests {
-
     // MARK: - Enrollment
 
     @Test("enroll sends registration to API and persists server response")
@@ -190,7 +187,7 @@ struct DeviceRegistrationServiceTests {
             _ = try await service.enroll(with: makeTestSession(), config: makeTestConfig())
             #expect(Bool(false), "Expected AdminError.networkError")
         } catch let error as AdminError {
-            if case .networkError(let msg) = error {
+            if case let .networkError(msg) = error {
                 #expect(msg == "Connection refused")
             } else {
                 #expect(Bool(false), "Expected networkError, got \(error)")

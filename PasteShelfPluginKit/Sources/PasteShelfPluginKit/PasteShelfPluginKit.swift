@@ -12,7 +12,7 @@ import AppKit
 import Foundation
 import SwiftUI
 
-// MARK: - Main Plugin Protocol
+// MARK: - PasteShelfPlugin
 
 /// Main protocol that all PasteShelf plugins must implement.
 ///
@@ -30,7 +30,8 @@ import SwiftUI
 ///     }
 /// }
 /// ```
-@objc public protocol PasteShelfPlugin: NSObjectProtocol {
+@objc
+public protocol PasteShelfPlugin: NSObjectProtocol {
     /// Called when the plugin is loaded by PasteShelf.
     ///
     /// Use this method to:
@@ -53,6 +54,8 @@ import SwiftUI
     /// - Returns: Array of menu items, or empty array if none
     @objc optional func menuItems() -> [PluginMenuItem]
 }
+
+// MARK: - PasteShelfPluginExtended
 
 /// Extended protocol for plugins that transform clipboard content.
 ///
@@ -83,6 +86,8 @@ public extension PasteShelfPluginExtended {
     }
 }
 
+// MARK: - PasteShelfPluginWithSettings
+
 /// Protocol for plugins that provide a settings view.
 public protocol PasteShelfPluginWithSettings: PasteShelfPlugin {
     /// Returns a SwiftUI view for plugin settings.
@@ -93,13 +98,14 @@ public protocol PasteShelfPluginWithSettings: PasteShelfPlugin {
     func settingsView() -> AnyView?
 }
 
-// MARK: - Plugin Context
+// MARK: - PluginContext
 
 /// Context provided to plugins, giving access to host APIs.
 ///
 /// The context is passed to your plugin in `didLoad(with:)` and provides
 /// access to storage, logging, network, and clipboard APIs.
-@objc public protocol PluginContext: NSObjectProtocol {
+@objc
+public protocol PluginContext: NSObjectProtocol {
     /// Persistent storage for your plugin's data.
     var storage: any PluginStorage { get }
 
@@ -154,13 +160,14 @@ public extension PluginContext {
     }
 }
 
-// MARK: - Plugin Storage
+// MARK: - PluginStorage
 
 /// Persistent storage for plugin data.
 ///
 /// Data is stored in the user's Application Support directory,
 /// isolated per-plugin.
-@objc public protocol PluginStorage: NSObjectProtocol {
+@objc
+public protocol PluginStorage: NSObjectProtocol {
     func string(forKey key: String) -> String?
     func data(forKey key: String) -> Data?
     func bool(forKey key: String) -> Bool
@@ -190,27 +197,32 @@ public extension PluginContext {
 public extension PluginStorage {
     /// Gets a Codable value for the key.
     func get<T: Codable>(_ key: String) -> T? {
-        guard let data = data(forKey: key) else { return nil }
+        guard let data = data(forKey: key) else {
+            return nil
+        }
         return try? JSONDecoder().decode(T.self, from: data)
     }
 
     /// Sets a Codable value for the key.
-    func set<T: Codable>(_ key: String, value: T?) {
+    func set(_ key: String, value: (some Codable)?) {
         guard let value else {
             removeObject(forKey: key)
             return
         }
-        guard let data = try? JSONEncoder().encode(value) else { return }
+        guard let data = try? JSONEncoder().encode(value) else {
+            return
+        }
         setData(data, forKey: key)
     }
 }
 
-// MARK: - Plugin Network
+// MARK: - PluginNetwork
 
 /// Network access for plugins.
 ///
 /// Requires the `network` permission in your Info.plist.
-@objc public protocol PluginNetwork: NSObjectProtocol {
+@objc
+public protocol PluginNetwork: NSObjectProtocol {
     /// Performs an HTTP request.
     ///
     /// - Parameter request: The URL request to perform
@@ -237,12 +249,13 @@ public extension PluginNetwork {
     }
 }
 
-// MARK: - Plugin Clipboard Access
+// MARK: - PluginClipboardAccess
 
 /// Clipboard access for plugins.
 ///
 /// Requires `clipboard.read` and/or `clipboard.write` permissions.
-@objc public protocol PluginClipboardAccess: NSObjectProtocol {
+@objc
+public protocol PluginClipboardAccess: NSObjectProtocol {
     /// Gets recent clipboard items.
     func recentItems(limit: Int) async -> [PluginClipboardContent]
 
@@ -253,16 +266,19 @@ public extension PluginNetwork {
     func writeToClipboard(_ content: PluginClipboardContent)
 }
 
-// MARK: - Plugin Logger
+// MARK: - PluginLogger
 
 /// Logger for plugin diagnostics.
-@objc public final class PluginLogger: NSObject, Sendable {
-    private let pluginId: String
+@objc
+public final class PluginLogger: NSObject, Sendable {
+    // MARK: Lifecycle
 
     public init(pluginId: String) {
         self.pluginId = pluginId
         super.init()
     }
+
+    // MARK: Public
 
     @objc public func debug(_ message: String) {
         print("[\(pluginId)] DEBUG: \(message)")
@@ -279,12 +295,58 @@ public extension PluginNetwork {
     @objc public func error(_ message: String) {
         print("[\(pluginId)] ERROR: \(message)")
     }
+
+    // MARK: Private
+
+    private let pluginId: String
 }
 
-// MARK: - Plugin Content
+// MARK: - PluginClipboardContent
 
 /// Clipboard content representation for plugins.
-@objc public class PluginClipboardContent: NSObject, @unchecked Sendable {
+@objc
+public class PluginClipboardContent: NSObject, @unchecked Sendable {
+    // MARK: Lifecycle
+
+    /// Creates content with plain text.
+    @objc public init(text: String) {
+        self.text = text
+        contentTypeIdentifier = ContentType.plainText.rawValue
+        timestamp = Date()
+        metadata = [:]
+        super.init()
+    }
+
+    /// Creates content with an image.
+    @objc public init(image: NSImage) {
+        self.image = image
+        imageData = image.tiffRepresentation
+        contentTypeIdentifier = ContentType.png.rawValue
+        timestamp = Date()
+        metadata = [:]
+        super.init()
+    }
+
+    /// Creates content with a URL.
+    @objc public init(url: URL) {
+        self.url = url
+        text = url.absoluteString
+        contentTypeIdentifier = ContentType.url.rawValue
+        timestamp = Date()
+        metadata = [:]
+        super.init()
+    }
+
+    /// Creates empty content.
+    @objc override public init() {
+        contentTypeIdentifier = ContentType.plainText.rawValue
+        timestamp = Date()
+        metadata = [:]
+        super.init()
+    }
+
+    // MARK: Public
+
     /// Plain text content
     @objc public var text: String?
 
@@ -318,68 +380,25 @@ public extension PluginNetwork {
     /// Custom metadata
     @objc public var metadata: [String: Any]
 
-    /// Creates content with plain text.
-    @objc public init(text: String) {
-        self.text = text
-        self.contentTypeIdentifier = ContentType.plainText.rawValue
-        self.timestamp = Date()
-        self.metadata = [:]
-        super.init()
-    }
-
-    /// Creates content with an image.
-    @objc public init(image: NSImage) {
-        self.image = image
-        self.imageData = image.tiffRepresentation
-        self.contentTypeIdentifier = ContentType.png.rawValue
-        self.timestamp = Date()
-        self.metadata = [:]
-        super.init()
-    }
-
-    /// Creates content with a URL.
-    @objc public init(url: URL) {
-        self.url = url
-        self.text = url.absoluteString
-        self.contentTypeIdentifier = ContentType.url.rawValue
-        self.timestamp = Date()
-        self.metadata = [:]
-        super.init()
-    }
-
-    /// Creates empty content.
-    @objc public override init() {
-        self.contentTypeIdentifier = ContentType.plainText.rawValue
-        self.timestamp = Date()
-        self.metadata = [:]
-        super.init()
-    }
-
     /// Content type enum value
     public var contentType: ContentType? {
         ContentType(rawValue: contentTypeIdentifier)
     }
 }
 
-// MARK: - Plugin Menu Item
+// MARK: - PluginMenuItem
 
 /// Menu item for the PasteShelf UI.
-@objc public class PluginMenuItem: NSObject, @unchecked Sendable {
-    @objc public let title: String
-    @objc public let iconName: String?
-    @objc public let shortcutKey: String?
-    @objc public var isEnabled: Bool
-    @objc public var submenuItems: [PluginMenuItem]?
-
-    internal let actionId: UUID
-    internal var action: ((PluginClipboardContent) async throws -> PluginClipboardContent?)?
+@objc
+public class PluginMenuItem: NSObject, @unchecked Sendable {
+    // MARK: Lifecycle
 
     @objc public init(title: String, iconName: String? = nil, shortcutKey: String? = nil, isEnabled: Bool = true) {
         self.title = title
         self.iconName = iconName
         self.shortcutKey = shortcutKey
         self.isEnabled = isEnabled
-        self.actionId = UUID()
+        actionId = UUID()
         super.init()
     }
 
@@ -394,13 +413,26 @@ public extension PluginNetwork {
         self.iconName = iconName
         self.shortcutKey = shortcutKey
         self.isEnabled = isEnabled
-        self.actionId = UUID()
+        actionId = UUID()
         self.action = action
         super.init()
     }
+
+    // MARK: Public
+
+    @objc public let title: String
+    @objc public let iconName: String?
+    @objc public let shortcutKey: String?
+    @objc public var isEnabled: Bool
+    @objc public var submenuItems: [PluginMenuItem]?
+
+    // MARK: Internal
+
+    let actionId: UUID
+    var action: ((PluginClipboardContent) async throws -> PluginClipboardContent?)?
 }
 
-// MARK: - Content Type
+// MARK: - ContentType
 
 /// Supported clipboard content types.
 public enum ContentType: String, CaseIterable, Codable, Sendable {
@@ -414,40 +446,44 @@ public enum ContentType: String, CaseIterable, Codable, Sendable {
     case fileURL = "public.file-url"
     case url = "public.url"
 
+    // MARK: Public
+
     public var displayName: String {
         switch self {
-        case .plainText: return "Plain Text"
-        case .richText: return "Rich Text"
-        case .html: return "HTML"
-        case .png: return "PNG Image"
-        case .jpeg: return "JPEG Image"
-        case .tiff: return "TIFF Image"
-        case .pdf: return "PDF Document"
-        case .fileURL: return "File"
-        case .url: return "URL"
+        case .plainText: "Plain Text"
+        case .richText: "Rich Text"
+        case .html: "HTML"
+        case .png: "PNG Image"
+        case .jpeg: "JPEG Image"
+        case .tiff: "TIFF Image"
+        case .pdf: "PDF Document"
+        case .fileURL: "File"
+        case .url: "URL"
         }
     }
 }
 
-// MARK: - Plugin Permission
+// MARK: - PluginPermission
 
 /// Permissions that plugins can request.
 public enum PluginPermission: String, Codable, Hashable, CaseIterable, Sendable {
     case clipboardRead = "clipboard.read"
     case clipboardWrite = "clipboard.write"
-    case network = "network"
-    case notifications = "notifications"
-    case storage = "storage"
-    case automation = "automation"
+    case network
+    case notifications
+    case storage
+    case automation
+
+    // MARK: Public
 
     public var displayName: String {
         switch self {
-        case .clipboardRead: return "Read Clipboard"
-        case .clipboardWrite: return "Write Clipboard"
-        case .network: return "Network Access"
-        case .notifications: return "Notifications"
-        case .storage: return "Storage"
-        case .automation: return "Automation"
+        case .clipboardRead: "Read Clipboard"
+        case .clipboardWrite: "Write Clipboard"
+        case .network: "Network Access"
+        case .notifications: "Notifications"
+        case .storage: "Storage"
+        case .automation: "Automation"
         }
     }
 }

@@ -6,6 +6,8 @@
 //  Follows the predicate building pattern from FullTextSearchEngine.
 //
 
+// swiftformat:disable organizeDeclarations
+
 import CoreData
 import Foundation
 import os.log
@@ -46,12 +48,11 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
         }
 
         // Combine predicates based on logical operator
-        let combinedPredicate: NSPredicate
-        switch rules.logicalOperator {
+        let combinedPredicate: NSPredicate = switch rules.logicalOperator {
         case .and:
-            combinedPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: conditionPredicates)
+            NSCompoundPredicate(andPredicateWithSubpredicates: conditionPredicates)
         case .or:
-            combinedPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: conditionPredicates)
+            NSCompoundPredicate(orPredicateWithSubpredicates: conditionPredicates)
         }
 
         let count = conditionPredicates.count
@@ -66,17 +67,17 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
     private func buildConditionPredicate(_ condition: RuleCondition) -> NSPredicate? {
         switch condition.field {
         case .contentType:
-            return buildContentTypePredicate(condition)
+            buildContentTypePredicate(condition)
         case .sourceApp:
-            return buildSourceAppPredicate(condition)
+            buildSourceAppPredicate(condition)
         case .textContent:
-            return buildTextContentPredicate(condition)
+            buildTextContentPredicate(condition)
         case .dateCreated:
-            return buildDatePredicate(condition)
+            buildDatePredicate(condition)
         case .isFavorite:
-            return buildBooleanPredicate(condition, keyPath: "isFavorite")
+            buildBooleanPredicate(condition, keyPath: "isFavorite")
         case .isSensitive:
-            return buildBooleanPredicate(condition, keyPath: "isSensitive")
+            buildBooleanPredicate(condition, keyPath: "isSensitive")
         }
     }
 
@@ -84,15 +85,14 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
 
     private func buildContentTypePredicate(_ condition: RuleCondition) -> NSPredicate? {
         // Try to parse as ContentTypeValue first
-        let contentTypeRawValues: [String]
-        if let contentTypeValue = ContentTypeValue(rawValue: condition.value) {
-            contentTypeRawValues = contentTypeValue.contentTypeRawValues
+        let contentTypeRawValues: [String] = if let contentTypeValue = ContentTypeValue(rawValue: condition.value) {
+            contentTypeValue.contentTypeRawValues
         } else if let contentType = ContentType(rawValue: condition.value) {
             // Direct ContentType raw value
-            contentTypeRawValues = [contentType.rawValue]
+            [contentType.rawValue]
         } else {
             // Unknown value - try using it directly
-            contentTypeRawValues = [condition.value]
+            [condition.value]
         }
 
         switch condition.comparisonOperator {
@@ -258,9 +258,13 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
     private func buildBooleanPredicate(_ condition: RuleCondition, keyPath: String) -> NSPredicate? {
         let boolValue: Bool
         switch condition.value.lowercased() {
-        case "true", "yes", "1":
+        case "true",
+             "yes",
+             "1":
             boolValue = true
-        case "false", "no", "0":
+        case "false",
+             "no",
+             "0":
             boolValue = false
         default:
             logger.warning("Could not parse boolean value: \(condition.value)")
@@ -287,7 +291,9 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
     ///   - rules: The rules to apply
     /// - Returns: True if the item matches the rules
     func evaluate(item: ClipboardItem, against rules: CollectionRules) -> Bool {
-        guard !rules.isEmpty else { return true }
+        guard !rules.isEmpty else {
+            return true
+        }
 
         let results = rules.conditions.map { condition in
             evaluateCondition(condition, for: item)
@@ -305,28 +311,29 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
     private func evaluateCondition(_ condition: RuleCondition, for item: ClipboardItem) -> Bool {
         switch condition.field {
         case .contentType:
-            return evaluateContentType(condition, item: item)
+            evaluateContentType(condition, item: item)
         case .sourceApp:
-            return evaluateSourceApp(condition, item: item)
+            evaluateSourceApp(condition, item: item)
         case .textContent:
-            return evaluateTextContent(condition, item: item)
+            evaluateTextContent(condition, item: item)
         case .dateCreated:
-            return evaluateDate(condition, item: item)
+            evaluateDate(condition, item: item)
         case .isFavorite:
-            return evaluateBoolean(condition, value: item.isFavorite)
+            evaluateBoolean(condition, value: item.isFavorite)
         case .isSensitive:
-            return evaluateBoolean(condition, value: item.isSensitive)
+            evaluateBoolean(condition, value: item.isSensitive)
         }
     }
 
     private func evaluateContentType(_ condition: RuleCondition, item: ClipboardItem) -> Bool {
-        guard let itemContentType = item.contentType else { return false }
+        guard let itemContentType = item.contentType else {
+            return false
+        }
 
-        let targetTypes: Set<String>
-        if let contentTypeValue = ContentTypeValue(rawValue: condition.value) {
-            targetTypes = Set(contentTypeValue.contentTypeRawValues)
+        let targetTypes: Set<String> = if let contentTypeValue = ContentTypeValue(rawValue: condition.value) {
+            Set(contentTypeValue.contentTypeRawValues)
         } else {
-            targetTypes = [condition.value]
+            [condition.value]
         }
 
         switch condition.comparisonOperator {
@@ -359,7 +366,9 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
     }
 
     private func evaluateTextContent(_ condition: RuleCondition, item: ClipboardItem) -> Bool {
-        guard let text = item.plainTextPreview else { return false }
+        guard let text = item.plainTextPreview else {
+            return false
+        }
         let value = condition.value
 
         switch condition.comparisonOperator {
@@ -372,7 +381,9 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
         case .notEquals:
             return text.lowercased() != value.lowercased()
         case .matches:
-            guard let regex = try? NSRegularExpression(pattern: value) else { return false }
+            guard let regex = try? NSRegularExpression(pattern: value) else {
+                return false
+            }
             let range = NSRange(text.startIndex..., in: text)
             return regex.firstMatch(in: text, range: range) != nil
         default:
@@ -381,25 +392,32 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
     }
 
     private func evaluateDate(_ condition: RuleCondition, item: ClipboardItem) -> Bool {
-        guard let timestamp = item.timestamp else { return false }
+        guard let timestamp = item.timestamp else {
+            return false
+        }
 
         switch condition.comparisonOperator {
         case .withinLast:
-            let startDate: Date?
-            if let rangeValue = DateRangeValue(rawValue: condition.value) {
-                startDate = rangeValue.startDate
+            let startDate: Date? = if let rangeValue = DateRangeValue(rawValue: condition.value) {
+                rangeValue.startDate
             } else {
-                startDate = parseCustomDuration(condition.value)
+                parseCustomDuration(condition.value)
             }
-            guard let start = startDate else { return false }
+            guard let start = startDate else {
+                return false
+            }
             return timestamp >= start
 
         case .before:
-            guard let date = parseDate(condition.value) else { return false }
+            guard let date = parseDate(condition.value) else {
+                return false
+            }
             return timestamp < date
 
         case .after:
-            guard let date = parseDate(condition.value) else { return false }
+            guard let date = parseDate(condition.value) else {
+                return false
+            }
             return timestamp > date
 
         default:
@@ -410,9 +428,13 @@ final class RuleEvaluator: @unchecked Sendable { // swiftlint:disable:this type_
     private func evaluateBoolean(_ condition: RuleCondition, value: Bool) -> Bool {
         let targetValue: Bool
         switch condition.value.lowercased() {
-        case "true", "yes", "1":
+        case "true",
+             "yes",
+             "1":
             targetValue = true
-        case "false", "no", "0":
+        case "false",
+             "no",
+             "0":
             targetValue = false
         default:
             return false

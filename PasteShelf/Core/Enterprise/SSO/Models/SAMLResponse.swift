@@ -8,10 +8,10 @@
 
 import Foundation
 
+// MARK: - SAMLResponse
+
 /// A complete SAML 2.0 Response message
 struct SAMLResponse: Codable, Sendable, Equatable {
-    // MARK: - Properties
-
     /// Unique identifier for this response
     let id: String
 
@@ -50,7 +50,9 @@ struct SAMLResponse: Codable, Sendable, Equatable {
 
     /// Error message if authentication failed
     var errorMessage: String? {
-        guard !isSuccess else { return nil }
+        guard !isSuccess else {
+            return nil
+        }
         return status.message ?? status.code.displayName
     }
 
@@ -101,7 +103,7 @@ struct SAMLResponse: Codable, Sendable, Equatable {
     }
 }
 
-// MARK: - Status
+// MARK: - SAMLStatus
 
 /// Status of a SAML response
 struct SAMLStatus: Codable, Sendable, Equatable {
@@ -115,9 +117,11 @@ struct SAMLStatus: Codable, Sendable, Equatable {
     let message: String?
 }
 
+// MARK: - SAMLStatusCode
+
 /// SAML status codes
 enum SAMLStatusCode: String, Codable, Sendable {
-    // Success
+    /// Success
     case success = "urn:oasis:names:tc:SAML:2.0:status:Success"
 
     // Top-level errors
@@ -146,8 +150,10 @@ enum SAMLStatusCode: String, Codable, Sendable {
     case unknownPrincipal = "urn:oasis:names:tc:SAML:2.0:status:UnknownPrincipal"
     case unsupportedBinding = "urn:oasis:names:tc:SAML:2.0:status:UnsupportedBinding"
 
-    // Unknown
-    case unknown = "unknown"
+    /// Unknown
+    case unknown
+
+    // MARK: Lifecycle
 
     init(rawValue: String) {
         switch rawValue {
@@ -202,77 +208,87 @@ enum SAMLStatusCode: String, Codable, Sendable {
         }
     }
 
+    // MARK: Internal
+
     var displayName: String {
         switch self {
         case .success:
-            return "Success"
+            "Success"
         case .requester:
-            return "Request error"
+            "Request error"
         case .responder:
-            return "Identity provider error"
+            "Identity provider error"
         case .versionMismatch:
-            return "SAML version mismatch"
+            "SAML version mismatch"
         case .authnFailed:
-            return "Authentication failed"
+            "Authentication failed"
         case .invalidAttrNameOrValue:
-            return "Invalid attribute"
+            "Invalid attribute"
         case .invalidNameIDPolicy:
-            return "Invalid NameID policy"
+            "Invalid NameID policy"
         case .noAuthnContext:
-            return "No authentication context"
+            "No authentication context"
         case .noAvailableIDP:
-            return "No available identity provider"
+            "No available identity provider"
         case .noPassive:
-            return "Cannot authenticate passively"
+            "Cannot authenticate passively"
         case .noSupportedIDP:
-            return "No supported identity provider"
+            "No supported identity provider"
         case .partialLogout:
-            return "Partial logout"
+            "Partial logout"
         case .proxyCountExceeded:
-            return "Proxy count exceeded"
+            "Proxy count exceeded"
         case .requestDenied:
-            return "Request denied"
+            "Request denied"
         case .requestUnsupported:
-            return "Request not supported"
+            "Request not supported"
         case .requestVersionDeprecated:
-            return "Request version deprecated"
+            "Request version deprecated"
         case .requestVersionTooHigh:
-            return "Request version too high"
+            "Request version too high"
         case .requestVersionTooLow:
-            return "Request version too low"
+            "Request version too low"
         case .resourceNotRecognized:
-            return "Resource not recognized"
+            "Resource not recognized"
         case .tooManyResponses:
-            return "Too many responses"
+            "Too many responses"
         case .unknownAttrProfile:
-            return "Unknown attribute profile"
+            "Unknown attribute profile"
         case .unknownPrincipal:
-            return "Unknown principal"
+            "Unknown principal"
         case .unsupportedBinding:
-            return "Unsupported binding"
+            "Unsupported binding"
         case .unknown:
-            return "Unknown error"
+            "Unknown error"
         }
     }
 }
 
-// MARK: - Validation Result
+// MARK: - SAMLValidationResult
 
 /// Result of SAML response validation
 enum SAMLValidationResult: Equatable, Sendable {
     case success
     case failure(SAMLValidationError)
 
+    // MARK: Internal
+
     var isSuccess: Bool {
-        if case .success = self { return true }
+        if case .success = self {
+            return true
+        }
         return false
     }
 
     var error: SAMLValidationError? {
-        if case .failure(let error) = self { return error }
+        if case let .failure(error) = self {
+            return error
+        }
         return nil
     }
 }
+
+// MARK: - SAMLValidationError
 
 /// Errors that can occur during SAML validation
 enum SAMLValidationError: Error, LocalizedError, Equatable, Sendable {
@@ -290,57 +306,63 @@ enum SAMLValidationError: Error, LocalizedError, Equatable, Sendable {
     case invalidStructure(String)
     case issuerMismatch(expected: String, actual: String)
 
+    // MARK: Internal
+
     var errorDescription: String? {
         switch self {
-        case .authenticationFailed(let reason):
-            return "Authentication failed: \(reason)"
-        case .invalidDestination(let expected, let actual):
-            return "Invalid destination: expected \(expected), got \(actual)"
-        case .invalidInResponseTo(let expected, let actual):
-            return "Invalid InResponseTo: expected \(expected), got \(actual ?? "nil")"
+        case let .authenticationFailed(reason):
+            "Authentication failed: \(reason)"
+        case let .invalidDestination(expected, actual):
+            "Invalid destination: expected \(expected), got \(actual)"
+        case let .invalidInResponseTo(expected, actual):
+            "Invalid InResponseTo: expected \(expected), got \(actual ?? "nil")"
         case .missingAssertion:
-            return "SAML response contains no assertion"
+            "SAML response contains no assertion"
         case .assertionExpired:
-            return "SAML assertion has expired"
-        case .invalidAudience(let expected):
-            return "SAML assertion not intended for audience: \(expected)"
+            "SAML assertion has expired"
+        case let .invalidAudience(expected):
+            "SAML assertion not intended for audience: \(expected)"
         case .signatureInvalid:
-            return "SAML signature is invalid"
+            "SAML signature is invalid"
         case .signatureMissing:
-            return "SAML signature is missing"
+            "SAML signature is missing"
         case .certificateInvalid:
-            return "IdP certificate is invalid"
+            "IdP certificate is invalid"
         case .certificateMismatch:
-            return "IdP certificate does not match configured certificate"
-        case .xmlParsingFailed(let reason):
-            return "Failed to parse SAML XML: \(reason)"
-        case .invalidStructure(let reason):
-            return "Invalid SAML structure: \(reason)"
-        case .issuerMismatch(let expected, let actual):
-            return "Issuer mismatch: expected \(expected), got \(actual)"
+            "IdP certificate does not match configured certificate"
+        case let .xmlParsingFailed(reason):
+            "Failed to parse SAML XML: \(reason)"
+        case let .invalidStructure(reason):
+            "Invalid SAML structure: \(reason)"
+        case let .issuerMismatch(expected, actual):
+            "Issuer mismatch: expected \(expected), got \(actual)"
         }
     }
 
     var recoverySuggestion: String? {
         switch self {
         case .authenticationFailed:
-            return "Try logging in again or contact your administrator."
-        case .invalidDestination, .invalidInResponseTo:
-            return "This may indicate a replay attack or misconfiguration. Contact your administrator."
+            "Try logging in again or contact your administrator."
+        case .invalidDestination,
+             .invalidInResponseTo:
+            "This may indicate a replay attack or misconfiguration. Contact your administrator."
         case .missingAssertion:
-            return "The identity provider did not include user information. Contact your administrator."
+            "The identity provider did not include user information. Contact your administrator."
         case .assertionExpired:
-            return "Your session has expired. Please log in again."
+            "Your session has expired. Please log in again."
         case .invalidAudience:
-            return "The identity provider is not configured correctly. Contact your administrator."
-        case .signatureInvalid, .signatureMissing:
-            return "The SAML response could not be verified. This may indicate tampering."
-        case .certificateInvalid, .certificateMismatch:
-            return "The identity provider certificate has changed. Contact your administrator to update SSO configuration."
-        case .xmlParsingFailed, .invalidStructure:
-            return "The identity provider sent an invalid response. Contact your administrator."
+            "The identity provider is not configured correctly. Contact your administrator."
+        case .signatureInvalid,
+             .signatureMissing:
+            "The SAML response could not be verified. This may indicate tampering."
+        case .certificateInvalid,
+             .certificateMismatch:
+            "The identity provider certificate has changed. Contact your administrator to update SSO configuration."
+        case .xmlParsingFailed,
+             .invalidStructure:
+            "The identity provider sent an invalid response. Contact your administrator."
         case .issuerMismatch:
-            return "The response came from an unexpected identity provider. Verify SSO configuration."
+            "The response came from an unexpected identity provider. Verify SSO configuration."
         }
     }
 }

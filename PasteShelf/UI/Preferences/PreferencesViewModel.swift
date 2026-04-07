@@ -11,9 +11,57 @@ import Combine
 import Foundation
 import os.log
 
+// MARK: - PreferencesViewModel
+
 /// ViewModel for preferences management
 @MainActor
 final class PreferencesViewModel: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(settingsManager: SettingsManager = .shared, storageManager: StorageManager = .shared) {
+        self.settingsManager = settingsManager
+        self.storageManager = storageManager
+
+        // Initialize from current settings
+        let settings = settingsManager.settings
+
+        // General
+        launchAtLogin = settings.general.launchAtLogin
+        showInDock = settings.general.showInDock
+        historyLimit = settings.general.historyLimit
+        captureTextContent = settings.general.captureTextContent
+        captureImageContent = settings.general.captureImageContent
+        captureFileContent = settings.general.captureFileContent
+        captureLinkContent = settings.general.captureLinkContent
+
+        // Privacy
+        autoDeleteEnabled = settings.privacy.autoDeleteEnabled
+        autoDeleteDays = settings.privacy.autoDeleteDays
+        isMonitoringPaused = settings.privacy.isMonitoringPaused
+
+        excludedAppBundleIds = settings.privacy.excludedAppBundleIds
+        sensitiveDetectionEnabled = settings.privacy.sensitiveDetectionEnabled
+        enabledSensitiveCategories = settings.privacy.enabledSensitiveCategories
+
+        // Appearance
+        theme = settings.appearance.theme
+        panelWidth = settings.appearance.panelWidth
+        previewLines = settings.appearance.previewLines
+        showThumbnails = settings.appearance.showThumbnails
+        compactMode = settings.appearance.compactMode
+        showTagFilters = settings.appearance.showTagFilters
+
+        // Shortcuts
+        globalHotkey = settings.shortcuts.globalHotkey
+        quickPasteEnabled = settings.shortcuts.quickPasteEnabled
+
+        setupBindings()
+    }
+
+    // MARK: Internal
+
     // MARK: - Published Properties
 
     /// Currently selected tab
@@ -111,6 +159,44 @@ final class PreferencesViewModel: ObservableObject {
         didSet { updateShortcuts() }
     }
 
+    /// Resets all settings to defaults
+    func resetToDefaults() {
+        settingsManager.resetToDefaults()
+        logger.info("Settings reset to defaults")
+    }
+
+    /// Adds an app to the exclusion list
+    func addExcludedApp(_ bundleId: String) {
+        guard !excludedAppBundleIds.contains(bundleId) else {
+            return
+        }
+        excludedAppBundleIds.append(bundleId)
+    }
+
+    /// Removes an app from the exclusion list
+    func removeExcludedApp(_ bundleId: String) {
+        excludedAppBundleIds.removeAll { $0 == bundleId }
+    }
+
+    /// Toggles a sensitive data detection category on or off
+    func toggleSensitiveCategory(_ category: SensitivePatterns.SensitiveCategory) {
+        if enabledSensitiveCategories.contains(category) {
+            enabledSensitiveCategories.remove(category)
+        } else {
+            enabledSensitiveCategories.insert(category)
+        }
+    }
+
+    /// Clears clipboard history (keeps favorites)
+    func clearHistory() {
+        Task {
+            await storageManager.deleteAllItems(keepFavorites: true)
+            NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
+        }
+    }
+
+    // MARK: Private
+
     // MARK: - Private Properties
 
     private let settingsManager: SettingsManager
@@ -122,48 +208,6 @@ final class PreferencesViewModel: ObservableObject {
         subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
         category: "preferences-vm"
     )
-
-    // MARK: - Initialization
-
-    init(settingsManager: SettingsManager = .shared, storageManager: StorageManager = .shared) {
-        self.settingsManager = settingsManager
-        self.storageManager = storageManager
-
-        // Initialize from current settings
-        let settings = settingsManager.settings
-
-        // General
-        launchAtLogin = settings.general.launchAtLogin
-        showInDock = settings.general.showInDock
-        historyLimit = settings.general.historyLimit
-        captureTextContent = settings.general.captureTextContent
-        captureImageContent = settings.general.captureImageContent
-        captureFileContent = settings.general.captureFileContent
-        captureLinkContent = settings.general.captureLinkContent
-
-        // Privacy
-        autoDeleteEnabled = settings.privacy.autoDeleteEnabled
-        autoDeleteDays = settings.privacy.autoDeleteDays
-        isMonitoringPaused = settings.privacy.isMonitoringPaused
-
-        excludedAppBundleIds = settings.privacy.excludedAppBundleIds
-        sensitiveDetectionEnabled = settings.privacy.sensitiveDetectionEnabled
-        enabledSensitiveCategories = settings.privacy.enabledSensitiveCategories
-
-        // Appearance
-        theme = settings.appearance.theme
-        panelWidth = settings.appearance.panelWidth
-        previewLines = settings.appearance.previewLines
-        showThumbnails = settings.appearance.showThumbnails
-        compactMode = settings.appearance.compactMode
-        showTagFilters = settings.appearance.showTagFilters
-
-        // Shortcuts
-        globalHotkey = settings.shortcuts.globalHotkey
-        quickPasteEnabled = settings.shortcuts.quickPasteEnabled
-
-        setupBindings()
-    }
 
     // MARK: - Setup
 
@@ -180,7 +224,9 @@ final class PreferencesViewModel: ObservableObject {
     // MARK: - Update Methods
 
     private func updateGeneral() {
-        guard !isUpdating else { return }
+        guard !isUpdating else {
+            return
+        }
 
         // Apply launch at login change immediately
         let previousLaunchAtLogin = settingsManager.general.launchAtLogin
@@ -206,7 +252,9 @@ final class PreferencesViewModel: ObservableObject {
     }
 
     private func updatePrivacy() {
-        guard !isUpdating else { return }
+        guard !isUpdating else {
+            return
+        }
 
         // Write to SettingsManager; AppDelegate.handleSettingsChange() drives monitor
         // state via setMonitoringPaused() when it receives .settingsDidChange.
@@ -221,7 +269,9 @@ final class PreferencesViewModel: ObservableObject {
     }
 
     private func updateAppearance() {
-        guard !isUpdating else { return }
+        guard !isUpdating else {
+            return
+        }
 
         // Apply theme change immediately
         let previousTheme = settingsManager.appearance.theme
@@ -252,17 +302,19 @@ final class PreferencesViewModel: ObservableObject {
     }
 
     private func updateShortcuts() {
-        guard !isUpdating else { return }
+        guard !isUpdating else {
+            return
+        }
 
         // Notify about hotkey change so AppDelegate can update registration
         let previousHotkey = settingsManager.shortcuts.globalHotkey
-        if self.globalHotkey != previousHotkey {
-            logger.info("Global hotkey changed to: \(self.globalHotkey.displayString)")
+        if globalHotkey != previousHotkey {
+            logger.info("Global hotkey changed to: \(globalHotkey.displayString)")
         }
 
         settingsManager.shortcuts = ShortcutsSettings(
-            globalHotkey: self.globalHotkey,
-            quickPasteEnabled: self.quickPasteEnabled
+            globalHotkey: globalHotkey,
+            quickPasteEnabled: quickPasteEnabled
         )
     }
 
@@ -302,45 +354,9 @@ final class PreferencesViewModel: ObservableObject {
         globalHotkey = settings.shortcuts.globalHotkey
         quickPasteEnabled = settings.shortcuts.quickPasteEnabled
     }
-
-    // MARK: - Actions
-
-    /// Resets all settings to defaults
-    func resetToDefaults() {
-        settingsManager.resetToDefaults()
-        logger.info("Settings reset to defaults")
-    }
-
-    /// Adds an app to the exclusion list
-    func addExcludedApp(_ bundleId: String) {
-        guard !excludedAppBundleIds.contains(bundleId) else { return }
-        excludedAppBundleIds.append(bundleId)
-    }
-
-    /// Removes an app from the exclusion list
-    func removeExcludedApp(_ bundleId: String) {
-        excludedAppBundleIds.removeAll { $0 == bundleId }
-    }
-
-    /// Toggles a sensitive data detection category on or off
-    func toggleSensitiveCategory(_ category: SensitivePatterns.SensitiveCategory) {
-        if enabledSensitiveCategories.contains(category) {
-            enabledSensitiveCategories.remove(category)
-        } else {
-            enabledSensitiveCategories.insert(category)
-        }
-    }
-
-    /// Clears clipboard history (keeps favorites)
-    func clearHistory() {
-        Task {
-            await storageManager.deleteAllItems(keepFavorites: true)
-            NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
-        }
-    }
 }
 
-// MARK: - Preferences Tab
+// MARK: - PreferencesTab
 
 /// Available tabs in the preferences window
 enum PreferencesTab: String, CaseIterable, Identifiable {
@@ -352,12 +368,16 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
     case sync
     case automation
     #if !APP_STORE
-    case plugins
-    case enterprise
+        case plugins
+        case enterprise
     #endif
     case about
 
-    var id: String { rawValue }
+    // MARK: Internal
+
+    var id: String {
+        rawValue
+    }
 
     /// Display name for the tab
     var displayName: String {
@@ -370,8 +390,8 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
         case .sync: return "Sync"
         case .automation: return "Automation"
         #if !APP_STORE
-        case .plugins: return "Plugins"
-        case .enterprise: return "Enterprise"
+            case .plugins: return "Plugins"
+            case .enterprise: return "Enterprise"
         #endif
         case .about: return "About"
         }
@@ -388,8 +408,8 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
         case .sync: return "icloud"
         case .automation: return "wand.and.stars"
         #if !APP_STORE
-        case .plugins: return "puzzlepiece.extension"
-        case .enterprise: return "building.2"
+            case .plugins: return "puzzlepiece.extension"
+            case .enterprise: return "building.2"
         #endif
         case .about: return "info.circle"
         }

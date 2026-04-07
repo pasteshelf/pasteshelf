@@ -78,32 +78,34 @@ enum MDMError: Error, LocalizedError, Sendable {
     /// The MDM configuration profile contains invalid or malformed values.
     case configurationInvalid(String)
 
+    // MARK: Internal
+
     // MARK: - LocalizedError
 
     var errorDescription: String? {
         switch self {
         case .notManaged:
-            return "This device is not under MDM management. Managed preferences are unavailable."
-        case .configurationInvalid(let reason):
-            return "The MDM configuration profile is invalid: \(reason)"
+            "This device is not under MDM management. Managed preferences are unavailable."
+        case let .configurationInvalid(reason):
+            "The MDM configuration profile is invalid: \(reason)"
         }
     }
 
     var failureReason: String? {
         switch self {
         case .notManaged:
-            return "No managed preferences domain was found on this device."
-        case .configurationInvalid(let reason):
-            return reason
+            "No managed preferences domain was found on this device."
+        case let .configurationInvalid(reason):
+            reason
         }
     }
 
     var recoverySuggestion: String? {
         switch self {
         case .notManaged:
-            return "Enroll the device with an MDM server and push a PasteShelf configuration profile."
+            "Enroll the device with an MDM server and push a PasteShelf configuration profile."
         case .configurationInvalid:
-            return "Contact your IT administrator to review and correct the PasteShelf configuration profile."
+            "Contact your IT administrator to review and correct the PasteShelf configuration profile."
         }
     }
 }

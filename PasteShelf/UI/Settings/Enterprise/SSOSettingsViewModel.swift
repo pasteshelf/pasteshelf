@@ -19,6 +19,38 @@ import os.log
 /// (e.g. in design-time previews or when no persistent store is configured).
 @MainActor
 final class SSOSettingsViewModel: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init() {
+        Task { await loadProviders() }
+    }
+
+    // MARK: Internal
+
+    /// Outcome of a test-connection attempt
+    enum TestConnectionResult: Equatable {
+        case success(String)
+        case failure(String)
+
+        // MARK: Internal
+
+        var isSuccess: Bool {
+            if case .success = self {
+                return true
+            }
+            return false
+        }
+
+        var message: String {
+            switch self {
+            case let .success(msg): msg
+            case let .failure(msg): msg
+            }
+        }
+    }
+
     // MARK: - Published State
 
     /// The list of configured identity providers
@@ -26,12 +58,6 @@ final class SSOSettingsViewModel: ObservableObject {
 
     /// The ID of the provider currently selected in the list
     @Published var selectedProviderID: UUID?
-
-    /// Derived accessor for the currently selected provider
-    var selectedProvider: IdentityProvider? {
-        get { providers.first { $0.id == selectedProviderID } }
-        set { selectedProviderID = newValue?.id }
-    }
 
     /// Whether the add/edit form sheet is visible
     @Published var isShowingForm = false
@@ -48,40 +74,18 @@ final class SSOSettingsViewModel: ObservableObject {
     /// Error message for alert presentation; non-nil when an error should be shown
     @Published var errorMessage: String?
 
-    // MARK: - Nested Types
-
-    /// Outcome of a test-connection attempt
-    enum TestConnectionResult: Equatable {
-        case success(String)
-        case failure(String)
-
-        var isSuccess: Bool {
-            if case .success = self { return true }
-            return false
-        }
-
-        var message: String {
-            switch self {
-            case .success(let msg): return msg
-            case .failure(let msg): return msg
-            }
-        }
-    }
-
-    // MARK: - Properties
-
-    /// Whether the form is being used for a new provider (vs editing an existing one)
-    var isFormForNewProvider: Bool { editingProvider == nil }
-
     /// The provider being edited, or nil when adding a new one
     private(set) var editingProvider: IdentityProvider?
 
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "sso-settings")
+    /// Derived accessor for the currently selected provider
+    var selectedProvider: IdentityProvider? {
+        get { providers.first { $0.id == selectedProviderID } }
+        set { selectedProviderID = newValue?.id }
+    }
 
-    // MARK: - Initialization
-
-    init() {
-        Task { await loadProviders() }
+    /// Whether the form is being used for a new provider (vs editing an existing one)
+    var isFormForNewProvider: Bool {
+        editingProvider == nil
     }
 
     // MARK: - Data Loading
@@ -128,14 +132,18 @@ final class SSOSettingsViewModel: ObservableObject {
     func deleteProvider(_ provider: IdentityProvider) async {
         guard let store = SSOManager.shared.providerStore else {
             providers.removeAll { $0.id == provider.id }
-            if selectedProviderID == provider.id { selectedProviderID = nil }
+            if selectedProviderID == provider.id {
+                selectedProviderID = nil
+            }
             return
         }
 
         do {
             try await store.delete(id: provider.id)
             providers.removeAll { $0.id == provider.id }
-            if selectedProviderID == provider.id { selectedProviderID = nil }
+            if selectedProviderID == provider.id {
+                selectedProviderID = nil
+            }
             logger.info("Deleted identity provider '\(provider.name)'")
         } catch {
             logger.error("Failed to delete provider '\(provider.name)': \(error.localizedDescription)")
@@ -222,4 +230,8 @@ final class SSOSettingsViewModel: ObservableObject {
             logger.error("Test connection failed for '\(provider.name)': \(error.localizedDescription)")
         }
     }
+
+    // MARK: Private
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "sso-settings")
 }

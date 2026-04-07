@@ -20,6 +20,24 @@ import UniformTypeIdentifiers
 /// well as export methods that write CSV or JSON files via an `NSSavePanel`.
 @MainActor
 final class DLPSettingsViewModel: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates the view model and triggers the initial data load.
+    init() {
+        Task { await loadData() }
+
+        // Refresh data when a DLP violation is detected
+        NotificationCenter.default.publisher(for: .dlpViolationDetected)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                Task { await self?.loadData() }
+            }
+            .store(in: &cancellables)
+    }
+
+    // MARK: Internal
 
     // MARK: - Published Display State
 
@@ -44,26 +62,6 @@ final class DLPSettingsViewModel: ObservableObject {
     /// The rule being edited. `nil` when creating a new rule.
     @Published var editingRule: DLPRule?
 
-    // MARK: - Private Properties
-
-    private let logger = Logger.security
-    private var cancellables = Set<AnyCancellable>()
-
-    // MARK: - Initialization
-
-    /// Creates the view model and triggers the initial data load.
-    init() {
-        Task { await loadData() }
-
-        // Refresh data when a DLP violation is detected
-        NotificationCenter.default.publisher(for: .dlpViolationDetected)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                Task { await self?.loadData() }
-            }
-            .store(in: &cancellables)
-    }
-
     // MARK: - Public Actions
 
     /// Loads rules and recent violations from `DLPManager`.
@@ -78,7 +76,7 @@ final class DLPSettingsViewModel: ObservableObject {
         rules = DLPManager.shared.rules
         recentViolations = DLPManager.shared.recentViolations
 
-        logger.info("DLP settings loaded \(self.rules.count) rules and \(self.recentViolations.count) violations")
+        logger.info("DLP settings loaded \(rules.count) rules and \(recentViolations.count) violations")
     }
 
     /// Toggles the `isEnabled` state of the given rule and persists the change.
@@ -117,7 +115,7 @@ final class DLPSettingsViewModel: ObservableObject {
     func installDefaults() async {
         await DLPManager.shared.installDefaultRulesIfNeeded()
         rules = DLPManager.shared.rules
-        logger.info("Installed default DLP rules, total: \(self.rules.count)")
+        logger.info("Installed default DLP rules, total: \(rules.count)")
     }
 
     /// Saves (add or update) the given rule via `DLPManager`.
@@ -183,6 +181,20 @@ final class DLPSettingsViewModel: ObservableObject {
         presentSavePanel(sourceURL: tempURL, suggestedFilename: "dlp_violations.json", fileExtension: "json")
     }
 
+    // MARK: Private
+
+    // MARK: - CSV Helpers
+
+    private static let csvColumns = [
+        "Timestamp", "Rule Name", "Action Taken", "Was Blocked",
+        "Content Preview", "Matched Pattern", "Source App",
+    ]
+
+    // MARK: - Private Properties
+
+    private let logger = Logger.security
+    private var cancellables = Set<AnyCancellable>()
+
     // MARK: - Private Helpers
 
     /// Presents a modal `NSSavePanel` configured for the given file type.
@@ -199,7 +211,9 @@ final class DLPSettingsViewModel: ObservableObject {
             defer {
                 try? FileManager.default.removeItem(at: sourceURL)
             }
-            guard response == .OK, let destinationURL = panel.url else { return }
+            guard response == .OK, let destinationURL = panel.url else {
+                return
+            }
             do {
                 if FileManager.default.fileExists(atPath: destinationURL.path) {
                     try FileManager.default.removeItem(at: destinationURL)
@@ -216,13 +230,6 @@ final class DLPSettingsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - CSV Helpers
-
-    private static let csvColumns = [
-        "Timestamp", "Rule Name", "Action Taken", "Was Blocked",
-        "Content Preview", "Matched Pattern", "Source App"
-    ]
-
     private func buildViolationsCSV() -> String {
         let isoFormatter = ISO8601DateFormatter()
         var lines: [String] = [Self.csvColumns.map(csvEscape).joined(separator: ",")]
@@ -235,7 +242,7 @@ final class DLPSettingsViewModel: ObservableObject {
                 violation.wasBlocked ? "true" : "false",
                 violation.contentPreview,
                 violation.matchedPattern,
-                violation.sourceAppName ?? ""
+                violation.sourceAppName ?? "",
             ].map(csvEscape).joined(separator: ",")
 
             lines.append(row)
@@ -265,10 +272,14 @@ final class DLPSettingsViewModel: ObservableObject {
             "actionTaken": violation.actionTaken.rawValue,
             "wasBlocked": violation.wasBlocked,
             "contentPreview": violation.contentPreview,
-            "matchedPattern": violation.matchedPattern
+            "matchedPattern": violation.matchedPattern,
         ]
-        if let appName = violation.sourceAppName { obj["sourceAppName"] = appName }
-        if let bundleId = violation.sourceAppBundleId { obj["sourceAppBundleId"] = bundleId }
+        if let appName = violation.sourceAppName {
+            obj["sourceAppName"] = appName
+        }
+        if let bundleId = violation.sourceAppBundleId {
+            obj["sourceAppBundleId"] = bundleId
+        }
         return obj
     }
 }

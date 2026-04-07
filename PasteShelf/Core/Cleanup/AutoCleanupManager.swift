@@ -13,41 +13,7 @@ import os.log
 /// Manages automatic cleanup of old clipboard items
 @MainActor
 final class AutoCleanupManager: ObservableObject {
-    // MARK: - Singleton
-
-    /// Shared instance
-    static let shared = AutoCleanupManager()
-
-    // MARK: - Properties
-
-    /// Whether cleanup is currently running
-    @Published private(set) var isRunning = false
-
-    /// Last cleanup date
-    @Published private(set) var lastCleanupDate: Date?
-
-    /// Number of items deleted in last cleanup
-    @Published private(set) var lastCleanupCount: Int = 0
-
-    // MARK: - Private Properties
-
-    private let storageManager: StorageManager
-    private let settingsManager: SettingsManager
-    private var cleanupTimer: Timer?
-    private var cancellables = Set<AnyCancellable>()
-
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "auto-cleanup"
-    )
-
-    // MARK: - Configuration
-
-    /// Cleanup interval (daily)
-    private let cleanupInterval: TimeInterval = 24 * 60 * 60 // 24 hours
-
-    /// Key for storing last cleanup date
-    private let lastCleanupKey = "com.pasteshelf.lastAutoCleanup"
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -62,21 +28,21 @@ final class AutoCleanupManager: ObservableObject {
         setupSettingsObserver()
     }
 
-    // MARK: - Setup
+    // MARK: Internal
 
-    private func setupSettingsObserver() {
-        // Observe settings changes
-        settingsManager.$settings
-            .dropFirst()
-            .sink { [weak self] settings in
-                if settings.privacy.autoDeleteEnabled {
-                    self?.scheduleCleanup()
-                } else {
-                    self?.stopScheduledCleanup()
-                }
-            }
-            .store(in: &cancellables)
-    }
+    // MARK: - Singleton
+
+    /// Shared instance
+    static let shared = AutoCleanupManager()
+
+    /// Whether cleanup is currently running
+    @Published private(set) var isRunning = false
+
+    /// Last cleanup date
+    @Published private(set) var lastCleanupDate: Date?
+
+    /// Number of items deleted in last cleanup
+    @Published private(set) var lastCleanupCount: Int = 0
 
     // MARK: - Public Methods
 
@@ -100,6 +66,44 @@ final class AutoCleanupManager: ObservableObject {
     /// Triggers an immediate cleanup
     func runCleanupNow() async {
         await performCleanup()
+    }
+
+    // MARK: Private
+
+    // MARK: - Private Properties
+
+    private let storageManager: StorageManager
+    private let settingsManager: SettingsManager
+    private var cleanupTimer: Timer?
+    private var cancellables = Set<AnyCancellable>()
+
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "auto-cleanup"
+    )
+
+    // MARK: - Configuration
+
+    /// Cleanup interval (daily)
+    private let cleanupInterval: TimeInterval = 24 * 60 * 60 // 24 hours
+
+    /// Key for storing last cleanup date
+    private let lastCleanupKey = "com.pasteshelf.lastAutoCleanup"
+
+    // MARK: - Setup
+
+    private func setupSettingsObserver() {
+        // Observe settings changes
+        settingsManager.$settings
+            .dropFirst()
+            .sink { [weak self] settings in
+                if settings.privacy.autoDeleteEnabled {
+                    self?.scheduleCleanup()
+                } else {
+                    self?.stopScheduledCleanup()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Scheduling
@@ -129,7 +133,7 @@ final class AutoCleanupManager: ObservableObject {
             RunLoop.main.add(timer, forMode: .common)
         }
 
-        logger.debug("Cleanup scheduled (interval: \(self.cleanupInterval)s)")
+        logger.debug("Cleanup scheduled (interval: \(cleanupInterval)s)")
     }
 
     private func stopScheduledCleanup() {

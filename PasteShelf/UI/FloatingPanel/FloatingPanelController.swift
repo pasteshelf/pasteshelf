@@ -11,19 +11,40 @@ import Combine
 import os.log
 import SwiftUI
 
+// MARK: - KeyablePanel
+
 /// NSPanel subclass that can become key without requiring .titled style mask.
 /// This avoids the blue key-window focus indicator line that macOS draws on titled windows.
 private class KeyablePanel: NSPanel {
-    override var canBecomeKey: Bool { true }
+    override var canBecomeKey: Bool {
+        true
+    }
 }
+
+// MARK: - FloatingPanelController
 
 /// Controller for the floating clipboard history panel
 @MainActor
 final class FloatingPanelController: NSObject {
-    // MARK: - Properties
+    // MARK: Lifecycle
 
-    /// The floating panel window
-    private var panel: NSPanel?
+    // MARK: - Initialization
+
+    init(storageManager: StorageManager = .shared) {
+        self.storageManager = storageManager
+        viewModel = FloatingPanelViewModel(storageManager: storageManager)
+        super.init()
+
+        viewModel.restorePreviousAppFocus = { [weak self] in
+            self?.restorePreviousAppFocus()
+        }
+
+        setupPanel()
+        setupBindings()
+        setupSettingsObserver()
+    }
+
+    // MARK: Internal
 
     /// ViewModel for the panel content
     let viewModel: FloatingPanelViewModel
@@ -39,6 +60,122 @@ final class FloatingPanelController: NSObject {
     var isVisible: Bool {
         panel?.isVisible ?? false
     }
+
+    // MARK: - Visibility
+
+    /// Shows the floating panel, gated by security and HIPAA lock checks.
+    func show() {
+        Task {
+            // Gate 1: General security lock (biometric auth from SecuritySettings)
+            if SecurityLockService.shared.isLocked {
+                let unlocked = await SecurityLockService.shared.unlock()
+                guard unlocked else {
+                    logger.debug("Panel show blocked by security lock")
+                    return
+                }
+            }
+
+            // Gate 2: HIPAA access control lock (if HIPAA compliance is active)
+            if HIPAAAccessControlService.shared.isLocked {
+                let unlocked = await HIPAAAccessControlService.shared.unlock()
+                guard unlocked else {
+                    logger.debug("Panel show blocked by HIPAA lock")
+                    return
+                }
+            }
+
+            // Record activity for inactivity timeout tracking
+            SecurityLockService.shared.recordActivity()
+            HIPAAAccessControlService.shared.recordActivity()
+
+            await viewModel.show()
+        }
+    }
+
+    /// Hides the floating panel
+    func hide() {
+        viewModel.hide()
+    }
+
+    /// Toggles panel visibility
+    func toggle() {
+        if isVisible {
+            hide()
+        } else {
+            show()
+        }
+    }
+
+    /// Restores focus to the app that was active before the panel was shown
+    func restorePreviousAppFocus() {
+        guard let previousApp else {
+            return
+        }
+        previousApp.activate()
+        self.previousApp = nil
+    }
+
+    // MARK: - Keyboard Handling
+
+    /// Handles key events from the panel
+    func handleKeyEvent(_ event: NSEvent) -> Bool {
+        guard event.type == .keyDown else {
+            return false
+        }
+
+        // Record activity for inactivity timeout tracking
+        SecurityLockService.shared.recordActivity()
+        HIPAAAccessControlService.shared.recordActivity()
+
+        switch event.keyCode {
+        case 125: // Down arrow
+            viewModel.selectNext()
+            return true
+        case 126: // Up arrow
+            viewModel.selectPrevious()
+            return true
+        case 36: // Return/Enter
+            Task {
+                await viewModel.pasteSelected()
+            }
+            return true
+        case 53: // Escape
+            hide()
+            return true
+        case 51: // Delete/Backspace
+            Task {
+                await viewModel.deleteSelected()
+            }
+            return true
+        default:
+            // Check for Cmd+S (favorite)
+            if event.modifierFlags.contains(.command), event.keyCode == 1 {
+                Task {
+                    await viewModel.toggleFavorite()
+                }
+                return true
+            }
+            // Check for number keys 1-9 for quick selection (if enabled)
+            if SettingsManager.shared.shortcuts.quickPasteEnabled,
+               let number = numberFromKeyCode(event.keyCode), number >= 1, number <= 9
+            {
+                let index = number - 1
+                if index < viewModel.items.count {
+                    viewModel.select(at: index)
+                    Task {
+                        await viewModel.pasteSelected()
+                    }
+                }
+                return true
+            }
+            return false
+        }
+    }
+
+    // MARK: Private
+
+    /// The floating panel window
+    private var panel: NSPanel?
 
     // MARK: - Private Properties
 
@@ -57,30 +194,14 @@ final class FloatingPanelController: NSObject {
     /// Storage manager reference
     private let storageManager: StorageManager
 
+    /// Panel height
+    private let panelHeight: CGFloat = 500
+
     // MARK: - Configuration
 
     /// Panel width (from settings)
     private var panelWidth: CGFloat {
         SettingsManager.shared.appearance.panelWidth.width
-    }
-
-    /// Panel height
-    private let panelHeight: CGFloat = 500
-
-    // MARK: - Initialization
-
-    init(storageManager: StorageManager = .shared) {
-        self.storageManager = storageManager
-        viewModel = FloatingPanelViewModel(storageManager: storageManager)
-        super.init()
-
-        viewModel.restorePreviousAppFocus = { [weak self] in
-            self?.restorePreviousAppFocus()
-        }
-
-        setupPanel()
-        setupBindings()
-        setupSettingsObserver()
     }
 
     // MARK: - Setup
@@ -97,7 +218,7 @@ final class FloatingPanelController: NSObject {
             defer: false
         )
 
-        guard let panel = panel else {
+        guard let panel else {
             logger.error("Failed to create panel")
             return
         }
@@ -153,7 +274,9 @@ final class FloatingPanelController: NSObject {
     }
 
     private func updatePanelSize() {
-        guard let panel = panel else { return }
+        guard let panel else {
+            return
+        }
 
         let newWidth = panelWidth
         var frame = panel.frame
@@ -167,53 +290,10 @@ final class FloatingPanelController: NSObject {
         logger.debug("Panel size updated to width: \(newWidth)")
     }
 
-    // MARK: - Visibility
-
-    /// Shows the floating panel, gated by security and HIPAA lock checks.
-    func show() {
-        Task {
-            // Gate 1: General security lock (biometric auth from SecuritySettings)
-            if SecurityLockService.shared.isLocked {
-                let unlocked = await SecurityLockService.shared.unlock()
-                guard unlocked else {
-                    logger.debug("Panel show blocked by security lock")
-                    return
-                }
-            }
-
-            // Gate 2: HIPAA access control lock (if HIPAA compliance is active)
-            if HIPAAAccessControlService.shared.isLocked {
-                let unlocked = await HIPAAAccessControlService.shared.unlock()
-                guard unlocked else {
-                    logger.debug("Panel show blocked by HIPAA lock")
-                    return
-                }
-            }
-
-            // Record activity for inactivity timeout tracking
-            SecurityLockService.shared.recordActivity()
-            HIPAAAccessControlService.shared.recordActivity()
-
-            await viewModel.show()
-        }
-    }
-
-    /// Hides the floating panel
-    func hide() {
-        viewModel.hide()
-    }
-
-    /// Toggles panel visibility
-    func toggle() {
-        if isVisible {
-            hide()
-        } else {
-            show()
-        }
-    }
-
     private func showPanel() {
-        guard let panel = panel else { return }
+        guard let panel else {
+            return
+        }
 
         // Capture the frontmost app BEFORE showing the panel
         let frontmost = NSWorkspace.shared.frontmostApplication
@@ -234,25 +314,22 @@ final class FloatingPanelController: NSObject {
     }
 
     private func hidePanel() {
-        guard panel?.isVisible == true else { return }
+        guard panel?.isVisible == true else {
+            return
+        }
         panel?.orderOut(nil)
         logger.debug("Panel hidden")
-    }
-
-    /// Restores focus to the app that was active before the panel was shown
-    func restorePreviousAppFocus() {
-        guard let previousApp = previousApp else { return }
-        previousApp.activate()
-        self.previousApp = nil
     }
 
     // MARK: - Positioning
 
     /// Positions the panel in the center of the main screen
     private func positionPanelCentered() {
-        guard let panel = panel,
+        guard let panel,
               let screen = NSScreen.main
-        else { return }
+        else {
+            return
+        }
 
         let screenFrame = screen.visibleFrame
         let panelSize = panel.frame.size
@@ -265,9 +342,11 @@ final class FloatingPanelController: NSObject {
 
     /// Positions the panel near the mouse cursor
     private func positionPanelNearCursor() {
-        guard let panel = panel,
+        guard let panel,
               let screen = NSScreen.main
-        else { return }
+        else {
+            return
+        }
 
         let mouseLocation = NSEvent.mouseLocation
         let screenFrame = screen.visibleFrame
@@ -284,79 +363,24 @@ final class FloatingPanelController: NSObject {
         panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 
-    // MARK: - Keyboard Handling
-
-    /// Handles key events from the panel
-    func handleKeyEvent(_ event: NSEvent) -> Bool {
-        guard event.type == .keyDown else { return false }
-
-        // Record activity for inactivity timeout tracking
-        SecurityLockService.shared.recordActivity()
-        HIPAAAccessControlService.shared.recordActivity()
-
-        switch event.keyCode {
-        case 125: // Down arrow
-            viewModel.selectNext()
-            return true
-        case 126: // Up arrow
-            viewModel.selectPrevious()
-            return true
-        case 36: // Return/Enter
-            Task {
-                await viewModel.pasteSelected()
-            }
-            return true
-        case 53: // Escape
-            hide()
-            return true
-        case 51: // Delete/Backspace
-            Task {
-                await viewModel.deleteSelected()
-            }
-            return true
-        default:
-            // Check for Cmd+S (favorite)
-            if event.modifierFlags.contains(.command), event.keyCode == 1 {
-                Task {
-                    await viewModel.toggleFavorite()
-                }
-                return true
-            }
-            // Check for number keys 1-9 for quick selection (if enabled)
-            if SettingsManager.shared.shortcuts.quickPasteEnabled,
-               let number = numberFromKeyCode(event.keyCode), number >= 1, number <= 9 {
-                let index = number - 1
-                if index < viewModel.items.count {
-                    viewModel.select(at: index)
-                    Task {
-                        await viewModel.pasteSelected()
-                    }
-                }
-                return true
-            }
-            return false
-        }
-    }
-
     /// Converts key codes to numbers 1-9
     private func numberFromKeyCode(_ keyCode: UInt16) -> Int? {
         switch keyCode {
-        case 18: return 1
-        case 19: return 2
-        case 20: return 3
-        case 21: return 4
-        case 23: return 5
-        case 22: return 6
-        case 26: return 7
-        case 28: return 8
-        case 25: return 9
-        default: return nil
+        case 18: 1
+        case 19: 2
+        case 20: 3
+        case 21: 4
+        case 23: 5
+        case 22: 6
+        case 26: 7
+        case 28: 8
+        case 25: 9
+        default: nil
         }
     }
-
 }
 
-// MARK: - NSWindowDelegate
+// MARK: NSWindowDelegate
 
 extension FloatingPanelController: NSWindowDelegate {
     func windowDidResignKey(_ notification: Notification) {

@@ -8,10 +8,10 @@
 import AppKit
 import SwiftUI
 
+// MARK: - AppExclusionListView
+
 /// View showing a list of excluded app bundle IDs
 struct AppExclusionListView: View {
-    // MARK: - Properties
-
     let bundleIds: [String]
     let onRemove: (String) -> Void
 
@@ -29,14 +29,13 @@ struct AppExclusionListView: View {
     }
 }
 
-// MARK: - Excluded App Row
+// MARK: - ExcludedAppRow
 
 struct ExcludedAppRow: View {
+    // MARK: Internal
+
     let bundleId: String
     let onRemove: () -> Void
-
-    @State private var appName: String = ""
-    @State private var appIcon: NSImage?
 
     var body: some View {
         HStack {
@@ -69,6 +68,11 @@ struct ExcludedAppRow: View {
         }
     }
 
+    // MARK: Private
+
+    @State private var appName: String = ""
+    @State private var appIcon: NSImage?
+
     private func loadAppInfo() {
         let workspace = NSWorkspace.shared
 
@@ -78,7 +82,7 @@ struct ExcludedAppRow: View {
 
             if let bundle = Bundle(url: appURL),
                let name = bundle.infoDictionary?["CFBundleName"] as? String
-                   ?? bundle.infoDictionary?["CFBundleDisplayName"] as? String
+               ?? bundle.infoDictionary?["CFBundleDisplayName"] as? String
             {
                 appName = name
             } else {

@@ -7,8 +7,10 @@
 
 import Carbon.HIToolbox
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
+
+// MARK: - HotkeyManagerTests
 
 struct HotkeyManagerTests {
     // MARK: - HotkeyConfiguration Tests
@@ -43,11 +45,11 @@ struct HotkeyManagerTests {
         let display = config.displayString
 
         // Should contain all modifier symbols
-        #expect(display.contains("⌘"))  // Command
-        #expect(display.contains("⇧"))  // Shift
-        #expect(display.contains("⌥"))  // Option
-        #expect(display.contains("⌃"))  // Control
-        #expect(display.contains("V"))  // Key
+        #expect(display.contains("⌘")) // Command
+        #expect(display.contains("⇧")) // Shift
+        #expect(display.contains("⌥")) // Option
+        #expect(display.contains("⌃")) // Control
+        #expect(display.contains("V")) // Key
     }
 
     @Test("Display string for common keys")
@@ -151,8 +153,8 @@ struct HotkeyManagerTests {
     @Test("HotkeyConfiguration encodes to JSON correctly")
     func hotkeyConfigurationEncodesToJSON() throws {
         let config = HotkeyConfiguration(
-            keyCode: 9,  // V
-            modifiers: 256  // Cmd
+            keyCode: 9, // V
+            modifiers: 256 // Cmd
         )
         let encoder = JSONEncoder()
 
@@ -206,7 +208,7 @@ struct HotkeyManagerTests {
     }
 }
 
-// MARK: - Hotkey Conflict Tests
+// MARK: - HotkeyConflictTests
 
 struct HotkeyConflictTests {
     @Test("System shortcuts are reserved")

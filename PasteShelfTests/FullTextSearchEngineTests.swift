@@ -5,8 +5,10 @@
 //  Unit tests for FullTextSearchEngine.
 //
 
-import XCTest
 @testable import PasteShelf
+import XCTest
+
+// MARK: - FullTextSearchEngineTests
 
 final class FullTextSearchEngineTests: XCTestCase {
     var searchEngine: FullTextSearchEngine!
@@ -59,7 +61,7 @@ final class FullTextSearchEngineTests: XCTestCase {
     func testSearch_unicodeNormalization() {
         // Test with composed vs decomposed characters
         let composed = "café"
-        let decomposed = "cafe\u{0301}"  // e + combining acute accent
+        let decomposed = "cafe\u{0301}" // e + combining acute accent
 
         XCTAssertTrue(searchEngine.matches(text: composed, query: "café"))
         XCTAssertTrue(searchEngine.matches(text: decomposed, query: "café"))
@@ -182,7 +184,7 @@ final class FullTextSearchEngineTests: XCTestCase {
         let text = "Hello World, this is a test string for performance testing"
 
         measure {
-            for _ in 0..<10000 {
+            for _ in 0 ..< 10000 {
                 _ = searchEngine.matches(text: text, query: "test")
             }
         }
@@ -192,7 +194,7 @@ final class FullTextSearchEngineTests: XCTestCase {
         let text = String(repeating: "Lorem ipsum dolor sit amet ", count: 100)
 
         measure {
-            for _ in 0..<1000 {
+            for _ in 0 ..< 1000 {
                 _ = searchEngine.matches(text: text, query: "dolor")
             }
         }

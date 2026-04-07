@@ -18,17 +18,18 @@ import SwiftUI
 /// - Export actions that produce CSV or JSON files via `NSSavePanel`.
 /// - A retention-policy picker that delegates to `AuditManager`.
 struct AuditLogView: View {
-
-    // MARK: - Properties
-
-    @StateObject private var viewModel = AuditLogViewModel()
-    @State private var pendingRetentionDays: Int?
+    // MARK: Internal
 
     // MARK: - Body
 
     var body: some View {
         auditLogContent
     }
+
+    // MARK: Private
+
+    @StateObject private var viewModel = AuditLogViewModel()
+    @State private var pendingRetentionDays: Int?
 
     // MARK: - Audit Log Content
 
@@ -42,7 +43,9 @@ struct AuditLogView: View {
         .formStyle(.grouped)
         .alert("Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
-            set: { if !$0 { viewModel.errorMessage = nil } }
+            set: { if !$0 {
+                viewModel.errorMessage = nil
+            } }
         )) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
@@ -52,7 +55,9 @@ struct AuditLogView: View {
         }
         .alert("Change Retention Period?", isPresented: Binding(
             get: { pendingRetentionDays != nil },
-            set: { if !$0 { pendingRetentionDays = nil } }
+            set: { if !$0 {
+                pendingRetentionDays = nil
+            } }
         )) {
             Button("Apply") {
                 if let days = pendingRetentionDays {
@@ -67,7 +72,9 @@ struct AuditLogView: View {
             }
         } message: {
             if let days = pendingRetentionDays {
-                Text("Setting retention to \(days) day\(days == 1 ? "" : "s") will permanently delete older events during the next pruning pass. This cannot be undone.")
+                Text(
+                    "Setting retention to \(days) day\(days == 1 ? "" : "s") will permanently delete older events during the next pruning pass. This cannot be undone."
+                )
             }
         }
     }
@@ -217,9 +224,11 @@ struct AuditLogView: View {
                 }
             }
 
-            Text("Events older than the retention window are automatically deleted during the next scheduled pruning pass.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text(
+                "Events older than the retention window are automatically deleted during the next scheduled pruning pass."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -229,28 +238,28 @@ struct AuditLogView: View {
     private func categoryDisplayName(_ category: AuditEventCategory) -> String {
         switch category {
         case .clipboard:
-            return "Clipboard"
+            "Clipboard"
         case .userAction:
-            return "User Action"
+            "User Action"
         case .policy:
-            return "Policy"
+            "Policy"
         case .authentication:
-            return "Authentication"
+            "Authentication"
         case .compliance:
-            return "Compliance"
+            "Compliance"
         }
     }
 
     /// Returns a human-readable label for a retention period in days.
     private func retentionLabel(days: Int) -> String {
         switch days {
-        case 1: return "1 day"
-        case 30: return "30 days"
-        case 60: return "60 days"
-        case 90: return "90 days"
-        case 180: return "180 days"
-        case 365: return "1 year"
-        default: return "\(days) days"
+        case 1: "1 day"
+        case 30: "30 days"
+        case 60: "60 days"
+        case 90: "90 days"
+        case 180: "180 days"
+        case 365: "1 year"
+        default: "\(days) days"
         }
     }
 }
@@ -263,8 +272,7 @@ struct AuditLogView: View {
 /// for one `AuditLogDisplayItem`. When the item has non-empty detail fields a
 /// `DisclosureGroup` exposes the key/value pairs.
 private struct EventRowView: View {
-
-    // MARK: Properties
+    // MARK: Internal
 
     let item: AuditLogDisplayItem
 
@@ -311,6 +319,19 @@ private struct EventRowView: View {
         .padding(.vertical, 2)
     }
 
+    // MARK: Private
+
+    private var severityColor: Color {
+        switch item.severity {
+        case .info:
+            .blue
+        case .warning:
+            .orange
+        case .critical:
+            .red
+        }
+    }
+
     // MARK: Subviews
 
     private var severityIcon: some View {
@@ -326,17 +347,6 @@ private struct EventRowView: View {
             .padding(.vertical, 2)
             .background(Color.secondary.opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
             .foregroundStyle(.secondary)
-    }
-
-    private var severityColor: Color {
-        switch item.severity {
-        case .info:
-            return .blue
-        case .warning:
-            return .orange
-        case .critical:
-            return .red
-        }
     }
 }
 

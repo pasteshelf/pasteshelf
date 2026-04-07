@@ -12,25 +12,7 @@ import os.log
 
 /// Search engine that searches OCR-extracted text from images
 final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
-    // MARK: - Properties
-
-    /// Storage manager for CoreData access
-    private let storageManager: StorageManager
-
-    /// Logger for search operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "ocr-search"
-    )
-
-    /// Task handle for cancellation
-    private var currentSearchTask: Task<[SearchResult], Never>?
-
-    /// Lock for thread-safe task management
-    private let lock = NSLock()
-
-    /// Image content types to search
-    private let imageContentTypes: Set<ContentType> = [.png, .jpeg, .tiff]
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -38,6 +20,15 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
         storageManager: StorageManager = .shared
     ) {
         self.storageManager = storageManager
+    }
+
+    // MARK: Internal
+
+    // MARK: - Availability
+
+    /// Whether OCR search is available on this system
+    var isAvailable: Bool {
+        OCRManager.shared.isAvailable
     }
 
     // MARK: - SearchEngine Protocol
@@ -55,7 +46,9 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
 
         // Create and store the search task
         let task = Task<[SearchResult], Never> { [weak self] in
-            guard let self else { return [] }
+            guard let self else {
+                return []
+            }
 
             logger.debug("Starting OCR search for: \(trimmedQuery)")
 
@@ -140,6 +133,26 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
         lock.unlock()
     }
 
+    // MARK: Private
+
+    /// Storage manager for CoreData access
+    private let storageManager: StorageManager
+
+    /// Logger for search operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "ocr-search"
+    )
+
+    /// Task handle for cancellation
+    private var currentSearchTask: Task<[SearchResult], Never>?
+
+    /// Lock for thread-safe task management
+    private let lock = NSLock()
+
+    /// Image content types to search
+    private let imageContentTypes: Set<ContentType> = [.png, .jpeg, .tiff]
+
     // MARK: - Candidate Selection
 
     /// Fetches IDs of image clipboard items that match the filter criteria
@@ -150,7 +163,7 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
         // Content type filter
         let contentTypePredicate = NSPredicate(
             format: "contentType IN %@",
-            imageContentTypes.map { $0.rawValue }
+            imageContentTypes.map(\.rawValue)
         )
         predicates.append(contentTypePredicate)
 
@@ -168,7 +181,7 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
             predicate: combinedPredicate
         )
 
-        return items.compactMap { $0.id }
+        return items.compactMap(\.id)
     }
 
     /// Builds an NSPredicate from search options (excluding content type, handled separately)
@@ -210,7 +223,7 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
 
     /// Calculates relevance score based on match quality
     private func calculateRelevanceScore(query: String, ocrText: String) -> Double {
-        var score: Double = 0.5 // Base score for contains match
+        var score = 0.5 // Base score for contains match
 
         // Boost for exact word match (not just substring)
         let words = ocrText.components(separatedBy: .whitespacesAndNewlines)
@@ -251,12 +264,5 @@ final class OCRSearchEngine: SearchEngine, @unchecked Sendable {
         }
 
         return ranges
-    }
-
-    // MARK: - Availability
-
-    /// Whether OCR search is available on this system
-    var isAvailable: Bool {
-        OCRManager.shared.isAvailable
     }
 }

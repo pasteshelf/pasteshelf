@@ -7,10 +7,10 @@
 
 import SwiftUI
 
+// MARK: - AppearanceTabView
+
 /// Appearance settings tab view
 struct AppearanceTabView: View {
-    // MARK: - Properties
-
     @ObservedObject var viewModel: PreferencesViewModel
 
     // MARK: - Body

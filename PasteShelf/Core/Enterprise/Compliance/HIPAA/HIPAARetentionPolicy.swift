@@ -14,8 +14,15 @@ import os.log
 /// and that logs cannot be deleted during the retention window. This struct provides
 /// validation that ensures any given `AuditRetentionConfiguration` meets these requirements.
 struct HIPAARetentionPolicy: Sendable {
+    // MARK: Internal
 
-    private static let logger = Logger.compliance
+    /// Returns a default HIPAA-compliant retention configuration.
+    static var hipaaDefault: AuditRetentionConfiguration {
+        AuditRetentionConfiguration(
+            retentionDays: AuditRetentionConfiguration.hipaaMinimumDays,
+            isImmutable: true
+        )
+    }
 
     /// Validates the given configuration against HIPAA requirements.
     ///
@@ -42,14 +49,6 @@ struct HIPAARetentionPolicy: Sendable {
         return corrected
     }
 
-    /// Returns a default HIPAA-compliant retention configuration.
-    static var hipaaDefault: AuditRetentionConfiguration {
-        AuditRetentionConfiguration(
-            retentionDays: AuditRetentionConfiguration.hipaaMinimumDays,
-            isImmutable: true
-        )
-    }
-
     /// Checks whether the given configuration meets HIPAA requirements.
     ///
     /// - Parameter configuration: The retention configuration to check.
@@ -58,4 +57,8 @@ struct HIPAARetentionPolicy: Sendable {
         configuration.retentionDays >= AuditRetentionConfiguration.hipaaMinimumDays
             && configuration.isImmutable
     }
+
+    // MARK: Private
+
+    private static let logger = Logger.compliance
 }

@@ -28,26 +28,26 @@ import os.log
 /// files. The caller is responsible for compressing the directory into a ZIP
 /// archive if required (e.g. via `Process` + `zip`).
 struct SOC2AccessControlEvidence: Sendable {
-
-    private static let logger = Logger.compliance
+    // MARK: Internal
 
     // MARK: - Evidence Package Errors
 
     /// Errors that can be thrown during evidence package generation.
     enum EvidenceError: Error, LocalizedError {
-
         /// The audit storage backend is not configured.
         case storageUnavailable
 
         /// Writing one of the evidence files failed.
         case fileWriteFailed(String)
 
+        // MARK: Internal
+
         var errorDescription: String? {
             switch self {
             case .storageUnavailable:
-                return "Audit storage is not available. Ensure AuditManager has been configured."
-            case .fileWriteFailed(let reason):
-                return "Failed to write evidence file: \(reason)"
+                "Audit storage is not available. Ensure AuditManager has been configured."
+            case let .fileWriteFailed(reason):
+                "Failed to write evidence file: \(reason)"
             }
         }
     }
@@ -66,7 +66,10 @@ struct SOC2AccessControlEvidence: Sendable {
     ///   or `EvidenceError.fileWriteFailed` if any file cannot be written.
     @MainActor
     static func exportEvidencePackage(dateRange: ClosedRange<Date>) async throws -> URL {
-        logger.info("Starting SOC 2 access control evidence export (range: \(dateRange.lowerBound) – \(dateRange.upperBound))")
+        logger
+            .info(
+                "Starting SOC 2 access control evidence export (range: \(dateRange.lowerBound) – \(dateRange.upperBound))"
+            )
 
         guard let storage = AuditManager.shared.storage else {
             logger.error("Audit storage unavailable — AuditManager not configured")
@@ -112,13 +115,13 @@ struct SOC2AccessControlEvidence: Sendable {
 
         // 1. authentication_events.json
         try writeJSON(
-            try encoder.encode(authEvents),
+            encoder.encode(authEvents),
             to: exportDir.appendingPathComponent("authentication_events.json")
         )
 
         // 2. policy_changes.json
         try writeJSON(
-            try encoder.encode(policyEvents),
+            encoder.encode(policyEvents),
             to: exportDir.appendingPathComponent("policy_changes.json")
         )
 
@@ -166,7 +169,7 @@ struct SOC2AccessControlEvidence: Sendable {
     static func generateAccessSummaryCSV(_ events: [AuditEvent]) -> String {
         let isoFormatter = ISO8601DateFormatter()
 
-        var rows: [String] = ["date,userId,action,result"]
+        var rows = ["date,userId,action,result"]
 
         for event in events.sorted(by: { $0.timestamp < $1.timestamp }) {
             let date = isoFormatter.string(from: event.timestamp)
@@ -205,15 +208,15 @@ struct SOC2AccessControlEvidence: Sendable {
         let metadata: [String: Any] = [
             "dateRange": [
                 "start": isoFormatter.string(from: dateRange.lowerBound),
-                "end": isoFormatter.string(from: dateRange.upperBound)
+                "end": isoFormatter.string(from: dateRange.upperBound),
             ],
             "generatedAt": isoFormatter.string(from: Date()),
             "eventCounts": [
                 "authentication": authCount,
                 "policy": policyCount,
-                "total": authCount + policyCount
+                "total": authCount + policyCount,
             ],
-            "applicationVersion": appVersion
+            "applicationVersion": appVersion,
         ]
 
         // JSONSerialization handles the [String: Any] dictionary; sort keys for determinism.
@@ -227,6 +230,10 @@ struct SOC2AccessControlEvidence: Sendable {
 
         return data
     }
+
+    // MARK: Private
+
+    private static let logger = Logger.compliance
 
     // MARK: - Private Helpers
 
@@ -261,7 +268,6 @@ struct SOC2AccessControlEvidence: Sendable {
 // MARK: - AuditEvent + CoreData Convenience Init
 
 private extension AuditEvent {
-
     /// Creates an `AuditEvent` from a CoreData `AuditLogEntry` managed object.
     ///
     /// Returns `nil` if any required field (id, timestamp, category, action, or severity)

@@ -22,6 +22,35 @@ import Foundation
 /// Use the `empty` sentinel when no DLP policy has been received from the server,
 /// or initialise with `DLPPolicy()` to create a policy with no rules and no enforcement.
 struct DLPPolicy: Codable, Sendable, Equatable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates a DLP policy with the given configuration.
+    ///
+    /// - Parameters:
+    ///   - rules: The DLP rules to evaluate. Defaults to an empty array.
+    ///   - enforced: Whether the policy is administrator-locked. Defaults to `false`.
+    ///   - blockUnknownSensitive: Whether to block content flagged by the sensitive
+    ///     data detector even without an explicit rule match. Defaults to `false`.
+    init(
+        rules: [DLPRule] = [],
+        enforced: Bool = false,
+        blockUnknownSensitive: Bool = false
+    ) {
+        self.rules = rules
+        self.enforced = enforced
+        self.blockUnknownSensitive = blockUnknownSensitive
+    }
+
+    // MARK: Internal
+
+    // MARK: - Empty Sentinel
+
+    /// A `DLPPolicy` with no rules and no enforcement — represents a device with no active DLP policy.
+    ///
+    /// Use this as a safe zero-value before any DLP policy has been received from the admin console.
+    static let empty = DLPPolicy(rules: [], enforced: false, blockUnknownSensitive: false)
 
     // MARK: - Rules
 
@@ -43,30 +72,4 @@ struct DLPPolicy: Codable, Sendable, Equatable {
     /// This provides a broad safety net for sensitive data categories that may not
     /// be covered by explicitly configured rules.
     var blockUnknownSensitive: Bool
-
-    // MARK: - Initialization
-
-    /// Creates a DLP policy with the given configuration.
-    ///
-    /// - Parameters:
-    ///   - rules: The DLP rules to evaluate. Defaults to an empty array.
-    ///   - enforced: Whether the policy is administrator-locked. Defaults to `false`.
-    ///   - blockUnknownSensitive: Whether to block content flagged by the sensitive
-    ///     data detector even without an explicit rule match. Defaults to `false`.
-    init(
-        rules: [DLPRule] = [],
-        enforced: Bool = false,
-        blockUnknownSensitive: Bool = false
-    ) {
-        self.rules = rules
-        self.enforced = enforced
-        self.blockUnknownSensitive = blockUnknownSensitive
-    }
-
-    // MARK: - Empty Sentinel
-
-    /// A `DLPPolicy` with no rules and no enforcement — represents a device with no active DLP policy.
-    ///
-    /// Use this as a safe zero-value before any DLP policy has been received from the admin console.
-    static let empty = DLPPolicy(rules: [], enforced: false, blockUnknownSensitive: false)
 }

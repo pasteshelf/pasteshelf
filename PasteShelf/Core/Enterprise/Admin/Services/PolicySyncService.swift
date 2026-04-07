@@ -22,17 +22,7 @@ import os.log
 /// the server. The most recently fetched policy is cached locally for offline
 /// resilience via `UserDefaults`.
 final class PolicySyncService: PolicySyncing {
-
-    // MARK: - Properties
-
-    private let apiClient: AdminAPIProviding
-    private let deviceId: () -> String?
-    private var cachedPolicy: AdminPolicy?
-    private var pollingTimer: Timer?
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "policy-sync")
-
-    /// UserDefaults key used to cache the last-fetched policy for offline use.
-    private static let cachedPolicyKey = "com.pasteshelf.admin.cachedPolicy"
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -44,8 +34,10 @@ final class PolicySyncService: PolicySyncing {
     init(apiClient: AdminAPIProviding, deviceId: @escaping () -> String?) {
         self.apiClient = apiClient
         self.deviceId = deviceId
-        self.cachedPolicy = Self.loadCachedPolicy()
+        cachedPolicy = Self.loadCachedPolicy()
     }
+
+    // MARK: Internal
 
     // MARK: - PolicySyncing
 
@@ -101,81 +93,16 @@ final class PolicySyncService: PolicySyncing {
         pollingTimer = nil
     }
 
-    // MARK: - Policy Mapping
+    // MARK: Private
 
-    /// Applies history limit sub-policy to settings.
-    ///
-    /// Maps `maxItems` to `general.historyLimit` and `maxDays` to
-    /// `privacy.autoDeleteEnabled/Days`, matching the `MDMPolicyEnforcer` pattern.
-    private func applyHistoryLimits(_ policy: HistoryLimitPolicy?, to settings: inout AppSettings) {
-        guard let policy, policy.enforced else { return }
+    /// UserDefaults key used to cache the last-fetched policy for offline use.
+    private static let cachedPolicyKey = "com.pasteshelf.admin.cachedPolicy"
 
-        if let maxItems = policy.maxItems {
-            settings.general.historyLimit = closestHistoryLimit(to: maxItems)
-        }
-
-        if let maxDays = policy.maxDays, maxDays > 0 {
-            settings.privacy.autoDeleteEnabled = true
-            settings.privacy.autoDeleteDays = maxDays
-        }
-    }
-
-    /// Applies excluded apps sub-policy to settings.
-    ///
-    /// Merges enforced bundle IDs with the user's existing exclusions (union).
-    /// Users can add their own exclusions but cannot remove enforced ones.
-    private func applyExcludedApps(_ policy: ExcludedAppsPolicy?, to settings: inout AppSettings) {
-        guard let policy, policy.enforced else { return }
-
-        let merged = Set(settings.privacy.excludedAppBundleIds).union(policy.bundleIds)
-        settings.privacy.excludedAppBundleIds = Array(merged).sorted()
-    }
-
-    /// Applies sync settings sub-policy to settings.
-    ///
-    /// Controls whether cloud sync is enabled via `EnterpriseSettings`. When
-    /// `localStorageOnly` is `true`, sync is implicitly disabled.
-    private func applySyncSettings(_ policy: SyncSettingsPolicy?, to settings: inout AppSettings) {
-        guard let policy, policy.enforced else { return }
-
-        if let syncEnabled = policy.syncEnabled {
-            settings.enterprise.cloudSyncEnabled = syncEnabled
-        }
-        if let localOnly = policy.localStorageOnly {
-            settings.enterprise.localStorageOnly = localOnly
-        }
-
-        let syncEnabled = settings.enterprise.cloudSyncEnabled
-        let localOnly = settings.enterprise.localStorageOnly
-        logger.debug("Sync policy applied (cloudSyncEnabled: \(syncEnabled), localStorageOnly: \(localOnly))")
-    }
-
-    /// Applies encryption requirements sub-policy to settings.
-    ///
-    /// When biometric authentication is required, maps to `SecuritySettings.requireBiometricAuth`.
-    private func applyEncryptionRequirements(_ policy: EncryptionPolicy?, to settings: inout AppSettings) {
-        guard let policy, policy.enforced else { return }
-
-        if let requireBiometric = policy.requireBiometricAuth {
-            settings.security.requireBiometricAuth = requireBiometric
-        }
-
-        let biometric = settings.security.requireBiometricAuth
-        logger.debug("Encryption policy applied (requireBiometricAuth: \(biometric))")
-    }
-
-    // MARK: - History Limit Mapping
-
-    /// Maps an integer item count to the closest `HistoryLimit` enum case.
-    ///
-    /// Mirrors `MDMPolicyEnforcer.closestHistoryLimit(to:)` exactly.
-    private func closestHistoryLimit(to items: Int) -> HistoryLimit {
-        if items <= 0 { return .unlimited }
-        if items <= 100 { return .small }
-        if items <= 500 { return .medium }
-        if items <= 1000 { return .large }
-        return .unlimited
-    }
+    private let apiClient: AdminAPIProviding
+    private let deviceId: () -> String?
+    private var cachedPolicy: AdminPolicy?
+    private var pollingTimer: Timer?
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "policy-sync")
 
     // MARK: - Local Cache
 
@@ -196,5 +123,97 @@ final class PolicySyncService: PolicySyncing {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return try? decoder.decode(AdminPolicy.self, from: data)
+    }
+
+    // MARK: - Policy Mapping
+
+    /// Applies history limit sub-policy to settings.
+    ///
+    /// Maps `maxItems` to `general.historyLimit` and `maxDays` to
+    /// `privacy.autoDeleteEnabled/Days`, matching the `MDMPolicyEnforcer` pattern.
+    private func applyHistoryLimits(_ policy: HistoryLimitPolicy?, to settings: inout AppSettings) {
+        guard let policy, policy.enforced else {
+            return
+        }
+
+        if let maxItems = policy.maxItems {
+            settings.general.historyLimit = closestHistoryLimit(to: maxItems)
+        }
+
+        if let maxDays = policy.maxDays, maxDays > 0 {
+            settings.privacy.autoDeleteEnabled = true
+            settings.privacy.autoDeleteDays = maxDays
+        }
+    }
+
+    /// Applies excluded apps sub-policy to settings.
+    ///
+    /// Merges enforced bundle IDs with the user's existing exclusions (union).
+    /// Users can add their own exclusions but cannot remove enforced ones.
+    private func applyExcludedApps(_ policy: ExcludedAppsPolicy?, to settings: inout AppSettings) {
+        guard let policy, policy.enforced else {
+            return
+        }
+
+        let merged = Set(settings.privacy.excludedAppBundleIds).union(policy.bundleIds)
+        settings.privacy.excludedAppBundleIds = Array(merged).sorted()
+    }
+
+    /// Applies sync settings sub-policy to settings.
+    ///
+    /// Controls whether cloud sync is enabled via `EnterpriseSettings`. When
+    /// `localStorageOnly` is `true`, sync is implicitly disabled.
+    private func applySyncSettings(_ policy: SyncSettingsPolicy?, to settings: inout AppSettings) {
+        guard let policy, policy.enforced else {
+            return
+        }
+
+        if let syncEnabled = policy.syncEnabled {
+            settings.enterprise.cloudSyncEnabled = syncEnabled
+        }
+        if let localOnly = policy.localStorageOnly {
+            settings.enterprise.localStorageOnly = localOnly
+        }
+
+        let syncEnabled = settings.enterprise.cloudSyncEnabled
+        let localOnly = settings.enterprise.localStorageOnly
+        logger.debug("Sync policy applied (cloudSyncEnabled: \(syncEnabled), localStorageOnly: \(localOnly))")
+    }
+
+    /// Applies encryption requirements sub-policy to settings.
+    ///
+    /// When biometric authentication is required, maps to `SecuritySettings.requireBiometricAuth`.
+    private func applyEncryptionRequirements(_ policy: EncryptionPolicy?, to settings: inout AppSettings) {
+        guard let policy, policy.enforced else {
+            return
+        }
+
+        if let requireBiometric = policy.requireBiometricAuth {
+            settings.security.requireBiometricAuth = requireBiometric
+        }
+
+        let biometric = settings.security.requireBiometricAuth
+        logger.debug("Encryption policy applied (requireBiometricAuth: \(biometric))")
+    }
+
+    // MARK: - History Limit Mapping
+
+    /// Maps an integer item count to the closest `HistoryLimit` enum case.
+    ///
+    /// Mirrors `MDMPolicyEnforcer.closestHistoryLimit(to:)` exactly.
+    private func closestHistoryLimit(to items: Int) -> HistoryLimit {
+        if items <= 0 {
+            return .unlimited
+        }
+        if items <= 100 {
+            return .small
+        }
+        if items <= 500 {
+            return .medium
+        }
+        if items <= 1000 {
+            return .large
+        }
+        return .unlimited
     }
 }

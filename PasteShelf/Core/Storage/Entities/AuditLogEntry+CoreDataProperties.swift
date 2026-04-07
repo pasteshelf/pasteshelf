@@ -8,56 +8,57 @@
 import CoreData
 import Foundation
 
-extension AuditLogEntry {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<AuditLogEntry> {
+public extension AuditLogEntry {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<AuditLogEntry> {
         NSFetchRequest<AuditLogEntry>(entityName: "AuditLogEntry")
     }
 
     // MARK: - Attributes
 
     /// The specific action that was recorded (raw value of `AuditAction`).
-    @NSManaged public var action: String?
+    @NSManaged var action: String?
 
     /// The server-assigned device identifier of the device that generated this event.
-    @NSManaged public var deviceId: String?
+    @NSManaged var deviceId: String?
 
     /// The AES-encrypted JSON encoding of the event's `detail` dictionary.
-    @NSManaged public var encryptedDetail: Data?
+    @NSManaged var encryptedDetail: Data?
 
     /// The high-level category of this event (raw value of `AuditEventCategory`).
-    @NSManaged public var eventCategory: String?
+    @NSManaged var eventCategory: String?
 
     /// A locally generated UUID that uniquely identifies this audit log entry.
-    @NSManaged public var id: UUID?
+    @NSManaged var id: UUID?
 
     /// Whether this entry has been successfully synced to the admin console.
-    @NSManaged public var isSynced: Bool
+    @NSManaged var isSynced: Bool
 
     /// The identifier of the specific resource affected by this action, if any.
-    @NSManaged public var resourceId: String?
+    @NSManaged var resourceId: String?
 
     /// The type of resource affected by this action, if any.
-    @NSManaged public var resourceType: String?
+    @NSManaged var resourceType: String?
 
     /// The operational significance of this event (raw value of `AuditEventSeverity`).
-    @NSManaged public var severity: String?
+    @NSManaged var severity: String?
 
     /// The timestamp at which this entry was successfully synced to the admin console.
-    @NSManaged public var syncedAt: Date?
+    @NSManaged var syncedAt: Date?
 
     /// When the auditable action occurred.
-    @NSManaged public var timestamp: Date?
+    @NSManaged var timestamp: Date?
 
     /// The SSO user ID associated with this event, if a user session was active.
-    @NSManaged public var userId: String?
+    @NSManaged var userId: String?
 }
+
+// MARK: - AuditLogEntry + Identifiable
 
 extension AuditLogEntry: Identifiable {}
 
 // MARK: - Convenience Initializers
 
 extension AuditLogEntry {
-
     /// Creates a new `AuditLogEntry` from an `AuditEvent` domain model and its encrypted detail payload.
     ///
     /// - Parameters:
@@ -71,25 +72,24 @@ extension AuditLogEntry {
         encryptedDetail: Data?
     ) {
         self.init(context: context)
-        self.id = event.id
-        self.timestamp = event.timestamp
-        self.eventCategory = event.category.rawValue
-        self.action = event.action.rawValue
-        self.severity = event.severity.rawValue
-        self.userId = event.userId
-        self.deviceId = event.deviceId
-        self.resourceType = event.resourceType
-        self.resourceId = event.resourceId
+        id = event.id
+        timestamp = event.timestamp
+        eventCategory = event.category.rawValue
+        action = event.action.rawValue
+        severity = event.severity.rawValue
+        userId = event.userId
+        deviceId = event.deviceId
+        resourceType = event.resourceType
+        resourceId = event.resourceId
         self.encryptedDetail = encryptedDetail
-        self.isSynced = false
-        self.syncedAt = nil
+        isSynced = false
+        syncedAt = nil
     }
 }
 
 // MARK: - Fetch Requests
 
 extension AuditLogEntry {
-
     /// Returns a fetch request for unsynced entries sorted by timestamp ascending.
     ///
     /// Use this during the flush cycle to retrieve events that need to be uploaded
@@ -101,7 +101,7 @@ extension AuditLogEntry {
         let request = fetchRequest()
         request.predicate = NSPredicate(format: "isSynced == NO")
         request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \AuditLogEntry.timestamp, ascending: true)
+            NSSortDescriptor(keyPath: \AuditLogEntry.timestamp, ascending: true),
         ]
         request.fetchLimit = limit
         return request
@@ -140,7 +140,7 @@ extension AuditLogEntry {
         }
 
         request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \AuditLogEntry.timestamp, ascending: false)
+            NSSortDescriptor(keyPath: \AuditLogEntry.timestamp, ascending: false),
         ]
         return request
     }
@@ -156,7 +156,7 @@ extension AuditLogEntry {
         let request = fetchRequest()
         request.predicate = NSPredicate(format: "timestamp < %@", cutoff as NSDate)
         request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \AuditLogEntry.timestamp, ascending: true)
+            NSSortDescriptor(keyPath: \AuditLogEntry.timestamp, ascending: true),
         ]
         return request
     }

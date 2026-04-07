@@ -5,8 +5,8 @@
 //  Unit tests for StorageManager core functionality.
 //
 
-@testable import PasteShelf
 import CoreData
+@testable import PasteShelf
 import XCTest
 
 final class StorageManagerTests: XCTestCase {

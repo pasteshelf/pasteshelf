@@ -19,6 +19,45 @@ import Foundation
 /// an administrator on an enrolled device. The `isEnabled` flag allows rules to be
 /// temporarily disabled without deleting them.
 struct DLPRule: Codable, Sendable, Identifiable, Equatable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates a DLP rule with the given configuration.
+    ///
+    /// - Parameters:
+    ///   - id: A locally generated UUID for this rule. Defaults to a new `UUID()`.
+    ///   - name: A human-readable label for the rule.
+    ///   - isEnabled: Whether the rule is active. Defaults to `true`.
+    ///   - patternCategory: The category of sensitive data this rule targets.
+    ///   - pattern: The regex pattern string used to match sensitive content.
+    ///   - severity: The severity assigned to violations. Defaults to `.high`.
+    ///   - actions: The enforcement actions to apply on violation. Defaults to `[.alert, .logOnly]`.
+    ///   - createdAt: When the rule was created. Defaults to the current date.
+    ///   - updatedAt: When the rule was last modified. Defaults to the current date.
+    init(
+        id: UUID = UUID(),
+        name: String,
+        isEnabled: Bool = true,
+        patternCategory: DLPPatternCategory,
+        pattern: String,
+        severity: SensitiveSeverity = .high,
+        actions: [DLPAction] = [.alert, .logOnly],
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()
+    ) {
+        self.id = id
+        self.name = name
+        self.isEnabled = isEnabled
+        self.patternCategory = patternCategory
+        self.pattern = pattern
+        self.severity = severity
+        self.actions = actions
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    // MARK: Internal
 
     // MARK: - Identity
 
@@ -64,40 +103,4 @@ struct DLPRule: Codable, Sendable, Identifiable, Equatable {
 
     /// When this rule was last modified.
     var updatedAt: Date
-
-    // MARK: - Initialization
-
-    /// Creates a DLP rule with the given configuration.
-    ///
-    /// - Parameters:
-    ///   - id: A locally generated UUID for this rule. Defaults to a new `UUID()`.
-    ///   - name: A human-readable label for the rule.
-    ///   - isEnabled: Whether the rule is active. Defaults to `true`.
-    ///   - patternCategory: The category of sensitive data this rule targets.
-    ///   - pattern: The regex pattern string used to match sensitive content.
-    ///   - severity: The severity assigned to violations. Defaults to `.high`.
-    ///   - actions: The enforcement actions to apply on violation. Defaults to `[.alert, .logOnly]`.
-    ///   - createdAt: When the rule was created. Defaults to the current date.
-    ///   - updatedAt: When the rule was last modified. Defaults to the current date.
-    init(
-        id: UUID = UUID(),
-        name: String,
-        isEnabled: Bool = true,
-        patternCategory: DLPPatternCategory,
-        pattern: String,
-        severity: SensitiveSeverity = .high,
-        actions: [DLPAction] = [.alert, .logOnly],
-        createdAt: Date = Date(),
-        updatedAt: Date = Date()
-    ) {
-        self.id = id
-        self.name = name
-        self.isEnabled = isEnabled
-        self.patternCategory = patternCategory
-        self.pattern = pattern
-        self.severity = severity
-        self.actions = actions
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-    }
 }

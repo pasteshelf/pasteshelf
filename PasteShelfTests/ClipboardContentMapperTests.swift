@@ -5,8 +5,8 @@
 //  Unit tests for ClipboardContentMapper.
 //
 
-@testable import PasteShelf
 import CoreData
+@testable import PasteShelf
 import XCTest
 
 final class ClipboardContentMapperTests: XCTestCase {
@@ -111,7 +111,7 @@ final class ClipboardContentMapperTests: XCTestCase {
             availableTypes: [.fileURL],
             fileURLs: [
                 URL(fileURLWithPath: "/Users/test/file1.txt"),
-                URL(fileURLWithPath: "/Users/test/file2.txt")
+                URL(fileURLWithPath: "/Users/test/file2.txt"),
             ],
             contentHash: "files123"
         )

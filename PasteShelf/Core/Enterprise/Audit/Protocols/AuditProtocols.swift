@@ -17,7 +17,6 @@ import Foundation
 /// and batch-event entry points are provided to accommodate low-frequency user actions
 /// and high-frequency clipboard captures respectively.
 protocol AuditLogging: Sendable {
-
     /// Records a single audit event.
     ///
     /// The event is persisted to local storage and, if auto-flush is active, included
@@ -43,7 +42,6 @@ protocol AuditLogging: Sendable {
 /// detail payloads, support filtered queries for the audit log viewer, track sync
 /// state for the flush cycle, and enforce the configured retention window.
 protocol AuditLogStoring: Sendable {
-
     /// Persists a single audit event to local CoreData storage.
     ///
     /// The event's `detail` dictionary is encrypted before being written to the
@@ -118,7 +116,6 @@ protocol AuditLogStoring: Sendable {
 /// events, and expose a manual `flush()` entry point for immediate upload (e.g.
 /// after a high-severity event or during device unenrollment).
 protocol AuditLogSyncing: Sendable {
-
     /// Starts the periodic auto-flush timer.
     ///
     /// After calling this method, the implementation will automatically flush
@@ -149,7 +146,6 @@ protocol AuditLogSyncing: Sendable {
 
 /// Errors that may be thrown during audit log operations.
 enum AuditError: Error, LocalizedError, Sendable {
-
     /// The audit logging system has not been configured with the required credentials.
     case notConfigured
 
@@ -176,56 +172,58 @@ enum AuditError: Error, LocalizedError, Sendable {
     /// The audit logging feature is not currently enabled.
     case featureUnavailable
 
+    // MARK: Internal
+
     // MARK: - LocalizedError
 
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "Audit logging has not been configured. Admin console credentials are required."
-        case .encryptionFailed(let reason):
-            return "Failed to encrypt audit event detail: \(reason)"
-        case .decryptionFailed(let reason):
-            return "Failed to decrypt audit log entry detail: \(reason)"
-        case .storageFailure(let reason):
-            return "A storage error occurred while processing the audit log: \(reason)"
-        case .syncFailed(let reason):
-            return "Failed to sync audit events to the admin console: \(reason)"
+            "Audit logging has not been configured. Admin console credentials are required."
+        case let .encryptionFailed(reason):
+            "Failed to encrypt audit event detail: \(reason)"
+        case let .decryptionFailed(reason):
+            "Failed to decrypt audit log entry detail: \(reason)"
+        case let .storageFailure(reason):
+            "A storage error occurred while processing the audit log: \(reason)"
+        case let .syncFailed(reason):
+            "Failed to sync audit events to the admin console: \(reason)"
         case .featureUnavailable:
-            return "Audit logging is not enabled."
+            "Audit logging is not enabled."
         }
     }
 
     var failureReason: String? {
         switch self {
         case .notConfigured:
-            return "No admin console server URL or API credentials have been provided."
-        case .encryptionFailed(let reason):
-            return reason
-        case .decryptionFailed(let reason):
-            return reason
-        case .storageFailure(let reason):
-            return reason
-        case .syncFailed(let reason):
-            return reason
+            "No admin console server URL or API credentials have been provided."
+        case let .encryptionFailed(reason):
+            reason
+        case let .decryptionFailed(reason):
+            reason
+        case let .storageFailure(reason):
+            reason
+        case let .syncFailed(reason):
+            reason
         case .featureUnavailable:
-            return "The audit logging feature is not currently available."
+            "The audit logging feature is not currently available."
         }
     }
 
     var recoverySuggestion: String? {
         switch self {
         case .notConfigured:
-            return "Open Settings > Enterprise > Admin Console and enter the server URL and credentials."
+            "Open Settings > Enterprise > Admin Console and enter the server URL and credentials."
         case .encryptionFailed:
-            return "Verify that the encryption key is available in the Keychain and retry."
+            "Verify that the encryption key is available in the Keychain and retry."
         case .decryptionFailed:
-            return "The encryption key may have changed. Contact your IT administrator if the issue persists."
+            "The encryption key may have changed. Contact your IT administrator if the issue persists."
         case .storageFailure:
-            return "Restart the application. If the problem continues, check available disk space."
+            "Restart the application. If the problem continues, check available disk space."
         case .syncFailed:
-            return "Check your network connection and verify the admin console server is reachable."
+            "Check your network connection and verify the admin console server is reachable."
         case .featureUnavailable:
-            return "Enable audit logging in Enterprise settings."
+            "Enable audit logging in Enterprise settings."
         }
     }
 }

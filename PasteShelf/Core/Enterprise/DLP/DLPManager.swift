@@ -13,7 +13,6 @@ import os.log
 // MARK: - DLP Notification Names
 
 extension Notification.Name {
-
     /// Posted when a DLP violation is detected during clipboard content evaluation.
     ///
     /// The notification's `userInfo` dictionary contains:
@@ -38,6 +37,27 @@ extension Notification.Name {
 /// the feature is unavailable.
 @MainActor
 final class DLPManager: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Private initializer for the shared singleton.
+    private init() {}
+
+    /// Designated initializer for dependency injection in tests.
+    ///
+    /// - Parameters:
+    ///   - ruleEngine: The engine that evaluates clipboard content against rules.
+    ///   - storageService: The CoreData storage backend for rules and violations.
+    init(
+        ruleEngine: DLPRuleEvaluating,
+        storageService: DLPViolationStorageService
+    ) {
+        self.ruleEngine = ruleEngine
+        self.storageService = storageService
+    }
+
+    // MARK: Internal
 
     // MARK: - Singleton
 
@@ -58,32 +78,20 @@ final class DLPManager: ObservableObject {
     /// The most recent error encountered by the DLP subsystem, if any.
     @Published var lastError: DLPError?
 
-    // MARK: - Dependencies
+    // MARK: - Storage Access
 
-    private var ruleEngine: DLPRuleEvaluating?
-    private var storageService: DLPViolationStorageService?
-
-    private let logger = Logger.security
-
-    /// The maximum number of recent violations to keep in memory for the UI.
-    private let recentViolationsLimit = 50
-
-    // MARK: - Initialization
-
-    /// Private initializer for the shared singleton.
-    private init() {}
-
-    /// Designated initializer for dependency injection in tests.
+    /// The `DLPViolationStoring` backend, exposed for direct access if needed.
     ///
-    /// - Parameters:
-    ///   - ruleEngine: The engine that evaluates clipboard content against rules.
-    ///   - storageService: The CoreData storage backend for rules and violations.
-    init(
-        ruleEngine: DLPRuleEvaluating,
-        storageService: DLPViolationStorageService
-    ) {
-        self.ruleEngine = ruleEngine
-        self.storageService = storageService
+    /// `nil` until `configure()` has been called.
+    var violationStorage: DLPViolationStoring? {
+        storageService
+    }
+
+    /// The `DLPRuleStoring` backend, exposed for direct access if needed.
+    ///
+    /// `nil` until `configure()` has been called.
+    var ruleStorage: DLPRuleStoring? {
+        storageService
     }
 
     // MARK: - Configuration
@@ -94,10 +102,10 @@ final class DLPManager: ObservableObject {
     /// The method loads rules from storage and enables DLP evaluation.
     func configure() {
         let storage = DLPViolationStorageService()
-        self.storageService = storage
+        storageService = storage
 
         let engine = DLPRuleEngine()
-        self.ruleEngine = engine
+        ruleEngine = engine
 
         isEnabled = true
         logger.info("DLPManager configured and enabled")
@@ -156,13 +164,15 @@ final class DLPManager: ObservableObject {
             await recordViolations(result.violations)
 
             // Post notification for alert UI
-            for violation in result.violations where violation.actionTaken == .alert || violation.actionTaken == .block {
+            for violation in result.violations
+                where violation.actionTaken == .alert || violation.actionTaken == .block
+            {
                 NotificationCenter.default.post(
                     name: .dlpViolationDetected,
                     object: self,
                     userInfo: [
                         "violation": violation,
-                        "result": result
+                        "result": result,
                     ]
                 )
             }
@@ -177,12 +187,14 @@ final class DLPManager: ObservableObject {
     ///
     /// Updates the published `rules` array. Errors are captured in `lastError`.
     func loadRules() async {
-        guard let storage = storageService else { return }
+        guard let storage = storageService else {
+            return
+        }
 
         do {
             let entities = try await storage.loadRules()
             rules = entities.compactMap { $0.toDomainModel() }
-            logger.debug("Loaded \(self.rules.count) DLP rules from storage")
+            logger.debug("Loaded \(rules.count) DLP rules from storage")
         } catch {
             logger.error("Failed to load DLP rules: \(error.localizedDescription)")
             lastError = .storageFailure(error.localizedDescription)
@@ -253,7 +265,9 @@ final class DLPManager: ObservableObject {
     /// This is called during first-time setup to populate the rule store with
     /// sensible defaults derived from `DLPDefaultPatterns`.
     func installDefaultRulesIfNeeded() async {
-        guard rules.isEmpty, let storage = storageService else { return }
+        guard rules.isEmpty, let storage = storageService else {
+            return
+        }
 
         let defaults = DLPDefaultPatterns.allDefaultRules()
         for rule in defaults {
@@ -274,7 +288,9 @@ final class DLPManager: ObservableObject {
     ///
     /// - Parameter policy: The `DLPPolicy` received from the admin console.
     func applyPolicy(_ policy: DLPPolicy) async {
-        guard let storage = storageService else { return }
+        guard let storage = storageService else {
+            return
+        }
 
         // Save each rule from the policy
         for rule in policy.rules {
@@ -292,7 +308,7 @@ final class DLPManager: ObservableObject {
             detail: [
                 "dlpAction": "policyApplied",
                 "ruleCount": "\(policy.rules.count)",
-                "enforced": "\(policy.enforced)"
+                "enforced": "\(policy.enforced)",
             ]
         )
 
@@ -303,7 +319,9 @@ final class DLPManager: ObservableObject {
 
     /// Loads the most recent violations from storage for display in the UI.
     func loadRecentViolations() async {
-        guard let storage = storageService else { return }
+        guard let storage = storageService else {
+            return
+        }
 
         do {
             let entities = try await storage.fetchViolations(
@@ -312,7 +330,7 @@ final class DLPManager: ObservableObject {
                 limit: recentViolationsLimit
             )
             recentViolations = entities.compactMap { $0.toDomainModel() }
-            logger.debug("Loaded \(self.recentViolations.count) recent DLP violations")
+            logger.debug("Loaded \(recentViolations.count) recent DLP violations")
         } catch {
             logger.error("Failed to load DLP violations: \(error.localizedDescription)")
             lastError = .storageFailure(error.localizedDescription)
@@ -357,21 +375,17 @@ final class DLPManager: ObservableObject {
         return count
     }
 
-    // MARK: - Storage Access
+    // MARK: Private
 
-    /// The `DLPViolationStoring` backend, exposed for direct access if needed.
-    ///
-    /// `nil` until `configure()` has been called.
-    var violationStorage: DLPViolationStoring? {
-        storageService
-    }
+    // MARK: - Dependencies
 
-    /// The `DLPRuleStoring` backend, exposed for direct access if needed.
-    ///
-    /// `nil` until `configure()` has been called.
-    var ruleStorage: DLPRuleStoring? {
-        storageService
-    }
+    private var ruleEngine: DLPRuleEvaluating?
+    private var storageService: DLPViolationStorageService?
+
+    private let logger = Logger.security
+
+    /// The maximum number of recent violations to keep in memory for the UI.
+    private let recentViolationsLimit = 50
 
     // MARK: - Private Helpers
 
@@ -380,7 +394,9 @@ final class DLPManager: ObservableObject {
     /// Audit logging for DLP events is handled at the pipeline level in AppDelegate
     /// (with GDPR consent gating) to avoid double-logging.
     private func recordViolations(_ violations: [DLPViolation]) async {
-        guard let storage = storageService else { return }
+        guard let storage = storageService else {
+            return
+        }
 
         for violation in violations {
             do {

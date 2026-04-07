@@ -9,6 +9,8 @@
 import AppIntents
 import Foundation
 
+// MARK: - SearchClipboardIntent
+
 /// Intent for searching clipboard history
 @available(macOS 13.0, *)
 struct SearchClipboardIntent: AppIntent {
@@ -57,22 +59,23 @@ struct SearchClipboardIntent: AppIntent {
 
         return .result(value: results)
     }
-
 }
 
-// MARK: - Intent Errors
+// MARK: - IntentError
 
 @available(macOS 13.0, *)
 enum IntentError: Swift.Error, CustomLocalizedStringResourceConvertible {
     case invalidQuery
     case itemNotFound
 
+    // MARK: Internal
+
     var localizedStringResource: LocalizedStringResource {
         switch self {
         case .invalidQuery:
-            return "Please provide a valid search query."
+            "Please provide a valid search query."
         case .itemNotFound:
-            return "The clipboard item was not found."
+            "The clipboard item was not found."
         }
     }
 }

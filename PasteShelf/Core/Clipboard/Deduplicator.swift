@@ -11,10 +11,35 @@ import Foundation
 
 /// Handles content hashing and deduplication using SHA256
 final class Deduplicator: Deduplicating, Sendable {
+    // MARK: Internal
+
+    // MARK: - Deduplicating
+
+    func computeHash(for content: ClipboardContent) -> String {
+        var hasher = SHA256()
+        hashContent(content, into: &hasher)
+        let digest = hasher.finalize()
+        return hexString(from: digest)
+    }
+
+    func computeHash(forText text: String) -> String {
+        var hasher = SHA256()
+        hashText(text, into: &hasher)
+        let digest = hasher.finalize()
+        return hexString(from: digest)
+    }
+
+    func isDuplicate(_ content: ClipboardContent, comparing recentHashes: [String]) -> Bool {
+        let hash = computeHash(for: content)
+        return recentHashes.contains(hash)
+    }
+
+    // MARK: Private
+
     // MARK: - Hex Encoding
 
     /// Pure Swift hex lookup — avoids NSString bridging from String(format:)
-    private static let hexTable: [String] = (0...255).map {
+    private static let hexTable: [String] = (0 ... 255).map {
         let hi = "0123456789abcdef"
         let hiIndex = hi.index(hi.startIndex, offsetBy: $0 >> 4)
         let loIndex = hi.index(hi.startIndex, offsetBy: $0 & 0x0F)
@@ -30,15 +55,6 @@ final class Deduplicator: Deduplicating, Sendable {
         return result
     }
 
-    // MARK: - Deduplicating
-
-    func computeHash(for content: ClipboardContent) -> String {
-        var hasher = SHA256()
-        hashContent(content, into: &hasher)
-        let digest = hasher.finalize()
-        return hexString(from: digest)
-    }
-
     /// Hashes content based on its primary type
     private func hashContent(_ content: ClipboardContent, into hasher: inout SHA256) {
         switch content.primaryType {
@@ -51,7 +67,9 @@ final class Deduplicator: Deduplicating, Sendable {
         case .html:
             hashHTML(content, into: &hasher)
 
-        case .png, .jpeg, .tiff:
+        case .png,
+             .jpeg,
+             .tiff:
             hashImage(content, into: &hasher)
 
         case .pdf:
@@ -119,18 +137,6 @@ final class Deduplicator: Deduplicating, Sendable {
         }
     }
 
-    func computeHash(forText text: String) -> String {
-        var hasher = SHA256()
-        hashText(text, into: &hasher)
-        let digest = hasher.finalize()
-        return hexString(from: digest)
-    }
-
-    func isDuplicate(_ content: ClipboardContent, comparing recentHashes: [String]) -> Bool {
-        let hash = computeHash(for: content)
-        return recentHashes.contains(hash)
-    }
-
     // MARK: - Private Helpers
 
     /// Hashes text with normalization for consistent comparison
@@ -180,5 +186,3 @@ final class Deduplicator: Deduplicating, Sendable {
         return components?.string ?? url.absoluteString
     }
 }
-
-

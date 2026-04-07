@@ -7,10 +7,10 @@
 
 import SwiftUI
 
+// MARK: - PreferencesView
+
 /// Main preferences window view
 struct PreferencesView: View {
-    // MARK: - Properties
-
     @ObservedObject var viewModel: PreferencesViewModel
 
     // MARK: - Body
@@ -26,7 +26,9 @@ struct PreferencesView: View {
                 .tag(PreferencesTab.privacy)
 
             AppearanceTabView(viewModel: viewModel)
-                .tabItem { Label(PreferencesTab.appearance.displayName, systemImage: PreferencesTab.appearance.iconName) }
+                .tabItem {
+                    Label(PreferencesTab.appearance.displayName, systemImage: PreferencesTab.appearance.iconName)
+                }
                 .tag(PreferencesTab.appearance)
 
             ShortcutsTabView(viewModel: viewModel)
@@ -42,19 +44,24 @@ struct PreferencesView: View {
                 .tag(PreferencesTab.sync)
 
             AutomationTabView()
-                .tabItem { Label(PreferencesTab.automation.displayName, systemImage: PreferencesTab.automation.iconName) }
+                .tabItem {
+                    Label(PreferencesTab.automation.displayName, systemImage: PreferencesTab.automation.iconName)
+                }
                 .tag(PreferencesTab.automation)
 
             #if !APP_STORE
-            PluginSettingsView()
-                .tabItem { Label(PreferencesTab.plugins.displayName, systemImage: PreferencesTab.plugins.iconName) }
-                .tag(PreferencesTab.plugins)
+                PluginSettingsView()
+                    .tabItem { Label(PreferencesTab.plugins.displayName, systemImage: PreferencesTab.plugins.iconName) }
+                    .tag(PreferencesTab.plugins)
             #endif
 
             #if !APP_STORE
-            EnterpriseTabView()
-                .tabItem { Label(PreferencesTab.enterprise.displayName, systemImage: PreferencesTab.enterprise.iconName) }
-                .tag(PreferencesTab.enterprise)
+                EnterpriseTabView()
+                    .tabItem { Label(
+                        PreferencesTab.enterprise.displayName,
+                        systemImage: PreferencesTab.enterprise.iconName
+                    ) }
+                    .tag(PreferencesTab.enterprise)
             #endif
 
             AboutTabView()

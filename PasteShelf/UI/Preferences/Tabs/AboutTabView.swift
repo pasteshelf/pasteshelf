@@ -8,17 +8,11 @@
 import AppKit
 import SwiftUI
 
+// MARK: - AboutTabView
+
 /// About tab view
 struct AboutTabView: View {
-    // MARK: - Properties
-
-    private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-    }
-
-    private var buildNumber: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
-    }
+    // MARK: Internal
 
     // MARK: - Body
 
@@ -93,6 +87,16 @@ struct AboutTabView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
+    }
+
+    // MARK: Private
+
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    }
+
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
 }
 

@@ -12,15 +12,11 @@ import AuthenticationServices
 import Foundation
 import os.log
 
+// MARK: - SAMLLogoutHandler
+
 /// Handles SAML 2.0 Single Logout for Enterprise SSO
 final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
-    // MARK: - Properties
-
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "saml-logout")
-    private let parser = SAMLParser()
-
-    /// Callback URL scheme for receiving SLO responses
-    private let callbackScheme = "pasteshelf"
+    // MARK: Internal
 
     // MARK: - Public Interface
 
@@ -140,6 +136,14 @@ final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
         return finalURL
     }
 
+    // MARK: Private
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "saml-logout")
+    private let parser = SAMLParser()
+
+    /// Callback URL scheme for receiving SLO responses
+    private let callbackScheme = "pasteshelf"
+
     // MARK: - Browser Logout
 
     /// Opens the IdP SLO URL in a managed browser session and waits for the callback.
@@ -156,7 +160,8 @@ final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
                     // Treat this as a successful logout rather than a hard failure.
                     let nsError = error as NSError
                     if nsError.domain == ASWebAuthenticationSessionErrorDomain,
-                       nsError.code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
+                       nsError.code == ASWebAuthenticationSessionError.canceledLogin.rawValue
+                    {
                         // Build a synthetic callback URL so the caller can handle gracefully
                         continuation.resume(
                             returning: URL(string: "\(self.callbackScheme)://slo-complete")!
@@ -272,7 +277,7 @@ final class SAMLLogoutHandler: NSObject, @unchecked Sendable {
     }
 }
 
-// MARK: - ASWebAuthenticationPresentationContextProviding
+// MARK: ASWebAuthenticationPresentationContextProviding
 
 extension SAMLLogoutHandler: ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {

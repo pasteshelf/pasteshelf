@@ -9,21 +9,11 @@
 import AppKit
 import SwiftUI
 
+// MARK: - VisualEffectView
+
 /// SwiftUI wrapper for NSVisualEffectView
 struct VisualEffectView: NSViewRepresentable {
-    // MARK: - Properties
-
-    /// The material type for the visual effect
-    let material: NSVisualEffectView.Material
-
-    /// The blending mode for the visual effect
-    let blendingMode: NSVisualEffectView.BlendingMode
-
-    /// Whether the view is emphasized (more vibrant)
-    var isEmphasized: Bool = false
-
-    /// The visual effect state
-    var state: NSVisualEffectView.State = .followsWindowActiveState
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -38,6 +28,20 @@ struct VisualEffectView: NSViewRepresentable {
         self.isEmphasized = isEmphasized
         self.state = state
     }
+
+    // MARK: Internal
+
+    /// The material type for the visual effect
+    let material: NSVisualEffectView.Material
+
+    /// The blending mode for the visual effect
+    let blendingMode: NSVisualEffectView.BlendingMode
+
+    /// Whether the view is emphasized (more vibrant)
+    var isEmphasized: Bool = false
+
+    /// The visual effect state
+    var state: NSVisualEffectView.State = .followsWindowActiveState
 
     // MARK: - NSViewRepresentable
 

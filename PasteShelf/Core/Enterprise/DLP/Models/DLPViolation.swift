@@ -20,6 +20,48 @@ import Foundation
 /// a redacted representation that is safe to display without exposing the original
 /// sensitive value.
 struct DLPViolation: Codable, Sendable, Identifiable, Equatable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates a DLP violation record.
+    ///
+    /// - Parameters:
+    ///   - id: A locally generated UUID for this record. Defaults to a new `UUID()`.
+    ///   - ruleId: The UUID of the `DLPRule` that was violated.
+    ///   - ruleName: The name of the violated rule at detection time.
+    ///   - timestamp: When the violation occurred. Defaults to the current date.
+    ///   - contentPreview: A redacted preview of the offending clipboard content.
+    ///   - matchedPattern: The substring of content that matched the rule pattern.
+    ///   - actionTaken: The primary enforcement action applied.
+    ///   - sourceAppBundleId: Bundle ID of the clipboard source application, if available.
+    ///   - sourceAppName: Display name of the clipboard source application, if available.
+    ///   - wasBlocked: Whether the clipboard item was blocked from storage.
+    init(
+        id: UUID = UUID(),
+        ruleId: UUID,
+        ruleName: String,
+        timestamp: Date = Date(),
+        contentPreview: String,
+        matchedPattern: String,
+        actionTaken: DLPAction,
+        sourceAppBundleId: String? = nil,
+        sourceAppName: String? = nil,
+        wasBlocked: Bool
+    ) {
+        self.id = id
+        self.ruleId = ruleId
+        self.ruleName = ruleName
+        self.timestamp = timestamp
+        self.contentPreview = contentPreview
+        self.matchedPattern = matchedPattern
+        self.actionTaken = actionTaken
+        self.sourceAppBundleId = sourceAppBundleId
+        self.sourceAppName = sourceAppName
+        self.wasBlocked = wasBlocked
+    }
+
+    // MARK: Internal
 
     // MARK: - Identity
 
@@ -73,43 +115,4 @@ struct DLPViolation: Codable, Sendable, Identifiable, Equatable {
     /// `true` when `actionTaken == .block` or when the evaluated `DLPEvaluationResult`
     /// set `shouldBlock` to `true`.
     let wasBlocked: Bool
-
-    // MARK: - Initialization
-
-    /// Creates a DLP violation record.
-    ///
-    /// - Parameters:
-    ///   - id: A locally generated UUID for this record. Defaults to a new `UUID()`.
-    ///   - ruleId: The UUID of the `DLPRule` that was violated.
-    ///   - ruleName: The name of the violated rule at detection time.
-    ///   - timestamp: When the violation occurred. Defaults to the current date.
-    ///   - contentPreview: A redacted preview of the offending clipboard content.
-    ///   - matchedPattern: The substring of content that matched the rule pattern.
-    ///   - actionTaken: The primary enforcement action applied.
-    ///   - sourceAppBundleId: Bundle ID of the clipboard source application, if available.
-    ///   - sourceAppName: Display name of the clipboard source application, if available.
-    ///   - wasBlocked: Whether the clipboard item was blocked from storage.
-    init(
-        id: UUID = UUID(),
-        ruleId: UUID,
-        ruleName: String,
-        timestamp: Date = Date(),
-        contentPreview: String,
-        matchedPattern: String,
-        actionTaken: DLPAction,
-        sourceAppBundleId: String? = nil,
-        sourceAppName: String? = nil,
-        wasBlocked: Bool
-    ) {
-        self.id = id
-        self.ruleId = ruleId
-        self.ruleName = ruleName
-        self.timestamp = timestamp
-        self.contentPreview = contentPreview
-        self.matchedPattern = matchedPattern
-        self.actionTaken = actionTaken
-        self.sourceAppBundleId = sourceAppBundleId
-        self.sourceAppName = sourceAppName
-        self.wasBlocked = wasBlocked
-    }
 }

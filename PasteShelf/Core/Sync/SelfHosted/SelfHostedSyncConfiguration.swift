@@ -17,6 +17,39 @@ import Foundation
 ///
 /// Use `isConfigured` to guard connection attempts. Use `.empty` as a safe default.
 public struct SelfHostedSyncConfiguration: Codable, Equatable, Sendable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    public init(
+        serverURL: URL? = nil,
+        organizationID: String = "",
+        apiKey: String? = nil,
+        isEnabled: Bool = false,
+        certificatePinningEnabled: Bool = false,
+        pinnedCertificateData: Data? = nil
+    ) {
+        self.serverURL = serverURL
+        self.organizationID = organizationID
+        self.apiKey = apiKey
+        self.isEnabled = isEnabled
+        self.certificatePinningEnabled = certificatePinningEnabled
+        self.pinnedCertificateData = pinnedCertificateData
+    }
+
+    // MARK: Public
+
+    // MARK: - Empty Sentinel
+
+    /// A zero-value configuration with no server and sync disabled.
+    public static let empty = SelfHostedSyncConfiguration(
+        serverURL: nil,
+        organizationID: "",
+        apiKey: nil,
+        isEnabled: false,
+        certificatePinningEnabled: false,
+        pinnedCertificateData: nil
+    )
 
     // MARK: - Connection
 
@@ -52,40 +85,8 @@ public struct SelfHostedSyncConfiguration: Codable, Equatable, Sendable {
     /// system-trusted CA validation only.
     public var pinnedCertificateData: Data?
 
-    // MARK: - Initialization
-
-    public init(
-        serverURL: URL? = nil,
-        organizationID: String = "",
-        apiKey: String? = nil,
-        isEnabled: Bool = false,
-        certificatePinningEnabled: Bool = false,
-        pinnedCertificateData: Data? = nil
-    ) {
-        self.serverURL = serverURL
-        self.organizationID = organizationID
-        self.apiKey = apiKey
-        self.isEnabled = isEnabled
-        self.certificatePinningEnabled = certificatePinningEnabled
-        self.pinnedCertificateData = pinnedCertificateData
-    }
-
-    // MARK: - Computed Properties
-
     /// `true` when both a server URL and a non-empty organization ID are present.
     public var isConfigured: Bool {
         serverURL != nil && !organizationID.isEmpty
     }
-
-    // MARK: - Empty Sentinel
-
-    /// A zero-value configuration with no server and sync disabled.
-    public static let empty = SelfHostedSyncConfiguration(
-        serverURL: nil,
-        organizationID: "",
-        apiKey: nil,
-        isEnabled: false,
-        certificatePinningEnabled: false,
-        pinnedCertificateData: nil
-    )
 }

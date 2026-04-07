@@ -10,84 +10,12 @@ import AppIntents
 import CoreData
 import Foundation
 
+// MARK: - ClipboardItemEntity
+
 /// App Intents entity representing a clipboard item
 @available(macOS 13.0, *)
 struct ClipboardItemEntity: AppEntity, Identifiable {
-    // MARK: - Properties
-
-    /// Unique identifier
-    var id: UUID
-
-    /// Display title for the item
-    var displayTitle: String
-
-    /// Content type display name
-    var contentType: String
-
-    /// Source application name
-    var sourceApp: String?
-
-    /// Capture timestamp
-    var timestamp: Date
-
-    /// Whether the item is a favorite
-    var isFavorite: Bool
-
-    /// Whether the item is sensitive
-    var isSensitive: Bool
-
-    /// Plain text preview (truncated)
-    var preview: String?
-
-    // MARK: - AppEntity Conformance
-
-    static var typeDisplayRepresentation: TypeDisplayRepresentation {
-        TypeDisplayRepresentation(
-            name: LocalizedStringResource("Clipboard Item"),
-            numericFormat: LocalizedStringResource("\(placeholder: .int) clipboard items")
-        )
-    }
-
-    var displayRepresentation: DisplayRepresentation {
-        let subtitle: String
-        if let sourceApp = sourceApp {
-            subtitle = "\(contentType) from \(sourceApp)"
-        } else {
-            subtitle = contentType
-        }
-
-        return DisplayRepresentation(
-            title: LocalizedStringResource(stringLiteral: displayTitle),
-            subtitle: LocalizedStringResource(stringLiteral: subtitle),
-            image: .init(systemName: iconName)
-        )
-    }
-
-    static var defaultQuery = ClipboardItemQuery()
-
-    // MARK: - Computed Properties
-
-    /// SF Symbol icon based on content type
-    var iconName: String {
-        switch contentType.lowercased() {
-        case "text", "plain text":
-            return "doc.text"
-        case "rich text", "rtf":
-            return "doc.richtext"
-        case "html":
-            return "chevron.left.forwardslash.chevron.right"
-        case "image", "png", "jpeg", "tiff":
-            return "photo"
-        case "url", "link":
-            return "link"
-        case "file", "files":
-            return "folder"
-        case "pdf":
-            return "doc.text.fill"
-        default:
-            return "doc"
-        }
-    }
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -113,15 +41,97 @@ struct ClipboardItemEntity: AppEntity, Identifiable {
 
     /// Creates an entity from a CoreData ClipboardItem
     init(from item: ClipboardItem) {
-        self.id = item.id ?? UUID()
-        self.displayTitle = Self.generateTitle(from: item)
-        self.contentType = ContentType(rawValue: item.contentType ?? "")?.displayName ?? "Unknown"
-        self.sourceApp = item.sourceAppName
-        self.timestamp = item.timestamp ?? Date()
-        self.isFavorite = item.isFavorite
-        self.isSensitive = item.isSensitive
-        self.preview = item.plainTextPreview
+        id = item.id ?? UUID()
+        displayTitle = Self.generateTitle(from: item)
+        contentType = ContentType(rawValue: item.contentType ?? "")?.displayName ?? "Unknown"
+        sourceApp = item.sourceAppName
+        timestamp = item.timestamp ?? Date()
+        isFavorite = item.isFavorite
+        isSensitive = item.isSensitive
+        preview = item.plainTextPreview
     }
+
+    // MARK: Internal
+
+    static var defaultQuery = ClipboardItemQuery()
+
+    // MARK: - AppEntity Conformance
+
+    static var typeDisplayRepresentation: TypeDisplayRepresentation {
+        TypeDisplayRepresentation(
+            name: LocalizedStringResource("Clipboard Item"),
+            numericFormat: LocalizedStringResource("\(placeholder: .int) clipboard items")
+        )
+    }
+
+    /// Unique identifier
+    var id: UUID
+
+    /// Display title for the item
+    var displayTitle: String
+
+    /// Content type display name
+    var contentType: String
+
+    /// Source application name
+    var sourceApp: String?
+
+    /// Capture timestamp
+    var timestamp: Date
+
+    /// Whether the item is a favorite
+    var isFavorite: Bool
+
+    /// Whether the item is sensitive
+    var isSensitive: Bool
+
+    /// Plain text preview (truncated)
+    var preview: String?
+
+    var displayRepresentation: DisplayRepresentation {
+        let subtitle: String = if let sourceApp {
+            "\(contentType) from \(sourceApp)"
+        } else {
+            contentType
+        }
+
+        return DisplayRepresentation(
+            title: LocalizedStringResource(stringLiteral: displayTitle),
+            subtitle: LocalizedStringResource(stringLiteral: subtitle),
+            image: .init(systemName: iconName)
+        )
+    }
+
+    /// SF Symbol icon based on content type
+    var iconName: String {
+        switch contentType.lowercased() {
+        case "text",
+             "plain text":
+            "doc.text"
+        case "rich text",
+             "rtf":
+            "doc.richtext"
+        case "html":
+            "chevron.left.forwardslash.chevron.right"
+        case "image",
+             "png",
+             "jpeg",
+             "tiff":
+            "photo"
+        case "url",
+             "link":
+            "link"
+        case "file",
+             "files":
+            "folder"
+        case "pdf":
+            "doc.text.fill"
+        default:
+            "doc"
+        }
+    }
+
+    // MARK: Private
 
     // MARK: - Helpers
 
@@ -146,7 +156,7 @@ struct ClipboardItemEntity: AppEntity, Identifiable {
     }
 }
 
-// MARK: - Entity Query
+// MARK: - ClipboardItemQuery
 
 /// Query for fetching clipboard items
 @available(macOS 13.0, *)
@@ -179,7 +189,7 @@ struct ClipboardItemQuery: EntityQuery {
         return await context.perform {
             let fetchRequest = ClipboardItem.fetchRequest()
             fetchRequest.sortDescriptors = [
-                NSSortDescriptor(keyPath: \ClipboardItem.timestamp, ascending: false)
+                NSSortDescriptor(keyPath: \ClipboardItem.timestamp, ascending: false),
             ]
             fetchRequest.fetchLimit = 10
 
@@ -193,7 +203,7 @@ struct ClipboardItemQuery: EntityQuery {
     }
 }
 
-// MARK: - Extended Query
+// MARK: EntityStringQuery
 
 /// Extended query with search and filter support
 @available(macOS 13.0, *)
@@ -210,7 +220,7 @@ extension ClipboardItemQuery: EntityStringQuery {
                 string
             )
             fetchRequest.sortDescriptors = [
-                NSSortDescriptor(keyPath: \ClipboardItem.timestamp, ascending: false)
+                NSSortDescriptor(keyPath: \ClipboardItem.timestamp, ascending: false),
             ]
             fetchRequest.fetchLimit = 20
 
@@ -235,7 +245,7 @@ extension ClipboardItemEntity {
         return await context.perform {
             let fetchRequest = ClipboardItem.fetchRequest()
             fetchRequest.sortDescriptors = [
-                NSSortDescriptor(keyPath: \ClipboardItem.timestamp, ascending: false)
+                NSSortDescriptor(keyPath: \ClipboardItem.timestamp, ascending: false),
             ]
             fetchRequest.fetchLimit = limit
 
@@ -256,7 +266,7 @@ extension ClipboardItemEntity {
             let fetchRequest = ClipboardItem.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "isFavorite == YES")
             fetchRequest.sortDescriptors = [
-                NSSortDescriptor(keyPath: \ClipboardItem.timestamp, ascending: false)
+                NSSortDescriptor(keyPath: \ClipboardItem.timestamp, ascending: false),
             ]
             fetchRequest.fetchLimit = limit
 
@@ -280,7 +290,7 @@ extension ClipboardItemEntity {
                 query
             )
             fetchRequest.sortDescriptors = [
-                NSSortDescriptor(keyPath: \ClipboardItem.timestamp, ascending: false)
+                NSSortDescriptor(keyPath: \ClipboardItem.timestamp, ascending: false),
             ]
             fetchRequest.fetchLimit = limit
 

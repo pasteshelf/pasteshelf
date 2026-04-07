@@ -10,25 +10,7 @@ import Foundation
 
 /// Privacy and security settings
 struct PrivacySettings: Codable, Equatable {
-    // MARK: - Properties
-
-    /// Whether auto-delete is enabled
-    var autoDeleteEnabled: Bool
-
-    /// Number of days after which items are automatically deleted
-    var autoDeleteDays: Int
-
-    /// Whether clipboard monitoring is paused
-    var isMonitoringPaused: Bool
-
-    /// Bundle IDs of excluded applications
-    var excludedAppBundleIds: [String]
-
-    /// Whether sensitive data detection is enabled
-    var sensitiveDetectionEnabled: Bool
-
-    /// Which categories of sensitive data to detect
-    var enabledSensitiveCategories: Set<SensitivePatterns.SensitiveCategory>
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -38,7 +20,8 @@ struct PrivacySettings: Codable, Equatable {
         isMonitoringPaused: Bool = false,
         excludedAppBundleIds: [String] = [],
         sensitiveDetectionEnabled: Bool = true,
-        enabledSensitiveCategories: Set<SensitivePatterns.SensitiveCategory> = Set(SensitivePatterns.SensitiveCategory.allCases)
+        enabledSensitiveCategories: Set<SensitivePatterns.SensitiveCategory> = Set(SensitivePatterns.SensitiveCategory
+            .allCases)
     ) {
         self.autoDeleteEnabled = autoDeleteEnabled
         self.autoDeleteDays = autoDeleteDays
@@ -63,6 +46,8 @@ struct PrivacySettings: Codable, Equatable {
         ) ?? Set(SensitivePatterns.SensitiveCategory.allCases)
     }
 
+    // MARK: Internal
+
     // MARK: - Default Configuration
 
     /// Default privacy settings
@@ -72,4 +57,22 @@ struct PrivacySettings: Codable, Equatable {
 
     /// Available auto-delete period options in days
     static let autoDeleteOptions: [Int] = [7, 14, 30, 60, 90, 180, 365]
+
+    /// Whether auto-delete is enabled
+    var autoDeleteEnabled: Bool
+
+    /// Number of days after which items are automatically deleted
+    var autoDeleteDays: Int
+
+    /// Whether clipboard monitoring is paused
+    var isMonitoringPaused: Bool
+
+    /// Bundle IDs of excluded applications
+    var excludedAppBundleIds: [String]
+
+    /// Whether sensitive data detection is enabled
+    var sensitiveDetectionEnabled: Bool
+
+    /// Which categories of sensitive data to detect
+    var enabledSensitiveCategories: Set<SensitivePatterns.SensitiveCategory>
 }

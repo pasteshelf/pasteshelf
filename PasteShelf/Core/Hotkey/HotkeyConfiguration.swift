@@ -8,22 +8,11 @@
 import Carbon.HIToolbox
 import Foundation
 
+// MARK: - HotkeyConfiguration
+
 /// Configuration for a global hotkey
 struct HotkeyConfiguration: Codable, Equatable {
-    // MARK: - Properties
-
-    /// Virtual key code (e.g., kVK_ANSI_V = 9)
-    let keyCode: UInt32
-
-    /// Modifier flags (Command, Shift, etc.)
-    let modifiers: UInt32
-
-    // MARK: - Initialization
-
-    init(keyCode: UInt32, modifiers: UInt32) {
-        self.keyCode = keyCode
-        self.modifiers = modifiers
-    }
+    // MARK: Internal
 
     // MARK: - Default Configuration
 
@@ -38,6 +27,12 @@ struct HotkeyConfiguration: Codable, Equatable {
         keyCode: UInt32(kVK_ANSI_V),
         modifiers: UInt32(cmdKey | optionKey)
     )
+
+    /// Virtual key code (e.g., kVK_ANSI_V = 9)
+    let keyCode: UInt32
+
+    /// Modifier flags (Command, Shift, etc.)
+    let modifiers: UInt32
 
     // MARK: - Display String
 
@@ -63,43 +58,17 @@ struct HotkeyConfiguration: Codable, Equatable {
         return parts.joined()
     }
 
-    /// Display string for the key
-    private var keyDisplayString: String {
-        switch Int(keyCode) {
-        case kVK_ANSI_A: return "A"
-        case kVK_ANSI_S: return "S"
-        case kVK_ANSI_D: return "D"
-        case kVK_ANSI_F: return "F"
-        case kVK_ANSI_H: return "H"
-        case kVK_ANSI_G: return "G"
-        case kVK_ANSI_Z: return "Z"
-        case kVK_ANSI_X: return "X"
-        case kVK_ANSI_C: return "C"
-        case kVK_ANSI_V: return "V"
-        case kVK_ANSI_B: return "B"
-        case kVK_ANSI_Q: return "Q"
-        case kVK_ANSI_W: return "W"
-        case kVK_ANSI_E: return "E"
-        case kVK_ANSI_R: return "R"
-        case kVK_ANSI_Y: return "Y"
-        case kVK_ANSI_T: return "T"
-        case kVK_ANSI_1: return "1"
-        case kVK_ANSI_2: return "2"
-        case kVK_ANSI_3: return "3"
-        case kVK_ANSI_4: return "4"
-        case kVK_ANSI_5: return "5"
-        case kVK_ANSI_6: return "6"
-        case kVK_ANSI_7: return "7"
-        case kVK_ANSI_8: return "8"
-        case kVK_ANSI_9: return "9"
-        case kVK_ANSI_0: return "0"
-        case kVK_Space: return "\u{2423}" // ␣
-        case kVK_Return: return "\u{21A9}" // ↩
-        case kVK_Tab: return "\u{21E5}" // ⇥
-        case kVK_Escape: return "\u{238B}" // ⎋
-        case kVK_Delete: return "\u{232B}" // ⌫
-        default: return "?"
-        }
+    /// Loads the configuration from SettingsManager
+    @MainActor static func load() -> HotkeyConfiguration {
+        SettingsManager.shared.shortcuts.globalHotkey.toHotkeyConfiguration
+    }
+
+    /// Resets to default configuration
+    @MainActor static func reset() {
+        SettingsManager.shared.shortcuts = ShortcutsSettings(
+            globalHotkey: .default,
+            quickPasteEnabled: SettingsManager.shared.shortcuts.quickPasteEnabled
+        )
     }
 
     // MARK: - Persistence (delegates to SettingsManager)
@@ -112,17 +81,45 @@ struct HotkeyConfiguration: Codable, Equatable {
         )
     }
 
-    /// Loads the configuration from SettingsManager
-    @MainActor static func load() -> HotkeyConfiguration {
-        SettingsManager.shared.shortcuts.globalHotkey.toHotkeyConfiguration
-    }
+    // MARK: Private
 
-    /// Resets to default configuration
-    @MainActor static func reset() {
-        SettingsManager.shared.shortcuts = ShortcutsSettings(
-            globalHotkey: .default,
-            quickPasteEnabled: SettingsManager.shared.shortcuts.quickPasteEnabled
-        )
+    /// Display string for the key
+    private var keyDisplayString: String {
+        switch Int(keyCode) {
+        case kVK_ANSI_A: "A"
+        case kVK_ANSI_S: "S"
+        case kVK_ANSI_D: "D"
+        case kVK_ANSI_F: "F"
+        case kVK_ANSI_H: "H"
+        case kVK_ANSI_G: "G"
+        case kVK_ANSI_Z: "Z"
+        case kVK_ANSI_X: "X"
+        case kVK_ANSI_C: "C"
+        case kVK_ANSI_V: "V"
+        case kVK_ANSI_B: "B"
+        case kVK_ANSI_Q: "Q"
+        case kVK_ANSI_W: "W"
+        case kVK_ANSI_E: "E"
+        case kVK_ANSI_R: "R"
+        case kVK_ANSI_Y: "Y"
+        case kVK_ANSI_T: "T"
+        case kVK_ANSI_1: "1"
+        case kVK_ANSI_2: "2"
+        case kVK_ANSI_3: "3"
+        case kVK_ANSI_4: "4"
+        case kVK_ANSI_5: "5"
+        case kVK_ANSI_6: "6"
+        case kVK_ANSI_7: "7"
+        case kVK_ANSI_8: "8"
+        case kVK_ANSI_9: "9"
+        case kVK_ANSI_0: "0"
+        case kVK_Space: "\u{2423}" // ␣
+        case kVK_Return: "\u{21A9}" // ↩
+        case kVK_Tab: "\u{21E5}" // ⇥
+        case kVK_Escape: "\u{238B}" // ⎋
+        case kVK_Delete: "\u{232B}" // ⌫
+        default: "?"
+        }
     }
 }
 

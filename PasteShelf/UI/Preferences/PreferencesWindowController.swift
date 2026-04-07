@@ -10,30 +10,25 @@ import AppKit
 import os.log
 import SwiftUI
 
+// MARK: - PreferencesWindowController
+
 /// Controller for the preferences window
 @MainActor
 final class PreferencesWindowController: NSObject {
-    // MARK: - Singleton
-
-    /// Shared instance
-    static let shared = PreferencesWindowController()
-
-    // MARK: - Properties
-
-    /// The preferences window
-    private var window: NSWindow?
-
-    /// Logger for preferences operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "preferences"
-    )
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     override private init() {
         super.init()
     }
+
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    /// Shared instance
+    static let shared = PreferencesWindowController()
 
     // MARK: - Public Methods
 
@@ -63,6 +58,17 @@ final class PreferencesWindowController: NSObject {
         window = nil
         logger.debug("Preferences window closed")
     }
+
+    // MARK: Private
+
+    /// The preferences window
+    private var window: NSWindow?
+
+    /// Logger for preferences operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "preferences"
+    )
 
     // MARK: - Private Methods
 
@@ -117,10 +123,10 @@ final class PreferencesWindowController: NSObject {
         case .automation:
             view = AnyView(AutomationTabView())
         #if !APP_STORE
-        case .plugins:
-            view = AnyView(PluginSettingsView())
-        case .enterprise:
-            view = AnyView(EnterpriseTabView())
+            case .plugins:
+                view = AnyView(PluginSettingsView())
+            case .enterprise:
+                view = AnyView(EnterpriseTabView())
         #endif
         case .about:
             view = AnyView(AboutTabView())
@@ -135,7 +141,7 @@ final class PreferencesWindowController: NSObject {
     }
 }
 
-// MARK: - NSWindowDelegate
+// MARK: NSWindowDelegate
 
 extension PreferencesWindowController: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {

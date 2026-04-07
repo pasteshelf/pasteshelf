@@ -8,6 +8,8 @@
 import AppKit
 import SwiftUI
 
+// MARK: - MenuBarIconProvider
+
 /// Provides icons for the menu bar status item
 enum MenuBarIconProvider {
     /// Icon shown when clipboard monitoring is idle
@@ -21,6 +23,17 @@ enum MenuBarIconProvider {
 
     /// Icon shown when there's an error
     static let errorIcon = "exclamationmark.triangle"
+
+    /// Returns the idle state icon as NSImage
+    /// Uses the custom menu bar icon from assets, falls back to SF Symbol
+    static var idleImage: NSImage? {
+        if let customIcon = NSImage(named: "MenuBarIcon") {
+            customIcon.size = NSSize(width: 18, height: 18)
+            customIcon.isTemplate = true
+            return customIcon
+        }
+        return image(for: idleIcon)
+    }
 
     // MARK: - NSImage Generation
 
@@ -40,20 +53,9 @@ enum MenuBarIconProvider {
         image?.isTemplate = true
         return image?.withSymbolConfiguration(configuration)
     }
-
-    /// Returns the idle state icon as NSImage
-    /// Uses the custom menu bar icon from assets, falls back to SF Symbol
-    static var idleImage: NSImage? {
-        if let customIcon = NSImage(named: "MenuBarIcon") {
-            customIcon.size = NSSize(width: 18, height: 18)
-            customIcon.isTemplate = true
-            return customIcon
-        }
-        return image(for: idleIcon)
-    }
 }
 
-// MARK: - Menu Bar State
+// MARK: - MenuBarState
 
 /// Represents the current state of the menu bar icon
 enum MenuBarState {
@@ -62,33 +64,36 @@ enum MenuBarState {
     case paused
     case error
 
+    // MARK: Internal
+
     /// The SF Symbol name for this state
     var iconName: String {
         switch self {
-        case .idle: return MenuBarIconProvider.idleIcon
-        case .active: return MenuBarIconProvider.activeIcon
-        case .paused: return MenuBarIconProvider.pausedIcon
-        case .error: return MenuBarIconProvider.errorIcon
+        case .idle: MenuBarIconProvider.idleIcon
+        case .active: MenuBarIconProvider.activeIcon
+        case .paused: MenuBarIconProvider.pausedIcon
+        case .error: MenuBarIconProvider.errorIcon
         }
     }
 
     /// The accessibility description for this state
     var accessibilityDescription: String {
         switch self {
-        case .idle: return "PasteShelf - Monitoring"
-        case .active: return "PasteShelf - Capturing"
-        case .paused: return "PasteShelf - Paused"
-        case .error: return "PasteShelf - Error"
+        case .idle: "PasteShelf - Monitoring"
+        case .active: "PasteShelf - Capturing"
+        case .paused: "PasteShelf - Paused"
+        case .error: "PasteShelf - Error"
         }
     }
 
     /// Returns the NSImage for this state
     var image: NSImage? {
         switch self {
-        case .idle, .active:
-            return MenuBarIconProvider.idleImage
+        case .idle,
+             .active:
+            MenuBarIconProvider.idleImage
         default:
-            return MenuBarIconProvider.image(for: iconName)
+            MenuBarIconProvider.image(for: iconName)
         }
     }
 }

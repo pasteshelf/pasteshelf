@@ -8,11 +8,22 @@
 
 import Foundation
 
-// MARK: - Webhook Payload
+// MARK: - WebhookPayload
 
 /// Payload sent to webhook endpoints
 struct WebhookPayload: Codable {
-    // MARK: - Properties
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(event: WebhookEventType, data: WebhookData) {
+        self.event = event.rawValue
+        timestamp = ISO8601DateFormatter().string(from: Date())
+        self.data = data
+        metadata = WebhookMetadata()
+    }
+
+    // MARK: Internal
 
     /// Event type (e.g., "clipboard.created")
     let event: String
@@ -25,15 +36,6 @@ struct WebhookPayload: Codable {
 
     /// PasteShelf metadata
     let metadata: WebhookMetadata
-
-    // MARK: - Initialization
-
-    init(event: WebhookEventType, data: WebhookData) {
-        self.event = event.rawValue
-        self.timestamp = ISO8601DateFormatter().string(from: Date())
-        self.data = data
-        self.metadata = WebhookMetadata()
-    }
 
     // MARK: - JSON Output
 
@@ -51,18 +53,11 @@ struct WebhookPayload: Codable {
     }
 }
 
-// MARK: - Webhook Data
+// MARK: - WebhookData
 
 /// Event-specific data included in webhook payload
 struct WebhookData: Codable {
-    /// Clipboard item data (for clipboard events)
-    var clipboardItem: WebhookClipboardItemPayload?
-
-    /// Rule execution data (for rule events)
-    var ruleExecution: RuleExecutionPayload?
-
-    /// Generic key-value data
-    var extra: [String: String]?
+    // MARK: Lifecycle
 
     init(
         clipboardItem: WebhookClipboardItemPayload? = nil,
@@ -73,12 +68,94 @@ struct WebhookData: Codable {
         self.ruleExecution = ruleExecution
         self.extra = extra
     }
+
+    // MARK: Internal
+
+    /// Clipboard item data (for clipboard events)
+    var clipboardItem: WebhookClipboardItemPayload?
+
+    /// Rule execution data (for rule events)
+    var ruleExecution: RuleExecutionPayload?
+
+    /// Generic key-value data
+    var extra: [String: String]?
 }
 
-// MARK: - Clipboard Item Payload
+// MARK: - WebhookClipboardItemPayload
 
 /// Clipboard item data for webhook payload
 struct WebhookClipboardItemPayload: Codable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(item: ClipboardItem) {
+        id = item.id?.uuidString ?? ""
+        contentType = item.contentType ?? "unknown"
+
+        // Truncate preview for security (max 200 chars)
+        if let preview = item.plainTextPreview {
+            if item.isSensitive {
+                self.preview = "[REDACTED]"
+            } else if preview.count > 200 {
+                self.preview = String(preview.prefix(200)) + "..."
+            } else {
+                self.preview = preview
+            }
+        } else {
+            preview = nil
+        }
+
+        sourceAppBundleId = item.sourceAppBundleId
+        sourceAppName = item.sourceAppName
+        isFavorite = item.isFavorite
+        isSensitive = item.isSensitive
+        capturedAt = ISO8601DateFormatter().string(from: item.timestamp ?? Date())
+        contentHash = item.contentHash
+
+        // Calculate text stats
+        if let text = item.plainTextPreview {
+            characterCount = text.count
+            wordCount = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
+        } else {
+            characterCount = nil
+            wordCount = nil
+        }
+    }
+
+    init(content: ClipboardContent) {
+        id = content.id.uuidString
+        contentType = content.primaryType.rawValue
+
+        // Get preview text
+        if let text = content.plainText {
+            if text.count > 200 {
+                preview = String(text.prefix(200)) + "..."
+            } else {
+                preview = text
+            }
+        } else {
+            preview = nil
+        }
+
+        sourceAppBundleId = nil
+        sourceAppName = nil
+        isFavorite = false
+        isSensitive = false
+        capturedAt = ISO8601DateFormatter().string(from: Date())
+        contentHash = nil
+
+        if let text = content.plainText {
+            characterCount = text.count
+            wordCount = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
+        } else {
+            characterCount = nil
+            wordCount = nil
+        }
+    }
+
+    // MARK: Internal
+
     /// Item UUID
     let id: String
 
@@ -111,79 +188,32 @@ struct WebhookClipboardItemPayload: Codable {
 
     /// Word count (for text content)
     let wordCount: Int?
-
-    // MARK: - Initialization
-
-    init(item: ClipboardItem) {
-        self.id = item.id?.uuidString ?? ""
-        self.contentType = item.contentType ?? "unknown"
-
-        // Truncate preview for security (max 200 chars)
-        if let preview = item.plainTextPreview {
-            if item.isSensitive {
-                self.preview = "[REDACTED]"
-            } else if preview.count > 200 {
-                self.preview = String(preview.prefix(200)) + "..."
-            } else {
-                self.preview = preview
-            }
-        } else {
-            self.preview = nil
-        }
-
-        self.sourceAppBundleId = item.sourceAppBundleId
-        self.sourceAppName = item.sourceAppName
-        self.isFavorite = item.isFavorite
-        self.isSensitive = item.isSensitive
-        self.capturedAt = ISO8601DateFormatter().string(from: item.timestamp ?? Date())
-        self.contentHash = item.contentHash
-
-        // Calculate text stats
-        if let text = item.plainTextPreview {
-            self.characterCount = text.count
-            self.wordCount = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
-        } else {
-            self.characterCount = nil
-            self.wordCount = nil
-        }
-    }
-
-    init(content: ClipboardContent) {
-        self.id = content.id.uuidString
-        self.contentType = content.primaryType.rawValue
-
-        // Get preview text
-        if let text = content.plainText {
-            if text.count > 200 {
-                self.preview = String(text.prefix(200)) + "..."
-            } else {
-                self.preview = text
-            }
-        } else {
-            self.preview = nil
-        }
-
-        self.sourceAppBundleId = nil
-        self.sourceAppName = nil
-        self.isFavorite = false
-        self.isSensitive = false
-        self.capturedAt = ISO8601DateFormatter().string(from: Date())
-        self.contentHash = nil
-
-        if let text = content.plainText {
-            self.characterCount = text.count
-            self.wordCount = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
-        } else {
-            self.characterCount = nil
-            self.wordCount = nil
-        }
-    }
 }
 
-// MARK: - Rule Execution Payload
+// MARK: - RuleExecutionPayload
 
 /// Rule execution data for webhook payload
 struct RuleExecutionPayload: Codable {
+    // MARK: Lifecycle
+
+    init(
+        rule: AutomationRule,
+        actionsExecuted: [AutomationAction],
+        success: Bool,
+        errorMessage: String? = nil,
+        durationMs: Int? = nil
+    ) {
+        ruleId = rule.id.uuidString
+        ruleName = rule.name
+        trigger = rule.trigger.displayName
+        self.actionsExecuted = actionsExecuted.map(\.actionType.displayName)
+        self.success = success
+        self.errorMessage = errorMessage
+        self.durationMs = durationMs
+    }
+
+    // MARK: Internal
+
     /// Rule ID
     let ruleId: String
 
@@ -204,28 +234,22 @@ struct RuleExecutionPayload: Codable {
 
     /// Execution duration in milliseconds
     let durationMs: Int?
-
-    init(
-        rule: AutomationRule,
-        actionsExecuted: [AutomationAction],
-        success: Bool,
-        errorMessage: String? = nil,
-        durationMs: Int? = nil
-    ) {
-        self.ruleId = rule.id.uuidString
-        self.ruleName = rule.name
-        self.trigger = rule.trigger.displayName
-        self.actionsExecuted = actionsExecuted.map { $0.actionType.displayName }
-        self.success = success
-        self.errorMessage = errorMessage
-        self.durationMs = durationMs
-    }
 }
 
-// MARK: - Webhook Metadata
+// MARK: - WebhookMetadata
 
 /// PasteShelf metadata included in all webhook payloads
 struct WebhookMetadata: Codable {
+    // MARK: Lifecycle
+
+    init() {
+        appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+        apiVersion = "1.0"
+        deliveryId = UUID().uuidString
+    }
+
+    // MARK: Internal
+
     /// PasteShelf version
     let appVersion: String
 
@@ -234,12 +258,6 @@ struct WebhookMetadata: Codable {
 
     /// Webhook delivery ID (for idempotency)
     let deliveryId: String
-
-    init() {
-        self.appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
-        self.apiVersion = "1.0"
-        self.deliveryId = UUID().uuidString
-    }
 }
 
 // MARK: - Payload Builders

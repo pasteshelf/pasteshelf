@@ -15,30 +15,34 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     case tutorial
     case hotkeySetup
 
-    var id: Int { rawValue }
+    // MARK: Internal
 
     /// Steps active in the current build (App Store skips Accessibility permission)
     static var activeSteps: [OnboardingStep] {
         #if APP_STORE
-        return allCases.filter { $0 != .permissions }
+            return allCases.filter { $0 != .permissions }
         #else
-        return Array(allCases)
+            return Array(allCases)
         #endif
+    }
+
+    var id: Int {
+        rawValue
     }
 
     /// Display title for each step
     var title: String {
         switch self {
         case .welcome:
-            return "Welcome to PasteShelf"
+            "Welcome to PasteShelf"
         case .permissions:
-            return "Accessibility Permission"
+            "Accessibility Permission"
         case .notifications:
-            return "Notifications"
+            "Notifications"
         case .tutorial:
-            return "How It Works"
+            "How It Works"
         case .hotkeySetup:
-            return "Set Your Hotkey"
+            "Set Your Hotkey"
         }
     }
 
@@ -46,15 +50,15 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     var subtitle: String {
         switch self {
         case .welcome:
-            return "Get started"
+            "Get started"
         case .permissions:
-            return "Required for paste"
+            "Required for paste"
         case .notifications:
-            return "Stay informed"
+            "Stay informed"
         case .tutorial:
-            return "Quick overview"
+            "Quick overview"
         case .hotkeySetup:
-            return "Almost done"
+            "Almost done"
         }
     }
 
@@ -67,7 +71,10 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     var next: OnboardingStep? {
         let steps = Self.activeSteps
         guard let currentIndex = steps.firstIndex(of: self),
-              currentIndex + 1 < steps.count else { return nil }
+              currentIndex + 1 < steps.count
+        else {
+            return nil
+        }
         return steps[currentIndex + 1]
     }
 
@@ -75,7 +82,10 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     var previous: OnboardingStep? {
         let steps = Self.activeSteps
         guard let currentIndex = steps.firstIndex(of: self),
-              currentIndex - 1 >= 0 else { return nil }
+              currentIndex - 1 >= 0
+        else {
+            return nil
+        }
         return steps[currentIndex - 1]
     }
 }

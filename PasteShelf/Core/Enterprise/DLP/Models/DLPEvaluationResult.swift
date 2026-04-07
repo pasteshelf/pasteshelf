@@ -18,6 +18,17 @@ import Foundation
 ///
 /// Use the `clean` static sentinel when content passes all checks without any violations.
 struct DLPEvaluationResult: Sendable {
+    /// A result representing content that passed all DLP checks without any violations.
+    ///
+    /// Use this as the result value when no active rules matched the content, or
+    /// when DLP evaluation is skipped (e.g. the feature is unavailable).
+    static let clean = DLPEvaluationResult(
+        violations: [],
+        shouldBlock: false,
+        shouldRedact: false,
+        redactedContent: nil,
+        redactedFields: nil
+    )
 
     // MARK: - Violations
 
@@ -61,7 +72,9 @@ struct DLPEvaluationResult: Sendable {
     // MARK: - Convenience
 
     /// Whether any violations were found during evaluation.
-    var hasViolations: Bool { !violations.isEmpty }
+    var hasViolations: Bool {
+        !violations.isEmpty
+    }
 
     // MARK: - Clean Sentinel
 
@@ -89,18 +102,6 @@ struct DLPEvaluationResult: Sendable {
             redactedFields: redactedFields
         )
     }
-
-    /// A result representing content that passed all DLP checks without any violations.
-    ///
-    /// Use this as the result value when no active rules matched the content, or
-    /// when DLP evaluation is skipped (e.g. the feature is unavailable).
-    static let clean = DLPEvaluationResult(
-        violations: [],
-        shouldBlock: false,
-        shouldRedact: false,
-        redactedContent: nil,
-        redactedFields: nil
-    )
 }
 
 // MARK: - DLPRedactedFields

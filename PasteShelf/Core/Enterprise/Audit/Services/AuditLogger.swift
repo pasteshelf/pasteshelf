@@ -19,19 +19,9 @@ import os.log
 ///
 /// Both `deviceIdProvider` and `userIdProvider` are closure-based to allow late binding
 /// from the `AdminManager` and `SSOManager` singletons without introducing a retain cycle.
-@MainActor final class AuditLogger: AuditLogging, @unchecked Sendable {
-
-    // MARK: - Dependencies
-
-    private let storage: AuditLogStoring
-
-    /// Returns the current device ID from the `DeviceRegistration`, or `nil` if not enrolled.
-    private let deviceIdProvider: @MainActor @Sendable () -> String?
-
-    /// Returns the current SSO user ID, or `nil` if no session is active.
-    private let userIdProvider: @MainActor @Sendable () -> String?
-
-    private let logger = Logger.audit
+@MainActor
+final class AuditLogger: AuditLogging, @unchecked Sendable {
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -51,6 +41,8 @@ import os.log
         self.userIdProvider = userIdProvider
     }
 
+    // MARK: Internal
+
     // MARK: - AuditLogging
 
     /// Records a single audit event to local storage.
@@ -66,7 +58,10 @@ import os.log
 
         do {
             try await storage.save(finalEvent)
-            logger.debug("Logged audit event \(finalEvent.id) [\(finalEvent.category.rawValue)/\(finalEvent.action.rawValue)]")
+            logger
+                .debug(
+                    "Logged audit event \(finalEvent.id) [\(finalEvent.category.rawValue)/\(finalEvent.action.rawValue)]"
+                )
         } catch {
             logger.error("Failed to persist audit event \(finalEvent.id): \(error.localizedDescription)")
         }
@@ -184,4 +179,18 @@ import os.log
         )
         await log(event)
     }
+
+    // MARK: Private
+
+    // MARK: - Dependencies
+
+    private let storage: AuditLogStoring
+
+    /// Returns the current device ID from the `DeviceRegistration`, or `nil` if not enrolled.
+    private let deviceIdProvider: @MainActor @Sendable () -> String?
+
+    /// Returns the current SSO user ID, or `nil` if no session is active.
+    private let userIdProvider: @MainActor @Sendable () -> String?
+
+    private let logger = Logger.audit
 }

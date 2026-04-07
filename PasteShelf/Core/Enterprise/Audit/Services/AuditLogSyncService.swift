@@ -23,25 +23,7 @@ import os.log
 /// background synchronisation, and a manual `flush()` entry point is provided for
 /// immediate upload (e.g. before device unenrollment).
 final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
-
-    // MARK: - Dependencies
-
-    private let apiClient: AdminAPIProviding
-    private let storage: AuditLogStoring
-
-    // MARK: - Configuration
-
-    private let batchSize: Int
-    private let flushInterval: TimeInterval
-
-    // MARK: - Timer State
-
-    private var flushTimer: Timer?
-    private let lock = NSLock()
-
-    // MARK: - Logger
-
-    private let logger = Logger.audit
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -64,6 +46,22 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
         self.storage = storage
         self.batchSize = batchSize
         self.flushInterval = flushInterval
+    }
+
+    // MARK: Internal
+
+    // MARK: - Accessors
+
+    /// A synchronous, approximate count of pending unsynced audit entries.
+    ///
+    /// This value is an estimate derived from the `pendingCount` property and may
+    /// not reflect CoreData writes that have occurred on a background context since
+    /// the last viewContext refresh.
+    var pendingCount: Int {
+        // This property is synchronous per the protocol but CoreData is async.
+        // We return 0 here as a safe default; callers needing an exact count
+        // should use storage.fetchUnsyncedEvents(limit:) asynchronously.
+        0
     }
 
     // MARK: - AuditLogSyncing
@@ -109,18 +107,22 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
                 continue
             }
 
-            let severity: AuditEventSeverity
-            if let severityRaw = entry.severity, let s = AuditEventSeverity(rawValue: severityRaw) {
-                severity = s
+            let severity: AuditEventSeverity = if let severityRaw = entry.severity,
+                                                  let s = AuditEventSeverity(rawValue: severityRaw)
+            {
+                s
             } else {
-                severity = .info
+                .info
             }
 
             let detail: [String: String]
             do {
                 detail = try storage.decryptDetail(for: entry)
             } catch {
-                logger.warning("Failed to decrypt detail for audit entry \(id): \(error.localizedDescription) — using empty detail")
+                logger
+                    .warning(
+                        "Failed to decrypt detail for audit entry \(id): \(error.localizedDescription) — using empty detail"
+                    )
                 detail = [:]
             }
 
@@ -172,8 +174,10 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
     func startAutoFlush() {
         stopAutoFlush()
         flushTimer = Timer.scheduledTimer(withTimeInterval: flushInterval, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            self.logger.debug("Audit auto-flush timer fired")
+            guard let self else {
+                return
+            }
+            logger.debug("Audit auto-flush timer fired")
             Task {
                 do {
                     try await self.flush()
@@ -182,7 +186,7 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
                 }
             }
         }
-        logger.info("Audit auto-flush timer started with interval \(self.flushInterval)s")
+        logger.info("Audit auto-flush timer started with interval \(flushInterval)s")
     }
 
     /// Stops the periodic auto-flush timer.
@@ -195,17 +199,24 @@ final class AuditLogSyncService: AuditLogSyncing, @unchecked Sendable {
         logger.debug("Audit auto-flush timer stopped")
     }
 
-    // MARK: - Accessors
+    // MARK: Private
 
-    /// A synchronous, approximate count of pending unsynced audit entries.
-    ///
-    /// This value is an estimate derived from the `pendingCount` property and may
-    /// not reflect CoreData writes that have occurred on a background context since
-    /// the last viewContext refresh.
-    var pendingCount: Int {
-        // This property is synchronous per the protocol but CoreData is async.
-        // We return 0 here as a safe default; callers needing an exact count
-        // should use storage.fetchUnsyncedEvents(limit:) asynchronously.
-        0
-    }
+    // MARK: - Dependencies
+
+    private let apiClient: AdminAPIProviding
+    private let storage: AuditLogStoring
+
+    // MARK: - Configuration
+
+    private let batchSize: Int
+    private let flushInterval: TimeInterval
+
+    // MARK: - Timer State
+
+    private var flushTimer: Timer?
+    private let lock = NSLock()
+
+    // MARK: - Logger
+
+    private let logger = Logger.audit
 }

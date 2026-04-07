@@ -6,20 +6,19 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
-// MARK: - GDPRDeletionReport Tests
+// MARK: - GDPRDeletionReportTests
 
 struct GDPRDeletionReportTests {
-
     @Test("GDPRDeletionReport records category results")
     func recordsCategoryResults() {
         let report = GDPRDeletionReport(
             categories: [
                 GDPRDeletionReport.CategoryResult(name: "Clipboard Items", deletedCount: 50, success: true),
                 GDPRDeletionReport.CategoryResult(name: "Tags", deletedCount: 10, success: true),
-                GDPRDeletionReport.CategoryResult(name: "Folders", deletedCount: 5, success: false)
+                GDPRDeletionReport.CategoryResult(name: "Folders", deletedCount: 5, success: false),
             ]
         )
         #expect(report.categories.count == 3)
@@ -34,7 +33,7 @@ struct GDPRDeletionReportTests {
         let report = GDPRDeletionReport(
             categories: [
                 GDPRDeletionReport.CategoryResult(name: "Items", deletedCount: 100, success: true),
-                GDPRDeletionReport.CategoryResult(name: "Tags", deletedCount: 20, success: true)
+                GDPRDeletionReport.CategoryResult(name: "Tags", deletedCount: 20, success: true),
             ]
         )
         #expect(report.totalDeleted == 120)
@@ -45,7 +44,7 @@ struct GDPRDeletionReportTests {
         let report = GDPRDeletionReport(
             categories: [
                 GDPRDeletionReport.CategoryResult(name: "Items", deletedCount: 10, success: true),
-                GDPRDeletionReport.CategoryResult(name: "Tags", deletedCount: 5, success: true)
+                GDPRDeletionReport.CategoryResult(name: "Tags", deletedCount: 5, success: true),
             ]
         )
         #expect(report.allSuccessful == true)
@@ -56,7 +55,7 @@ struct GDPRDeletionReportTests {
         let report = GDPRDeletionReport(
             categories: [
                 GDPRDeletionReport.CategoryResult(name: "Items", deletedCount: 10, success: true),
-                GDPRDeletionReport.CategoryResult(name: "Keychain", deletedCount: 0, success: false)
+                GDPRDeletionReport.CategoryResult(name: "Keychain", deletedCount: 0, success: false),
             ]
         )
         #expect(report.allSuccessful == false)
@@ -68,7 +67,7 @@ struct GDPRDeletionReportTests {
             categories: [
                 GDPRDeletionReport.CategoryResult(name: "Items", deletedCount: 10, success: true),
                 GDPRDeletionReport.CategoryResult(name: "Keychain", deletedCount: 0, success: false),
-                GDPRDeletionReport.CategoryResult(name: "Defaults", deletedCount: 0, success: false)
+                GDPRDeletionReport.CategoryResult(name: "Defaults", deletedCount: 0, success: false),
             ]
         )
         #expect(report.failedCategories.count == 2)
@@ -89,10 +88,9 @@ struct GDPRDeletionReportTests {
     }
 }
 
-// MARK: - Export Manifest Tests
+// MARK: - GDPRExportManifestTests
 
 struct GDPRExportManifestTests {
-
     @Test("Manifest JSON can represent export metadata")
     func manifestStructure() throws {
         let manifest: [String: Any] = [
@@ -106,8 +104,8 @@ struct GDPRExportManifestTests {
                 "collections",
                 "audit_logs",
                 "settings",
-                "consent_records"
-            ]
+                "consent_records",
+            ],
         ]
 
         let data = try JSONSerialization.data(withJSONObject: manifest, options: .prettyPrinted)

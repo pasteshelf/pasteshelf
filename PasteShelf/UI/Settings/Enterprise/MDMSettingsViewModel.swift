@@ -19,6 +19,16 @@ import Foundation
 /// interactive settings panel.
 @MainActor
 final class MDMSettingsViewModel: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init() {
+        loadState()
+        observeChanges()
+    }
+
+    // MARK: Internal
 
     // MARK: - Published State
 
@@ -33,17 +43,6 @@ final class MDMSettingsViewModel: ObservableObject {
 
     /// Admin-supplied default settings that the user may override, sorted by display name.
     @Published private(set) var defaultSettings: [(key: ManagedPreferenceKey, value: PreferenceValue)] = []
-
-    // MARK: - Private Properties
-
-    private var cancellables = Set<AnyCancellable>()
-
-    // MARK: - Initialization
-
-    init() {
-        loadState()
-        observeChanges()
-    }
 
     // MARK: - State Loading
 
@@ -61,6 +60,12 @@ final class MDMSettingsViewModel: ObservableObject {
             .sorted { $0.key.displayName < $1.key.displayName }
             .map { (key: $0.key, value: $0.value) }
     }
+
+    // MARK: Private
+
+    // MARK: - Private Properties
+
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Private Helpers
 

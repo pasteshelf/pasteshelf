@@ -9,6 +9,31 @@ import Foundation
 
 /// Search-related settings
 struct SearchSettings: Codable, Equatable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(
+        fuzzyMatchEnabled: Bool = true,
+        semanticSearchEnabled: Bool = false,
+        semanticThreshold: Double = 0.5,
+        ocrSearchEnabled: Bool = false,
+        ocrConfidenceThreshold: Double = 0.5
+    ) {
+        self.fuzzyMatchEnabled = fuzzyMatchEnabled
+        self.semanticSearchEnabled = semanticSearchEnabled
+        self.semanticThreshold = semanticThreshold
+        self.ocrSearchEnabled = ocrSearchEnabled
+        self.ocrConfidenceThreshold = ocrConfidenceThreshold
+    }
+
+    // MARK: Internal
+
+    // MARK: - Default Configuration
+
+    /// Default search settings
+    static let `default` = SearchSettings()
+
     // MARK: - General Search
 
     /// Whether fuzzy matching is enabled
@@ -29,25 +54,4 @@ struct SearchSettings: Codable, Equatable {
 
     /// Confidence threshold for OCR (0.3...0.9)
     var ocrConfidenceThreshold: Double
-
-    // MARK: - Initialization
-
-    init(
-        fuzzyMatchEnabled: Bool = true,
-        semanticSearchEnabled: Bool = false,
-        semanticThreshold: Double = 0.5,
-        ocrSearchEnabled: Bool = false,
-        ocrConfidenceThreshold: Double = 0.5
-    ) {
-        self.fuzzyMatchEnabled = fuzzyMatchEnabled
-        self.semanticSearchEnabled = semanticSearchEnabled
-        self.semanticThreshold = semanticThreshold
-        self.ocrSearchEnabled = ocrSearchEnabled
-        self.ocrConfidenceThreshold = ocrConfidenceThreshold
-    }
-
-    // MARK: - Default Configuration
-
-    /// Default search settings
-    static let `default` = SearchSettings()
 }

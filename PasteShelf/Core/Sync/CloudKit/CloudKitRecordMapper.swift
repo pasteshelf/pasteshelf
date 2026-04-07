@@ -10,34 +10,11 @@ import CoreData
 import Foundation
 import os.log
 
+// MARK: - CloudKitRecordMapper
+
 /// Maps CoreData entities to CloudKit records with E2E encryption
 final class CloudKitRecordMapper: Sendable {
-    // MARK: - Record Field Names
-
-    private enum Fields {
-        static let entityID = "entityID"
-        static let entityType = "entityType"
-        static let encryptedData = "encryptedData"
-        static let contentHash = "contentHash"
-        static let timestamp = "timestamp"
-        static let modifiedAt = "modifiedAt"
-        static let syncVersion = "syncVersion"
-    }
-
-    // MARK: - Properties
-
-    private let zoneID: CKRecordZone.ID
-    private let encryptionManager: SyncEncryptionManager
-
-    /// Current sync schema version
-    private static let currentSyncVersion = 1
-
-    // MARK: - Logger
-
-    private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "cloudkit-mapper"
-    )
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -49,6 +26,8 @@ final class CloudKitRecordMapper: Sendable {
         self.encryptionManager = encryptionManager
     }
 
+    // MARK: Internal
+
     // MARK: - Create Record
 
     /// Create a CKRecord from a SyncChange with encrypted data
@@ -59,11 +38,10 @@ final class CloudKitRecordMapper: Sendable {
         let recordID = change.makeRecordID(zoneID: zoneID)
         let recordType = change.entityType.recordType
 
-        let record: CKRecord
-        if let existingRecord = change.serverRecord {
-            record = existingRecord
+        let record: CKRecord = if let existingRecord = change.serverRecord {
+            existingRecord
         } else {
-            record = CKRecord(recordType: recordType, recordID: recordID)
+            CKRecord(recordType: recordType, recordID: recordID)
         }
 
         // Set fields
@@ -179,6 +157,33 @@ final class CloudKitRecordMapper: Sendable {
         return SyncChange.EntityType(rawValue: cleanType) ?? .clipboardItem
     }
 
+    // MARK: Private
+
+    // MARK: - Record Field Names
+
+    private enum Fields {
+        static let entityID = "entityID"
+        static let entityType = "entityType"
+        static let encryptedData = "encryptedData"
+        static let contentHash = "contentHash"
+        static let timestamp = "timestamp"
+        static let modifiedAt = "modifiedAt"
+        static let syncVersion = "syncVersion"
+    }
+
+    /// Current sync schema version
+    private static let currentSyncVersion = 1
+
+    // MARK: - Logger
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "cloudkit-mapper"
+    )
+
+    private let zoneID: CKRecordZone.ID
+    private let encryptionManager: SyncEncryptionManager
+
     // MARK: - Private Methods
 
     /// Create a JSON payload from a ClipboardItem
@@ -216,7 +221,7 @@ final class CloudKitRecordMapper: Sendable {
     }
 }
 
-// MARK: - Payload Types
+// MARK: - ClipboardItemPayload
 
 /// Serializable payload for ClipboardItem
 struct ClipboardItemPayload: Codable, Sendable {
@@ -231,15 +236,34 @@ struct ClipboardItemPayload: Codable, Sendable {
     var isSensitive: Bool
     var accessCount: Int
 
-    // Optional content data
+    /// Optional content data
     var contentData: ClipboardContentPayload?
 
-    // Tags (just names for sync)
+    /// Tags (just names for sync)
     var tagNames: [String]?
 }
 
+// MARK: - ClipboardContentPayload
+
 /// Serializable payload for ClipboardContentData
 struct ClipboardContentPayload: Codable, Sendable {
+    // MARK: Lifecycle
+
+    init(from content: ClipboardContentData) {
+        // Note: We don't sync plainText directly as it's in the main payload
+        htmlContent = content.htmlContent
+        rtfData = content.rtfData
+        imageData = content.imageData
+        imageWidth = content.imageWidth > 0 ? Int(content.imageWidth) : nil
+        imageHeight = content.imageHeight > 0 ? Int(content.imageHeight) : nil
+        isImageCompressed = content.isImageCompressed
+        urlString = content.urlString
+        fileURLsJSON = content.fileURLsJSON
+        pdfData = content.pdfData
+    }
+
+    // MARK: Internal
+
     var plainText: String?
     var htmlContent: String?
     var rtfData: Data?
@@ -250,17 +274,4 @@ struct ClipboardContentPayload: Codable, Sendable {
     var urlString: String?
     var fileURLsJSON: String?
     var pdfData: Data?
-
-    init(from content: ClipboardContentData) {
-        // Note: We don't sync plainText directly as it's in the main payload
-        self.htmlContent = content.htmlContent
-        self.rtfData = content.rtfData
-        self.imageData = content.imageData
-        self.imageWidth = content.imageWidth > 0 ? Int(content.imageWidth) : nil
-        self.imageHeight = content.imageHeight > 0 ? Int(content.imageHeight) : nil
-        self.isImageCompressed = content.isImageCompressed
-        self.urlString = content.urlString
-        self.fileURLsJSON = content.fileURLsJSON
-        self.pdfData = content.pdfData
-    }
 }

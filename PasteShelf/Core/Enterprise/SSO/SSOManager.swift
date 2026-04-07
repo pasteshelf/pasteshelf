@@ -13,6 +13,14 @@ import os.log
 /// Central manager for Enterprise SSO authentication flows
 @MainActor
 final class SSOManager: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    private init() {}
+
+    // MARK: Internal
+
     // MARK: - Singleton
 
     static let shared = SSOManager()
@@ -28,18 +36,8 @@ final class SSOManager: ObservableObject {
     /// The most recent SSO error, if any
     @Published var lastError: SSOError?
 
-    // MARK: - Properties
-
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "sso")
-    private let samlAuthenticator = SAMLAuthenticator()
-    private let oidcAuthenticator = OIDCAuthenticator()
-    private let oidcTokenManager = OIDCTokenManager()
     private(set) var sessionStore: SSOSessionStore?
     private(set) var providerStore: IdentityProviderStore?
-
-    // MARK: - Initialization
-
-    private init() {}
 
     /// Configure the manager with storage backends
     func configure(
@@ -170,13 +168,20 @@ final class SSOManager: ObservableObject {
 
     /// Refreshes the current OIDC session's tokens if needed
     func refreshCurrentSessionIfNeeded() async throws {
-        guard let session = currentSession, session.canRefresh else { return }
+        guard let session = currentSession, session.canRefresh else {
+            return
+        }
 
         guard let providerStore,
               let provider = try await providerStore.load(id: session.providerId),
-              let oidcConfig = provider.oidcConfig else { return }
+              let oidcConfig = provider.oidcConfig
+        else {
+            return
+        }
 
-        guard oidcTokenManager.needsRefresh(session) else { return }
+        guard oidcTokenManager.needsRefresh(session) else {
+            return
+        }
 
         do {
             let refreshed = try await oidcTokenManager.refreshTokens(session: session, config: oidcConfig)
@@ -228,7 +233,8 @@ final class SSOManager: ObservableObject {
 
         // Determine the provider type and delegate logout
         if let providerStore,
-           let provider = try await providerStore.load(id: session.providerId) {
+           let provider = try await providerStore.load(id: session.providerId)
+        {
             switch provider.type {
             case .saml:
                 try await samlAuthenticator.logout(session: session)
@@ -259,4 +265,11 @@ final class SSOManager: ObservableObject {
         currentSession = nil
         logger.info("All SSO sessions cleared")
     }
+
+    // MARK: Private
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "sso")
+    private let samlAuthenticator = SAMLAuthenticator()
+    private let oidcAuthenticator = OIDCAuthenticator()
+    private let oidcTokenManager = OIDCTokenManager()
 }

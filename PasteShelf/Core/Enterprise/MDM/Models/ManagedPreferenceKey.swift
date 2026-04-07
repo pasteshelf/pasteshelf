@@ -17,7 +17,6 @@ import Foundation
 /// so that `UserDefaults(suiteName: "com.apple.configuration.managed")` look-ups
 /// work without any transformation.
 enum ManagedPreferenceKey: String, CaseIterable, Sendable {
-
     // MARK: Enterprise
 
     /// Unique identifier for the managing organization
@@ -96,57 +95,7 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
     /// UI theme override ("light", "dark", or "system")
     case theme = "Theme"
 
-    // MARK: - Display Metadata
-
-    /// Human-readable label used in admin UIs and audit logs
-    var displayName: String {
-        switch self {
-        case .organizationID:       return "Organization ID"
-        case .adminConsoleURL:      return "Admin Console URL"
-        case .ssoEnabled:           return "SSO Enabled"
-        case .ssoProvider:          return "SSO Provider"
-        case .ssoDomain:            return "SSO Domain"
-        case .cloudSyncEnabled:     return "Cloud Sync Enabled"
-        case .localStorageOnly:     return "Local Storage Only"
-        case .pluginsEnabled:       return "Plugins Enabled"
-        case .requireBiometricAuth: return "Require Biometric Auth"
-        case .autoLockTimeout:      return "Auto-Lock Timeout"
-        case .clearOnQuit:          return "Clear on Quit"
-        case .maxHistoryDays:       return "Max History Days"
-        case .maxHistoryItems:      return "Max History Items"
-        case .dlpEnabled:           return "DLP Enabled"
-        case .blockCreditCards:     return "Block Credit Cards"
-        case .blockAPIKeys:         return "Block API Keys"
-        case .gdprEnabled:          return "GDPR Enabled"
-        case .soc2Enabled:          return "SOC 2 Enabled"
-        case .hipaaEnabled:         return "HIPAA Enabled"
-        case .theme:                return "Theme"
-        }
-    }
-
-    /// The logical settings group this key belongs to
-    var settingsGroup: SettingsGroup {
-        switch self {
-        case .organizationID, .adminConsoleURL:
-            return .enterprise
-        case .ssoEnabled, .ssoProvider, .ssoDomain:
-            return .enterprise
-        case .cloudSyncEnabled, .localStorageOnly:
-            return .general
-        case .pluginsEnabled:
-            return .general
-        case .requireBiometricAuth, .autoLockTimeout, .clearOnQuit:
-            return .security
-        case .maxHistoryDays, .maxHistoryItems:
-            return .privacy
-        case .dlpEnabled, .blockCreditCards, .blockAPIKeys:
-            return .privacy
-        case .gdprEnabled, .soc2Enabled, .hipaaEnabled:
-            return .enterprise
-        case .theme:
-            return .appearance
-        }
-    }
+    // MARK: Internal
 
     // MARK: - SettingsGroup
 
@@ -158,15 +107,80 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
         case security
         case enterprise
 
+        // MARK: Internal
+
         /// Human-readable section heading
         var displayName: String {
             switch self {
-            case .general:    return "General"
-            case .privacy:    return "Privacy"
-            case .appearance: return "Appearance"
-            case .security:   return "Security"
-            case .enterprise: return "Enterprise"
+            case .general: "General"
+            case .privacy: "Privacy"
+            case .appearance: "Appearance"
+            case .security: "Security"
+            case .enterprise: "Enterprise"
             }
+        }
+    }
+
+    // MARK: - Display Metadata
+
+    /// Human-readable label used in admin UIs and audit logs
+    var displayName: String {
+        switch self {
+        case .organizationID: "Organization ID"
+        case .adminConsoleURL: "Admin Console URL"
+        case .ssoEnabled: "SSO Enabled"
+        case .ssoProvider: "SSO Provider"
+        case .ssoDomain: "SSO Domain"
+        case .cloudSyncEnabled: "Cloud Sync Enabled"
+        case .localStorageOnly: "Local Storage Only"
+        case .pluginsEnabled: "Plugins Enabled"
+        case .requireBiometricAuth: "Require Biometric Auth"
+        case .autoLockTimeout: "Auto-Lock Timeout"
+        case .clearOnQuit: "Clear on Quit"
+        case .maxHistoryDays: "Max History Days"
+        case .maxHistoryItems: "Max History Items"
+        case .dlpEnabled: "DLP Enabled"
+        case .blockCreditCards: "Block Credit Cards"
+        case .blockAPIKeys: "Block API Keys"
+        case .gdprEnabled: "GDPR Enabled"
+        case .soc2Enabled: "SOC 2 Enabled"
+        case .hipaaEnabled: "HIPAA Enabled"
+        case .theme: "Theme"
+        }
+    }
+
+    /// The logical settings group this key belongs to
+    var settingsGroup: SettingsGroup {
+        switch self {
+        case .organizationID,
+             .adminConsoleURL:
+            .enterprise
+        case .ssoEnabled,
+             .ssoProvider,
+             .ssoDomain:
+            .enterprise
+        case .cloudSyncEnabled,
+             .localStorageOnly:
+            .general
+        case .pluginsEnabled:
+            .general
+        case .requireBiometricAuth,
+             .autoLockTimeout,
+             .clearOnQuit:
+            .security
+        case .maxHistoryDays,
+             .maxHistoryItems:
+            .privacy
+        case .dlpEnabled,
+             .blockCreditCards,
+             .blockAPIKeys:
+            .privacy
+        case .gdprEnabled,
+             .soc2Enabled,
+             .hipaaEnabled:
+            .enterprise
+        case .theme:
+            .appearance
         }
     }
 }
@@ -178,7 +192,6 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
 /// MDM payloads carry values as plain plist types; this enum wraps the three
 /// primitive types used by PasteShelf's managed keys.
 enum PreferenceValue: Equatable, Sendable {
-
     /// A boolean preference (maps to plist `<true/>` / `<false/>`)
     case bool(Bool)
 
@@ -188,15 +201,17 @@ enum PreferenceValue: Equatable, Sendable {
     /// A string preference (maps to plist `<string>`)
     case string(String)
 
+    // MARK: Internal
+
     // MARK: - Display
 
     /// A human-readable string representation of the value, suitable for display
     /// in admin consoles or audit log entries.
     var displayValue: String {
         switch self {
-        case .bool(let value):   return value ? "true" : "false"
-        case .int(let value):    return "\(value)"
-        case .string(let value): return value
+        case let .bool(value): value ? "true" : "false"
+        case let .int(value): "\(value)"
+        case let .string(value): value
         }
     }
 }

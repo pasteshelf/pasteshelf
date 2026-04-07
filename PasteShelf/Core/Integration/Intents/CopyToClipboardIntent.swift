@@ -11,9 +11,13 @@ import AppKit
 import CoreData
 import Foundation
 
+// MARK: - CopyToClipboardIntent
+
 /// Intent for copying a clipboard item to the system clipboard
 @available(macOS 13.0, *)
 struct CopyToClipboardIntent: AppIntent {
+    // MARK: Internal
+
     // MARK: - Intent Metadata
 
     static var title: LocalizedStringResource = "Copy to Clipboard"
@@ -46,6 +50,8 @@ struct CopyToClipboardIntent: AppIntent {
 
         return .result()
     }
+
+    // MARK: Private
 
     // MARK: - Helpers
 
@@ -114,6 +120,8 @@ struct CopyToClipboardIntent: AppIntent {
     }
 }
 
+// MARK: - CopyTextToClipboardIntent
+
 /// Intent for copying text directly to clipboard
 @available(macOS 13.0, *)
 struct CopyTextToClipboardIntent: AppIntent {
@@ -147,5 +155,4 @@ struct CopyTextToClipboardIntent: AppIntent {
 
         return .result()
     }
-
 }

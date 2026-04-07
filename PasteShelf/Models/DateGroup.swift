@@ -8,6 +8,8 @@
 
 import Foundation
 
+// MARK: - DateGroup
+
 /// Represents a date-based grouping category
 enum DateGroup: String, CaseIterable, Identifiable, Comparable, Sendable {
     case today
@@ -17,30 +19,35 @@ enum DateGroup: String, CaseIterable, Identifiable, Comparable, Sendable {
     case thisMonth
     case older
 
-    var id: String { rawValue }
+    // MARK: Internal
+
+    var id: String {
+        rawValue
+    }
 
     // MARK: - Display Properties
 
     /// Human-readable display name
     var displayName: String {
         switch self {
-        case .today: return "Today"
-        case .yesterday: return "Yesterday"
-        case .thisWeek: return "This Week"
-        case .lastWeek: return "Last Week"
-        case .thisMonth: return "This Month"
-        case .older: return "Older"
+        case .today: "Today"
+        case .yesterday: "Yesterday"
+        case .thisWeek: "This Week"
+        case .lastWeek: "Last Week"
+        case .thisMonth: "This Month"
+        case .older: "Older"
         }
     }
 
     /// SF Symbol icon name
     var icon: String {
         switch self {
-        case .today: return "clock"
-        case .yesterday: return "arrow.counterclockwise"
-        case .thisWeek, .lastWeek: return "calendar"
-        case .thisMonth: return "calendar.circle"
-        case .older: return "archivebox"
+        case .today: "clock"
+        case .yesterday: "arrow.counterclockwise"
+        case .thisWeek,
+             .lastWeek: "calendar"
+        case .thisMonth: "calendar.circle"
+        case .older: "archivebox"
         }
     }
 
@@ -49,12 +56,12 @@ enum DateGroup: String, CaseIterable, Identifiable, Comparable, Sendable {
     /// Sort order (0 = most recent)
     var sortOrder: Int {
         switch self {
-        case .today: return 0
-        case .yesterday: return 1
-        case .thisWeek: return 2
-        case .lastWeek: return 3
-        case .thisMonth: return 4
-        case .older: return 5
+        case .today: 0
+        case .yesterday: 1
+        case .thisWeek: 2
+        case .lastWeek: 3
+        case .thisMonth: 4
+        case .older: 5
         }
     }
 
@@ -110,17 +117,24 @@ enum DateGroup: String, CaseIterable, Identifiable, Comparable, Sendable {
     }
 }
 
-// MARK: - Grouped Items
+// MARK: - DateGroupedSection
 
 /// A section of items grouped by date
 struct DateGroupedSection<Item: Identifiable>: Identifiable {
     let group: DateGroup
     let items: [Item]
 
-    var id: String { group.id }
+    var id: String {
+        group.id
+    }
 
-    var isEmpty: Bool { items.isEmpty }
-    var count: Int { items.count }
+    var isEmpty: Bool {
+        items.isEmpty
+    }
+
+    var count: Int {
+        items.count
+    }
 }
 
 // MARK: - Array Extension
@@ -135,7 +149,9 @@ extension [ClipboardItemDisplayModel] {
 
         return DateGroup.allCases
             .compactMap { group -> DateGroupedSection<ClipboardItemDisplayModel>? in
-                guard let items = grouped[group], !items.isEmpty else { return nil }
+                guard let items = grouped[group], !items.isEmpty else {
+                    return nil
+                }
                 // Sort items within group by timestamp (most recent first)
                 let sortedItems = items.sorted { $0.timestamp > $1.timestamp }
                 return DateGroupedSection(group: group, items: sortedItems)

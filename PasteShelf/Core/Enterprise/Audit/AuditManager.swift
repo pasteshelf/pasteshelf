@@ -23,31 +23,7 @@ import os.log
 /// directly. The `storage` property grants the audit log viewer read access to `AuditLogStoring`.
 @MainActor
 final class AuditManager: ObservableObject {
-
-    // MARK: - Singleton
-
-    /// The shared application-wide `AuditManager` instance.
-    static let shared = AuditManager()
-
-    // MARK: - Published State
-
-    /// Whether the audit logging system has been configured and is active.
-    @Published private(set) var isEnabled: Bool = false
-
-    /// The active retention policy, controlling how long entries are kept locally.
-    @Published private(set) var retentionConfiguration: AuditRetentionConfiguration = .default
-
-    /// The most recent error encountered by the audit subsystem, if any.
-    @Published var lastError: AuditError?
-
-    // MARK: - Dependencies
-
-    private var auditLogger: AuditLogger?
-    private var syncService: AuditLogSyncService?
-    private var retentionService: AuditRetentionService?
-    private var storageService: AuditLogStorageService?
-
-    private let logger = Logger.audit
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -73,6 +49,33 @@ final class AuditManager: ObservableObject {
         self.storageService = storageService
     }
 
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    /// The shared application-wide `AuditManager` instance.
+    static let shared = AuditManager()
+
+    // MARK: - Published State
+
+    /// Whether the audit logging system has been configured and is active.
+    @Published private(set) var isEnabled: Bool = false
+
+    /// The active retention policy, controlling how long entries are kept locally.
+    @Published private(set) var retentionConfiguration: AuditRetentionConfiguration = .default
+
+    /// The most recent error encountered by the audit subsystem, if any.
+    @Published var lastError: AuditError?
+
+    // MARK: - Storage Access
+
+    /// The `AuditLogStoring` backend, exposed for use by the audit log viewer.
+    ///
+    /// `nil` until `configure(with:)` has been called.
+    var storage: AuditLogStoring? {
+        storageService
+    }
+
     // MARK: - Configuration
 
     /// Configures the audit manager with production dependencies and activates the subsystem.
@@ -84,17 +87,17 @@ final class AuditManager: ObservableObject {
     /// - Parameter apiClient: The admin console API client used by the sync service.
     func configure(with apiClient: AdminAPIProviding) {
         let storage = AuditLogStorageService()
-        self.storageService = storage
+        storageService = storage
 
         let loggerService = AuditLogger(
             storage: storage,
             deviceIdProvider: { AdminManager.shared.deviceRegistration?.deviceId },
             userIdProvider: { SSOManager.shared.currentSession?.userId }
         )
-        self.auditLogger = loggerService
+        auditLogger = loggerService
 
         let sync = AuditLogSyncService(apiClient: apiClient, storage: storage)
-        self.syncService = sync
+        syncService = sync
 
         // Enforce HIPAA minimum retention when HIPAA compliance mode is active
         // Uses ComplianceManager.isHIPAAActive to respect MDM-pushed HIPAA enablement
@@ -105,7 +108,7 @@ final class AuditManager: ObservableObject {
         }
 
         let retention = AuditRetentionService(storage: storage, configuration: activeRetention)
-        self.retentionService = retention
+        retentionService = retention
 
         isEnabled = true
 
@@ -245,12 +248,14 @@ final class AuditManager: ObservableObject {
         logger.info("Audit retention policy updated to \(newConfig.retentionDays) days")
     }
 
-    // MARK: - Storage Access
+    // MARK: Private
 
-    /// The `AuditLogStoring` backend, exposed for use by the audit log viewer.
-    ///
-    /// `nil` until `configure(with:)` has been called.
-    var storage: AuditLogStoring? {
-        storageService
-    }
+    // MARK: - Dependencies
+
+    private var auditLogger: AuditLogger?
+    private var syncService: AuditLogSyncService?
+    private var retentionService: AuditRetentionService?
+    private var storageService: AuditLogStorageService?
+
+    private let logger = Logger.audit
 }

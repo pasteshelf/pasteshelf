@@ -6,12 +6,12 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 struct PasteShelfTests {
     @Test
-    func example() async throws {
+    func example() {
         // Placeholder test - actual tests are in specific test files
     }
 }

@@ -8,10 +8,10 @@
 
 import SwiftUI
 
+// MARK: - DateGroupHeaderView
+
 /// Section header for date-grouped items
 struct DateGroupHeaderView: View {
-    // MARK: - Properties
-
     /// The date group for this section
     let group: DateGroup
 

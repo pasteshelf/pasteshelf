@@ -7,10 +7,10 @@
 
 import SwiftUI
 
+// MARK: - NotificationPermissionStepView
+
 /// Notification permission request step view
 struct NotificationPermissionStepView: View {
-    // MARK: - Properties
-
     @ObservedObject var viewModel: OnboardingViewModel
 
     // MARK: - Body

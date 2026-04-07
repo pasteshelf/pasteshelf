@@ -11,20 +11,15 @@ import os.log
 
 /// Manages OIDC token lifecycle including refresh and expiry tracking
 final class OIDCTokenManager: Sendable {
-    // MARK: - Properties
-
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "oidc-token")
-    private let urlSession: URLSession
-
-    /// The fraction of token lifetime that must elapse before a proactive refresh is triggered.
-    /// At 0.8, a refresh is triggered when 80% of the token's lifetime has passed.
-    private let refreshThreshold: Double = 0.8
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     init(urlSession: URLSession = .shared) {
         self.urlSession = urlSession
     }
+
+    // MARK: Internal
 
     // MARK: - Public API
 
@@ -114,7 +109,9 @@ final class OIDCTokenManager: Sendable {
     /// the application a window to obtain new tokens before the current ones expire.
     /// If the session has no expiry information, this method returns `false`.
     func needsRefresh(_ session: SSOSession) -> Bool {
-        guard session.canRefresh else { return false }
+        guard session.canRefresh else {
+            return false
+        }
 
         guard let expiresAt = session.expiresAt else {
             // No expiry set — token does not expire, no refresh needed.
@@ -148,4 +145,13 @@ final class OIDCTokenManager: Sendable {
 
         return try await refreshTokens(session: session, config: config)
     }
+
+    // MARK: Private
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "oidc-token")
+    private let urlSession: URLSession
+
+    /// The fraction of token lifetime that must elapse before a proactive refresh is triggered.
+    /// At 0.8, a refresh is triggered when 80% of the token's lifetime has passed.
+    private let refreshThreshold: Double = 0.8
 }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-// MARK: - Automation Trigger
+// MARK: - AutomationTrigger
 
 /// Trigger types that initiate automation rule evaluation
 enum AutomationTrigger: Codable, Equatable, Hashable, Sendable {
@@ -24,66 +24,7 @@ enum AutomationTrigger: Codable, Equatable, Hashable, Sendable {
     /// Triggered on a schedule based on cron expression
     case schedule(CronExpression)
 
-    // MARK: - Properties
-
-    /// Human-readable display name
-    var displayName: String {
-        switch self {
-        case .onCapture:
-            return String(localized: "When Captured")
-        case .onPaste:
-            return String(localized: "Before Paste")
-        case .manual:
-            return String(localized: "Manual")
-        case .schedule:
-            return String(localized: "Scheduled")
-        }
-    }
-
-    /// Description of when the trigger fires
-    var description: String {
-        switch self {
-        case .onCapture:
-            return String(localized: "Run when a new clipboard item is captured")
-        case .onPaste:
-            return String(localized: "Run before pasting to the target application")
-        case .manual:
-            return String(localized: "Run only when manually triggered")
-        case .schedule(let cron):
-            return String(localized: "Run on schedule: \(cron.displayDescription)")
-        }
-    }
-
-    /// SF Symbol icon for the trigger
-    var iconName: String {
-        switch self {
-        case .onCapture:
-            return "doc.on.clipboard"
-        case .onPaste:
-            return "doc.on.doc"
-        case .manual:
-            return "hand.tap"
-        case .schedule:
-            return "clock"
-        }
-    }
-
-    /// Raw type string for CoreData storage
-    var rawType: String {
-        switch self {
-        case .onCapture: return "onCapture"
-        case .onPaste: return "onPaste"
-        case .manual: return "manual"
-        case .schedule: return "schedule"
-        }
-    }
-
-    // MARK: - Codable
-
-    private enum CodingKeys: String, CodingKey {
-        case type
-        case value
-    }
+    // MARK: Lifecycle
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -108,34 +49,84 @@ enum AutomationTrigger: Codable, Equatable, Hashable, Sendable {
         }
     }
 
+    // MARK: Internal
+
+    /// Human-readable display name
+    var displayName: String {
+        switch self {
+        case .onCapture:
+            String(localized: "When Captured")
+        case .onPaste:
+            String(localized: "Before Paste")
+        case .manual:
+            String(localized: "Manual")
+        case .schedule:
+            String(localized: "Scheduled")
+        }
+    }
+
+    /// Description of when the trigger fires
+    var description: String {
+        switch self {
+        case .onCapture:
+            String(localized: "Run when a new clipboard item is captured")
+        case .onPaste:
+            String(localized: "Run before pasting to the target application")
+        case .manual:
+            String(localized: "Run only when manually triggered")
+        case let .schedule(cron):
+            String(localized: "Run on schedule: \(cron.displayDescription)")
+        }
+    }
+
+    /// SF Symbol icon for the trigger
+    var iconName: String {
+        switch self {
+        case .onCapture:
+            "doc.on.clipboard"
+        case .onPaste:
+            "doc.on.doc"
+        case .manual:
+            "hand.tap"
+        case .schedule:
+            "clock"
+        }
+    }
+
+    /// Raw type string for CoreData storage
+    var rawType: String {
+        switch self {
+        case .onCapture: "onCapture"
+        case .onPaste: "onPaste"
+        case .manual: "manual"
+        case .schedule: "schedule"
+        }
+    }
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(rawType, forKey: .type)
 
-        if case .schedule(let expression) = self {
+        if case let .schedule(expression) = self {
             try container.encode(expression, forKey: .value)
         }
     }
+
+    // MARK: Private
+
+    // MARK: - Codable
+
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case value
+    }
 }
 
-// MARK: - Cron Expression
+// MARK: - CronExpression
 
 /// A simplified cron expression for scheduling automation rules
 struct CronExpression: Codable, Equatable, Hashable, Sendable {
-    /// Minute (0-59)
-    var minute: Int
-
-    /// Hour (0-23)
-    var hour: Int
-
-    /// Day of month (1-31, or nil for any)
-    var dayOfMonth: Int?
-
-    /// Month (1-12, or nil for any)
-    var month: Int?
-
-    /// Day of week (0-6, Sunday=0, or nil for any)
-    var dayOfWeek: Int?
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -153,41 +144,65 @@ struct CronExpression: Codable, Equatable, Hashable, Sendable {
         self.dayOfWeek = dayOfWeek.flatMap { min(max($0, 0), 6) }
     }
 
-    // MARK: - Preset Schedules
+    /// Initialize from a cron expression string
+    /// - Parameter expression: Cron expression string (e.g., "0 9 * * *")
+    init(expression: String) {
+        let parts = expression.split(separator: " ").map { String($0) }
 
-    /// Run every hour at the specified minute
-    static func hourly(at minute: Int = 0) -> CronExpression {
-        CronExpression(minute: minute)
+        // Parse with defaults for missing parts
+        let parsedMinute = parts.count > 0 ? Int(parts[0]) ?? 0 : 0
+        let parsedHour = parts.count > 1 ? Int(parts[1]) ?? 0 : 0
+        let parsedDayOfMonth = parts.count > 2 && parts[2] != "*" ? Int(parts[2]) : nil
+        let parsedMonth = parts.count > 3 && parts[3] != "*" ? Int(parts[3]) : nil
+        let parsedDayOfWeek = parts.count > 4 && parts[4] != "*" ? Int(parts[4]) : nil
+
+        self.init(
+            minute: parsedMinute,
+            hour: parsedHour,
+            dayOfMonth: parsedDayOfMonth,
+            month: parsedMonth,
+            dayOfWeek: parsedDayOfWeek
+        )
     }
 
-    /// Run daily at the specified time
-    static func daily(at hour: Int = 9, minute: Int = 0) -> CronExpression {
-        CronExpression(minute: minute, hour: hour)
-    }
-
-    /// Run weekly on the specified day and time
-    static func weekly(on dayOfWeek: Int = 1, at hour: Int = 9, minute: Int = 0) -> CronExpression {
-        CronExpression(minute: minute, hour: hour, dayOfWeek: dayOfWeek)
-    }
-
-    /// Run monthly on the specified day and time
-    static func monthly(on dayOfMonth: Int = 1, at hour: Int = 9, minute: Int = 0) -> CronExpression {
-        CronExpression(minute: minute, hour: hour, dayOfMonth: dayOfMonth)
-    }
+    // MARK: Internal
 
     // MARK: - Default Presets (for UI picker compatibility)
 
     /// Default hourly schedule (on the hour)
-    static var hourly: CronExpression { hourly() }
+    static var hourly: CronExpression {
+        hourly()
+    }
 
     /// Default daily schedule (9 AM)
-    static var daily: CronExpression { daily() }
+    static var daily: CronExpression {
+        daily()
+    }
 
     /// Default weekly schedule (Monday 9 AM)
-    static var weekly: CronExpression { weekly() }
+    static var weekly: CronExpression {
+        weekly()
+    }
 
     /// Default monthly schedule (1st of month at 9 AM)
-    static var monthly: CronExpression { monthly() }
+    static var monthly: CronExpression {
+        monthly()
+    }
+
+    /// Minute (0-59)
+    var minute: Int
+
+    /// Hour (0-23)
+    var hour: Int
+
+    /// Day of month (1-31, or nil for any)
+    var dayOfMonth: Int?
+
+    /// Month (1-12, or nil for any)
+    var month: Int?
+
+    /// Day of week (0-6, Sunday=0, or nil for any)
+    var dayOfWeek: Int?
 
     // MARK: - Display
 
@@ -201,22 +216,21 @@ struct CronExpression: Codable, Equatable, Hashable, Sendable {
         components.minute = minute
 
         let calendar = Calendar.current
-        let timeString: String
-        if let date = calendar.date(from: components) {
-            timeString = timeFormatter.string(from: date)
+        let timeString: String = if let date = calendar.date(from: components) {
+            timeFormatter.string(from: date)
         } else {
-            timeString = String(format: "%02d:%02d", hour, minute)
+            String(format: "%02d:%02d", hour, minute)
         }
 
-        if let dayOfWeek = dayOfWeek {
+        if let dayOfWeek {
             let weekdaySymbols = calendar.weekdaySymbols
             let dayName = weekdaySymbols[dayOfWeek]
             return "Every \(dayName) at \(timeString)"
-        } else if let dayOfMonth = dayOfMonth {
+        } else if let dayOfMonth {
             let ordinal = ordinalSuffix(for: dayOfMonth)
             return "Monthly on the \(dayOfMonth)\(ordinal) at \(timeString)"
-        } else if dayOfMonth == nil && dayOfWeek == nil {
-            if hour == 0 && minute == 0 {
+        } else if dayOfMonth == nil, dayOfWeek == nil {
+            if hour == 0, minute == 0 {
                 return "Every hour"
             } else {
                 return "Daily at \(timeString)"
@@ -242,25 +256,26 @@ struct CronExpression: Codable, Equatable, Hashable, Sendable {
         cronString
     }
 
-    /// Initialize from a cron expression string
-    /// - Parameter expression: Cron expression string (e.g., "0 9 * * *")
-    init(expression: String) {
-        let parts = expression.split(separator: " ").map { String($0) }
+    // MARK: - Preset Schedules
 
-        // Parse with defaults for missing parts
-        let parsedMinute = parts.count > 0 ? Int(parts[0]) ?? 0 : 0
-        let parsedHour = parts.count > 1 ? Int(parts[1]) ?? 0 : 0
-        let parsedDayOfMonth = parts.count > 2 && parts[2] != "*" ? Int(parts[2]) : nil
-        let parsedMonth = parts.count > 3 && parts[3] != "*" ? Int(parts[3]) : nil
-        let parsedDayOfWeek = parts.count > 4 && parts[4] != "*" ? Int(parts[4]) : nil
+    /// Run every hour at the specified minute
+    static func hourly(at minute: Int = 0) -> CronExpression {
+        CronExpression(minute: minute)
+    }
 
-        self.init(
-            minute: parsedMinute,
-            hour: parsedHour,
-            dayOfMonth: parsedDayOfMonth,
-            month: parsedMonth,
-            dayOfWeek: parsedDayOfWeek
-        )
+    /// Run daily at the specified time
+    static func daily(at hour: Int = 9, minute: Int = 0) -> CronExpression {
+        CronExpression(minute: minute, hour: hour)
+    }
+
+    /// Run weekly on the specified day and time
+    static func weekly(on dayOfWeek: Int = 1, at hour: Int = 9, minute: Int = 0) -> CronExpression {
+        CronExpression(minute: minute, hour: hour, dayOfWeek: dayOfWeek)
+    }
+
+    /// Run monthly on the specified day and time
+    static func monthly(on dayOfMonth: Int = 1, at hour: Int = 9, minute: Int = 0) -> CronExpression {
+        CronExpression(minute: minute, hour: hour, dayOfMonth: dayOfMonth)
     }
 
     // MARK: - Next Execution
@@ -279,7 +294,7 @@ struct CronExpression: Codable, Equatable, Hashable, Sendable {
         }
 
         // Try up to 366 days ahead
-        for _ in 0..<(366 * 24 * 60) {
+        for _ in 0 ..< (366 * 24 * 60) {
             let candidateComponents = calendar.dateComponents(
                 [.year, .month, .day, .hour, .minute, .weekday],
                 from: candidateDate
@@ -293,7 +308,7 @@ struct CronExpression: Codable, Equatable, Hashable, Sendable {
             let matchesDayOfWeek = dayOfWeek == nil ||
                 (candidateComponents.weekday.map { $0 - 1 } == dayOfWeek) // Convert to 0-indexed
 
-            if matchesMinute && matchesHour && matchesDayOfMonth && matchesMonth && matchesDayOfWeek {
+            if matchesMinute, matchesHour, matchesDayOfMonth, matchesMonth, matchesDayOfWeek {
                 return candidateDate
             }
 
@@ -307,13 +322,15 @@ struct CronExpression: Codable, Equatable, Hashable, Sendable {
         return nil
     }
 
+    // MARK: Private
+
     // MARK: - Private Helpers
 
     private func ordinalSuffix(for number: Int) -> String {
         let tens = number % 100
         let units = number % 10
 
-        if tens >= 11 && tens <= 13 {
+        if tens >= 11, tens <= 13 {
             return "th"
         }
 
@@ -333,13 +350,17 @@ extension AutomationTrigger {
     func toJSON() -> String? {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .sortedKeys
-        guard let data = try? encoder.encode(self) else { return nil }
+        guard let data = try? encoder.encode(self) else {
+            return nil
+        }
         return String(data: data, encoding: .utf8)
     }
 
     /// Deserializes a trigger from JSON string
     static func fromJSON(_ json: String?) -> AutomationTrigger? {
-        guard let json, let data = json.data(using: .utf8) else { return nil }
+        guard let json, let data = json.data(using: .utf8) else {
+            return nil
+        }
         return try? JSONDecoder().decode(AutomationTrigger.self, from: data)
     }
 }

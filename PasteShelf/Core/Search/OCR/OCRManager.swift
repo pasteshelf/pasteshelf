@@ -12,7 +12,7 @@ import NaturalLanguage
 import os.log
 import Vision
 
-// MARK: - OCR Result
+// MARK: - OCRResult
 
 /// Result of OCR text recognition
 struct OCRResult: Sendable {
@@ -34,6 +34,8 @@ struct OCRResult: Sendable {
     }
 }
 
+// MARK: - TextRegion
+
 /// Represents a recognized text region in an image
 struct TextRegion: Sendable {
     /// The recognized text
@@ -50,34 +52,44 @@ struct TextRegion: Sendable {
 
 /// Manages Vision framework OCR operations for text extraction from images
 final class OCRManager: @unchecked Sendable {
-    // MARK: - Singleton
-
-    static let shared = OCRManager()
-
-    // MARK: - Properties
-
-    /// Logger for OCR operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "ocr"
-    )
-
-    /// Lock for thread-safe operations
-    private let lock = NSLock()
-
-    /// Minimum confidence threshold for text recognition
-    private var confidenceThreshold: Float = 0.5
-
-    /// Current OCR version (increment to invalidate cache)
-    static let ocrVersion: Int16 = 1
-
-    /// Recognition level for VNRecognizeTextRequest
-    private let recognitionLevel: VNRequestTextRecognitionLevel = .accurate
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     private init() {
         logger.info("OCRManager initialized")
+    }
+
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    static let shared = OCRManager()
+
+    /// Current OCR version (increment to invalidate cache)
+    static let ocrVersion: Int16 = 1
+
+    /// Gets the current confidence threshold
+    var currentConfidenceThreshold: Float {
+        lock.lock()
+        defer { lock.unlock() }
+        return confidenceThreshold
+    }
+
+    // MARK: - Availability
+
+    /// Checks if OCR is available on this system
+    var isAvailable: Bool {
+        // Vision framework is always available on macOS 10.15+
+        // Check if text recognition is specifically available
+        let request = VNRecognizeTextRequest()
+        return (try? request.supportedRecognitionLanguages())?.isEmpty == false
+    }
+
+    /// Returns the list of supported languages for OCR
+    var supportedLanguages: [String] {
+        let request = VNRecognizeTextRequest()
+        return (try? request.supportedRecognitionLanguages()) ?? []
     }
 
     // MARK: - Configuration
@@ -88,14 +100,7 @@ final class OCRManager: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
         confidenceThreshold = max(0.0, min(1.0, threshold))
-        logger.debug("Confidence threshold set to \(self.confidenceThreshold)")
-    }
-
-    /// Gets the current confidence threshold
-    var currentConfidenceThreshold: Float {
-        lock.lock()
-        defer { lock.unlock() }
-        return confidenceThreshold
+        logger.debug("Confidence threshold set to \(confidenceThreshold)")
     }
 
     // MARK: - Text Recognition
@@ -137,6 +142,68 @@ final class OCRManager: @unchecked Sendable {
         }
     }
 
+    // MARK: - Language Detection
+
+    /// Detects the language of text
+    /// - Parameter text: The text to analyze
+    /// - Returns: Language code (e.g., "en", "de") or nil
+    func detectLanguage(in text: String) -> String? {
+        guard !text.isEmpty else {
+            return nil
+        }
+
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(text)
+
+        guard let language = recognizer.dominantLanguage else {
+            return nil
+        }
+
+        return language.rawValue
+    }
+
+    // MARK: - Utility
+
+    /// Checks if an image is suitable for OCR (not too small, etc.)
+    /// - Parameter image: The image to check
+    /// - Returns: True if the image can be processed
+    func canProcess(_ image: NSImage) -> Bool {
+        guard let rep = image.representations.first else {
+            return false
+        }
+
+        // Skip very small images (icons, etc.)
+        let minDimension = 20
+        return rep.pixelsWide >= minDimension && rep.pixelsHigh >= minDimension
+    }
+
+    /// Checks if image data is suitable for OCR
+    /// - Parameter imageData: The image data to check
+    /// - Returns: True if the image can be processed
+    func canProcess(_ imageData: Data) -> Bool {
+        guard let image = NSImage(data: imageData) else {
+            return false
+        }
+        return canProcess(image)
+    }
+
+    // MARK: Private
+
+    /// Logger for OCR operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "ocr"
+    )
+
+    /// Lock for thread-safe operations
+    private let lock = NSLock()
+
+    /// Minimum confidence threshold for text recognition
+    private var confidenceThreshold: Float = 0.5
+
+    /// Recognition level for VNRecognizeTextRequest
+    private let recognitionLevel: VNRequestTextRecognitionLevel = .accurate
+
     // MARK: - Private OCR Implementation
 
     private func performOCR(on cgImage: CGImage, completion: @escaping (OCRResult?) -> Void) {
@@ -147,18 +214,18 @@ final class OCRManager: @unchecked Sendable {
             }
 
             if let error {
-                self.logger.error("OCR request failed: \(error.localizedDescription)")
+                logger.error("OCR request failed: \(error.localizedDescription)")
                 completion(nil)
                 return
             }
 
             guard let observations = request.results as? [VNRecognizedTextObservation] else {
-                self.logger.debug("No text observations found")
+                logger.debug("No text observations found")
                 completion(OCRResult(text: "", confidence: 0, language: nil, regions: []))
                 return
             }
 
-            let result = self.processObservations(observations)
+            let result = processObservations(observations)
             completion(result)
         }
 
@@ -252,7 +319,10 @@ final class OCRManager: @unchecked Sendable {
         // Combine all text with newlines
         let combinedText = allText.joined(separator: "\n")
 
-        logger.info("OCR extracted \(allText.count) text blocks, avg confidence: \(String(format: "%.2f", avgConfidence))")
+        logger
+            .info(
+                "OCR extracted \(allText.count) text blocks, avg confidence: \(String(format: "%.2f", avgConfidence))"
+            )
 
         return OCRResult(
             text: combinedText,
@@ -261,64 +331,4 @@ final class OCRManager: @unchecked Sendable {
             regions: regions
         )
     }
-
-    // MARK: - Language Detection
-
-    /// Detects the language of text
-    /// - Parameter text: The text to analyze
-    /// - Returns: Language code (e.g., "en", "de") or nil
-    func detectLanguage(in text: String) -> String? {
-        guard !text.isEmpty else { return nil }
-
-        let recognizer = NLLanguageRecognizer()
-        recognizer.processString(text)
-
-        guard let language = recognizer.dominantLanguage else {
-            return nil
-        }
-
-        return language.rawValue
-    }
-
-    // MARK: - Availability
-
-    /// Checks if OCR is available on this system
-    var isAvailable: Bool {
-        // Vision framework is always available on macOS 10.15+
-        // Check if text recognition is specifically available
-        let request = VNRecognizeTextRequest()
-        return (try? request.supportedRecognitionLanguages())?.isEmpty == false
-    }
-
-    /// Returns the list of supported languages for OCR
-    var supportedLanguages: [String] {
-        let request = VNRecognizeTextRequest()
-        return (try? request.supportedRecognitionLanguages()) ?? []
-    }
-
-    // MARK: - Utility
-
-    /// Checks if an image is suitable for OCR (not too small, etc.)
-    /// - Parameter image: The image to check
-    /// - Returns: True if the image can be processed
-    func canProcess(_ image: NSImage) -> Bool {
-        guard let rep = image.representations.first else {
-            return false
-        }
-
-        // Skip very small images (icons, etc.)
-        let minDimension = 20
-        return rep.pixelsWide >= minDimension && rep.pixelsHigh >= minDimension
-    }
-
-    /// Checks if image data is suitable for OCR
-    /// - Parameter imageData: The image data to check
-    /// - Returns: True if the image can be processed
-    func canProcess(_ imageData: Data) -> Bool {
-        guard let image = NSImage(data: imageData) else {
-            return false
-        }
-        return canProcess(image)
-    }
 }
-

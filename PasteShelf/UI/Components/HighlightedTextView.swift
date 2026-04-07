@@ -8,9 +8,11 @@
 
 import SwiftUI
 
+// MARK: - HighlightedTextView
+
 /// Displays text with highlighted match ranges
 struct HighlightedTextView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     /// The full text to display
     let text: String
@@ -28,7 +30,7 @@ struct HighlightedTextView: View {
     var highlightColor: Color = .accentColor.opacity(0.3)
 
     /// Color for highlighted text foreground
-    var highlightForegroundColor: Color? = nil
+    var highlightForegroundColor: Color?
 
     // MARK: - Body
 
@@ -47,6 +49,8 @@ struct HighlightedTextView: View {
                 .truncationMode(.tail)
         }
     }
+
+    // MARK: Private
 
     // MARK: - Attributed String
 

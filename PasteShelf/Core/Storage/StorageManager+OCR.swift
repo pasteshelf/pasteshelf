@@ -147,7 +147,9 @@ extension StorageManager {
     /// - Parameter itemIds: Array of clipboard item IDs
     /// - Returns: Dictionary mapping item ID to extracted text
     func fetchOCRTexts(for itemIds: [UUID]) async -> [UUID: String] {
-        guard !itemIds.isEmpty else { return [:] }
+        guard !itemIds.isEmpty else {
+            return [:]
+        }
 
         let context = newBackgroundContext()
 
@@ -176,7 +178,7 @@ extension StorageManager {
     /// Fetches all OCR results with their clipboard item IDs
     /// - Parameter limit: Maximum number of results to fetch
     /// - Returns: Array of (itemId, text, confidence) tuples
-    func fetchAllOCRResults(limit: Int = 1_000) async -> [(itemId: UUID, text: String, confidence: Double)] {
+    func fetchAllOCRResults(limit: Int = 1000) async -> [(itemId: UUID, text: String, confidence: Double)] {
         let context = newBackgroundContext()
 
         return await context.perform {
@@ -225,7 +227,9 @@ extension StorageManager {
     /// - Parameter itemIds: Array of item IDs to check
     /// - Returns: Array of item IDs without OCR
     func findItemsWithoutOCR(from itemIds: [UUID]) async -> [UUID] {
-        guard !itemIds.isEmpty else { return [] }
+        guard !itemIds.isEmpty else {
+            return []
+        }
 
         let context = newBackgroundContext()
 
@@ -273,7 +277,9 @@ extension StorageManager {
     /// - Parameter itemIds: Array of clipboard item IDs
     /// - Returns: Number of OCR entries deleted
     func deleteOCRTexts(for itemIds: [UUID]) async -> Int {
-        guard !itemIds.isEmpty else { return 0 }
+        guard !itemIds.isEmpty else {
+            return 0
+        }
 
         let result = await performBackgroundTaskSafe { context -> Int in
             let request = OCRCache.fetchRequest()
@@ -357,10 +363,7 @@ extension StorageManager {
 
 /// Data structure for batch saving OCR results
 struct OCRSaveItem: Sendable {
-    let itemId: UUID
-    let text: String
-    let confidence: Double
-    let language: String?
+    // MARK: Lifecycle
 
     init(itemId: UUID, text: String, confidence: Double, language: String? = nil) {
         self.itemId = itemId
@@ -368,4 +371,11 @@ struct OCRSaveItem: Sendable {
         self.confidence = confidence
         self.language = language
     }
+
+    // MARK: Internal
+
+    let itemId: UUID
+    let text: String
+    let confidence: Double
+    let language: String?
 }

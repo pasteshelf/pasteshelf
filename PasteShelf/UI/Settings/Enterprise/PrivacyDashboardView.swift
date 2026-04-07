@@ -14,9 +14,7 @@ import SwiftUI
 /// Shows what data is collected, how long it's stored, which services are connected,
 /// and the current consent state for each data processing category.
 struct PrivacyDashboardView: View {
-
-    @StateObject private var viewModel = PrivacyDashboardViewModel()
-    @ObservedObject private var consentManager = GDPRConsentManager.shared
+    // MARK: Internal
 
     var body: some View {
         ScrollView {
@@ -81,7 +79,8 @@ struct PrivacyDashboardView: View {
                                         .font(.caption)
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 2)
-                                        .background(service.isActive ? Color.green.opacity(0.2) : Color.gray.opacity(0.2))
+                                        .background(service.isActive ? Color.green.opacity(0.2) : Color.gray
+                                            .opacity(0.2))
                                         .clipShape(Capsule())
                                 }
                             }
@@ -102,7 +101,8 @@ struct PrivacyDashboardView: View {
                                     Spacer()
                                     Text(consentManager.isConsentGranted(for: category) ? "Granted" : "Not Granted")
                                         .font(.caption)
-                                        .foregroundStyle(consentManager.isConsentGranted(for: category) ? .green : .secondary)
+                                        .foregroundStyle(consentManager
+                                            .isConsentGranted(for: category) ? .green : .secondary)
                                 }
                             }
                         }
@@ -118,4 +118,9 @@ struct PrivacyDashboardView: View {
             await viewModel.loadDashboardData()
         }
     }
+
+    // MARK: Private
+
+    @StateObject private var viewModel = PrivacyDashboardViewModel()
+    @ObservedObject private var consentManager = GDPRConsentManager.shared
 }

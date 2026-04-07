@@ -14,6 +14,8 @@ import Network
 import os.log
 import Security
 
+// MARK: - SyncManager
+
 /// Main sync coordinator implementing SyncManaging protocol.
 ///
 /// Supports two sync backends:
@@ -23,90 +25,7 @@ import Security
 /// The active backend is selected in `start()` based on user configuration.
 @MainActor
 public final class SyncManager: ObservableObject, SyncManaging {
-    // MARK: - Published Properties
-
-    @Published public private(set) var status: SyncStatus = .disabled
-    @Published public var isEnabled: Bool = false {
-        didSet {
-            if isEnabled != oldValue {
-                handleEnabledStateChange()
-            }
-        }
-    }
-
-    @Published public private(set) var lastSyncDate: Date?
-
-    /// The type of sync backend currently in use.
-    @Published public private(set) var activeBackendType: SyncBackendType?
-
-    // MARK: - Publishers
-
-    public var statusPublisher: AnyPublisher<SyncStatus, Never> {
-        $status.eraseToAnyPublisher()
-    }
-
-    // MARK: - Dependencies
-
-    private let cloudKitProvider: CloudKitProvider
-    private let changeTracker: ChangeTracker
-    private let conflictResolver: ConflictResolver
-    private let encryptionManager: SyncEncryptionManager
-    private let persistenceController: PersistenceController
-
-    // MARK: - Backend
-
-    /// The active sync backend (CloudKit or self-hosted). Set during `start()`.
-    private var syncBackend: (any SyncBackend)?
-
-    /// Configuration for the self-hosted sync server.
-    @Published public var selfHostedConfiguration: SelfHostedSyncConfiguration? {
-        didSet { saveSelfHostedConfiguration() }
-    }
-
-    // MARK: - Network Monitoring
-
-    private let networkMonitor = NWPathMonitor()
-    private let networkQueue = DispatchQueue(label: "com.pasteshelf.sync.network")
-    private var isNetworkAvailable = true
-
-    /// Wrapper that posts .networkRestored / .networkLost notifications and queues offline changes
-    private let networkMonitorWrapper = NetworkMonitor()
-
-    /// Handles iCloud account switches and posts .iCloudAccountSwitched
-    private let accountChangeHandler = AccountChangeHandler()
-
-    // MARK: - Sync State
-
-    private var syncTask: Task<Void, Never>?
-    private var isCurrentlySyncing = false
-    private var pendingSync = false
-    private var changeToken: CKServerChangeToken?
-
-    /// Backend-agnostic sync token stored as opaque Data.
-    private var backendSyncToken: Data?
-
-    // MARK: - Constants
-
-    private static let syncDebounceInterval: TimeInterval = 2.0
-    private static let autoSyncInterval: TimeInterval = 300.0 // 5 minutes
-
-    // MARK: - UserDefaults Keys
-
-    private static let enabledKey = "com.pasteshelf.sync.enabled"
-    private static let lastSyncKey = "com.pasteshelf.sync.lastSyncDate"
-    private static let changeTokenKey = "com.pasteshelf.sync.changeToken"
-    private static let backendSyncTokenKey = "com.pasteshelf.sync.backendSyncToken"
-    private static let backendTypeKey = "com.pasteshelf.sync.backendType"
-    private static let selfHostedConfigKey = "com.pasteshelf.sync.selfHostedConfiguration"
-    private static let selfHostedApiKeyService = "com.pasteshelf.sync.selfHostedApiKey"
-    private static let selfHostedApiKeyAccount = "selfHostedSync"
-
-    // MARK: - Logger
-
-    private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "sync-manager"
-    )
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -135,6 +54,35 @@ public final class SyncManager: ObservableObject, SyncManaging {
 
     deinit {
         networkMonitor.cancel()
+    }
+
+    // MARK: Public
+
+    // MARK: - Published Properties
+
+    @Published public private(set) var status: SyncStatus = .disabled
+    @Published public private(set) var lastSyncDate: Date?
+
+    /// The type of sync backend currently in use.
+    @Published public private(set) var activeBackendType: SyncBackendType?
+
+    @Published public var isEnabled: Bool = false {
+        didSet {
+            if isEnabled != oldValue {
+                handleEnabledStateChange()
+            }
+        }
+    }
+
+    // MARK: - Publishers
+
+    public var statusPublisher: AnyPublisher<SyncStatus, Never> {
+        $status.eraseToAnyPublisher()
+    }
+
+    /// Configuration for the self-hosted sync server.
+    @Published public var selfHostedConfiguration: SelfHostedSyncConfiguration? {
+        didSet { saveSelfHostedConfiguration() }
     }
 
     // MARK: - SyncManaging Protocol
@@ -189,10 +137,13 @@ public final class SyncManager: ObservableObject, SyncManaging {
         // Subscribe to real-time change notifications
         try? await backend.subscribeToChanges { [weak self] notification in
             Task { @MainActor in
-                guard let self else { return }
+                guard let self else {
+                    return
+                }
                 Self.logger.info("Received sync notification: \(notification.type.rawValue)")
                 switch notification.type {
-                case .changesAvailable, .forceSync:
+                case .changesAvailable,
+                     .forceSync:
                     try? await self.syncNow()
                 case .authExpired:
                     self.status = .error(.authenticationTokenExpired)
@@ -202,24 +153,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
             }
         }
 
-        Self.logger.info("Sync engine started with \(self.activeBackendType?.rawValue ?? "unknown") backend")
-    }
-
-    /// Determines the appropriate sync backend based on configuration.
-    private func resolveBackend() throws -> any SyncBackend {
-        #if !APP_STORE
-        // Self-hosted sync takes precedence if configured
-        if let config = selfHostedConfiguration, config.isConfigured, config.isEnabled {
-            activeBackendType = .selfHosted
-            Self.logger.info("Using self-hosted sync backend")
-            return SelfHostedSyncBackend(configuration: config)
-        }
-        #endif
-
-        // Fall back to CloudKit
-        activeBackendType = .cloudKit
-        Self.logger.info("Using CloudKit sync backend")
-        return CloudKitSyncBackend(provider: cloudKitProvider)
+        Self.logger.info("Sync engine started with \(activeBackendType?.rawValue ?? "unknown") backend")
     }
 
     public func stop() {
@@ -329,6 +263,131 @@ public final class SyncManager: ObservableObject, SyncManaging {
         Self.logger.info("Cloud data deleted, sync disabled")
     }
 
+    // MARK: Private
+
+    // MARK: - Constants
+
+    private static let syncDebounceInterval: TimeInterval = 2.0
+    private static let autoSyncInterval: TimeInterval = 300.0 // 5 minutes
+
+    // MARK: - UserDefaults Keys
+
+    private static let enabledKey = "com.pasteshelf.sync.enabled"
+    private static let lastSyncKey = "com.pasteshelf.sync.lastSyncDate"
+    private static let changeTokenKey = "com.pasteshelf.sync.changeToken"
+    private static let backendSyncTokenKey = "com.pasteshelf.sync.backendSyncToken"
+    private static let backendTypeKey = "com.pasteshelf.sync.backendType"
+    private static let selfHostedConfigKey = "com.pasteshelf.sync.selfHostedConfiguration"
+    private static let selfHostedApiKeyService = "com.pasteshelf.sync.selfHostedApiKey"
+    private static let selfHostedApiKeyAccount = "selfHostedSync"
+
+    // MARK: - Logger
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "sync-manager"
+    )
+
+    // MARK: - Dependencies
+
+    private let cloudKitProvider: CloudKitProvider
+    private let changeTracker: ChangeTracker
+    private let conflictResolver: ConflictResolver
+    private let encryptionManager: SyncEncryptionManager
+    private let persistenceController: PersistenceController
+
+    // MARK: - Backend
+
+    /// The active sync backend (CloudKit or self-hosted). Set during `start()`.
+    private var syncBackend: (any SyncBackend)?
+
+    // MARK: - Network Monitoring
+
+    private let networkMonitor = NWPathMonitor()
+    private let networkQueue = DispatchQueue(label: "com.pasteshelf.sync.network")
+    private var isNetworkAvailable = true
+
+    /// Wrapper that posts .networkRestored / .networkLost notifications and queues offline changes
+    private let networkMonitorWrapper = NetworkMonitor()
+
+    /// Handles iCloud account switches and posts .iCloudAccountSwitched
+    private let accountChangeHandler = AccountChangeHandler()
+
+    // MARK: - Sync State
+
+    private var syncTask: Task<Void, Never>?
+    private var isCurrentlySyncing = false
+    private var pendingSync = false
+    private var changeToken: CKServerChangeToken?
+
+    /// Backend-agnostic sync token stored as opaque Data.
+    private var backendSyncToken: Data?
+
+    // MARK: - Self-Hosted API Key Keychain Helpers
+
+    private static func saveSelfHostedApiKeyToKeychain(_ apiKey: String) {
+        guard let data = apiKey.data(using: .utf8) else {
+            return
+        }
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: selfHostedApiKeyService,
+            kSecAttrAccount as String: selfHostedApiKeyAccount,
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: selfHostedApiKeyService,
+            kSecAttrAccount as String: selfHostedApiKeyAccount,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+        ]
+        SecItemAdd(addQuery as CFDictionary, nil)
+    }
+
+    private static func loadSelfHostedApiKeyFromKeychain() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: selfHostedApiKeyService,
+            kSecAttrAccount as String: selfHostedApiKeyAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private static func deleteSelfHostedApiKeyFromKeychain() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: selfHostedApiKeyService,
+            kSecAttrAccount as String: selfHostedApiKeyAccount,
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
+    /// Determines the appropriate sync backend based on configuration.
+    private func resolveBackend() throws -> any SyncBackend {
+        #if !APP_STORE
+            // Self-hosted sync takes precedence if configured
+            if let config = selfHostedConfiguration, config.isConfigured, config.isEnabled {
+                activeBackendType = .selfHosted
+                Self.logger.info("Using self-hosted sync backend")
+                return SelfHostedSyncBackend(configuration: config)
+            }
+        #endif
+
+        // Fall back to CloudKit
+        activeBackendType = .cloudKit
+        Self.logger.info("Using CloudKit sync backend")
+        return CloudKitSyncBackend(provider: cloudKitProvider)
+    }
+
     // MARK: - Private Sync Operations
 
     private func performSync() async throws {
@@ -379,9 +438,11 @@ public final class SyncManager: ObservableObject, SyncManaging {
     }
 
     private func pullRemoteChanges() async throws {
-        guard let backend = syncBackend else { return }
+        guard let backend = syncBackend else {
+            return
+        }
 
-        Self.logger.debug("Pulling remote changes via \(self.activeBackendType?.rawValue ?? "unknown") backend")
+        Self.logger.debug("Pulling remote changes via \(activeBackendType?.rawValue ?? "unknown") backend")
 
         let result = try await backend.pullChanges(sinceToken: backendSyncToken)
 
@@ -404,9 +465,11 @@ public final class SyncManager: ObservableObject, SyncManaging {
     }
 
     private func pushLocalChanges() async throws {
-        guard let backend = syncBackend else { return }
+        guard let backend = syncBackend else {
+            return
+        }
 
-        Self.logger.debug("Pushing local changes via \(self.activeBackendType?.rawValue ?? "unknown") backend")
+        Self.logger.debug("Pushing local changes via \(activeBackendType?.rawValue ?? "unknown") backend")
 
         // Get pending changes
         let pendingChanges = try await changeTracker.getPendingChanges()
@@ -483,7 +546,7 @@ public final class SyncManager: ObservableObject, SyncManaging {
         // the context queue with async operations (no DispatchSemaphore needed)
         var decryptedPayloads: [UUID: Data] = [:]
         for change in changes {
-            if (change.changeType == .remoteInsert || change.changeType == .remoteUpdate),
+            if change.changeType == .remoteInsert || change.changeType == .remoteUpdate,
                change.entityType == .clipboardItem,
                let encryptedData = change.encryptedData
             {
@@ -508,7 +571,8 @@ public final class SyncManager: ObservableObject, SyncManaging {
         in context: NSManagedObjectContext
     ) throws {
         switch change.changeType {
-        case .remoteInsert, .remoteUpdate:
+        case .remoteInsert,
+             .remoteUpdate:
             try applyInsertOrUpdate(change, decryptedPayloads: decryptedPayloads, in: context)
         case .remoteDelete:
             try applyDelete(change, in: context)
@@ -522,9 +586,13 @@ public final class SyncManager: ObservableObject, SyncManaging {
         decryptedPayloads: [UUID: Data],
         in context: NSManagedObjectContext
     ) throws {
-        guard change.entityType == .clipboardItem else { return }
+        guard change.entityType == .clipboardItem else {
+            return
+        }
 
-        guard let data = decryptedPayloads[change.entityID] else { return }
+        guard let data = decryptedPayloads[change.entityID] else {
+            return
+        }
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -554,7 +622,9 @@ public final class SyncManager: ObservableObject, SyncManaging {
     }
 
     private func applyDelete(_ change: SyncChange, in context: NSManagedObjectContext) throws {
-        guard change.entityType == .clipboardItem else { return }
+        guard change.entityType == .clipboardItem else {
+            return
+        }
 
         let request: NSFetchRequest<ClipboardItem> = ClipboardItem.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", change.entityID as CVarArg)
@@ -593,7 +663,9 @@ public final class SyncManager: ObservableObject, SyncManaging {
     }
 
     private func loadChangeToken() -> CKServerChangeToken? {
-        guard let data = UserDefaults.standard.data(forKey: Self.changeTokenKey) else { return nil }
+        guard let data = UserDefaults.standard.data(forKey: Self.changeTokenKey) else {
+            return nil
+        }
         return try? NSKeyedUnarchiver.unarchivedObject(ofClass: CKServerChangeToken.self, from: data)
     }
 
@@ -639,50 +711,6 @@ public final class SyncManager: ObservableObject, SyncManaging {
         return config
     }
 
-    // MARK: - Self-Hosted API Key Keychain Helpers
-
-    private static func saveSelfHostedApiKeyToKeychain(_ apiKey: String) {
-        guard let data = apiKey.data(using: .utf8) else { return }
-        let deleteQuery: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: selfHostedApiKeyService,
-            kSecAttrAccount as String: selfHostedApiKeyAccount
-        ]
-        SecItemDelete(deleteQuery as CFDictionary)
-
-        let addQuery: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: selfHostedApiKeyService,
-            kSecAttrAccount as String: selfHostedApiKeyAccount,
-            kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
-        ]
-        SecItemAdd(addQuery as CFDictionary, nil)
-    }
-
-    private static func loadSelfHostedApiKeyFromKeychain() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: selfHostedApiKeyService,
-            kSecAttrAccount as String: selfHostedApiKeyAccount,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess, let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
-    private static func deleteSelfHostedApiKeyFromKeychain() {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: selfHostedApiKeyService,
-            kSecAttrAccount as String: selfHostedApiKeyAccount
-        ]
-        SecItemDelete(query as CFDictionary)
-    }
-
     private func handleEnabledStateChange() {
         UserDefaults.standard.set(isEnabled, forKey: Self.enabledKey)
 
@@ -724,7 +752,9 @@ public final class SyncManager: ObservableObject, SyncManaging {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                guard let self, self.isEnabled else { return }
+                guard let self, self.isEnabled else {
+                    return
+                }
                 Self.logger.debug("NetworkMonitor reported network restored")
                 try? await self.syncNow()
             }
@@ -736,7 +766,9 @@ public final class SyncManager: ObservableObject, SyncManaging {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                guard let self else { return }
+                guard let self else {
+                    return
+                }
                 Self.logger.debug("NetworkMonitor reported network lost")
                 self.status = .offline
             }
@@ -749,7 +781,9 @@ public final class SyncManager: ObservableObject, SyncManaging {
             queue: .main
         ) { [weak self] notification in
             Task { @MainActor in
-                guard let self, self.isEnabled else { return }
+                guard let self, self.isEnabled else {
+                    return
+                }
                 let newUserId = notification.userInfo?["newUserID"] as? String
                 Self.logger.info("iCloud account switched to: \(newUserId ?? "unknown")")
                 self.stop()
@@ -764,7 +798,9 @@ public final class SyncManager: ObservableObject, SyncManaging {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self, self.isEnabled, !self.isCurrentlySyncing else { return }
+            guard let self, isEnabled, !self.isCurrentlySyncing else {
+                return
+            }
 
             // Debounce sync on data changes
             Task {
@@ -778,8 +814,10 @@ public final class SyncManager: ObservableObject, SyncManaging {
         syncTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: UInt64(Self.autoSyncInterval * 1_000_000_000))
-                guard let self, !Task.isCancelled else { break }
-                try? await self.syncNow()
+                guard let self, !Task.isCancelled else {
+                    break
+                }
+                try? await syncNow()
             }
         }
     }

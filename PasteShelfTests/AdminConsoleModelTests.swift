@@ -8,13 +8,12 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
-// MARK: - AdminConsoleConfiguration Tests
+// MARK: - AdminConsoleConfigurationTests
 
 struct AdminConsoleConfigurationTests {
-
     // MARK: Empty Sentinel
 
     @Test("AdminConsoleConfiguration.empty has isConfigured false")
@@ -118,10 +117,9 @@ struct AdminConsoleConfigurationTests {
     }
 }
 
-// MARK: - DeviceEnrollmentStatus Tests
+// MARK: - DeviceEnrollmentStatusTests
 
 struct DeviceEnrollmentStatusTests {
-
     // MARK: Raw Values
 
     @Test("DeviceEnrollmentStatus.notEnrolled raw value is 'notEnrolled'")
@@ -192,21 +190,10 @@ struct DeviceEnrollmentStatusTests {
     }
 }
 
-// MARK: - DeviceRegistration Tests
+// MARK: - DeviceRegistrationTests
 
 struct DeviceRegistrationTests {
-
-    private func makeRegistration(status: DeviceEnrollmentStatus) -> DeviceRegistration {
-        DeviceRegistration(
-            deviceId: "dev-001",
-            organizationID: "org-123",
-            userId: "user-xyz",
-            enrollmentStatus: status,
-            deviceName: "Test Mac",
-            osVersion: "14.4.1",
-            appVersion: "1.0.0"
-        )
-    }
+    // MARK: Internal
 
     // MARK: isActive
 
@@ -303,29 +290,26 @@ struct DeviceRegistrationTests {
         )
         #expect(reg1 != reg2)
     }
-}
 
-// MARK: - DeviceHealthReport Tests
+    // MARK: Private
 
-struct DeviceHealthReportTests {
-
-    private func makeReport() -> DeviceHealthReport {
-        DeviceHealthReport(
+    private func makeRegistration(status: DeviceEnrollmentStatus) -> DeviceRegistration {
+        DeviceRegistration(
             deviceId: "dev-001",
-            timestamp: Date(timeIntervalSince1970: 1_700_000_000),
-            appVersion: "1.2.3",
+            organizationID: "org-123",
+            userId: "user-xyz",
+            enrollmentStatus: status,
+            deviceName: "Test Mac",
             osVersion: "14.4.1",
-            isSSOActive: true,
-            isMDMManaged: false,
-            isSyncEnabled: true,
-            isEncryptionEnabled: true,
-            clipboardItemCount: 42,
-            lastSyncDate: Date(timeIntervalSince1970: 1_699_990_000),
-            policyVersion: "v3",
-            activePolicyId: "pol-789",
-            complianceStatus: .compliant
+            appVersion: "1.0.0"
         )
     }
+}
+
+// MARK: - DeviceHealthReportTests
+
+struct DeviceHealthReportTests {
+    // MARK: Internal
 
     @Test("DeviceHealthReport survives Codable round-trip and all fields are preserved")
     func codableRoundTrip() throws {
@@ -383,12 +367,31 @@ struct DeviceHealthReportTests {
         #expect(decoded.activePolicyId == nil)
         #expect(decoded.complianceStatus == .unknown)
     }
+
+    // MARK: Private
+
+    private func makeReport() -> DeviceHealthReport {
+        DeviceHealthReport(
+            deviceId: "dev-001",
+            timestamp: Date(timeIntervalSince1970: 1_700_000_000),
+            appVersion: "1.2.3",
+            osVersion: "14.4.1",
+            isSSOActive: true,
+            isMDMManaged: false,
+            isSyncEnabled: true,
+            isEncryptionEnabled: true,
+            clipboardItemCount: 42,
+            lastSyncDate: Date(timeIntervalSince1970: 1_699_990_000),
+            policyVersion: "v3",
+            activePolicyId: "pol-789",
+            complianceStatus: .compliant
+        )
+    }
 }
 
-// MARK: - ComplianceStatus Tests
+// MARK: - ComplianceStatusTests
 
 struct ComplianceStatusTests {
-
     // MARK: Raw Values
 
     @Test("ComplianceStatus.compliant raw value is 'compliant'")
@@ -433,10 +436,9 @@ struct ComplianceStatusTests {
     }
 }
 
-// MARK: - AdminPolicy Tests
+// MARK: - AdminPolicyTests
 
 struct AdminPolicyTests {
-
     // MARK: Empty Sentinel
 
     @Test("AdminPolicy.empty has id of empty string")
@@ -502,7 +504,12 @@ struct AdminPolicyTests {
         let historyLimits = HistoryLimitPolicy(maxItems: 100, maxDays: 7, enforced: true)
         let excludedApps = ExcludedAppsPolicy(bundleIds: ["com.example.browser"], enforced: false)
         let syncSettings = SyncSettingsPolicy(syncEnabled: true, localStorageOnly: false, enforced: true)
-        let encryption = EncryptionPolicy(requireEncryption: true, minimumKeyLength: 128, requireBiometricAuth: true, enforced: true)
+        let encryption = EncryptionPolicy(
+            requireEncryption: true,
+            minimumKeyLength: 128,
+            requireBiometricAuth: true,
+            enforced: true
+        )
 
         let policy = AdminPolicy(
             id: "pol-001",
@@ -522,10 +529,9 @@ struct AdminPolicyTests {
     }
 }
 
-// MARK: - HistoryLimitPolicy Tests
+// MARK: - HistoryLimitPolicyTests
 
 struct HistoryLimitPolicyTests {
-
     @Test("HistoryLimitPolicy default enforced is false")
     func defaultEnforcedFalse() {
         let policy = HistoryLimitPolicy()
@@ -557,10 +563,9 @@ struct HistoryLimitPolicyTests {
     }
 }
 
-// MARK: - ExcludedAppsPolicy Tests
+// MARK: - ExcludedAppsPolicyTests
 
 struct ExcludedAppsPolicyTests {
-
     @Test("ExcludedAppsPolicy default enforced is false")
     func defaultEnforcedFalse() {
         let policy = ExcludedAppsPolicy()
@@ -597,10 +602,9 @@ struct ExcludedAppsPolicyTests {
     }
 }
 
-// MARK: - SyncSettingsPolicy Tests
+// MARK: - SyncSettingsPolicyTests
 
 struct SyncSettingsPolicyTests {
-
     @Test("SyncSettingsPolicy default enforced is false")
     func defaultEnforcedFalse() {
         let policy = SyncSettingsPolicy()
@@ -632,10 +636,9 @@ struct SyncSettingsPolicyTests {
     }
 }
 
-// MARK: - EncryptionPolicy Tests
+// MARK: - EncryptionPolicyTests
 
 struct EncryptionPolicyTests {
-
     @Test("EncryptionPolicy default enforced is false")
     func defaultEnforcedFalse() {
         let policy = EncryptionPolicy(requireEncryption: false)
@@ -644,8 +647,18 @@ struct EncryptionPolicyTests {
 
     @Test("Two EncryptionPolicies with identical values are equal")
     func equalPolicies() {
-        let policy1 = EncryptionPolicy(requireEncryption: true, minimumKeyLength: 256, requireBiometricAuth: true, enforced: true)
-        let policy2 = EncryptionPolicy(requireEncryption: true, minimumKeyLength: 256, requireBiometricAuth: true, enforced: true)
+        let policy1 = EncryptionPolicy(
+            requireEncryption: true,
+            minimumKeyLength: 256,
+            requireBiometricAuth: true,
+            enforced: true
+        )
+        let policy2 = EncryptionPolicy(
+            requireEncryption: true,
+            minimumKeyLength: 256,
+            requireBiometricAuth: true,
+            enforced: true
+        )
         #expect(policy1 == policy2)
     }
 
@@ -673,10 +686,9 @@ struct EncryptionPolicyTests {
     }
 }
 
-// MARK: - AdminAnalyticsEventType Tests
+// MARK: - AdminAnalyticsEventTypeTests
 
 struct AdminAnalyticsEventTypeTests {
-
     // MARK: Raw Values
 
     @Test("AdminAnalyticsEventType.deviceEnrolled raw value is 'deviceEnrolled'")
@@ -751,10 +763,9 @@ struct AdminAnalyticsEventTypeTests {
     }
 }
 
-// MARK: - AdminAnalyticsEvent Tests
+// MARK: - AdminAnalyticsEventTests
 
 struct AdminAnalyticsEventTests {
-
     // MARK: Defaults
 
     @Test("AdminAnalyticsEvent default metadata is empty")

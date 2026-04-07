@@ -18,10 +18,7 @@ import os.log
 /// always override user values; default preferences are applied only when the user
 /// has not explicitly customized them.
 struct MDMPolicyEnforcer {
-
-    // MARK: - Properties
-
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "mdm-enforcer")
+    // MARK: Internal
 
     // MARK: - Public API
 
@@ -58,7 +55,9 @@ struct MDMPolicyEnforcer {
         userCustomizedKeys: Set<ManagedPreferenceKey> = []
     ) {
         for (key, value) in config.defaultPreferences {
-            guard !userCustomizedKeys.contains(key) else { continue }
+            guard !userCustomizedKeys.contains(key) else {
+                continue
+            }
             apply(key: key, value: value, to: &settings)
         }
 
@@ -74,118 +73,129 @@ struct MDMPolicyEnforcer {
         Set(config.forcedPreferences.keys)
     }
 
+    // MARK: Private
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "mdm-enforcer")
+
     // MARK: - Private Mapping
 
     /// Maps a single MDM key/value pair to the corresponding `AppSettings` field.
     private func apply(key: ManagedPreferenceKey, value: PreferenceValue, to settings: inout AppSettings) {
         switch key {
         // MARK: Privacy / History
+
         case .maxHistoryDays:
-            if case .int(let days) = value, days > 0 {
+            if case let .int(days) = value, days > 0 {
                 settings.privacy.autoDeleteEnabled = true
                 settings.privacy.autoDeleteDays = days
             }
 
         case .maxHistoryItems:
-            if case .int(let items) = value {
+            if case let .int(items) = value {
                 settings.general.historyLimit = closestHistoryLimit(to: items)
             }
 
         // MARK: Appearance
+
         case .theme:
-            if case .string(let themeName) = value,
-               let theme = AppTheme(rawValue: themeName) {
+            if case let .string(themeName) = value,
+               let theme = AppTheme(rawValue: themeName)
+            {
                 settings.appearance.theme = theme
             }
 
         // MARK: Security
+
         case .clearOnQuit:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 settings.security.clearOnQuit = enabled
             }
 
         case .requireBiometricAuth:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 settings.security.requireBiometricAuth = enabled
             }
 
         case .autoLockTimeout:
-            if case .int(let seconds) = value, seconds >= 0 {
+            if case let .int(seconds) = value, seconds >= 0 {
                 settings.security.autoLockTimeout = seconds
             }
 
         // MARK: Enterprise — sync, storage, plugins
+
         case .cloudSyncEnabled:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 settings.enterprise.cloudSyncEnabled = enabled
             }
 
         case .localStorageOnly:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 settings.enterprise.localStorageOnly = enabled
             }
 
         case .pluginsEnabled:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 settings.enterprise.pluginsEnabled = enabled
             }
 
         // MARK: Enterprise — keys handled by their respective managers
+
         // These are wired via AppDelegate.applyMDMEnterpriseKeys() and
         // do not map to AppSettings fields directly.
         case .organizationID:
-            if case .string(let id) = value {
+            if case let .string(id) = value {
                 logger.debug("MDM organizationID received: \(id)")
             }
 
         case .adminConsoleURL:
-            if case .string(let url) = value {
+            if case let .string(url) = value {
                 logger.debug("MDM adminConsoleURL received: \(url)")
             }
 
         case .ssoEnabled:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 logger.info("MDM SSO enabled: \(enabled)")
             }
 
         case .ssoProvider:
-            if case .string(let provider) = value {
+            if case let .string(provider) = value {
                 logger.info("MDM SSO provider: \(provider)")
             }
 
         case .ssoDomain:
-            if case .string(let domain) = value {
+            if case let .string(domain) = value {
                 logger.info("MDM SSO domain: \(domain)")
             }
 
         case .dlpEnabled:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 logger.info("MDM DLP enabled: \(enabled)")
             }
 
         case .blockCreditCards:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 logger.info("MDM block credit cards: \(enabled)")
             }
 
         case .blockAPIKeys:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 logger.info("MDM block API keys: \(enabled)")
             }
 
         // MARK: Compliance
+
         case .gdprEnabled:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 settings.enterprise.gdprEnabled = enabled
             }
 
         case .soc2Enabled:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 settings.enterprise.soc2Enabled = enabled
             }
 
         case .hipaaEnabled:
-            if case .bool(let enabled) = value {
+            if case let .bool(enabled) = value {
                 settings.enterprise.hipaaEnabled = enabled
             }
         }
@@ -193,10 +203,18 @@ struct MDMPolicyEnforcer {
 
     /// Maps an integer item count to the closest `HistoryLimit` enum case.
     private func closestHistoryLimit(to items: Int) -> HistoryLimit {
-        if items <= 0 { return .unlimited }
-        if items <= 100 { return .small }
-        if items <= 500 { return .medium }
-        if items <= 1000 { return .large }
+        if items <= 0 {
+            return .unlimited
+        }
+        if items <= 100 {
+            return .small
+        }
+        if items <= 500 {
+            return .medium
+        }
+        if items <= 1000 {
+            return .large
+        }
         return .unlimited
     }
 }

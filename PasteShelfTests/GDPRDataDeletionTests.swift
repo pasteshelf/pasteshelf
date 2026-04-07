@@ -6,13 +6,12 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
-// MARK: - GDPRDeletionReport CategoryResult Tests
+// MARK: - GDPRDeletionCategoryResultTests
 
 struct GDPRDeletionCategoryResultTests {
-
     @Test("CategoryResult preserves all values")
     func preservesValues() {
         let result = GDPRDeletionReport.CategoryResult(
@@ -64,16 +63,15 @@ struct GDPRDeletionCategoryResultTests {
     }
 }
 
-// MARK: - GDPRDeletionReport Tests
+// MARK: - GDPRDeletionReportStructTests
 
 struct GDPRDeletionReportStructTests {
-
     @Test("Report with all successful deletions")
     func allSuccess() {
         let results = [
             GDPRDeletionReport.CategoryResult(name: "Items", deletedCount: 100, success: true),
             GDPRDeletionReport.CategoryResult(name: "Tags", deletedCount: 20, success: true),
-            GDPRDeletionReport.CategoryResult(name: "Folders", deletedCount: 5, success: true)
+            GDPRDeletionReport.CategoryResult(name: "Folders", deletedCount: 5, success: true),
         ]
         let report = GDPRDeletionReport(categories: results)
         #expect(report.allSuccessful)
@@ -83,7 +81,7 @@ struct GDPRDeletionReportStructTests {
     func partialFailures() {
         let results = [
             GDPRDeletionReport.CategoryResult(name: "Items", deletedCount: 100, success: true),
-            GDPRDeletionReport.CategoryResult(name: "Keychain", deletedCount: 0, success: false)
+            GDPRDeletionReport.CategoryResult(name: "Keychain", deletedCount: 0, success: false),
         ]
         let report = GDPRDeletionReport(categories: results)
         #expect(!report.allSuccessful)
@@ -103,7 +101,7 @@ struct GDPRDeletionReportStructTests {
         let results = [
             GDPRDeletionReport.CategoryResult(name: "Items", deletedCount: 100, success: true),
             GDPRDeletionReport.CategoryResult(name: "Tags", deletedCount: 20, success: true),
-            GDPRDeletionReport.CategoryResult(name: "Folders", deletedCount: 5, success: true)
+            GDPRDeletionReport.CategoryResult(name: "Folders", deletedCount: 5, success: true),
         ]
         let report = GDPRDeletionReport(categories: results)
         #expect(report.totalDeleted == 125)
@@ -121,7 +119,7 @@ struct GDPRDeletionReportStructTests {
         let categories = [
             "Clipboard Items", "Tags", "Folders", "Collections",
             "Embeddings", "OCR Cache", "Consent Records",
-            "Audit Logs", "Keychain Items", "User Defaults"
+            "Audit Logs", "Keychain Items", "User Defaults",
         ]
         let results = categories.map {
             GDPRDeletionReport.CategoryResult(name: $0, deletedCount: 1, success: true)
@@ -141,7 +139,7 @@ struct GDPRDeletionReportStructTests {
     func codableRoundTrip() throws {
         let original = GDPRDeletionReport(
             categories: [
-                GDPRDeletionReport.CategoryResult(name: "Items", deletedCount: 50, success: true)
+                GDPRDeletionReport.CategoryResult(name: "Items", deletedCount: 50, success: true),
             ]
         )
         let encoder = JSONEncoder()
@@ -156,20 +154,16 @@ struct GDPRDeletionReportStructTests {
     }
 }
 
-// MARK: - Deletion Error Tests
+// MARK: - GDPRDeletionErrorTests
 
 struct GDPRDeletionErrorTests {
-
-    private struct TestError: Error, LocalizedError {
-        let message: String
-        var errorDescription: String? { message }
-    }
+    // MARK: Internal
 
     @Test("ComplianceError.deletionFailed wraps underlying error")
     func deletionFailedCapturesReason() {
         let underlying = TestError(message: "CoreData save failed")
         let error = ComplianceError.deletionFailed(underlying: underlying)
-        if case .deletionFailed(let wrapped) = error {
+        if case let .deletionFailed(wrapped) = error {
             #expect(wrapped.localizedDescription == "CoreData save failed")
         } else {
             Issue.record("Expected deletionFailed case")
@@ -183,6 +177,16 @@ struct GDPRDeletionErrorTests {
             // Expected
         } else {
             Issue.record("Expected notConfigured case")
+        }
+    }
+
+    // MARK: Private
+
+    private struct TestError: Error, LocalizedError {
+        let message: String
+
+        var errorDescription: String? {
+            message
         }
     }
 }

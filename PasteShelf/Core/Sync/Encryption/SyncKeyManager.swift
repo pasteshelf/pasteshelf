@@ -13,33 +13,13 @@ import Security
 
 /// Manages encryption keys for end-to-end encrypted sync
 final class SyncKeyManager: Sendable {
-    // MARK: - Constants
-
-    /// Keychain service identifier for sync keys
-    private let service = "com.pasteshelf.sync"
-
-    /// Keychain account for the master encryption key
-    private let masterKeyAccount = "master_encryption_key"
-
-    /// Size of the master key in bytes (256 bits)
-    private static let masterKeySize = 32
-
-    /// Salt for HKDF key derivation
-    private static let derivationSalt = "com.pasteshelf.sync".data(using: .utf8)!
-
-    /// Info string for deriving the sync encryption key
-    private static let syncKeyInfo = "encryption-key-v1".data(using: .utf8)!
-
-    // MARK: - Logger
-
-    private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "sync-keys"
-    )
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     nonisolated init() {}
+
+    // MARK: Internal
 
     // MARK: - Public API
 
@@ -90,6 +70,32 @@ final class SyncKeyManager: Sendable {
         return deriveSyncKey(from: newMasterKey)
     }
 
+    // MARK: Private
+
+    /// Size of the master key in bytes (256 bits)
+    private static let masterKeySize = 32
+
+    /// Salt for HKDF key derivation
+    private static let derivationSalt = "com.pasteshelf.sync".data(using: .utf8)!
+
+    /// Info string for deriving the sync encryption key
+    private static let syncKeyInfo = "encryption-key-v1".data(using: .utf8)!
+
+    // MARK: - Logger
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "sync-keys"
+    )
+
+    // MARK: - Constants
+
+    /// Keychain service identifier for sync keys
+    private let service = "com.pasteshelf.sync"
+
+    /// Keychain account for the master encryption key
+    private let masterKeyAccount = "master_encryption_key"
+
     // MARK: - Private Key Operations
 
     /// Generate a new master key and store it in keychain
@@ -120,14 +126,12 @@ final class SyncKeyManager: Sendable {
 
         // Use HKDF to derive the actual encryption key
         // This provides key separation and allows for multiple derived keys if needed
-        let derivedKey = HKDF<SHA256>.deriveKey(
+        return HKDF<SHA256>.deriveKey(
             inputKeyMaterial: masterSymmetricKey,
             salt: Self.derivationSalt,
             info: Self.syncKeyInfo,
             outputByteCount: Self.masterKeySize
         )
-
-        return derivedKey
     }
 
     /// Load master key from keychain
@@ -147,7 +151,7 @@ final class SyncKeyManager: Sendable {
 
         guard status == errSecSuccess else {
             if status != errSecItemNotFound {
-                Self.logger.warning("Keychain load failed: \(self.securityErrorMessage(for: status))")
+                Self.logger.warning("Keychain load failed: \(securityErrorMessage(for: status))")
             }
             return nil
         }

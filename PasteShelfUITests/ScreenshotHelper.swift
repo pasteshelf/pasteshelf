@@ -61,18 +61,20 @@ enum ScreenshotHelper {
         case menuBarIntegration = "PasteShelf_Screenshot_4_MenuBar"
         case keyboardShortcuts = "PasteShelf_Screenshot_5_Shortcuts"
 
+        // MARK: Internal
+
         var displayName: String {
             switch self {
             case .floatingPanelOverview:
-                return "Floating Panel Overview"
+                "Floating Panel Overview"
             case .searchInAction:
-                return "Search in Action"
+                "Search in Action"
             case .preferencesPrivacy:
-                return "Preferences - Privacy"
+                "Preferences - Privacy"
             case .menuBarIntegration:
-                return "Menu Bar Integration"
+                "Menu Bar Integration"
             case .keyboardShortcuts:
-                return "Keyboard Shortcuts"
+                "Keyboard Shortcuts"
             }
         }
 

@@ -18,16 +18,17 @@ import SwiftUI
 /// and unenrollment actions are available when the device is configured. When the
 /// the enterprise features are not configured, a setup guide is shown instead.
 struct AdminSettingsView: View {
-
-    // MARK: - Properties
-
-    @StateObject private var viewModel = AdminSettingsViewModel()
+    // MARK: Internal
 
     // MARK: - Body
 
     var body: some View {
         adminContent
     }
+
+    // MARK: Private
+
+    @StateObject private var viewModel = AdminSettingsViewModel()
 
     // MARK: - Admin Content
 
@@ -128,10 +129,12 @@ struct AdminSettingsView: View {
                         Text("Not Configured")
                             .font(.headline)
 
-                        Text("The admin console server has not been configured.\nContact your IT administrator for enrollment.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                        Text(
+                            "The admin console server has not been configured.\nContact your IT administrator for enrollment."
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
@@ -140,7 +143,6 @@ struct AdminSettingsView: View {
         }
         .formStyle(.grouped)
     }
-
 }
 
 // MARK: - Previews

@@ -8,19 +8,13 @@
 
 import CryptoKit
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
-// MARK: - Hash Chain Verification Tests
+// MARK: - SOC2AuditTrailHashChainTests
 
 struct SOC2AuditTrailHashChainTests {
-
-    /// Independently computes the hash chain to verify the algorithm matches.
-    private func computeHash(previousHash: String, eventId: String, timestamp: String, action: String, category: String) -> String {
-        let input = "\(previousHash)\(eventId)\(timestamp)\(action)\(category)"
-        let hash = SHA256.hash(data: Data(input.utf8))
-        return hash.compactMap { String(format: "%02x", $0) }.joined()
-    }
+    // MARK: Internal
 
     @Test("Hash chain genesis starts with 'GENESIS' string")
     func genesisHash() {
@@ -190,17 +184,23 @@ struct SOC2AuditTrailHashChainTests {
         )
         #expect(hash.count == 64)
     }
+
+    // MARK: Private
+
+    /// Independently computes the hash chain to verify the algorithm matches.
+    private func computeHash(previousHash: String, eventId: String, timestamp: String, action: String,
+                             category: String) -> String
+    {
+        let input = "\(previousHash)\(eventId)\(timestamp)\(action)\(category)"
+        let hash = SHA256.hash(data: Data(input.utf8))
+        return hash.compactMap { String(format: "%02x", $0) }.joined()
+    }
 }
 
-// MARK: - ComplianceError Tests
+// MARK: - ComplianceErrorTests
 
 struct ComplianceErrorTests {
-
-    /// A simple error for testing associated values.
-    private struct TestError: Error, LocalizedError {
-        let message: String
-        var errorDescription: String? { message }
-    }
+    // MARK: Internal
 
     @Test("ComplianceError.notConfigured has descriptive message")
     func notConfigured() {
@@ -211,7 +211,7 @@ struct ComplianceErrorTests {
     @Test("ComplianceError.reportGenerationFailed includes reason")
     func reportGenerationFailed() {
         let error = ComplianceError.reportGenerationFailed("disk full")
-        if case .reportGenerationFailed(let reason) = error {
+        if case let .reportGenerationFailed(reason) = error {
             #expect(reason == "disk full")
         } else {
             Issue.record("Expected reportGenerationFailed")
@@ -221,7 +221,7 @@ struct ComplianceErrorTests {
     @Test("ComplianceError.consentNotGranted includes category")
     func consentNotGranted() {
         let error = ComplianceError.consentNotGranted(category: "analytics")
-        if case .consentNotGranted(let category) = error {
+        if case let .consentNotGranted(category) = error {
             #expect(category == "analytics")
         } else {
             Issue.record("Expected consentNotGranted")
@@ -232,7 +232,7 @@ struct ComplianceErrorTests {
     func exportFailed() {
         let underlying = TestError(message: "no data")
         let error = ComplianceError.exportFailed(underlying: underlying)
-        if case .exportFailed(let wrapped) = error {
+        if case let .exportFailed(wrapped) = error {
             #expect(wrapped.localizedDescription == "no data")
         } else {
             Issue.record("Expected exportFailed")
@@ -243,7 +243,7 @@ struct ComplianceErrorTests {
     func deletionFailed() {
         let underlying = TestError(message: "database locked")
         let error = ComplianceError.deletionFailed(underlying: underlying)
-        if case .deletionFailed(let wrapped) = error {
+        if case let .deletionFailed(wrapped) = error {
             #expect(wrapped.localizedDescription == "database locked")
         } else {
             Issue.record("Expected deletionFailed")
@@ -253,7 +253,7 @@ struct ComplianceErrorTests {
     @Test("ComplianceError.invalidConfiguration includes message")
     func invalidConfiguration() {
         let error = ComplianceError.invalidConfiguration("bad setting")
-        if case .invalidConfiguration(let msg) = error {
+        if case let .invalidConfiguration(msg) = error {
             #expect(msg == "bad setting")
         } else {
             Issue.record("Expected invalidConfiguration")
@@ -264,5 +264,16 @@ struct ComplianceErrorTests {
     func featureUnavailable() {
         let error = ComplianceError.featureUnavailable
         #expect(error.errorDescription?.isEmpty == false)
+    }
+
+    // MARK: Private
+
+    /// A simple error for testing associated values.
+    private struct TestError: Error, LocalizedError {
+        let message: String
+
+        var errorDescription: String? {
+            message
+        }
     }
 }

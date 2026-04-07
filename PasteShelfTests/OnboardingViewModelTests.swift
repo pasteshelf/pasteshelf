@@ -6,11 +6,13 @@
 //
 
 #if !APP_STORE
-import ApplicationServices
+    import ApplicationServices
 #endif
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
+
+// MARK: - OnboardingViewModelTests
 
 struct OnboardingViewModelTests {
     // MARK: - OnboardingStep Tests
@@ -105,9 +107,9 @@ struct OnboardingViewModelTests {
     @Test("Active steps count matches build configuration")
     func activeStepsCountMatchesBuild() {
         #if APP_STORE
-        #expect(OnboardingStep.activeSteps.count == 4)
+            #expect(OnboardingStep.activeSteps.count == 4)
         #else
-        #expect(OnboardingStep.activeSteps.count == 5)
+            #expect(OnboardingStep.activeSteps.count == 5)
         #endif
     }
 
@@ -125,12 +127,12 @@ struct OnboardingViewModelTests {
 // MARK: - Accessibility Permission Tests
 
 #if !APP_STORE
-struct AccessibilityPermissionTests {
-    @Test("AXIsProcessTrusted returns a boolean")
-    func axIsProcessTrustedReturnsBool() {
-        // This just verifies the API is accessible
-        let result = AXIsProcessTrusted()
-        #expect(result == true || result == false)
+    struct AccessibilityPermissionTests {
+        @Test("AXIsProcessTrusted returns a boolean")
+        func axIsProcessTrustedReturnsBool() {
+            // This just verifies the API is accessible
+            let result = AXIsProcessTrusted()
+            #expect(result == true || result == false)
+        }
     }
-}
 #endif

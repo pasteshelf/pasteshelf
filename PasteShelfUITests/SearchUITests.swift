@@ -8,6 +8,8 @@
 import XCTest
 
 final class SearchUITests: XCTestCase {
+    // MARK: Internal
+
     var app: XCUIApplication!
 
     override func setUpWithError() throws {
@@ -25,7 +27,7 @@ final class SearchUITests: XCTestCase {
     // MARK: - Search Field Tests
 
     @MainActor
-    func testSearchFieldExists() throws {
+    func testSearchFieldExists() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -36,14 +38,14 @@ final class SearchUITests: XCTestCase {
 
         let searchField =
             panel.searchFields["Search clipboard..."]
-            ?? panel.textFields["Search clipboard..."]
-            ?? panel.searchFields.firstMatch
+                ?? panel.textFields["Search clipboard..."]
+                ?? panel.searchFields.firstMatch
 
         XCTAssertTrue(searchField.exists)
     }
 
     @MainActor
-    func testSearchFieldPlaceholder() throws {
+    func testSearchFieldPlaceholder() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -58,7 +60,7 @@ final class SearchUITests: XCTestCase {
     }
 
     @MainActor
-    func testSearchFieldAcceptsInput() throws {
+    func testSearchFieldAcceptsInput() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -80,7 +82,7 @@ final class SearchUITests: XCTestCase {
     // MARK: - Real-time Filtering Tests
 
     @MainActor
-    func testSearchFiltersInRealTime() throws {
+    func testSearchFiltersInRealTime() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -112,7 +114,7 @@ final class SearchUITests: XCTestCase {
     // MARK: - Search Results Tests
 
     @MainActor
-    func testSearchShowsResultsCount() throws {
+    func testSearchShowsResultsCount() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -140,7 +142,7 @@ final class SearchUITests: XCTestCase {
     }
 
     @MainActor
-    func testSearchHighlightsMatches() throws {
+    func testSearchHighlightsMatches() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -165,7 +167,7 @@ final class SearchUITests: XCTestCase {
     // MARK: - Clear Search Tests
 
     @MainActor
-    func testClearSearchRestoresAllItems() throws {
+    func testClearSearchRestoresAllItems() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -198,7 +200,7 @@ final class SearchUITests: XCTestCase {
     }
 
     @MainActor
-    func testEscapeClearsSearch() throws {
+    func testEscapeClearsSearch() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -223,7 +225,7 @@ final class SearchUITests: XCTestCase {
     // MARK: - Empty Results Tests
 
     @MainActor
-    func testNoResultsShowsEmptyState() throws {
+    func testNoResultsShowsEmptyState() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -248,7 +250,7 @@ final class SearchUITests: XCTestCase {
     }
 
     @MainActor
-    func testEmptyResultsShowsClearButton() throws {
+    func testEmptyResultsShowsClearButton() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -273,7 +275,7 @@ final class SearchUITests: XCTestCase {
     // MARK: - Keyboard Shortcut Tests
 
     @MainActor
-    func testCmdFFocusesSearchField() throws {
+    func testCmdFFocusesSearchField() {
         showPanel()
 
         let panel = app.windows["Clipboard History"]
@@ -294,6 +296,8 @@ final class SearchUITests: XCTestCase {
             XCTAssertEqual(searchField.value as? String, "test")
         }
     }
+
+    // MARK: Private
 
     // MARK: - Helper Methods
 

@@ -17,24 +17,25 @@ import Foundation
 ///
 /// The raw `String` value is persisted in CoreData and displayed in the admin UI.
 enum DLPPatternCategory: String, Codable, Sendable, CaseIterable {
-
     /// Payment card numbers matching common credit and debit card formats.
     case creditCard = "credit_card"
 
     /// US Social Security Numbers in standard or compact format.
-    case ssn = "ssn"
+    case ssn
 
     /// API keys, secret tokens, and similar programmatic credentials.
     case apiKey = "api_key"
 
     /// Personally Identifiable Information such as names, addresses, email addresses, and phone numbers.
-    case pii = "pii"
+    case pii
 
     /// Health-related data including diagnoses, medication names, or insurance identifiers.
     case healthData = "health_data"
 
     /// A user-defined pattern that does not belong to any of the built-in categories.
-    case custom = "custom"
+    case custom
+
+    // MARK: Internal
 
     // MARK: - Display
 
@@ -42,17 +43,17 @@ enum DLPPatternCategory: String, Codable, Sendable, CaseIterable {
     var displayName: String {
         switch self {
         case .creditCard:
-            return "Credit Card"
+            "Credit Card"
         case .ssn:
-            return "Social Security Number"
+            "Social Security Number"
         case .apiKey:
-            return "API Key / Credential"
+            "API Key / Credential"
         case .pii:
-            return "Personally Identifiable Information"
+            "Personally Identifiable Information"
         case .healthData:
-            return "Health Data"
+            "Health Data"
         case .custom:
-            return "Custom"
+            "Custom"
         }
     }
 }

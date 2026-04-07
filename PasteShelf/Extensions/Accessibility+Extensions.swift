@@ -10,12 +10,14 @@ import AppKit
 import Combine
 import SwiftUI
 
-// MARK: - Accessibility Environment
+// MARK: - ReduceMotionKey
 
 /// Environment key for reduce motion preference
 struct ReduceMotionKey: EnvironmentKey {
     static let defaultValue: Bool = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
 }
+
+// MARK: - HighContrastKey
 
 /// Environment key for high contrast preference
 struct HighContrastKey: EnvironmentKey {
@@ -36,27 +38,37 @@ extension EnvironmentValues {
     }
 }
 
-// MARK: - View Modifiers
+// MARK: - ReduceMotionModifier
 
 /// Applies appropriate animation based on reduce motion setting
 struct ReduceMotionModifier: ViewModifier {
-    @Environment(\.reduceMotion) private var reduceMotion
+    // MARK: Internal
 
     let animation: Animation
 
     func body(content: Content) -> some View {
         content.animation(reduceMotion ? nil : animation)
     }
+
+    // MARK: Private
+
+    @Environment(\.reduceMotion) private var reduceMotion
 }
+
+// MARK: - HighContrastModifier
 
 /// Applies high contrast styling when enabled
 struct HighContrastModifier: ViewModifier {
-    @Environment(\.highContrast) private var highContrast
+    // MARK: Internal
 
     func body(content: Content) -> some View {
         content
             .foregroundColor(highContrast ? .primary : nil)
     }
+
+    // MARK: Private
+
+    @Environment(\.highContrast) private var highContrast
 }
 
 extension View {
@@ -147,14 +159,16 @@ extension NSWorkspace {
     }
 }
 
-// MARK: - Accessibility Announcement
+// MARK: - AccessibilityAnnouncement
 
 /// Helper for making VoiceOver announcements
 @MainActor
 enum AccessibilityAnnouncement {
     /// Announces a message to VoiceOver users
     static func announce(_ message: String, priority: NSAccessibilityPriorityLevel = .medium) {
-        guard NSWorkspace.voiceOverEnabled else { return }
+        guard NSWorkspace.voiceOverEnabled else {
+            return
+        }
 
         let userInfo: [NSAccessibility.NotificationUserInfoKey: Any] = [
             .announcement: message,
@@ -178,7 +192,7 @@ enum AccessibilityAnnouncement {
     }
 }
 
-// MARK: - Keyboard Navigation Helper
+// MARK: - KeyboardNavigationHelper
 
 /// Helps manage keyboard focus for accessibility
 @MainActor

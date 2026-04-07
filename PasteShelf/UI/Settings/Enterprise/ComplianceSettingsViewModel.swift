@@ -18,6 +18,7 @@ import os.log
 /// `GDPRSettingsView`, and `SOC2SettingsView`.
 @MainActor
 final class ComplianceSettingsViewModel: ObservableObject {
+    // MARK: Internal
 
     // MARK: - HIPAA State
 
@@ -37,7 +38,16 @@ final class ComplianceSettingsViewModel: ObservableObject {
     @Published var isExporting = false
     @Published var lastError: ComplianceError?
 
-    private let logger = Logger.compliance
+    // MARK: - GDPR Data Rights
+
+    /// Whether a GDPR data export is in progress.
+    @Published var isGDPRExporting = false
+
+    /// Whether a GDPR data deletion is in progress.
+    @Published var isGDPRDeleting = false
+
+    /// Progress of the current GDPR data export (0.0–1.0).
+    @Published var gdprExportProgress: Double = 0
 
     // MARK: - Configuration
 
@@ -120,17 +130,6 @@ final class ComplianceSettingsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - GDPR Data Rights
-
-    /// Whether a GDPR data export is in progress.
-    @Published var isGDPRExporting = false
-
-    /// Whether a GDPR data deletion is in progress.
-    @Published var isGDPRDeleting = false
-
-    /// Progress of the current GDPR data export (0.0–1.0).
-    @Published var gdprExportProgress: Double = 0
-
     /// Exports all user data in a portable format (GDPR Article 20).
     ///
     /// - Returns: The URL of the export directory, or nil on failure.
@@ -197,4 +196,8 @@ final class ComplianceSettingsViewModel: ObservableObject {
             return nil
         }
     }
+
+    // MARK: Private
+
+    private let logger = Logger.compliance
 }

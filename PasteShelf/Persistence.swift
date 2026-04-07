@@ -9,16 +9,7 @@ import CoreData
 import os.log
 
 struct PersistenceController {
-    static let shared = PersistenceController()
-
-    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf", category: "storage")
-
-    @MainActor static let preview: PersistenceController = {
-        let result = PersistenceController(inMemory: true)
-        return result
-    }()
-
-    let container: NSPersistentCloudKitContainer
+    // MARK: Lifecycle
 
     init(inMemory: Bool = false) {
         container = NSPersistentCloudKitContainer(name: "PasteShelf")
@@ -53,7 +44,7 @@ struct PersistenceController {
                 Self.logger.error("CoreData store failed to load: \(error.localizedDescription)")
                 // In production, handle gracefully instead of crashing
                 #if DEBUG
-                fatalError("Unresolved CoreData error: \(error), \(error.userInfo)")
+                    fatalError("Unresolved CoreData error: \(error), \(error.userInfo)")
                 #endif
             } else {
                 Self.logger.info("CoreData store loaded: \(storeDescription.url?.absoluteString ?? "unknown")")
@@ -64,10 +55,22 @@ struct PersistenceController {
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
 
+    // MARK: Internal
+
+    static let shared = PersistenceController()
+
+    @MainActor static let preview: PersistenceController = .init(inMemory: true)
+
+    let container: NSPersistentCloudKitContainer
+
     /// Creates a new background context for write operations
     func newBackgroundContext() -> NSManagedObjectContext {
         let context = container.newBackgroundContext()
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         return context
     }
+
+    // MARK: Private
+
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf", category: "storage")
 }

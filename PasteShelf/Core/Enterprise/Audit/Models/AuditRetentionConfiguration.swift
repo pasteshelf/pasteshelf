@@ -15,17 +15,6 @@ import Foundation
 /// Events older than `retentionDays` are eligible for removal during the next scheduled
 /// pruning pass performed by the `AuditLogStoring` implementation.
 struct AuditRetentionConfiguration: Codable, Sendable, Equatable {
-
-    /// The number of days to retain audit log entries before pruning them.
-    ///
-    /// Must be one of the values in `options`. Entries older than this window
-    /// are removed during the next scheduled retention sweep.
-    var retentionDays: Int
-
-    /// When true, audit log entries cannot be pruned regardless of age.
-    /// Required for HIPAA compliance where a minimum 6-year retention is mandated.
-    var isImmutable: Bool
-
     /// The default retention configuration used when no explicit policy has been set.
     ///
     /// Defaults to a 90-day retention window, which balances compliance requirements
@@ -38,4 +27,14 @@ struct AuditRetentionConfiguration: Codable, Sendable, Equatable {
 
     /// The HIPAA-mandated minimum retention (6 years = 2190 days).
     static let hipaaMinimumDays: Int = 2190
+
+    /// The number of days to retain audit log entries before pruning them.
+    ///
+    /// Must be one of the values in `options`. Entries older than this window
+    /// are removed during the next scheduled retention sweep.
+    var retentionDays: Int
+
+    /// When true, audit log entries cannot be pruned regardless of age.
+    /// Required for HIPAA compliance where a minimum 6-year retention is mandated.
+    var isImmutable: Bool
 }

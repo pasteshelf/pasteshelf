@@ -5,8 +5,8 @@
 //  Unit tests for RuleEvaluator predicate building and evaluation.
 //
 
-@testable import PasteShelf
 import CoreData
+@testable import PasteShelf
 import XCTest
 
 final class RuleEvaluatorTests: XCTestCase {
@@ -216,7 +216,7 @@ final class RuleEvaluatorTests: XCTestCase {
         XCTAssertFalse(evaluator.evaluate(item: item, against: imageRules))
     }
 
-    func testEvaluateBooleanMatch() async {
+    func testEvaluateBooleanMatch() async throws {
         // Create a favorite item
         let content = ClipboardContent(
             primaryType: .plainText,
@@ -233,7 +233,7 @@ final class RuleEvaluatorTests: XCTestCase {
         }
 
         // Mark as favorite
-        _ = await storageManager.toggleFavorite(itemId: item.id!)
+        _ = try await storageManager.toggleFavorite(itemId: XCTUnwrap(item.id))
 
         // Fetch again to get updated state
         let updatedItems = await storageManager.fetchRecentItems(limit: 1)

@@ -11,20 +11,7 @@ import os.log
 
 /// Tracks local CoreData changes for synchronization
 final class ChangeTracker: ChangeTracking, @unchecked Sendable {
-    // MARK: - Properties
-
-    private let persistenceController: PersistenceController
-    private let encryptionManager: SyncEncryptionManager
-
-    /// UserDefaults key for storing last processed history token
-    private static let lastTokenKey = "com.pasteshelf.sync.lastHistoryToken"
-
-    // MARK: - Logger
-
-    private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "change-tracker"
-    )
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -35,6 +22,8 @@ final class ChangeTracker: ChangeTracking, @unchecked Sendable {
         self.persistenceController = persistenceController
         self.encryptionManager = encryptionManager
     }
+
+    // MARK: Internal
 
     // MARK: - ChangeTracking Protocol
 
@@ -121,87 +110,6 @@ final class ChangeTracker: ChangeTracking, @unchecked Sendable {
         UserDefaults.standard.removeObject(forKey: Self.lastTokenKey)
     }
 
-    // MARK: - Private Methods
-
-    /// Fetch pending changes from CoreData
-    private func fetchPendingChanges(in context: NSManagedObjectContext) throws -> [SyncChange] {
-        var changes: [SyncChange] = []
-
-        // Fetch items with pending sync state
-        let request: NSFetchRequest<ClipboardItem> = ClipboardItem.fetchRequest()
-        request.predicate = NSPredicate(
-            format: "syncState == %d OR syncState == %d",
-            ItemSyncState.pending.rawValue,
-            ItemSyncState.conflicted.rawValue
-        )
-
-        let items = try context.fetch(request)
-
-        for item in items {
-            guard let itemID = item.id else { continue }
-
-            let changeType: SyncChange.ChangeType = item.cloudKitRecordID == nil ? .insert : .update
-
-            let change = SyncChange(
-                changeType: changeType,
-                entityType: .clipboardItem,
-                entityID: itemID,
-                cloudKitRecordID: item.cloudKitRecordID,
-                localTimestamp: item.modifiedAt ?? item.timestamp ?? Date()
-            )
-
-            changes.append(change)
-        }
-
-        // Also check for deleted items
-        let deletedChanges = try fetchDeletedItems(in: context)
-        changes.append(contentsOf: deletedChanges)
-
-        Self.logger.debug("Found \(changes.count) pending changes")
-        return changes
-    }
-
-    /// Fetch items marked for deletion
-    private func fetchDeletedItems(in context: NSManagedObjectContext) throws -> [SyncChange] {
-        let request: NSFetchRequest<ClipboardItem> = ClipboardItem.fetchRequest()
-        request.predicate = NSPredicate(format: "syncState == %d", ItemSyncState.deleted.rawValue)
-
-        let items = try context.fetch(request)
-
-        return items.compactMap { item -> SyncChange? in
-            guard let itemID = item.id else { return nil }
-
-            return SyncChange(
-                changeType: .delete,
-                entityType: .clipboardItem,
-                entityID: itemID,
-                cloudKitRecordID: item.cloudKitRecordID,
-                localTimestamp: item.modifiedAt ?? Date()
-            )
-        }
-    }
-
-    /// Mark an item as synced in CoreData
-    private func markItemAsSynced(_ change: SyncChange, in context: NSManagedObjectContext) throws {
-        guard change.entityType == .clipboardItem else { return }
-
-        let request: NSFetchRequest<ClipboardItem> = ClipboardItem.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", change.entityID as CVarArg)
-        request.fetchLimit = 1
-
-        guard let item = try context.fetch(request).first else {
-            // Item might have been deleted, that's okay
-            return
-        }
-
-        item.syncState = ItemSyncState.synced.rawValue
-        item.lastSyncedAt = Date()
-
-        if let cloudKitRecordID = change.cloudKitRecordID {
-            item.cloudKitRecordID = cloudKitRecordID
-        }
-    }
-
     // MARK: - Preparing Changes for Sync
 
     /// Prepare changes with encrypted data for sync
@@ -232,12 +140,116 @@ final class ChangeTracker: ChangeTracking, @unchecked Sendable {
         return preparedChanges
     }
 
+    // MARK: Private
+
+    /// UserDefaults key for storing last processed history token
+    private static let lastTokenKey = "com.pasteshelf.sync.lastHistoryToken"
+
+    // MARK: - Logger
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "change-tracker"
+    )
+
+    private let persistenceController: PersistenceController
+    private let encryptionManager: SyncEncryptionManager
+
+    // MARK: - Private Methods
+
+    /// Fetch pending changes from CoreData
+    private func fetchPendingChanges(in context: NSManagedObjectContext) throws -> [SyncChange] {
+        var changes: [SyncChange] = []
+
+        // Fetch items with pending sync state
+        let request: NSFetchRequest<ClipboardItem> = ClipboardItem.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "syncState == %d OR syncState == %d",
+            ItemSyncState.pending.rawValue,
+            ItemSyncState.conflicted.rawValue
+        )
+
+        let items = try context.fetch(request)
+
+        for item in items {
+            guard let itemID = item.id else {
+                continue
+            }
+
+            let changeType: SyncChange.ChangeType = item.cloudKitRecordID == nil ? .insert : .update
+
+            let change = SyncChange(
+                changeType: changeType,
+                entityType: .clipboardItem,
+                entityID: itemID,
+                cloudKitRecordID: item.cloudKitRecordID,
+                localTimestamp: item.modifiedAt ?? item.timestamp ?? Date()
+            )
+
+            changes.append(change)
+        }
+
+        // Also check for deleted items
+        let deletedChanges = try fetchDeletedItems(in: context)
+        changes.append(contentsOf: deletedChanges)
+
+        Self.logger.debug("Found \(changes.count) pending changes")
+        return changes
+    }
+
+    /// Fetch items marked for deletion
+    private func fetchDeletedItems(in context: NSManagedObjectContext) throws -> [SyncChange] {
+        let request: NSFetchRequest<ClipboardItem> = ClipboardItem.fetchRequest()
+        request.predicate = NSPredicate(format: "syncState == %d", ItemSyncState.deleted.rawValue)
+
+        let items = try context.fetch(request)
+
+        return items.compactMap { item -> SyncChange? in
+            guard let itemID = item.id else {
+                return nil
+            }
+
+            return SyncChange(
+                changeType: .delete,
+                entityType: .clipboardItem,
+                entityID: itemID,
+                cloudKitRecordID: item.cloudKitRecordID,
+                localTimestamp: item.modifiedAt ?? Date()
+            )
+        }
+    }
+
+    /// Mark an item as synced in CoreData
+    private func markItemAsSynced(_ change: SyncChange, in context: NSManagedObjectContext) throws {
+        guard change.entityType == .clipboardItem else {
+            return
+        }
+
+        let request: NSFetchRequest<ClipboardItem> = ClipboardItem.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", change.entityID as CVarArg)
+        request.fetchLimit = 1
+
+        guard let item = try context.fetch(request).first else {
+            // Item might have been deleted, that's okay
+            return
+        }
+
+        item.syncState = ItemSyncState.synced.rawValue
+        item.lastSyncedAt = Date()
+
+        if let cloudKitRecordID = change.cloudKitRecordID {
+            item.cloudKitRecordID = cloudKitRecordID
+        }
+    }
+
     /// Build JSON payload data for a change (synchronous, safe inside context.perform)
     private func buildPayloadData(
         for change: SyncChange,
         in context: NSManagedObjectContext
     ) throws -> Data? {
-        guard change.entityType == .clipboardItem else { return nil }
+        guard change.entityType == .clipboardItem else {
+            return nil
+        }
 
         let request: NSFetchRequest<ClipboardItem> = ClipboardItem.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", change.entityID as CVarArg)

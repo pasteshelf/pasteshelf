@@ -6,13 +6,12 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
-// MARK: - SOC2 SecurityControl Tests
+// MARK: - SOC2SecurityControlTests
 
 struct SOC2SecurityControlTests {
-
     @Test("SecurityControl preserves all provided values")
     func preservesValues() {
         let id = UUID()
@@ -72,16 +71,15 @@ struct SOC2SecurityControlTests {
     }
 }
 
-// MARK: - SOC2 ControlCategory Tests
+// MARK: - SOC2ControlCategoryTests
 
 struct SOC2ControlCategoryTests {
-
     @Test("ControlCategory preserves all values")
     func preservesValues() {
         let controls = [
             SOC2SecurityControlsReport.SecurityControl(
                 name: "TLS", description: "TLS 1.2+", status: .pass, evidence: "ATS"
-            )
+            ),
         ]
         let category = SOC2SecurityControlsReport.ControlCategory(
             name: "Network",
@@ -105,7 +103,7 @@ struct SOC2ControlCategoryTests {
         let controls = [
             SOC2SecurityControlsReport.SecurityControl(
                 name: "Audit", description: "Logging", status: .pass, evidence: "AuditManager"
-            )
+            ),
         ]
         let original = SOC2SecurityControlsReport.ControlCategory(
             name: "Monitoring",
@@ -120,23 +118,22 @@ struct SOC2ControlCategoryTests {
     }
 }
 
-// MARK: - SOC2 Report Tests
+// MARK: - SOC2ReportModelTests
 
 struct SOC2ReportModelTests {
-
     @Test("Report preserves all values")
     func preservesValues() {
         let controls = [
             SOC2SecurityControlsReport.SecurityControl(
                 name: "TLS", description: "TLS 1.2+", status: .pass, evidence: "ATS"
-            )
+            ),
         ]
         let categories = [
             SOC2SecurityControlsReport.ControlCategory(
                 name: "Network",
                 description: "Network security",
                 controls: controls
-            )
+            ),
         ]
         let report = SOC2SecurityControlsReport.Report(
             applicationVersion: "2.1.0",
@@ -154,7 +151,7 @@ struct SOC2ReportModelTests {
     func scoreAllPass() {
         let controls = [
             SOC2SecurityControlsReport.SecurityControl(name: "A", description: "d", status: .pass, evidence: "e"),
-            SOC2SecurityControlsReport.SecurityControl(name: "B", description: "d", status: .pass, evidence: "e")
+            SOC2SecurityControlsReport.SecurityControl(name: "B", description: "d", status: .pass, evidence: "e"),
         ]
         let category = SOC2SecurityControlsReport.ControlCategory(name: "C", description: "d", controls: controls)
         let allControls = category.controls
@@ -167,7 +164,7 @@ struct SOC2ReportModelTests {
     func scoreNoPass() {
         let controls = [
             SOC2SecurityControlsReport.SecurityControl(name: "A", description: "d", status: .fail, evidence: "e"),
-            SOC2SecurityControlsReport.SecurityControl(name: "B", description: "d", status: .warning, evidence: "e")
+            SOC2SecurityControlsReport.SecurityControl(name: "B", description: "d", status: .warning, evidence: "e"),
         ]
         let category = SOC2SecurityControlsReport.ControlCategory(name: "C", description: "d", controls: controls)
         let allControls = category.controls
@@ -180,7 +177,7 @@ struct SOC2ReportModelTests {
     func scoreHalfPass() {
         let controls = [
             SOC2SecurityControlsReport.SecurityControl(name: "A", description: "d", status: .pass, evidence: "e"),
-            SOC2SecurityControlsReport.SecurityControl(name: "B", description: "d", status: .fail, evidence: "e")
+            SOC2SecurityControlsReport.SecurityControl(name: "B", description: "d", status: .fail, evidence: "e"),
         ]
         let allControls = controls
         let passCount = allControls.filter { $0.status == .pass }.count
@@ -193,14 +190,14 @@ struct SOC2ReportModelTests {
         let controls = [
             SOC2SecurityControlsReport.SecurityControl(
                 name: "E2E", description: "Encryption", status: .pass, evidence: "CryptoKit"
-            )
+            ),
         ]
         let categories = [
             SOC2SecurityControlsReport.ControlCategory(
                 name: "Encryption",
                 description: "Crypto controls",
                 controls: controls
-            )
+            ),
         ]
         let original = SOC2SecurityControlsReport.Report(
             applicationVersion: "2.1.0",

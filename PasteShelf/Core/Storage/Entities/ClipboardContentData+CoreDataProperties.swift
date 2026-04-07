@@ -8,53 +8,53 @@
 import CoreData
 import Foundation
 
-extension ClipboardContentData {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<ClipboardContentData> {
+public extension ClipboardContentData {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<ClipboardContentData> {
         NSFetchRequest<ClipboardContentData>(entityName: "ClipboardContentData")
     }
 
     // MARK: - Attributes
 
     /// Unique identifier
-    @NSManaged public var id: UUID?
+    @NSManaged var id: UUID?
 
     /// Rich text data (RTF format)
-    @NSManaged public var rtfData: Data?
+    @NSManaged var rtfData: Data?
 
     /// HTML content as string
-    @NSManaged public var htmlContent: String?
+    @NSManaged var htmlContent: String?
 
     /// Image data (PNG, JPEG, TIFF) - uses external binary storage
-    @NSManaged public var imageData: Data?
+    @NSManaged var imageData: Data?
 
     /// PDF document data - uses external binary storage
-    @NSManaged public var pdfData: Data?
+    @NSManaged var pdfData: Data?
 
     /// Full plain text content
-    @NSManaged public var plainTextData: String?
+    @NSManaged var plainTextData: String?
 
     /// Web URL as string
-    @NSManaged public var urlString: String?
+    @NSManaged var urlString: String?
 
     /// File URLs as JSON array string
-    @NSManaged public var fileURLsJSON: String?
+    @NSManaged var fileURLsJSON: String?
 
     /// Available content types as JSON array string
-    @NSManaged public var availableTypesJSON: String?
+    @NSManaged var availableTypesJSON: String?
 
     /// Whether the image was compressed for storage
-    @NSManaged public var isImageCompressed: Bool
+    @NSManaged var isImageCompressed: Bool
 
     /// Original image width in pixels
-    @NSManaged public var imageWidth: Int32
+    @NSManaged var imageWidth: Int32
 
     /// Original image height in pixels
-    @NSManaged public var imageHeight: Int32
+    @NSManaged var imageHeight: Int32
 
     // MARK: - Relationships
 
     /// Parent clipboard item (inverse relationship)
-    @NSManaged public var clipboardItem: ClipboardItem?
+    @NSManaged var clipboardItem: ClipboardItem?
 }
 
 // MARK: - Convenience Properties
@@ -110,6 +110,8 @@ extension ClipboardContentData {
         set { urlString = newValue?.absoluteString }
     }
 }
+
+// MARK: - ClipboardContentData + Identifiable
 
 extension ClipboardContentData: Identifiable {}
 

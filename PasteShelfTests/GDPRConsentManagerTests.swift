@@ -7,13 +7,12 @@
 
 import CoreData
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
-// MARK: - GDPRConsentCategory Tests
+// MARK: - GDPRConsentCategoryTests
 
 struct GDPRConsentCategoryTests {
-
     // MARK: Raw Values
 
     @Test("clipboardMonitoring raw value is 'clipboard_monitoring'")
@@ -126,16 +125,10 @@ struct GDPRConsentCategoryTests {
     }
 }
 
-// MARK: - GDPRConsentManager Tests
+// MARK: - GDPRConsentManagerTests
 
 struct GDPRConsentManagerTests {
-
-    // MARK: Helpers
-
-    private func makeInMemoryContext() -> NSManagedObjectContext {
-        let controller = PersistenceController(inMemory: true)
-        return controller.container.viewContext
-    }
+    // MARK: Internal
 
     // MARK: Initial State
 
@@ -188,5 +181,14 @@ struct GDPRConsentManagerTests {
 
         let manager = GDPRConsentManager(context: context)
         #expect(manager.consentStatuses.isEmpty)
+    }
+
+    // MARK: Private
+
+    // MARK: Helpers
+
+    private func makeInMemoryContext() -> NSManagedObjectContext {
+        let controller = PersistenceController(inMemory: true)
+        return controller.container.viewContext
     }
 }

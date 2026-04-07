@@ -10,9 +10,27 @@ import Foundation
 import Network
 import os.log
 
+// MARK: - NetworkMonitor
+
 /// Monitors network connectivity for sync operations
 @MainActor
 final class NetworkMonitor: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init() {
+        monitor = NWPathMonitor()
+        loadQueuedChanges()
+        startMonitoring()
+    }
+
+    deinit {
+        monitor.cancel()
+    }
+
+    // MARK: Internal
+
     // MARK: - Published Properties
 
     /// Whether network is currently available
@@ -27,15 +45,43 @@ final class NetworkMonitor: ObservableObject {
     /// Whether the device is on a constrained network (low data mode)
     @Published private(set) var isConstrained: Bool = false
 
-    // MARK: - Properties
-
-    private let monitor: NWPathMonitor
-    private let monitorQueue = DispatchQueue(label: "com.pasteshelf.network-monitor")
-
     // MARK: - Queued Changes
 
     /// Changes queued while offline
     @Published private(set) var queuedChanges: [SyncChange] = []
+
+    // MARK: - Change Queue Management
+
+    /// Queue a change to be synced when network is restored
+    func queueChange(_ change: SyncChange) {
+        guard queuedChanges.count < Self.maxQueueSize else {
+            Self.logger.warning("Queue full, dropping change for \(change.entityID)")
+            return
+        }
+
+        // Avoid duplicates
+        if !queuedChanges.contains(where: { $0.entityID == change.entityID }) {
+            queuedChanges.append(change)
+            saveQueuedChanges()
+            Self.logger.debug("Queued change for \(change.entityID), queue size: \(queuedChanges.count)")
+        }
+    }
+
+    /// Get and clear queued changes
+    func dequeueChanges() -> [SyncChange] {
+        let changes = queuedChanges
+        queuedChanges.removeAll()
+        saveQueuedChanges()
+        return changes
+    }
+
+    /// Clear all queued changes
+    func clearQueue() {
+        queuedChanges.removeAll()
+        saveQueuedChanges()
+    }
+
+    // MARK: Private
 
     /// Maximum number of changes to queue
     private static let maxQueueSize = 1000
@@ -51,17 +97,8 @@ final class NetworkMonitor: ObservableObject {
 
     private static let queuedChangesKey = "com.pasteshelf.sync.queuedChanges"
 
-    // MARK: - Initialization
-
-    init() {
-        self.monitor = NWPathMonitor()
-        loadQueuedChanges()
-        startMonitoring()
-    }
-
-    deinit {
-        monitor.cancel()
-    }
+    private let monitor: NWPathMonitor
+    private let monitorQueue = DispatchQueue(label: "com.pasteshelf.network-monitor")
 
     // MARK: - Monitoring
 
@@ -93,7 +130,10 @@ final class NetworkMonitor: ObservableObject {
             interfaceType = nil
         }
 
-        Self.logger.debug("Network status: connected=\(newConnected), expensive=\(path.isExpensive), constrained=\(path.isConstrained)")
+        Self.logger
+            .debug(
+                "Network status: connected=\(newConnected), expensive=\(path.isExpensive), constrained=\(path.isConstrained)"
+            )
 
         // Handle connectivity change
         if !wasConnected, newConnected {
@@ -121,37 +161,6 @@ final class NetworkMonitor: ObservableObject {
         NotificationCenter.default.post(name: .networkLost, object: nil)
     }
 
-    // MARK: - Change Queue Management
-
-    /// Queue a change to be synced when network is restored
-    func queueChange(_ change: SyncChange) {
-        guard queuedChanges.count < Self.maxQueueSize else {
-            Self.logger.warning("Queue full, dropping change for \(change.entityID)")
-            return
-        }
-
-        // Avoid duplicates
-        if !queuedChanges.contains(where: { $0.entityID == change.entityID }) {
-            queuedChanges.append(change)
-            saveQueuedChanges()
-            Self.logger.debug("Queued change for \(change.entityID), queue size: \(self.queuedChanges.count)")
-        }
-    }
-
-    /// Get and clear queued changes
-    func dequeueChanges() -> [SyncChange] {
-        let changes = queuedChanges
-        queuedChanges.removeAll()
-        saveQueuedChanges()
-        return changes
-    }
-
-    /// Clear all queued changes
-    func clearQueue() {
-        queuedChanges.removeAll()
-        saveQueuedChanges()
-    }
-
     // MARK: - Persistence
 
     private func loadQueuedChanges() {
@@ -163,7 +172,7 @@ final class NetworkMonitor: ObservableObject {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             queuedChanges = try decoder.decode([SyncChange].self, from: data)
-            Self.logger.debug("Loaded \(self.queuedChanges.count) queued changes")
+            Self.logger.debug("Loaded \(queuedChanges.count) queued changes")
         } catch {
             Self.logger.error("Failed to load queued changes: \(error.localizedDescription)")
         }
@@ -226,6 +235,6 @@ extension NetworkMonitor {
     var shouldSync: Bool {
         // Always sync if connected
         // In the future, we could add settings to skip sync on expensive/constrained networks
-        return isConnected
+        isConnected
     }
 }

@@ -1,7 +1,7 @@
 import JWT
 import Vapor
 
-// MARK: - Token Exchange
+// MARK: - TokenExchangeRequest
 
 struct TokenExchangeRequest: Content {
     let ssoToken: String
@@ -12,6 +12,8 @@ struct TokenExchangeRequest: Content {
     let appVersion: String?
 }
 
+// MARK: - TokenExchangeResponse
+
 struct TokenExchangeResponse: Content {
     let accessToken: String
     let refreshToken: String
@@ -19,21 +21,27 @@ struct TokenExchangeResponse: Content {
     let userID: String
 }
 
+// MARK: - TokenRefreshRequest
+
 struct TokenRefreshRequest: Content {
     let refreshToken: String
 }
+
+// MARK: - TokenRefreshResponse
 
 struct TokenRefreshResponse: Content {
     let accessToken: String
     let expiresIn: Int
 }
 
-// MARK: - API Key
+// MARK: - APIKeyCreateRequest
 
 struct APIKeyCreateRequest: Content {
     let deviceID: String
     let deviceName: String?
 }
+
+// MARK: - APIKeyCreateResponse
 
 struct APIKeyCreateResponse: Content {
     let apiKey: String
@@ -41,25 +49,26 @@ struct APIKeyCreateResponse: Content {
     let expiresAt: Date?
 }
 
-// MARK: - JWT Payload
+// MARK: - JWTPayload
 
 struct JWTPayload: Vapor.JWTPayload, Equatable {
+    enum CodingKeys: String, CodingKey {
+        case sub
+        case exp
+        case orgID = "org_id"
+        case deviceID = "device_id"
+    }
+
     let sub: SubjectClaim
     let exp: ExpirationClaim
     let orgID: String
     let deviceID: String?
 
-    enum CodingKeys: String, CodingKey {
-        case sub, exp
-        case orgID = "org_id"
-        case deviceID = "device_id"
+    var userID: UUID? {
+        UUID(uuidString: sub.value)
     }
 
     func verify(using algorithm: some JWTAlgorithm) async throws {
         try exp.verifyNotExpired()
-    }
-
-    var userID: UUID? {
-        UUID(uuidString: sub.value)
     }
 }

@@ -10,9 +10,13 @@ import AppKit
 import Combine
 import os.log
 
+// MARK: - AppDelegate
+
 /// Main application delegate for PasteShelf
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    // MARK: Internal
+
     // MARK: - Controllers
 
     /// Menu bar status item controller
@@ -32,22 +36,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Storage manager reference
     let storageManager = StorageManager.shared
 
-    // MARK: - Private Properties
-
-    /// Logger for app delegate operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "app"
-    )
-
-    /// Cancellables for Combine subscriptions
-    private var cancellables = Set<AnyCancellable>()
-
-    #if !APP_STORE
-    /// Retained reference to plugin context factory for re-initialization on re-enable.
-    private var pluginContextFactory: PluginContextFactoryImpl?
-    #endif
-
     // MARK: - NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -55,9 +43,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Handle test launch arguments
         #if DEBUG
-        if CommandLine.arguments.contains("--reset-onboarding") {
-            OnboardingViewModel.resetOnboarding()
-        }
+            if CommandLine.arguments.contains("--reset-onboarding") {
+                OnboardingViewModel.resetOnboarding()
+            }
         #endif
 
         // Apply saved settings on launch
@@ -90,7 +78,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Eagerly bootstrap SyncManager so sync starts if previously enabled
         // (gated by enterprise settings — local-only mode disables sync)
         let enterpriseSettings = SettingsManager.shared.enterprise
-        if enterpriseSettings.cloudSyncEnabled && !enterpriseSettings.localStorageOnly {
+        if enterpriseSettings.cloudSyncEnabled, !enterpriseSettings.localStorageOnly {
             _ = SyncManager.shared
         }
 
@@ -102,9 +90,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Initialize plugin system (gated by enterprise settings)
         #if !APP_STORE
-        if SettingsManager.shared.enterprise.pluginsEnabled {
-            initializePluginSystem()
-        }
+            if SettingsManager.shared.enterprise.pluginsEnabled {
+                initializePluginSystem()
+            }
         #endif
 
         // Start background embedding generation for semantic search
@@ -118,23 +106,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Initialize enterprise services (DLP, compliance, MDM monitoring)
         #if !APP_STORE
-        initializeEnterpriseServices()
+            initializeEnterpriseServices()
         #endif
 
         // Show onboarding if needed
         #if DEBUG
-        let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-        if !isRunningTests && !CommandLine.arguments.contains("--skip-onboarding") {
-            showOnboardingIfNeeded()
-        }
-
-        if CommandLine.arguments.contains("--show-preferences") {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.showPreferences()
+            let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+            if !isRunningTests, !CommandLine.arguments.contains("--skip-onboarding") {
+                showOnboardingIfNeeded()
             }
-        }
+
+            if CommandLine.arguments.contains("--show-preferences") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                    self?.showPreferences()
+                }
+            }
         #else
-        showOnboardingIfNeeded()
+            showOnboardingIfNeeded()
         #endif
 
         logger.info("PasteShelf launched successfully")
@@ -161,24 +149,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AutoCleanupManager.shared.stop()
 
         #if !APP_STORE
-        // Stop admin monitoring (health reporting, policy sync, analytics, audit)
-        AdminManager.shared.stopMonitoring()
+            // Stop admin monitoring (health reporting, policy sync, analytics, audit)
+            AdminManager.shared.stopMonitoring()
 
-        // Stop enterprise monitoring
-        MDMManager.shared.stopMonitoring()
+            // Stop enterprise monitoring
+            MDMManager.shared.stopMonitoring()
         #endif
 
         // Stop sync engine if it was started (avoids lazy singleton creation when sync was never used)
         let enterprise = SettingsManager.shared.enterprise
-        if enterprise.cloudSyncEnabled && !enterprise.localStorageOnly {
+        if enterprise.cloudSyncEnabled, !enterprise.localStorageOnly {
             SyncManager.shared.stop()
         }
 
         #if !APP_STORE
-        // Shut down plugin system (calls willUnload on active plugins)
-        Task {
-            await PluginManager.shared.shutdown()
-        }
+            // Shut down plugin system (calls willUnload on active plugins)
+            Task {
+                await PluginManager.shared.shutdown()
+            }
         #endif
 
         // Tear down menu bar
@@ -202,6 +190,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+
+    // MARK: Private
+
+    // MARK: - Private Properties
+
+    /// Logger for app delegate operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "app"
+    )
+
+    /// Cancellables for Combine subscriptions
+    private var cancellables = Set<AnyCancellable>()
+
+    #if !APP_STORE
+        /// Retained reference to plugin context factory for re-initialization on re-enable.
+        private var pluginContextFactory: PluginContextFactoryImpl?
+    #endif
 
     // MARK: - Setup Methods
 
@@ -289,10 +295,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
     }
 
-    // MARK: - Actions
-
     private func toggleMonitoring() {
-        guard let monitor = clipboardMonitor else { return }
+        guard let monitor = clipboardMonitor else {
+            return
+        }
 
         if monitor.isPaused {
             monitor.resume()
@@ -307,12 +313,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Explicitly sets monitoring pause state to prevent drift
     private func setMonitoringPaused(_ paused: Bool) {
-        guard let monitor = clipboardMonitor else { return }
+        guard let monitor = clipboardMonitor else {
+            return
+        }
 
-        if paused && !monitor.isPaused {
+        if paused, !monitor.isPaused {
             monitor.pause()
             menuBarController?.updateState(.paused)
-        } else if !paused && monitor.isPaused {
+        } else if !paused, monitor.isPaused {
             monitor.resume()
             menuBarController?.updateState(.idle)
         }
@@ -328,11 +336,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             await floatingPanelController?.viewModel.paste(itemId: id)
 
             #if !APP_STORE
-            // Log paste as audit event
-            await AuditManager.shared.logClipboardEvent(
-                action: .pastePerformed,
-                resourceId: id.uuidString
-            )
+                // Log paste as audit event
+                await AuditManager.shared.logClipboardEvent(
+                    action: .pastePerformed,
+                    resourceId: id.uuidString
+                )
             #endif
         }
     }
@@ -390,7 +398,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.publisher(for: .settingsDidChange)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] notification in
-                guard let settings = notification.object as? AppSettings else { return }
+                guard let settings = notification.object as? AppSettings else {
+                    return
+                }
                 self?.handleSettingsChange(settings)
             }
             .store(in: &cancellables)
@@ -448,9 +458,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         SecurityLockService.shared.configure()
 
         #if !APP_STORE
-        // Refresh HIPAA and GDPR/SOC2 compliance state on settings change
-        ComplianceManager.shared.refreshHIPAAState()
-        ComplianceManager.shared.refreshComplianceSettings()
+            // Refresh HIPAA and GDPR/SOC2 compliance state on settings change
+            ComplianceManager.shared.refreshHIPAAState()
+            ComplianceManager.shared.refreshComplianceSettings()
         #endif
 
         // Propagate sync settings changes (for all users, not just MDM-managed)
@@ -466,26 +476,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         #if !APP_STORE
-        // Propagate plugin enable/disable for all devices (not just MDM-managed)
-        if settings.enterprise.pluginsEnabled, !PluginManager.shared.isInitialized {
-            if let factory = pluginContextFactory {
-                Task {
-                    await PluginManager.shared.initialize(contextFactory: factory)
-                    logger.info("Plugin system re-initialized after settings re-enable")
+            // Propagate plugin enable/disable for all devices (not just MDM-managed)
+            if settings.enterprise.pluginsEnabled, !PluginManager.shared.isInitialized {
+                if let factory = pluginContextFactory {
+                    Task {
+                        await PluginManager.shared.initialize(contextFactory: factory)
+                        logger.info("Plugin system re-initialized after settings re-enable")
+                    }
+                } else {
+                    initializePluginSystem()
                 }
-            } else {
-                initializePluginSystem()
+            } else if !settings.enterprise.pluginsEnabled, PluginManager.shared.isInitialized {
+                Task { await PluginManager.shared.shutdown() }
+                logger.info("Plugin system disabled via settings")
             }
-        } else if !settings.enterprise.pluginsEnabled, PluginManager.shared.isInitialized {
-            Task { await PluginManager.shared.shutdown() }
-            logger.info("Plugin system disabled via settings")
-        }
 
-        // Re-apply MDM enterprise key overrides on settings change
-        applyMDMEnterpriseKeys()
+            // Re-apply MDM enterprise key overrides on settings change
+            applyMDMEnterpriseKeys()
 
-        // Re-check admin console configuration (MDM URL may have changed mid-session)
-        configureAdminConsoleIfNeeded()
+            // Re-check admin console configuration (MDM URL may have changed mid-session)
+            configureAdminConsoleIfNeeded()
         #endif
 
         logger.debug("Settings change handled")
@@ -534,7 +544,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Generates OCR text for a newly captured clipboard item (if it's an image)
     private func generateOCRForNewItem(id: UUID, contentType: ContentType) {
         guard SettingsManager.shared.search.ocrSearchEnabled,
-              contentType.isImageType else { return }
+              contentType.isImageType
+        else {
+            return
+        }
 
         Task.detached(priority: .background) {
             await OCRGenerator.shared.generateOCR(for: id)
@@ -544,7 +557,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Generates embedding for a newly captured clipboard item
     private func generateEmbeddingForNewItem(id: UUID) {
         // Check if semantic search is enabled
-        guard SettingsManager.shared.search.semanticSearchEnabled else { return }
+        guard SettingsManager.shared.search.semanticSearchEnabled else {
+            return
+        }
 
         Task.detached(priority: .background) {
             await EmbeddingGenerator.shared.generateEmbedding(for: id)
@@ -552,199 +567,213 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     #if !APP_STORE
-    // MARK: - Enterprise Services
 
-    /// Initializes enterprise services: DLP, compliance, MDM monitoring, and admin console.
-    ///
-    /// AdminManager/AuditManager require an `AdminConsoleConfiguration` with a server URL
-    /// to activate — they are configured lazily when the admin console URL is set (via MDM
-    /// or user configuration). DLPManager and ComplianceManager are self-contained.
-    private func initializeEnterpriseServices() {
-        // Configure SSO with storage backends
-        SSOManager.shared.configure(
-            sessionStore: KeychainSSOSessionStore(),
-            providerStore: UserDefaultsIdentityProviderStore()
-        )
+        // MARK: - Enterprise Services
 
-        // Configure DLP (self-contained, loads rules from CoreData)
-        DLPManager.shared.configure()
+        /// Initializes enterprise services: DLP, compliance, MDM monitoring, and admin console.
+        ///
+        /// AdminManager/AuditManager require an `AdminConsoleConfiguration` with a server URL
+        /// to activate — they are configured lazily when the admin console URL is set (via MDM
+        /// or user configuration). DLPManager and ComplianceManager are self-contained.
+        private func initializeEnterpriseServices() {
+            // Configure SSO with storage backends
+            SSOManager.shared.configure(
+                sessionStore: KeychainSSOSessionStore(),
+                providerStore: UserDefaultsIdentityProviderStore()
+            )
 
-        // Configure compliance (enables HIPAA/GDPR/SOC2 subsystem)
-        ComplianceManager.shared.configure()
+            // Configure DLP (self-contained, loads rules from CoreData)
+            DLPManager.shared.configure()
 
-        // Load MDM configuration and start monitoring for profile changes
-        MDMManager.shared.loadConfiguration()
-        MDMManager.shared.startMonitoring()
+            // Configure compliance (enables HIPAA/GDPR/SOC2 subsystem)
+            ComplianceManager.shared.configure()
 
-        // Apply MDM enterprise key overrides that affect enterprise services
-        applyMDMEnterpriseKeys()
+            // Load MDM configuration and start monitoring for profile changes
+            MDMManager.shared.loadConfiguration()
+            MDMManager.shared.startMonitoring()
 
-        // Configure admin console if URL is available (from MDM or prior setup)
-        configureAdminConsoleIfNeeded()
+            // Apply MDM enterprise key overrides that affect enterprise services
+            applyMDMEnterpriseKeys()
 
-        logger.debug("Enterprise services initialized")
-    }
+            // Configure admin console if URL is available (from MDM or prior setup)
+            configureAdminConsoleIfNeeded()
 
-    /// Applies MDM enterprise keys that affect services outside of AppSettings.
-    ///
-    /// Handles keys that control runtime services (DLP, SSO, sync, plugins) rather
-    /// than simple preference values already mapped by `MDMPolicyEnforcer`.
-    private func applyMDMEnterpriseKeys() {
-        let config = MDMManager.shared.configuration
-        guard config.isManaged else { return }
+            logger.debug("Enterprise services initialized")
+        }
 
-        // --- DLP enable/disable via MDM ---
-        if let value = config.effectiveValue(for: .dlpEnabled), case .bool(let enabled) = value {
-            if enabled {
-                DLPManager.shared.configure()
-                Task { await DLPManager.shared.installDefaultRulesIfNeeded() }
-            } else {
-                DLPManager.shared.disable()
+        /// Applies MDM enterprise keys that affect services outside of AppSettings.
+        ///
+        /// Handles keys that control runtime services (DLP, SSO, sync, plugins) rather
+        /// than simple preference values already mapped by `MDMPolicyEnforcer`.
+        private func applyMDMEnterpriseKeys() {
+            let config = MDMManager.shared.configuration
+            guard config.isManaged else {
+                return
             }
-        }
 
-        // DLP: block/unblock credit card patterns via MDM
-        if let value = config.effectiveValue(for: .blockCreditCards), case .bool(let enabled) = value {
-            Task { await setDLPDefaultRule(named: "Credit Card", enabled: enabled) }
-        }
-
-        // DLP: block/unblock API key patterns via MDM
-        if let value = config.effectiveValue(for: .blockAPIKeys), case .bool(let enabled) = value {
-            Task { await setDLPDefaultRule(named: "API Key", enabled: enabled) }
-        }
-
-        // --- SSO configuration via MDM ---
-        applySSOConfiguration(from: config)
-
-        // --- Sync / storage gating via MDM ---
-        let settings = SettingsManager.shared.settings
-        if settings.enterprise.localStorageOnly || !settings.enterprise.cloudSyncEnabled {
-            SyncManager.shared.stop()
-            logger.info("MDM: sync disabled (localStorageOnly=\(settings.enterprise.localStorageOnly), cloudSyncEnabled=\(settings.enterprise.cloudSyncEnabled))")
-        }
-
-        // --- Plugin gating via MDM ---
-        if !settings.enterprise.pluginsEnabled, PluginManager.shared.isInitialized {
-            Task { await PluginManager.shared.shutdown() }
-            logger.info("MDM: plugin system disabled")
-        } else if settings.enterprise.pluginsEnabled, !PluginManager.shared.isInitialized {
-            // Re-enable: re-initialize with stored context factory
-            if let factory = pluginContextFactory {
-                Task {
-                    await PluginManager.shared.initialize(contextFactory: factory)
-                    logger.info("Plugin system re-initialized after re-enable")
+            // --- DLP enable/disable via MDM ---
+            if let value = config.effectiveValue(for: .dlpEnabled), case let .bool(enabled) = value {
+                if enabled {
+                    DLPManager.shared.configure()
+                    Task { await DLPManager.shared.installDefaultRulesIfNeeded() }
+                } else {
+                    DLPManager.shared.disable()
                 }
+            }
+
+            // DLP: block/unblock credit card patterns via MDM
+            if let value = config.effectiveValue(for: .blockCreditCards), case let .bool(enabled) = value {
+                Task { await setDLPDefaultRule(named: "Credit Card", enabled: enabled) }
+            }
+
+            // DLP: block/unblock API key patterns via MDM
+            if let value = config.effectiveValue(for: .blockAPIKeys), case let .bool(enabled) = value {
+                Task { await setDLPDefaultRule(named: "API Key", enabled: enabled) }
+            }
+
+            // --- SSO configuration via MDM ---
+            applySSOConfiguration(from: config)
+
+            // --- Sync / storage gating via MDM ---
+            let settings = SettingsManager.shared.settings
+            if settings.enterprise.localStorageOnly || !settings.enterprise.cloudSyncEnabled {
+                SyncManager.shared.stop()
+                logger
+                    .info(
+                        "MDM: sync disabled (localStorageOnly=\(settings.enterprise.localStorageOnly), cloudSyncEnabled=\(settings.enterprise.cloudSyncEnabled))"
+                    )
+            }
+
+            // --- Plugin gating via MDM ---
+            if !settings.enterprise.pluginsEnabled, PluginManager.shared.isInitialized {
+                Task { await PluginManager.shared.shutdown() }
+                logger.info("MDM: plugin system disabled")
+            } else if settings.enterprise.pluginsEnabled, !PluginManager.shared.isInitialized {
+                // Re-enable: re-initialize with stored context factory
+                if let factory = pluginContextFactory {
+                    Task {
+                        await PluginManager.shared.initialize(contextFactory: factory)
+                        logger.info("Plugin system re-initialized after re-enable")
+                    }
+                } else {
+                    initializePluginSystem()
+                    logger.info("Plugin system initialized on first enable")
+                }
+            }
+
+            // --- Security: clear on quit ---
+            // clearOnQuit, requireBiometricAuth, autoLockTimeout are now persisted
+            // in AppSettings.security via MDMPolicyEnforcer and consumed at runtime
+            // (clearOnQuit is handled in applicationWillTerminate)
+        }
+
+        /// Configures SSO from MDM-pushed provider configuration.
+        private func applySSOConfiguration(from config: MDMConfiguration) {
+            guard let ssoValue = config.effectiveValue(for: .ssoEnabled),
+                  case let .bool(ssoEnabled) = ssoValue, ssoEnabled
+            else {
+                return
+            }
+
+            // Read provider type and domain from MDM
+            let providerType: IdentityProviderType = if let provValue = config.effectiveValue(for: .ssoProvider),
+                                                        case let .string(provString) = provValue
+            {
+                IdentityProviderType(rawValue: provString)
             } else {
-                initializePluginSystem()
-                logger.info("Plugin system initialized on first enable")
+                .oidc // Default to OIDC
+            }
+
+            let domain: String
+            if let domValue = config.effectiveValue(for: .ssoDomain),
+               case let .string(domString) = domValue
+            {
+                domain = domString
+            } else {
+                logger.warning("MDM: SSO enabled but no SSODomain configured — skipping SSO setup")
+                return
+            }
+
+            // Check if a provider with this domain already exists in the store
+            Task {
+                guard let providerStore = SSOManager.shared.providerStore else {
+                    return
+                }
+                let existing = try? await providerStore.loadAll()
+                let alreadyConfigured = existing?.contains { $0.entityId == domain } ?? false
+
+                if !alreadyConfigured {
+                    // Create a minimal MDM-provisioned provider entry
+                    let provider = IdentityProvider(
+                        name: "MDM SSO (\(domain))",
+                        type: providerType,
+                        entityId: domain,
+                        isEnabled: true
+                    )
+                    try? await providerStore.save(provider)
+                    logger.info("MDM: SSO provider created for domain '\(domain)' (type: \(providerType.rawValue))")
+                }
             }
         }
 
-        // --- Security: clear on quit ---
-        // clearOnQuit, requireBiometricAuth, autoLockTimeout are now persisted
-        // in AppSettings.security via MDMPolicyEnforcer and consumed at runtime
-        // (clearOnQuit is handled in applicationWillTerminate)
-    }
+        /// Sets a default DLP rule to enabled or disabled by partial name match (MDM enforcement).
+        private func setDLPDefaultRule(named partialName: String, enabled: Bool) async {
+            // Ensure default rules are installed first
+            await DLPManager.shared.installDefaultRulesIfNeeded()
 
-    /// Configures SSO from MDM-pushed provider configuration.
-    private func applySSOConfiguration(from config: MDMConfiguration) {
-        guard let ssoValue = config.effectiveValue(for: .ssoEnabled),
-              case .bool(let ssoEnabled) = ssoValue, ssoEnabled else { return }
-
-        // Read provider type and domain from MDM
-        let providerType: IdentityProviderType
-        if let provValue = config.effectiveValue(for: .ssoProvider),
-           case .string(let provString) = provValue {
-            providerType = IdentityProviderType(rawValue: provString)
-        } else {
-            providerType = .oidc // Default to OIDC
-        }
-
-        let domain: String
-        if let domValue = config.effectiveValue(for: .ssoDomain),
-           case .string(let domString) = domValue {
-            domain = domString
-        } else {
-            logger.warning("MDM: SSO enabled but no SSODomain configured — skipping SSO setup")
-            return
-        }
-
-        // Check if a provider with this domain already exists in the store
-        Task {
-            guard let providerStore = SSOManager.shared.providerStore else { return }
-            let existing = try? await providerStore.loadAll()
-            let alreadyConfigured = existing?.contains { $0.entityId == domain } ?? false
-
-            if !alreadyConfigured {
-                // Create a minimal MDM-provisioned provider entry
-                let provider = IdentityProvider(
-                    name: "MDM SSO (\(domain))",
-                    type: providerType,
-                    entityId: domain,
-                    isEnabled: true
-                )
-                try? await providerStore.save(provider)
-                logger.info("MDM: SSO provider created for domain '\(domain)' (type: \(providerType.rawValue))")
+            for rule in DLPManager.shared.rules where rule.name.localizedCaseInsensitiveContains(partialName) {
+                if rule.isEnabled != enabled {
+                    var updated = rule
+                    updated.isEnabled = enabled
+                    try? await DLPManager.shared.updateRule(updated)
+                }
             }
         }
-    }
 
-    /// Sets a default DLP rule to enabled or disabled by partial name match (MDM enforcement).
-    private func setDLPDefaultRule(named partialName: String, enabled: Bool) async {
-        // Ensure default rules are installed first
-        await DLPManager.shared.installDefaultRulesIfNeeded()
+        /// Configures AdminManager (and by extension AuditManager) if an admin console URL is available.
+        private func configureAdminConsoleIfNeeded() {
+            // Check MDM for admin console URL
+            var serverURL: URL?
+            if case let .string(mdmURL) = MDMManager.shared.configuration.effectiveValue(for: .adminConsoleURL),
+               let url = URL(string: mdmURL)
+            {
+                serverURL = url
+            }
 
-        for rule in DLPManager.shared.rules where rule.name.localizedCaseInsensitiveContains(partialName) {
-            if rule.isEnabled != enabled {
-                var updated = rule
-                updated.isEnabled = enabled
-                try? await DLPManager.shared.updateRule(updated)
+            // Also check if admin console was previously configured by the user
+            if serverURL == nil, let storedURL = UserDefaults.standard.string(forKey: "com.pasteshelf.admin.serverURL"),
+               let url = URL(string: storedURL)
+            {
+                serverURL = url
+            }
+
+            guard let url = serverURL else {
+                logger.debug("Admin console not configured — AuditManager will remain dormant")
+                return
+            }
+
+            let orgID = MDMManager.shared.organizationID ?? ""
+            let config = AdminConsoleConfiguration(
+                serverURL: url,
+                organizationID: orgID,
+                apiKey: nil,
+                isEnabled: true,
+                pollingInterval: 300
+            )
+
+            AdminManager.shared.configure(with: config)
+            logger.info("Admin console configured via MDM/stored URL")
+        }
+
+        /// Initializes the plugin system
+        private func initializePluginSystem() {
+            let factory = PluginContextFactoryImpl()
+            pluginContextFactory = factory
+            Task {
+                await PluginManager.shared.initialize(contextFactory: factory)
+                logger.debug("Plugin system initialized")
             }
         }
-    }
-
-    /// Configures AdminManager (and by extension AuditManager) if an admin console URL is available.
-    private func configureAdminConsoleIfNeeded() {
-        // Check MDM for admin console URL
-        var serverURL: URL?
-        if case .string(let mdmURL) = MDMManager.shared.configuration.effectiveValue(for: .adminConsoleURL),
-           let url = URL(string: mdmURL) {
-            serverURL = url
-        }
-
-        // Also check if admin console was previously configured by the user
-        if serverURL == nil, let storedURL = UserDefaults.standard.string(forKey: "com.pasteshelf.admin.serverURL"),
-           let url = URL(string: storedURL) {
-            serverURL = url
-        }
-
-        guard let url = serverURL else {
-            logger.debug("Admin console not configured — AuditManager will remain dormant")
-            return
-        }
-
-        let orgID = MDMManager.shared.organizationID ?? ""
-        let config = AdminConsoleConfiguration(
-            serverURL: url,
-            organizationID: orgID,
-            apiKey: nil,
-            isEnabled: true,
-            pollingInterval: 300
-        )
-
-        AdminManager.shared.configure(with: config)
-        logger.info("Admin console configured via MDM/stored URL")
-    }
-
-    /// Initializes the plugin system
-    private func initializePluginSystem() {
-        let factory = PluginContextFactoryImpl()
-        pluginContextFactory = factory
-        Task {
-            await PluginManager.shared.initialize(contextFactory: factory)
-            logger.debug("Plugin system initialized")
-        }
-    }
     #endif
 
     // MARK: - Automation
@@ -763,7 +792,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-// MARK: - ClipboardMonitorDelegate
+// MARK: ClipboardMonitorDelegate
 
 extension AppDelegate: ClipboardMonitorDelegate {
     func clipboardMonitor(
@@ -785,53 +814,61 @@ extension AppDelegate: ClipboardMonitorDelegate {
         Task {
             do {
                 #if !APP_STORE
-                // GDPR consent gate: skip entire pipeline if clipboard monitoring consent revoked
-                if ComplianceManager.shared.isGDPRActive,
-                   !GDPRConsentManager.shared.isConsentGranted(for: .clipboardMonitoring) {
-                    logger.info("Pipeline skipped: GDPR clipboardMonitoring consent not granted")
-                    return
-                }
+                    // GDPR consent gate: skip entire pipeline if clipboard monitoring consent revoked
+                    if ComplianceManager.shared.isGDPRActive,
+                       !GDPRConsentManager.shared.isConsentGranted(for: .clipboardMonitoring)
+                    {
+                        logger.info("Pipeline skipped: GDPR clipboardMonitoring consent not granted")
+                        return
+                    }
 
-                // Stage 1: DLP evaluation — may block, redact, or pass through.
-                // Returns the (possibly redacted) content for downstream stages.
-                let dlpResult = await processDLPEvaluation(for: content, sourceApp: sourceApp)
-                if dlpResult.blocked { return }
-                let pipelineContent = dlpResult.content
+                    // Stage 1: DLP evaluation — may block, redact, or pass through.
+                    // Returns the (possibly redacted) content for downstream stages.
+                    let dlpResult = await processDLPEvaluation(for: content, sourceApp: sourceApp)
+                    if dlpResult.blocked {
+                        return
+                    }
+                    let pipelineContent = dlpResult.content
                 #else
-                let pipelineContent = content
+                    let pipelineContent = content
                 #endif
 
                 // Stage 2: Run automation rules — may delete the item or transform content
                 let automationResult = await processAutomation(for: pipelineContent, sourceApp: sourceApp)
-                if automationResult.deleted { return }
+                if automationResult.deleted {
+                    return
+                }
                 let finalContent = automationResult.content
 
                 #if !APP_STORE
-                // Stage 3: Post notification for plugin system (gated by GDPR thirdPartyPlugins consent)
-                if !ComplianceManager.shared.isGDPRActive
-                    || GDPRConsentManager.shared.isConsentGranted(for: .thirdPartyPlugins) {
-                    NotificationCenter.default.post(
-                        name: .clipboardContentCaptured,
-                        object: nil,
-                        userInfo: ["content": finalContent]
-                    )
-                }
+                    // Stage 3: Post notification for plugin system (gated by GDPR thirdPartyPlugins consent)
+                    if !ComplianceManager.shared.isGDPRActive
+                        || GDPRConsentManager.shared.isConsentGranted(for: .thirdPartyPlugins)
+                    {
+                        NotificationCenter.default.post(
+                            name: .clipboardContentCaptured,
+                            object: nil,
+                            userInfo: ["content": finalContent]
+                        )
+                    }
 
-                // Stage 4: Log clipboard capture as audit event (gated by GDPR auditLogging consent)
-                if !ComplianceManager.shared.isGDPRActive
-                    || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
-                    await AuditManager.shared.logClipboardEvent(
-                        action: .copyCaptured,
-                        resourceId: finalContent.id.uuidString,
-                        detail: ["contentType": finalContent.primaryType.displayName]
-                    )
-                }
+                    // Stage 4: Log clipboard capture as audit event (gated by GDPR auditLogging consent)
+                    if !ComplianceManager.shared.isGDPRActive
+                        || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging)
+                    {
+                        await AuditManager.shared.logClipboardEvent(
+                            action: .copyCaptured,
+                            resourceId: finalContent.id.uuidString,
+                            detail: ["contentType": finalContent.primaryType.displayName]
+                        )
+                    }
 
-                // Stage 5: Fire webhook events for clipboard capture (gated by GDPR thirdPartyPlugins consent)
-                if !ComplianceManager.shared.isGDPRActive
-                    || GDPRConsentManager.shared.isConsentGranted(for: .thirdPartyPlugins) {
-                    await WebhookManager.shared.sendClipboardCreated(content: finalContent)
-                }
+                    // Stage 5: Fire webhook events for clipboard capture (gated by GDPR thirdPartyPlugins consent)
+                    if !ComplianceManager.shared.isGDPRActive
+                        || GDPRConsentManager.shared.isConsentGranted(for: .thirdPartyPlugins)
+                    {
+                        await WebhookManager.shared.sendClipboardCreated(content: finalContent)
+                    }
                 #endif
 
                 // Stage 6: Generate embedding for semantic search
@@ -848,94 +885,108 @@ extension AppDelegate: ClipboardMonitorDelegate {
     }
 
     #if !APP_STORE
-    /// Result of DLP evaluation indicating whether content was blocked and providing
-    /// the (possibly redacted) content for downstream pipeline stages.
-    private struct DLPPipelineResult {
-        let blocked: Bool
-        let content: ClipboardContent
-    }
-
-    /// Evaluates DLP rules against captured content and enforces block/redact actions.
-    ///
-    /// Returns a `DLPPipelineResult` indicating whether the item was blocked and
-    /// providing the (possibly redacted) content for downstream stages.
-    private func processDLPEvaluation(for content: ClipboardContent, sourceApp: SourceApp? = nil) async -> DLPPipelineResult {
-        guard DLPManager.shared.isEnabled else {
-            return DLPPipelineResult(blocked: false, content: content)
+        /// Result of DLP evaluation indicating whether content was blocked and providing
+        /// the (possibly redacted) content for downstream pipeline stages.
+        private struct DLPPipelineResult {
+            let blocked: Bool
+            let content: ClipboardContent
         }
 
-        let result = await DLPManager.shared.evaluate(content, sourceApp: sourceApp)
-
-        guard result.hasViolations else {
-            return DLPPipelineResult(blocked: false, content: content)
-        }
-
-        // Block: delete the already-saved item and log audit event
-        if result.shouldBlock {
-            let deleted = await storageManager.deleteItem(byId: content.id)
-            if deleted {
-                logger.info("DLP: blocked and deleted item \(content.id)")
-                NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
-            } else {
-                logger.error("DLP: failed to delete blocked item \(content.id) — sensitive data may remain in storage")
+        /// Evaluates DLP rules against captured content and enforces block/redact actions.
+        ///
+        /// Returns a `DLPPipelineResult` indicating whether the item was blocked and
+        /// providing the (possibly redacted) content for downstream stages.
+        private func processDLPEvaluation(for content: ClipboardContent,
+                                          sourceApp: SourceApp? = nil) async -> DLPPipelineResult
+        {
+            guard DLPManager.shared.isEnabled else {
+                return DLPPipelineResult(blocked: false, content: content)
             }
 
-            // Audit: always log the block attempt regardless of deletion success (gated by GDPR)
-            if !ComplianceManager.shared.isGDPRActive
-                || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
-                await AuditManager.shared.logClipboardEvent(
-                    action: .copyBlocked,
-                    resourceId: content.id.uuidString,
-                    detail: [
-                        "contentType": content.primaryType.displayName,
-                        "reason": "dlp_blocked",
-                        "deletionSucceeded": "\(deleted)",
-                    ]
-                )
+            let result = await DLPManager.shared.evaluate(content, sourceApp: sourceApp)
+
+            guard result.hasViolations else {
+                return DLPPipelineResult(blocked: false, content: content)
             }
 
-            return DLPPipelineResult(blocked: true, content: content)
-        }
-
-        // Redact: update the stored text and propagate redacted content downstream.
-        // Uses per-field redacted content to avoid composite string contamination.
-        if result.shouldRedact, let fields = result.redactedFields {
-            let redactedPlainText = fields.plainText ?? content.plainText ?? ""
-            let redactSuccess = await storageManager.updatePlainText(itemId: content.id, text: redactedPlainText, stripOtherRepresentations: true)
-            if !redactSuccess {
-                logger.error("DLP: failed to persist redacted content for item \(content.id) — deleting to prevent sensitive data leak")
-                let fallbackDeleted = await storageManager.deleteItem(byId: content.id)
-                if fallbackDeleted {
+            // Block: delete the already-saved item and log audit event
+            if result.shouldBlock {
+                let deleted = await storageManager.deleteItem(byId: content.id)
+                if deleted {
+                    logger.info("DLP: blocked and deleted item \(content.id)")
                     NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
+                } else {
+                    logger
+                        .error(
+                            "DLP: failed to delete blocked item \(content.id) — sensitive data may remain in storage"
+                        )
                 }
+
+                // Audit: always log the block attempt regardless of deletion success (gated by GDPR)
+                if !ComplianceManager.shared.isGDPRActive
+                    || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging)
+                {
+                    await AuditManager.shared.logClipboardEvent(
+                        action: .copyBlocked,
+                        resourceId: content.id.uuidString,
+                        detail: [
+                            "contentType": content.primaryType.displayName,
+                            "reason": "dlp_blocked",
+                            "deletionSucceeded": "\(deleted)",
+                        ]
+                    )
+                }
+
                 return DLPPipelineResult(blocked: true, content: content)
             }
-            logger.info("DLP: redacted content for item \(content.id)")
 
-            // Audit: log that clipboard content was redacted by DLP (gated by GDPR auditLogging consent)
-            if !ComplianceManager.shared.isGDPRActive
-                || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
-                await AuditManager.shared.logClipboardEvent(
-                    action: .copyRedacted,
-                    resourceId: content.id.uuidString,
-                    detail: [
-                        "contentType": content.primaryType.displayName,
-                        "reason": "dlp_redacted",
-                    ]
+            // Redact: update the stored text and propagate redacted content downstream.
+            // Uses per-field redacted content to avoid composite string contamination.
+            if result.shouldRedact, let fields = result.redactedFields {
+                let redactedPlainText = fields.plainText ?? content.plainText ?? ""
+                let redactSuccess = await storageManager.updatePlainText(
+                    itemId: content.id,
+                    text: redactedPlainText,
+                    stripOtherRepresentations: true
                 )
+                if !redactSuccess {
+                    logger
+                        .error(
+                            "DLP: failed to persist redacted content for item \(content.id) — deleting to prevent sensitive data leak"
+                        )
+                    let fallbackDeleted = await storageManager.deleteItem(byId: content.id)
+                    if fallbackDeleted {
+                        NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
+                    }
+                    return DLPPipelineResult(blocked: true, content: content)
+                }
+                logger.info("DLP: redacted content for item \(content.id)")
+
+                // Audit: log that clipboard content was redacted by DLP (gated by GDPR auditLogging consent)
+                if !ComplianceManager.shared.isGDPRActive
+                    || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging)
+                {
+                    await AuditManager.shared.logClipboardEvent(
+                        action: .copyRedacted,
+                        resourceId: content.id.uuidString,
+                        detail: [
+                            "contentType": content.primaryType.displayName,
+                            "reason": "dlp_redacted",
+                        ]
+                    )
+                }
+
+                // Create a copy with per-field redacted text so downstream stages don't see sensitive data
+                var redactedContent = content
+                redactedContent.plainText = fields.plainText
+                redactedContent.html = nil
+                redactedContent.url = nil
+                redactedContent.rtfData = nil
+                return DLPPipelineResult(blocked: false, content: redactedContent)
             }
 
-            // Create a copy with per-field redacted text so downstream stages don't see sensitive data
-            var redactedContent = content
-            redactedContent.plainText = fields.plainText
-            redactedContent.html = nil
-            redactedContent.url = nil
-            redactedContent.rtfData = nil
-            return DLPPipelineResult(blocked: false, content: redactedContent)
+            return DLPPipelineResult(blocked: false, content: content)
         }
-
-        return DLPPipelineResult(blocked: false, content: content)
-    }
     #endif
 
     /// Result of automation processing indicating whether content was deleted and providing
@@ -979,19 +1030,20 @@ extension AppDelegate: ClipboardMonitorDelegate {
                 NotificationCenter.default.post(name: .clipboardHistoryChanged, object: nil)
 
                 #if !APP_STORE
-                // Audit: log that automation deleted the item (gated by GDPR auditLogging consent)
-                if !ComplianceManager.shared.isGDPRActive
-                    || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging) {
-                    let ruleNames = result.matchedRules.map(\.name).joined(separator: ", ")
-                    await AuditManager.shared.logClipboardEvent(
-                        action: .automationDeleted,
-                        resourceId: content.id.uuidString,
-                        detail: [
-                            "contentType": content.primaryType.displayName,
-                            "matchedRules": ruleNames,
-                        ]
-                    )
-                }
+                    // Audit: log that automation deleted the item (gated by GDPR auditLogging consent)
+                    if !ComplianceManager.shared.isGDPRActive
+                        || GDPRConsentManager.shared.isConsentGranted(for: .auditLogging)
+                    {
+                        let ruleNames = result.matchedRules.map(\.name).joined(separator: ", ")
+                        await AuditManager.shared.logClipboardEvent(
+                            action: .automationDeleted,
+                            resourceId: content.id.uuidString,
+                            detail: [
+                                "contentType": content.primaryType.displayName,
+                                "matchedRules": ruleNames,
+                            ]
+                        )
+                    }
                 #endif
             }
             return AutomationPipelineResult(deleted: true, content: content)

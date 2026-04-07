@@ -8,30 +8,10 @@
 
 import Foundation
 
-// MARK: - Automation Action
+// MARK: - AutomationAction
 
 /// Actions that can be executed when an automation rule matches
 enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
-    /// Unique identifier for this action instance
-    var id: UUID {
-        switch self {
-        case .transform(let id, _): return id
-        case .addTag(let id, _): return id
-        case .removeTag(let id, _): return id
-        case .setFavorite(let id, _): return id
-        case .moveToFolder(let id, _): return id
-        case .copyToClipboard(let id): return id
-        case .notify(let id, _, _): return id
-        case .openURL(let id, _): return id
-        #if !APP_STORE
-        case .runScript(let id, _): return id
-        #endif
-        case .webhook(let id, _): return id
-        case .markSensitive(let id, _): return id
-        case .delete(let id): return id
-        }
-    }
-
     // MARK: - Action Cases
 
     /// Apply a text transformation preset
@@ -59,8 +39,8 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
     case openURL(id: UUID = UUID(), urlTemplate: String)
 
     #if !APP_STORE
-    /// Run an AppleScript
-    case runScript(id: UUID = UUID(), scriptPath: String)
+        /// Run an AppleScript
+        case runScript(id: UUID = UUID(), scriptPath: String)
     #endif
 
     /// Send a webhook request
@@ -72,86 +52,7 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
     /// Delete the item (prevents storage)
     case delete(id: UUID = UUID())
 
-    // MARK: - Properties
-
-    /// Type identifier for the action
-    var actionType: ActionType {
-        switch self {
-        case .transform: return .transform
-        case .addTag: return .addTag
-        case .removeTag: return .removeTag
-        case .setFavorite: return .setFavorite
-        case .moveToFolder: return .moveToFolder
-        case .copyToClipboard: return .copyToClipboard
-        case .notify: return .notify
-        case .openURL: return .openURL
-        #if !APP_STORE
-        case .runScript: return .runScript
-        #endif
-        case .webhook: return .webhook
-        case .markSensitive: return .markSensitive
-        case .delete: return .delete
-        }
-    }
-
-    /// Human-readable display name
-    var displayName: String {
-        actionType.displayName
-    }
-
-    /// Description of what this action does
-    var description: String {
-        switch self {
-        case .transform(_, let preset):
-            return "Transform: \(preset.displayName)"
-        case .addTag(_, let tagName):
-            return "Add tag: \(tagName)"
-        case .removeTag(_, let tagName):
-            return "Remove tag: \(tagName)"
-        case .setFavorite(_, let isFavorite):
-            return isFavorite ? "Mark as favorite" : "Remove from favorites"
-        case .moveToFolder(_, let folderName):
-            return "Move to folder: \(folderName)"
-        case .copyToClipboard:
-            return "Copy to clipboard"
-        case .notify(_, let title, _):
-            return "Show notification: \(title)"
-        case .openURL(_, let urlTemplate):
-            return "Open URL: \(urlTemplate)"
-        #if !APP_STORE
-        case .runScript(_, let scriptPath):
-            return "Run script: \(scriptPath)"
-        #endif
-        case .webhook(_, _):
-            return "Send webhook"
-        case .markSensitive(_, let isSensitive):
-            return isSensitive ? "Mark as sensitive" : "Mark as not sensitive"
-        case .delete:
-            return "Delete item"
-        }
-    }
-
-    /// SF Symbol icon for the action
-    var iconName: String {
-        actionType.iconName
-    }
-
-    // MARK: - Codable
-
-    private enum CodingKeys: String, CodingKey {
-        case type
-        case id
-        case preset
-        case tagName
-        case isFavorite
-        case folderName
-        case title
-        case message
-        case urlTemplate
-        case scriptPath
-        case endpointId
-        case isSensitive
-    }
+    // MARK: Lifecycle
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -192,9 +93,9 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
             self = .openURL(id: id, urlTemplate: urlTemplate)
 
         #if !APP_STORE
-        case "runScript":
-            let scriptPath = try container.decode(String.self, forKey: .scriptPath)
-            self = .runScript(id: id, scriptPath: scriptPath)
+            case "runScript":
+                let scriptPath = try container.decode(String.self, forKey: .scriptPath)
+                self = .runScript(id: id, scriptPath: scriptPath)
         #endif
 
         case "webhook":
@@ -217,52 +118,156 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
         }
     }
 
+    // MARK: Internal
+
+    /// Unique identifier for this action instance
+    var id: UUID {
+        switch self {
+        case let .transform(id, _): return id
+        case let .addTag(id, _): return id
+        case let .removeTag(id, _): return id
+        case let .setFavorite(id, _): return id
+        case let .moveToFolder(id, _): return id
+        case let .copyToClipboard(id): return id
+        case let .notify(id, _, _): return id
+        case let .openURL(id, _): return id
+        #if !APP_STORE
+            case let .runScript(id, _): return id
+        #endif
+        case let .webhook(id, _): return id
+        case let .markSensitive(id, _): return id
+        case let .delete(id): return id
+        }
+    }
+
+    /// Type identifier for the action
+    var actionType: ActionType {
+        switch self {
+        case .transform: return .transform
+        case .addTag: return .addTag
+        case .removeTag: return .removeTag
+        case .setFavorite: return .setFavorite
+        case .moveToFolder: return .moveToFolder
+        case .copyToClipboard: return .copyToClipboard
+        case .notify: return .notify
+        case .openURL: return .openURL
+        #if !APP_STORE
+            case .runScript: return .runScript
+        #endif
+        case .webhook: return .webhook
+        case .markSensitive: return .markSensitive
+        case .delete: return .delete
+        }
+    }
+
+    /// Human-readable display name
+    var displayName: String {
+        actionType.displayName
+    }
+
+    /// Description of what this action does
+    var description: String {
+        switch self {
+        case let .transform(_, preset):
+            return "Transform: \(preset.displayName)"
+        case let .addTag(_, tagName):
+            return "Add tag: \(tagName)"
+        case let .removeTag(_, tagName):
+            return "Remove tag: \(tagName)"
+        case let .setFavorite(_, isFavorite):
+            return isFavorite ? "Mark as favorite" : "Remove from favorites"
+        case let .moveToFolder(_, folderName):
+            return "Move to folder: \(folderName)"
+        case .copyToClipboard:
+            return "Copy to clipboard"
+        case let .notify(_, title, _):
+            return "Show notification: \(title)"
+        case let .openURL(_, urlTemplate):
+            return "Open URL: \(urlTemplate)"
+        #if !APP_STORE
+            case let .runScript(_, scriptPath):
+                return "Run script: \(scriptPath)"
+        #endif
+        case .webhook:
+            return "Send webhook"
+        case let .markSensitive(_, isSensitive):
+            return isSensitive ? "Mark as sensitive" : "Mark as not sensitive"
+        case .delete:
+            return "Delete item"
+        }
+    }
+
+    /// SF Symbol icon for the action
+    var iconName: String {
+        actionType.iconName
+    }
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(actionType.rawValue, forKey: .type)
         try container.encode(id, forKey: .id)
 
         switch self {
-        case .transform(_, let preset):
+        case let .transform(_, preset):
             try container.encode(preset, forKey: .preset)
 
-        case .addTag(_, let tagName), .removeTag(_, let tagName):
+        case let .addTag(_, tagName),
+             let .removeTag(_, tagName):
             try container.encode(tagName, forKey: .tagName)
 
-        case .setFavorite(_, let isFavorite):
+        case let .setFavorite(_, isFavorite):
             try container.encode(isFavorite, forKey: .isFavorite)
 
-        case .moveToFolder(_, let folderName):
+        case let .moveToFolder(_, folderName):
             try container.encode(folderName, forKey: .folderName)
 
         case .copyToClipboard:
             break
 
-        case .notify(_, let title, let message):
+        case let .notify(_, title, message):
             try container.encode(title, forKey: .title)
             try container.encode(message, forKey: .message)
 
-        case .openURL(_, let urlTemplate):
+        case let .openURL(_, urlTemplate):
             try container.encode(urlTemplate, forKey: .urlTemplate)
 
         #if !APP_STORE
-        case .runScript(_, let scriptPath):
-            try container.encode(scriptPath, forKey: .scriptPath)
+            case let .runScript(_, scriptPath):
+                try container.encode(scriptPath, forKey: .scriptPath)
         #endif
 
-        case .webhook(_, let endpointId):
+        case let .webhook(_, endpointId):
             try container.encode(endpointId, forKey: .endpointId)
 
-        case .markSensitive(_, let isSensitive):
+        case let .markSensitive(_, isSensitive):
             try container.encode(isSensitive, forKey: .isSensitive)
 
         case .delete:
             break
         }
     }
+
+    // MARK: Private
+
+    // MARK: - Codable
+
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case id
+        case preset
+        case tagName
+        case isFavorite
+        case folderName
+        case title
+        case message
+        case urlTemplate
+        case scriptPath
+        case endpointId
+        case isSensitive
+    }
 }
 
-// MARK: - Action Type
+// MARK: - ActionType
 
 /// Types of automation actions
 enum ActionType: String, Codable, CaseIterable, Sendable {
@@ -275,11 +280,13 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
     case notify
     case openURL
     #if !APP_STORE
-    case runScript
+        case runScript
     #endif
     case webhook
     case markSensitive
     case delete
+
+    // MARK: Internal
 
     /// Human-readable display name
     var displayName: String {
@@ -301,8 +308,8 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
         case .openURL:
             return String(localized: "Open URL")
         #if !APP_STORE
-        case .runScript:
-            return String(localized: "Run Script")
+            case .runScript:
+                return String(localized: "Run Script")
         #endif
         case .webhook:
             return String(localized: "Send Webhook")
@@ -333,8 +340,8 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
         case .openURL:
             return String(localized: "Open a URL in the default browser")
         #if !APP_STORE
-        case .runScript:
-            return String(localized: "Execute an AppleScript file")
+            case .runScript:
+                return String(localized: "Execute an AppleScript file")
         #endif
         case .webhook:
             return String(localized: "Send an HTTP request to a webhook endpoint")
@@ -365,8 +372,8 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
         case .openURL:
             return "link"
         #if !APP_STORE
-        case .runScript:
-            return "applescript"
+            case .runScript:
+                return "applescript"
         #endif
         case .webhook:
             return "network"
@@ -376,23 +383,26 @@ enum ActionType: String, Codable, CaseIterable, Sendable {
             return "trash.fill"
         }
     }
-
 }
 
 // MARK: - JSON Serialization
 
-extension Array where Element == AutomationAction {
+extension [AutomationAction] {
     /// Serializes actions array to JSON string
     func toJSON() -> String? {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .sortedKeys
-        guard let data = try? encoder.encode(self) else { return nil }
+        guard let data = try? encoder.encode(self) else {
+            return nil
+        }
         return String(data: data, encoding: .utf8)
     }
 
     /// Deserializes actions array from JSON string
     static func fromJSON(_ json: String?) -> [AutomationAction]? {
-        guard let json, let data = json.data(using: .utf8) else { return nil }
+        guard let json, let data = json.data(using: .utf8) else {
+            return nil
+        }
         return try? JSONDecoder().decode([AutomationAction].self, from: data)
     }
 }

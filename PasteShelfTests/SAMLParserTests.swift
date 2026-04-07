@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - Test Fixtures
 
@@ -147,7 +147,7 @@ private func makeStandaloneAssertionXML(
     return xml.data(using: .utf8)!
 }
 
-// MARK: - SAMLParser Tests
+// MARK: - SAMLParserTests
 
 struct SAMLParserTests {
     let parser = SAMLParser()
@@ -155,7 +155,7 @@ struct SAMLParserTests {
     // MARK: - parseResponse: Valid XML
 
     @Test("parseResponse parses valid SAML XML and extracts response fields")
-    func test_parseResponse_validXML_parsesResponseFields() throws {
+    func parseResponse_validXML_parsesResponseFields() throws {
         let data = makeValidSAMLResponseXML()
         let response = try parser.parseResponse(data)
 
@@ -167,7 +167,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseResponse parses valid SAML XML and extracts assertion fields")
-    func test_parseResponse_validXML_parsesAssertionFields() throws {
+    func parseResponse_validXML_parsesAssertionFields() throws {
         let data = makeValidSAMLResponseXML()
         let response = try parser.parseResponse(data)
 
@@ -180,7 +180,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseResponse parses success status code correctly")
-    func test_parseResponse_successStatus_statusIsSuccess() throws {
+    func parseResponse_successStatus_statusIsSuccess() throws {
         let data = makeValidSAMLResponseXML(
             statusCode: "urn:oasis:names:tc:SAML:2.0:status:Success"
         )
@@ -191,7 +191,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseResponse parses AuthnFailed status code correctly")
-    func test_parseResponse_authnFailedStatus_statusIsAuthnFailed() throws {
+    func parseResponse_authnFailedStatus_statusIsAuthnFailed() throws {
         let data = makeValidSAMLResponseXML(
             statusCode: "urn:oasis:names:tc:SAML:2.0:status:AuthnFailed",
             includeAssertion: false
@@ -203,7 +203,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseResponse parses Requester status code correctly")
-    func test_parseResponse_requesterStatus_statusIsRequester() throws {
+    func parseResponse_requesterStatus_statusIsRequester() throws {
         let data = makeValidSAMLResponseXML(
             statusCode: "urn:oasis:names:tc:SAML:2.0:status:Requester",
             includeAssertion: false
@@ -215,7 +215,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseResponse parses assertion attribute statements")
-    func test_parseResponse_validXML_parsesAttributeStatements() throws {
+    func parseResponse_validXML_parsesAttributeStatements() throws {
         let data = makeValidSAMLResponseXML(
             email: "testuser@example.com"
         )
@@ -229,7 +229,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseResponse parses multi-value group attribute")
-    func test_parseResponse_multiValueAttribute_parsesAllValues() throws {
+    func parseResponse_multiValueAttribute_parsesAllValues() throws {
         let data = makeValidSAMLResponseXML()
         let response = try parser.parseResponse(data)
 
@@ -241,7 +241,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseResponse parses authn statement fields")
-    func test_parseResponse_validXML_parsesAuthnStatement() throws {
+    func parseResponse_validXML_parsesAuthnStatement() throws {
         let data = makeValidSAMLResponseXML()
         let response = try parser.parseResponse(data)
 
@@ -252,7 +252,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseResponse with missing assertion returns empty assertions array")
-    func test_parseResponse_missingAssertion_hasNoAssertions() throws {
+    func parseResponse_missingAssertion_hasNoAssertions() throws {
         let data = makeValidSAMLResponseXML(includeAssertion: false)
         let response = try parser.parseResponse(data)
 
@@ -261,7 +261,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseResponse with invalid XML throws xmlParsingFailed error")
-    func test_parseResponse_invalidXML_throwsParsingError() throws {
+    func parseResponse_invalidXML_throwsParsingError() throws {
         let invalidData = "not xml at all <<<>>>".data(using: .utf8)!
 
         #expect(throws: (any Error).self) {
@@ -270,7 +270,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseResponse with empty data throws error")
-    func test_parseResponse_emptyData_throwsError() throws {
+    func parseResponse_emptyData_throwsError() throws {
         let emptyData = Data()
 
         #expect(throws: (any Error).self) {
@@ -281,7 +281,7 @@ struct SAMLParserTests {
     // MARK: - parseBase64EncodedResponse Tests
 
     @Test("parseBase64EncodedResponse decodes valid base64 and parses successfully")
-    func test_parseBase64EncodedResponse_validBase64_parsesSuccessfully() throws {
+    func parseBase64EncodedResponse_validBase64_parsesSuccessfully() throws {
         let data = makeValidSAMLResponseXML()
         let base64String = data.base64EncodedString()
 
@@ -292,7 +292,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseBase64EncodedResponse with invalid base64 throws xmlParsingFailed error")
-    func test_parseBase64EncodedResponse_invalidBase64_throwsError() {
+    func parseBase64EncodedResponse_invalidBase64_throwsError() {
         let invalidBase64 = "this is not valid base64 !!!"
 
         #expect(throws: (any Error).self) {
@@ -301,14 +301,14 @@ struct SAMLParserTests {
     }
 
     @Test("parseBase64EncodedResponse with empty string throws error")
-    func test_parseBase64EncodedResponse_emptyString_throwsError() {
+    func parseBase64EncodedResponse_emptyString_throwsError() {
         #expect(throws: (any Error).self) {
             try parser.parseBase64EncodedResponse("")
         }
     }
 
     @Test("parseBase64EncodedResponse preserves all response fields")
-    func test_parseBase64EncodedResponse_validBase64_preservesAllFields() throws {
+    func parseBase64EncodedResponse_validBase64_preservesAllFields() throws {
         let data = makeValidSAMLResponseXML(
             responseId: "_resp_b64",
             assertionId: "_assert_b64",
@@ -329,7 +329,7 @@ struct SAMLParserTests {
     // MARK: - parseAssertion: Standalone Tests
 
     @Test("parseAssertion parses standalone assertion XML")
-    func test_parseAssertion_standaloneXML_parsesSuccessfully() throws {
+    func parseAssertion_standaloneXML_parsesSuccessfully() throws {
         let data = makeStandaloneAssertionXML()
         let assertion = try parser.parseAssertion(data)
 
@@ -339,7 +339,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseAssertion extracts conditions from standalone assertion")
-    func test_parseAssertion_standaloneXML_parsesConditions() throws {
+    func parseAssertion_standaloneXML_parsesConditions() throws {
         let data = makeStandaloneAssertionXML(audience: "https://sp.example.com")
         let assertion = try parser.parseAssertion(data)
 
@@ -348,7 +348,7 @@ struct SAMLParserTests {
     }
 
     @Test("parseAssertion with invalid XML throws error")
-    func test_parseAssertion_invalidXML_throwsError() {
+    func parseAssertion_invalidXML_throwsError() {
         let badData = "<not-an-assertion/>".data(using: .utf8)!
 
         #expect(throws: (any Error).self) {
@@ -359,7 +359,7 @@ struct SAMLParserTests {
     // MARK: - Multiple Attribute Statements
 
     @Test("parseResponse handles multiple attribute statements in assertion")
-    func test_parseResponse_multipleAttributeStatements_parsesAll() throws {
+    func parseResponse_multipleAttributeStatements_parsesAll() throws {
         let now = Date()
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
@@ -412,7 +412,7 @@ struct SAMLParserTests {
             </saml:Assertion>
         </samlp:Response>
         """
-        let data = xml.data(using: .utf8)!
+        let data = try #require(xml.data(using: .utf8))
 
         let response = try parser.parseResponse(data)
         let assertion = try #require(response.primaryAssertion)
@@ -424,9 +424,214 @@ struct SAMLParserTests {
     }
 }
 
-// MARK: - SAMLAssertion Tests
+// MARK: - SAMLAssertionTests
 
 struct SAMLAssertionTests {
+    // MARK: Internal
+
+    // MARK: - isValid Tests
+
+    @Test("isValid returns true when current time is within assertion time bounds")
+    func isValid_currentTimeWithinBounds_returnsTrue() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-300),
+            notOnOrAfter: now.addingTimeInterval(3600)
+        )
+        #expect(assertion.isValid())
+    }
+
+    @Test("isValid returns false when assertion has expired")
+    func isValid_expiredAssertion_returnsFalse() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-7200),
+            notOnOrAfter: now.addingTimeInterval(-3600)
+        )
+        #expect(!assertion.isValid())
+    }
+
+    @Test("isValid returns false when assertion is not yet valid")
+    func isValid_notYetValid_returnsFalse() {
+        let now = Date()
+        // notBefore is far in the future; even with default 300s clock skew
+        // the assertion should still be invalid if notBefore > now + tolerance
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(600),
+            notOnOrAfter: now.addingTimeInterval(7200)
+        )
+        // Default clockSkewTolerance is 300s, so notBefore - 300 = now + 300, which is > now
+        #expect(!assertion.isValid())
+    }
+
+    @Test("isValid with clock skew tolerance allows assertion slightly before notBefore")
+    func isValid_clockSkewTolerance_allowsSlightlyEarlyAssertion() {
+        let now = Date()
+        // notBefore is 200 seconds in the future — within default 300s tolerance
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(200),
+            notOnOrAfter: now.addingTimeInterval(7200)
+        )
+        #expect(assertion.isValid(clockSkewTolerance: 300))
+    }
+
+    @Test("isValid with clock skew tolerance allows assertion slightly after notOnOrAfter")
+    func isValid_clockSkewTolerance_allowsSlightlyExpiredAssertion() {
+        let now = Date()
+        // notOnOrAfter was 200 seconds ago — within default 300s tolerance
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-3600),
+            notOnOrAfter: now.addingTimeInterval(-200)
+        )
+        #expect(assertion.isValid(clockSkewTolerance: 300))
+    }
+
+    @Test("isValid returns false when expired beyond clock skew tolerance")
+    func isValid_expiredBeyondTolerance_returnsFalse() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-7200),
+            notOnOrAfter: now.addingTimeInterval(-400)
+        )
+        #expect(!assertion.isValid(clockSkewTolerance: 300))
+    }
+
+    // MARK: - isIntendedFor Tests
+
+    @Test("isIntendedFor returns true when audience matches")
+    func isIntendedFor_matchingAudience_returnsTrue() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-60),
+            notOnOrAfter: now.addingTimeInterval(3600),
+            audience: "https://sp.example.com"
+        )
+        #expect(assertion.isIntendedFor(audience: "https://sp.example.com"))
+    }
+
+    @Test("isIntendedFor returns false when audience does not match")
+    func isIntendedFor_nonMatchingAudience_returnsFalse() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-60),
+            notOnOrAfter: now.addingTimeInterval(3600),
+            audience: "https://sp.example.com"
+        )
+        #expect(!assertion.isIntendedFor(audience: "https://other.example.com"))
+    }
+
+    @Test("isIntendedFor is case sensitive")
+    func isIntendedFor_casesDiffer_returnsFalse() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-60),
+            notOnOrAfter: now.addingTimeInterval(3600),
+            audience: "https://sp.example.com"
+        )
+        // Audience comparison should be case-sensitive
+        #expect(!assertion.isIntendedFor(audience: "HTTPS://SP.EXAMPLE.COM"))
+    }
+
+    // MARK: - Convenience Properties Tests
+
+    @Test("email convenience property returns email from attribute statements")
+    func email_withEmailAttribute_returnsEmail() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-60),
+            notOnOrAfter: now.addingTimeInterval(3600),
+            email: "john.doe@example.com"
+        )
+        #expect(assertion.email == "john.doe@example.com")
+    }
+
+    @Test("firstName convenience property returns first name from attribute statements")
+    func firstName_withFirstNameAttribute_returnsFirstName() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-60),
+            notOnOrAfter: now.addingTimeInterval(3600),
+            firstName: "John"
+        )
+        #expect(assertion.firstName == "John")
+    }
+
+    @Test("lastName convenience property returns last name from attribute statements")
+    func lastName_withLastNameAttribute_returnsLastName() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-60),
+            notOnOrAfter: now.addingTimeInterval(3600),
+            lastName: "Doe"
+        )
+        #expect(assertion.lastName == "Doe")
+    }
+
+    @Test("groups convenience property returns all group values")
+    func groups_withGroupsAttribute_returnsAllGroups() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-60),
+            notOnOrAfter: now.addingTimeInterval(3600),
+            groups: ["admin", "engineers", "users"]
+        )
+        let groups = assertion.groups
+        #expect(groups.count == 3)
+        #expect(groups.contains("admin"))
+        #expect(groups.contains("engineers"))
+        #expect(groups.contains("users"))
+    }
+
+    @Test("userId returns subject nameID")
+    func userId_returnsNameID() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-60),
+            notOnOrAfter: now.addingTimeInterval(3600),
+            email: "specific-user@example.com"
+        )
+        #expect(assertion.userId == "specific-user@example.com")
+    }
+
+    @Test("displayName returns nil when no displayName attribute exists")
+    func displayName_noDisplayNameAttribute_returnsNil() {
+        let now = Date()
+        let assertion = makeAssertion(
+            notBefore: now.addingTimeInterval(-60),
+            notOnOrAfter: now.addingTimeInterval(3600)
+        )
+        // makeAssertion does not include a displayName attribute
+        #expect(assertion.displayName == nil)
+    }
+
+    @Test("email returns nil when no email attribute exists")
+    func email_noEmailAttribute_returnsNil() {
+        let conditions = SAMLConditions(
+            notBefore: Date().addingTimeInterval(-60),
+            notOnOrAfter: Date().addingTimeInterval(3600),
+            audienceRestrictions: []
+        )
+        let subject = SAMLSubject(
+            nameID: "user@example.com",
+            nameIDFormat: .emailAddress,
+            nameQualifier: nil,
+            confirmations: []
+        )
+        let assertion = SAMLAssertion(
+            id: "_test",
+            issuer: "https://idp.example.com",
+            issueInstant: Date(),
+            version: "2.0",
+            subject: subject,
+            conditions: conditions,
+            authnStatement: nil,
+            attributeStatements: []
+        )
+        #expect(assertion.email == nil)
+    }
+
+    // MARK: Private
+
     private func makeAssertion(
         notBefore: Date,
         notOnOrAfter: Date,
@@ -453,14 +658,14 @@ struct SAMLAssertionTests {
                         notOnOrAfter: notOnOrAfter,
                         inResponseTo: "_req1"
                     )
-                )
+                ),
             ]
         )
         let attributes: [SAMLAttribute] = [
             SAMLAttribute(name: "email", friendlyName: "email", nameFormat: nil, values: [email]),
             SAMLAttribute(name: "firstName", friendlyName: "firstName", nameFormat: nil, values: [firstName]),
             SAMLAttribute(name: "lastName", friendlyName: "lastName", nameFormat: nil, values: [lastName]),
-            SAMLAttribute(name: "groups", friendlyName: nil, nameFormat: nil, values: groups)
+            SAMLAttribute(name: "groups", friendlyName: nil, nameFormat: nil, values: groups),
         ]
         return SAMLAssertion(
             id: "_test_assertion",
@@ -473,212 +678,199 @@ struct SAMLAssertionTests {
             attributeStatements: [SAMLAttributeStatement(attributes: attributes)]
         )
     }
+}
 
-    // MARK: - isValid Tests
+// MARK: - SAMLResponseTests
 
-    @Test("isValid returns true when current time is within assertion time bounds")
-    func test_isValid_currentTimeWithinBounds_returnsTrue() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-300),
-            notOnOrAfter: now.addingTimeInterval(3600)
+struct SAMLResponseTests {
+    // MARK: Internal
+
+    // MARK: - validate Tests
+
+    @Test("validate returns success for valid response")
+    func validate_validResponse_returnsSuccess() {
+        let response = makeValidResponse()
+        let result = response.validate(
+            expectedDestination: "https://sp.example.com/acs",
+            expectedRequestId: "_request789",
+            audience: "https://sp.example.com"
         )
-        #expect(assertion.isValid())
+        #expect(result.isSuccess)
+        #expect(result.error == nil)
     }
 
-    @Test("isValid returns false when assertion has expired")
-    func test_isValid_expiredAssertion_returnsFalse() {
+    @Test("validate returns failure when status is not success")
+    func validate_failedStatus_returnsAuthenticationFailed() {
+        let response = makeValidResponse(statusCode: .authnFailed)
+        let result = response.validate(
+            expectedDestination: "https://sp.example.com/acs",
+            expectedRequestId: nil,
+            audience: "https://sp.example.com"
+        )
+        #expect(!result.isSuccess)
+        if case let .failure(error) = result {
+            if case .authenticationFailed = error {
+                // Expected
+            } else {
+                Issue.record("Expected authenticationFailed error, got \(error)")
+            }
+        } else {
+            Issue.record("Expected failure result")
+        }
+    }
+
+    @Test("validate returns failure when destination does not match")
+    func validate_wrongDestination_returnsInvalidDestination() {
+        let response = makeValidResponse(destination: "https://sp.example.com/acs")
+        let result = response.validate(
+            expectedDestination: "https://other.example.com/acs",
+            expectedRequestId: nil,
+            audience: "https://sp.example.com"
+        )
+        #expect(!result.isSuccess)
+        if case let .failure(error) = result {
+            if case .invalidDestination = error {
+                // Expected
+            } else {
+                Issue.record("Expected invalidDestination error, got \(error)")
+            }
+        } else {
+            Issue.record("Expected failure result")
+        }
+    }
+
+    @Test("validate returns failure when InResponseTo does not match")
+    func validate_wrongInResponseTo_returnsInvalidInResponseTo() {
+        let response = makeValidResponse(inResponseTo: "_actual_request_id")
+        let result = response.validate(
+            expectedDestination: "https://sp.example.com/acs",
+            expectedRequestId: "_different_request_id",
+            audience: "https://sp.example.com"
+        )
+        #expect(!result.isSuccess)
+        if case let .failure(error) = result {
+            if case .invalidInResponseTo = error {
+                // Expected
+            } else {
+                Issue.record("Expected invalidInResponseTo error, got \(error)")
+            }
+        } else {
+            Issue.record("Expected failure result")
+        }
+    }
+
+    @Test("validate returns failure when assertion has expired")
+    func validate_expiredAssertion_returnsAssertionExpired() {
         let now = Date()
-        let assertion = makeAssertion(
+        let response = makeValidResponse(
             notBefore: now.addingTimeInterval(-7200),
             notOnOrAfter: now.addingTimeInterval(-3600)
         )
-        #expect(!assertion.isValid())
-    }
-
-    @Test("isValid returns false when assertion is not yet valid")
-    func test_isValid_notYetValid_returnsFalse() {
-        let now = Date()
-        // notBefore is far in the future; even with default 300s clock skew
-        // the assertion should still be invalid if notBefore > now + tolerance
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(600),
-            notOnOrAfter: now.addingTimeInterval(7200)
-        )
-        // Default clockSkewTolerance is 300s, so notBefore - 300 = now + 300, which is > now
-        #expect(!assertion.isValid())
-    }
-
-    @Test("isValid with clock skew tolerance allows assertion slightly before notBefore")
-    func test_isValid_clockSkewTolerance_allowsSlightlyEarlyAssertion() {
-        let now = Date()
-        // notBefore is 200 seconds in the future — within default 300s tolerance
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(200),
-            notOnOrAfter: now.addingTimeInterval(7200)
-        )
-        #expect(assertion.isValid(clockSkewTolerance: 300))
-    }
-
-    @Test("isValid with clock skew tolerance allows assertion slightly after notOnOrAfter")
-    func test_isValid_clockSkewTolerance_allowsSlightlyExpiredAssertion() {
-        let now = Date()
-        // notOnOrAfter was 200 seconds ago — within default 300s tolerance
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-3600),
-            notOnOrAfter: now.addingTimeInterval(-200)
-        )
-        #expect(assertion.isValid(clockSkewTolerance: 300))
-    }
-
-    @Test("isValid returns false when expired beyond clock skew tolerance")
-    func test_isValid_expiredBeyondTolerance_returnsFalse() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-7200),
-            notOnOrAfter: now.addingTimeInterval(-400)
-        )
-        #expect(!assertion.isValid(clockSkewTolerance: 300))
-    }
-
-    // MARK: - isIntendedFor Tests
-
-    @Test("isIntendedFor returns true when audience matches")
-    func test_isIntendedFor_matchingAudience_returnsTrue() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-60),
-            notOnOrAfter: now.addingTimeInterval(3600),
+        let result = response.validate(
+            expectedDestination: "https://sp.example.com/acs",
+            expectedRequestId: nil,
             audience: "https://sp.example.com"
         )
-        #expect(assertion.isIntendedFor(audience: "https://sp.example.com"))
+        #expect(!result.isSuccess)
+        if case let .failure(error) = result {
+            #expect(error == .assertionExpired)
+        } else {
+            Issue.record("Expected failure result")
+        }
     }
 
-    @Test("isIntendedFor returns false when audience does not match")
-    func test_isIntendedFor_nonMatchingAudience_returnsFalse() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-60),
-            notOnOrAfter: now.addingTimeInterval(3600),
-            audience: "https://sp.example.com"
+    @Test("validate returns failure when audience does not match")
+    func validate_wrongAudience_returnsInvalidAudience() {
+        let response = makeValidResponse(audience: "https://sp.example.com")
+        let result = response.validate(
+            expectedDestination: "https://sp.example.com/acs",
+            expectedRequestId: nil,
+            audience: "https://different-sp.example.com"
         )
-        #expect(!assertion.isIntendedFor(audience: "https://other.example.com"))
+        #expect(!result.isSuccess)
+        if case let .failure(error) = result {
+            if case .invalidAudience = error {
+                // Expected
+            } else {
+                Issue.record("Expected invalidAudience error, got \(error)")
+            }
+        } else {
+            Issue.record("Expected failure result")
+        }
     }
 
-    @Test("isIntendedFor is case sensitive")
-    func test_isIntendedFor_casesDiffer_returnsFalse() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-60),
-            notOnOrAfter: now.addingTimeInterval(3600),
+    @Test("validate returns failure when no assertion is present")
+    func validate_noAssertion_returnsMissingAssertion() {
+        let response = SAMLResponse(
+            id: "_response",
+            inResponseTo: nil,
+            destination: "https://sp.example.com/acs",
+            issueInstant: Date(),
+            issuer: "https://idp.example.com",
+            version: "2.0",
+            status: SAMLStatus(code: .success, subCode: nil, message: nil),
+            assertions: []
+        )
+        let result = response.validate(
+            expectedDestination: "https://sp.example.com/acs",
+            expectedRequestId: nil,
             audience: "https://sp.example.com"
         )
-        // Audience comparison should be case-sensitive
-        #expect(!assertion.isIntendedFor(audience: "HTTPS://SP.EXAMPLE.COM"))
+        #expect(!result.isSuccess)
+        if case let .failure(error) = result {
+            #expect(error == .missingAssertion)
+        } else {
+            Issue.record("Expected failure result")
+        }
+    }
+
+    @Test("validate passes when expectedRequestId is nil (not checking InResponseTo)")
+    func validate_nilExpectedRequestId_doesNotCheckInResponseTo() {
+        let response = makeValidResponse(inResponseTo: "_some_request")
+        let result = response.validate(
+            expectedDestination: "https://sp.example.com/acs",
+            expectedRequestId: nil,
+            audience: "https://sp.example.com"
+        )
+        #expect(result.isSuccess)
     }
 
     // MARK: - Convenience Properties Tests
 
-    @Test("email convenience property returns email from attribute statements")
-    func test_email_withEmailAttribute_returnsEmail() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-60),
-            notOnOrAfter: now.addingTimeInterval(3600),
-            email: "john.doe@example.com"
-        )
-        #expect(assertion.email == "john.doe@example.com")
+    @Test("isSuccess returns true when status code is success")
+    func isSuccess_successStatus_returnsTrue() {
+        let response = makeValidResponse(statusCode: .success)
+        #expect(response.isSuccess)
     }
 
-    @Test("firstName convenience property returns first name from attribute statements")
-    func test_firstName_withFirstNameAttribute_returnsFirstName() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-60),
-            notOnOrAfter: now.addingTimeInterval(3600),
-            firstName: "John"
-        )
-        #expect(assertion.firstName == "John")
+    @Test("isSuccess returns false when status code is not success")
+    func isSuccess_nonSuccessStatus_returnsFalse() {
+        let response = makeValidResponse(statusCode: .authnFailed)
+        #expect(!response.isSuccess)
     }
 
-    @Test("lastName convenience property returns last name from attribute statements")
-    func test_lastName_withLastNameAttribute_returnsLastName() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-60),
-            notOnOrAfter: now.addingTimeInterval(3600),
-            lastName: "Doe"
-        )
-        #expect(assertion.lastName == "Doe")
+    @Test("errorMessage returns nil on successful response")
+    func errorMessage_successStatus_returnsNil() {
+        let response = makeValidResponse(statusCode: .success)
+        #expect(response.errorMessage == nil)
     }
 
-    @Test("groups convenience property returns all group values")
-    func test_groups_withGroupsAttribute_returnsAllGroups() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-60),
-            notOnOrAfter: now.addingTimeInterval(3600),
-            groups: ["admin", "engineers", "users"]
-        )
-        let groups = assertion.groups
-        #expect(groups.count == 3)
-        #expect(groups.contains("admin"))
-        #expect(groups.contains("engineers"))
-        #expect(groups.contains("users"))
+    @Test("errorMessage returns display name on failed response")
+    func errorMessage_failedStatus_returnsDisplayName() {
+        let response = makeValidResponse(statusCode: .authnFailed)
+        #expect(response.errorMessage != nil)
+        #expect(response.errorMessage == SAMLStatusCode.authnFailed.displayName)
     }
 
-    @Test("userId returns subject nameID")
-    func test_userId_returnsNameID() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-60),
-            notOnOrAfter: now.addingTimeInterval(3600),
-            email: "specific-user@example.com"
-        )
-        #expect(assertion.userId == "specific-user@example.com")
+    @Test("primaryAssertion returns first assertion")
+    func primaryAssertion_withAssertions_returnsFirstAssertion() {
+        let response = makeValidResponse()
+        #expect(response.primaryAssertion != nil)
+        #expect(response.primaryAssertion?.id == "_assertion")
     }
 
-    @Test("displayName returns nil when no displayName attribute exists")
-    func test_displayName_noDisplayNameAttribute_returnsNil() {
-        let now = Date()
-        let assertion = makeAssertion(
-            notBefore: now.addingTimeInterval(-60),
-            notOnOrAfter: now.addingTimeInterval(3600)
-        )
-        // makeAssertion does not include a displayName attribute
-        #expect(assertion.displayName == nil)
-    }
+    // MARK: Private
 
-    @Test("email returns nil when no email attribute exists")
-    func test_email_noEmailAttribute_returnsNil() {
-        let conditions = SAMLConditions(
-            notBefore: Date().addingTimeInterval(-60),
-            notOnOrAfter: Date().addingTimeInterval(3600),
-            audienceRestrictions: []
-        )
-        let subject = SAMLSubject(
-            nameID: "user@example.com",
-            nameIDFormat: .emailAddress,
-            nameQualifier: nil,
-            confirmations: []
-        )
-        let assertion = SAMLAssertion(
-            id: "_test",
-            issuer: "https://idp.example.com",
-            issueInstant: Date(),
-            version: "2.0",
-            subject: subject,
-            conditions: conditions,
-            authnStatement: nil,
-            attributeStatements: []
-        )
-        #expect(assertion.email == nil)
-    }
-}
-
-// MARK: - SAMLResponse Tests
-
-struct SAMLResponseTests {
     private func makeValidResponse(
         destination: String = "https://sp.example.com/acs",
         inResponseTo: String? = "_request789",
@@ -724,206 +916,22 @@ struct SAMLResponseTests {
             assertions: [assertion]
         )
     }
-
-    // MARK: - validate Tests
-
-    @Test("validate returns success for valid response")
-    func test_validate_validResponse_returnsSuccess() {
-        let response = makeValidResponse()
-        let result = response.validate(
-            expectedDestination: "https://sp.example.com/acs",
-            expectedRequestId: "_request789",
-            audience: "https://sp.example.com"
-        )
-        #expect(result.isSuccess)
-        #expect(result.error == nil)
-    }
-
-    @Test("validate returns failure when status is not success")
-    func test_validate_failedStatus_returnsAuthenticationFailed() {
-        let response = makeValidResponse(statusCode: .authnFailed)
-        let result = response.validate(
-            expectedDestination: "https://sp.example.com/acs",
-            expectedRequestId: nil,
-            audience: "https://sp.example.com"
-        )
-        #expect(!result.isSuccess)
-        if case .failure(let error) = result {
-            if case .authenticationFailed = error {
-                // Expected
-            } else {
-                Issue.record("Expected authenticationFailed error, got \(error)")
-            }
-        } else {
-            Issue.record("Expected failure result")
-        }
-    }
-
-    @Test("validate returns failure when destination does not match")
-    func test_validate_wrongDestination_returnsInvalidDestination() {
-        let response = makeValidResponse(destination: "https://sp.example.com/acs")
-        let result = response.validate(
-            expectedDestination: "https://other.example.com/acs",
-            expectedRequestId: nil,
-            audience: "https://sp.example.com"
-        )
-        #expect(!result.isSuccess)
-        if case .failure(let error) = result {
-            if case .invalidDestination = error {
-                // Expected
-            } else {
-                Issue.record("Expected invalidDestination error, got \(error)")
-            }
-        } else {
-            Issue.record("Expected failure result")
-        }
-    }
-
-    @Test("validate returns failure when InResponseTo does not match")
-    func test_validate_wrongInResponseTo_returnsInvalidInResponseTo() {
-        let response = makeValidResponse(inResponseTo: "_actual_request_id")
-        let result = response.validate(
-            expectedDestination: "https://sp.example.com/acs",
-            expectedRequestId: "_different_request_id",
-            audience: "https://sp.example.com"
-        )
-        #expect(!result.isSuccess)
-        if case .failure(let error) = result {
-            if case .invalidInResponseTo = error {
-                // Expected
-            } else {
-                Issue.record("Expected invalidInResponseTo error, got \(error)")
-            }
-        } else {
-            Issue.record("Expected failure result")
-        }
-    }
-
-    @Test("validate returns failure when assertion has expired")
-    func test_validate_expiredAssertion_returnsAssertionExpired() {
-        let now = Date()
-        let response = makeValidResponse(
-            notBefore: now.addingTimeInterval(-7200),
-            notOnOrAfter: now.addingTimeInterval(-3600)
-        )
-        let result = response.validate(
-            expectedDestination: "https://sp.example.com/acs",
-            expectedRequestId: nil,
-            audience: "https://sp.example.com"
-        )
-        #expect(!result.isSuccess)
-        if case .failure(let error) = result {
-            #expect(error == .assertionExpired)
-        } else {
-            Issue.record("Expected failure result")
-        }
-    }
-
-    @Test("validate returns failure when audience does not match")
-    func test_validate_wrongAudience_returnsInvalidAudience() {
-        let response = makeValidResponse(audience: "https://sp.example.com")
-        let result = response.validate(
-            expectedDestination: "https://sp.example.com/acs",
-            expectedRequestId: nil,
-            audience: "https://different-sp.example.com"
-        )
-        #expect(!result.isSuccess)
-        if case .failure(let error) = result {
-            if case .invalidAudience = error {
-                // Expected
-            } else {
-                Issue.record("Expected invalidAudience error, got \(error)")
-            }
-        } else {
-            Issue.record("Expected failure result")
-        }
-    }
-
-    @Test("validate returns failure when no assertion is present")
-    func test_validate_noAssertion_returnsMissingAssertion() {
-        let response = SAMLResponse(
-            id: "_response",
-            inResponseTo: nil,
-            destination: "https://sp.example.com/acs",
-            issueInstant: Date(),
-            issuer: "https://idp.example.com",
-            version: "2.0",
-            status: SAMLStatus(code: .success, subCode: nil, message: nil),
-            assertions: []
-        )
-        let result = response.validate(
-            expectedDestination: "https://sp.example.com/acs",
-            expectedRequestId: nil,
-            audience: "https://sp.example.com"
-        )
-        #expect(!result.isSuccess)
-        if case .failure(let error) = result {
-            #expect(error == .missingAssertion)
-        } else {
-            Issue.record("Expected failure result")
-        }
-    }
-
-    @Test("validate passes when expectedRequestId is nil (not checking InResponseTo)")
-    func test_validate_nilExpectedRequestId_doesNotCheckInResponseTo() {
-        let response = makeValidResponse(inResponseTo: "_some_request")
-        let result = response.validate(
-            expectedDestination: "https://sp.example.com/acs",
-            expectedRequestId: nil,
-            audience: "https://sp.example.com"
-        )
-        #expect(result.isSuccess)
-    }
-
-    // MARK: - Convenience Properties Tests
-
-    @Test("isSuccess returns true when status code is success")
-    func test_isSuccess_successStatus_returnsTrue() {
-        let response = makeValidResponse(statusCode: .success)
-        #expect(response.isSuccess)
-    }
-
-    @Test("isSuccess returns false when status code is not success")
-    func test_isSuccess_nonSuccessStatus_returnsFalse() {
-        let response = makeValidResponse(statusCode: .authnFailed)
-        #expect(!response.isSuccess)
-    }
-
-    @Test("errorMessage returns nil on successful response")
-    func test_errorMessage_successStatus_returnsNil() {
-        let response = makeValidResponse(statusCode: .success)
-        #expect(response.errorMessage == nil)
-    }
-
-    @Test("errorMessage returns display name on failed response")
-    func test_errorMessage_failedStatus_returnsDisplayName() {
-        let response = makeValidResponse(statusCode: .authnFailed)
-        #expect(response.errorMessage != nil)
-        #expect(response.errorMessage == SAMLStatusCode.authnFailed.displayName)
-    }
-
-    @Test("primaryAssertion returns first assertion")
-    func test_primaryAssertion_withAssertions_returnsFirstAssertion() {
-        let response = makeValidResponse()
-        #expect(response.primaryAssertion != nil)
-        #expect(response.primaryAssertion?.id == "_assertion")
-    }
 }
 
-// MARK: - SAMLValidationError Tests
+// MARK: - SAMLValidationErrorTests
 
 struct SAMLValidationErrorTests {
     // MARK: - Error Description Tests
 
     @Test("errorDescription is not empty for authenticationFailed")
-    func test_errorDescription_authenticationFailed_isNotEmpty() {
+    func errorDescription_authenticationFailed_isNotEmpty() {
         let error = SAMLValidationError.authenticationFailed("Bad credentials")
         #expect((error.errorDescription ?? "").isEmpty == false)
         #expect(error.errorDescription?.contains("Bad credentials") == true)
     }
 
     @Test("errorDescription is not empty for invalidDestination")
-    func test_errorDescription_invalidDestination_isNotEmpty() {
+    func errorDescription_invalidDestination_isNotEmpty() {
         let error = SAMLValidationError.invalidDestination(
             expected: "https://expected.com",
             actual: "https://actual.com"
@@ -933,7 +941,7 @@ struct SAMLValidationErrorTests {
     }
 
     @Test("errorDescription is not empty for invalidInResponseTo")
-    func test_errorDescription_invalidInResponseTo_isNotEmpty() {
+    func errorDescription_invalidInResponseTo_isNotEmpty() {
         let error = SAMLValidationError.invalidInResponseTo(
             expected: "_req1",
             actual: "_req2"
@@ -943,39 +951,39 @@ struct SAMLValidationErrorTests {
     }
 
     @Test("errorDescription is not empty for missingAssertion")
-    func test_errorDescription_missingAssertion_isNotEmpty() {
+    func errorDescription_missingAssertion_isNotEmpty() {
         let error = SAMLValidationError.missingAssertion
         #expect((error.errorDescription ?? "").isEmpty == false)
     }
 
     @Test("errorDescription is not empty for assertionExpired")
-    func test_errorDescription_assertionExpired_isNotEmpty() {
+    func errorDescription_assertionExpired_isNotEmpty() {
         let error = SAMLValidationError.assertionExpired
         #expect((error.errorDescription ?? "").isEmpty == false)
     }
 
     @Test("errorDescription is not empty for invalidAudience")
-    func test_errorDescription_invalidAudience_isNotEmpty() {
+    func errorDescription_invalidAudience_isNotEmpty() {
         let error = SAMLValidationError.invalidAudience(expected: "https://sp.example.com")
         #expect((error.errorDescription ?? "").isEmpty == false)
         #expect(error.errorDescription?.contains("https://sp.example.com") == true)
     }
 
     @Test("errorDescription is not empty for signatureInvalid")
-    func test_errorDescription_signatureInvalid_isNotEmpty() {
+    func errorDescription_signatureInvalid_isNotEmpty() {
         let error = SAMLValidationError.signatureInvalid
         #expect((error.errorDescription ?? "").isEmpty == false)
     }
 
     @Test("errorDescription is not empty for xmlParsingFailed")
-    func test_errorDescription_xmlParsingFailed_isNotEmpty() {
+    func errorDescription_xmlParsingFailed_isNotEmpty() {
         let error = SAMLValidationError.xmlParsingFailed("Unexpected token")
         #expect((error.errorDescription ?? "").isEmpty == false)
         #expect(error.errorDescription?.contains("Unexpected token") == true)
     }
 
     @Test("errorDescription is not empty for invalidStructure")
-    func test_errorDescription_invalidStructure_isNotEmpty() {
+    func errorDescription_invalidStructure_isNotEmpty() {
         let error = SAMLValidationError.invalidStructure("Missing Response ID")
         #expect((error.errorDescription ?? "").isEmpty == false)
         #expect(error.errorDescription?.contains("Missing Response ID") == true)
@@ -984,7 +992,7 @@ struct SAMLValidationErrorTests {
     // MARK: - Recovery Suggestion Tests
 
     @Test("recoverySuggestion is not nil for all error cases")
-    func test_recoverySuggestion_allCases_isNotNil() {
+    func recoverySuggestion_allCases_isNotNil() {
         let errors: [SAMLValidationError] = [
             .authenticationFailed("reason"),
             .invalidDestination(expected: "a", actual: "b"),
@@ -998,7 +1006,7 @@ struct SAMLValidationErrorTests {
             .certificateMismatch,
             .xmlParsingFailed("reason"),
             .invalidStructure("reason"),
-            .issuerMismatch(expected: "a", actual: "b")
+            .issuerMismatch(expected: "a", actual: "b"),
         ]
 
         for error in errors {
@@ -1007,13 +1015,13 @@ struct SAMLValidationErrorTests {
     }
 
     @Test("recoverySuggestion is not empty for authenticationFailed")
-    func test_recoverySuggestion_authenticationFailed_isNotEmpty() {
+    func recoverySuggestion_authenticationFailed_isNotEmpty() {
         let error = SAMLValidationError.authenticationFailed("reason")
         #expect((error.recoverySuggestion ?? "").isEmpty == false)
     }
 
     @Test("recoverySuggestion is not empty for assertionExpired")
-    func test_recoverySuggestion_assertionExpired_isNotEmpty() {
+    func recoverySuggestion_assertionExpired_isNotEmpty() {
         let error = SAMLValidationError.assertionExpired
         #expect((error.recoverySuggestion ?? "").isEmpty == false)
     }
@@ -1021,23 +1029,23 @@ struct SAMLValidationErrorTests {
     // MARK: - Equatable Tests
 
     @Test("SAMLValidationError equality holds for same cases")
-    func test_equality_sameCases_areEqual() {
+    func equality_sameCases_areEqual() {
         #expect(SAMLValidationError.missingAssertion == SAMLValidationError.missingAssertion)
         #expect(SAMLValidationError.assertionExpired == SAMLValidationError.assertionExpired)
         #expect(SAMLValidationError.signatureInvalid == SAMLValidationError.signatureInvalid)
     }
 
     @Test("SAMLValidationError inequality holds for different cases")
-    func test_equality_differentCases_areNotEqual() {
+    func equality_differentCases_areNotEqual() {
         #expect(SAMLValidationError.missingAssertion != SAMLValidationError.assertionExpired)
     }
 }
 
-// MARK: - SAMLStatusCode Tests
+// MARK: - SAMLStatusCodeTests
 
 struct SAMLStatusCodeTests {
     @Test("SAMLStatusCode displayName is non-empty for all cases")
-    func test_displayName_allCases_isNotEmpty() {
+    func displayName_allCases_isNotEmpty() {
         let codes: [SAMLStatusCode] = [
             .success, .requester, .responder, .versionMismatch,
             .authnFailed, .invalidAttrNameOrValue, .invalidNameIDPolicy,
@@ -1045,7 +1053,7 @@ struct SAMLStatusCodeTests {
             .partialLogout, .proxyCountExceeded, .requestDenied, .requestUnsupported,
             .requestVersionDeprecated, .requestVersionTooHigh, .requestVersionTooLow,
             .resourceNotRecognized, .tooManyResponses, .unknownAttrProfile,
-            .unknownPrincipal, .unsupportedBinding, .unknown
+            .unknownPrincipal, .unsupportedBinding, .unknown,
         ]
         for code in codes {
             #expect(!code.displayName.isEmpty, "displayName should not be empty for \(code)")
@@ -1053,19 +1061,19 @@ struct SAMLStatusCodeTests {
     }
 
     @Test("SAMLStatusCode rawValue initializer maps success correctly")
-    func test_rawValueInit_success_mapsToSuccess() {
+    func rawValueInit_success_mapsToSuccess() {
         let code = SAMLStatusCode(rawValue: "urn:oasis:names:tc:SAML:2.0:status:Success")
         #expect(code == .success)
     }
 
     @Test("SAMLStatusCode rawValue initializer maps authnFailed correctly")
-    func test_rawValueInit_authnFailed_mapsToAuthnFailed() {
+    func rawValueInit_authnFailed_mapsToAuthnFailed() {
         let code = SAMLStatusCode(rawValue: "urn:oasis:names:tc:SAML:2.0:status:AuthnFailed")
         #expect(code == .authnFailed)
     }
 
     @Test("SAMLStatusCode rawValue initializer defaults to unknown for unrecognized value")
-    func test_rawValueInit_unknownString_mapsToUnknown() {
+    func rawValueInit_unknownString_mapsToUnknown() {
         let code = SAMLStatusCode(rawValue: "urn:oasis:names:tc:SAML:2.0:status:SomethingUnknown")
         #expect(code == .unknown)
     }

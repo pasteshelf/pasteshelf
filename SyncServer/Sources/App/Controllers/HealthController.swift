@@ -7,6 +7,8 @@
 
 import Vapor
 
+// MARK: - HealthController
+
 struct HealthController: RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
         routes.get("health", use: healthCheck)
@@ -23,6 +25,8 @@ struct HealthController: RouteCollection {
         }
     }
 }
+
+// MARK: - HealthResponse
 
 struct HealthResponse: Content {
     let status: String

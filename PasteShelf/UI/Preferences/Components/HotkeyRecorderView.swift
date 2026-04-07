@@ -10,10 +10,10 @@ import AppKit
 import Carbon.HIToolbox
 import SwiftUI
 
+// MARK: - HotkeyRecorderView
+
 /// SwiftUI wrapper for hotkey recording
 struct HotkeyRecorderView: View {
-    // MARK: - Properties
-
     @Binding var hotkey: StoredHotkey
     @Binding var isRecording: Bool
 
@@ -34,9 +34,34 @@ struct HotkeyRecorderView: View {
     }
 }
 
-// MARK: - NSViewRepresentable
+// MARK: - HotkeyRecorderRepresentable
 
 struct HotkeyRecorderRepresentable: NSViewRepresentable {
+    class Coordinator: NSObject, HotkeyRecorderNSViewDelegate {
+        // MARK: Lifecycle
+
+        init(_ parent: HotkeyRecorderRepresentable) {
+            self.parent = parent
+        }
+
+        // MARK: Internal
+
+        var parent: HotkeyRecorderRepresentable
+
+        func hotkeyRecorderDidStartRecording() {
+            parent.isRecording = true
+        }
+
+        func hotkeyRecorderDidStopRecording() {
+            parent.isRecording = false
+        }
+
+        func hotkeyRecorderDidRecordHotkey(_ hotkey: StoredHotkey) {
+            parent.hotkey = hotkey
+            parent.isRecording = false
+        }
+    }
+
     @Binding var hotkey: StoredHotkey
     @Binding var isRecording: Bool
 
@@ -55,30 +80,9 @@ struct HotkeyRecorderRepresentable: NSViewRepresentable {
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-
-    class Coordinator: NSObject, HotkeyRecorderNSViewDelegate {
-        var parent: HotkeyRecorderRepresentable
-
-        init(_ parent: HotkeyRecorderRepresentable) {
-            self.parent = parent
-        }
-
-        func hotkeyRecorderDidStartRecording() {
-            parent.isRecording = true
-        }
-
-        func hotkeyRecorderDidStopRecording() {
-            parent.isRecording = false
-        }
-
-        func hotkeyRecorderDidRecordHotkey(_ hotkey: StoredHotkey) {
-            parent.hotkey = hotkey
-            parent.isRecording = false
-        }
-    }
 }
 
-// MARK: - Delegate Protocol
+// MARK: - HotkeyRecorderNSViewDelegate
 
 protocol HotkeyRecorderNSViewDelegate: AnyObject {
     func hotkeyRecorderDidStartRecording()
@@ -86,22 +90,10 @@ protocol HotkeyRecorderNSViewDelegate: AnyObject {
     func hotkeyRecorderDidRecordHotkey(_ hotkey: StoredHotkey)
 }
 
-// MARK: - NSView Implementation
+// MARK: - HotkeyRecorderNSView
 
 class HotkeyRecorderNSView: NSView {
-    // MARK: - Properties
-
-    weak var delegate: HotkeyRecorderNSViewDelegate?
-
-    var isRecording = false {
-        didSet {
-            needsDisplay = true
-            updateAccessibility()
-        }
-    }
-
-    private var displayString = ""
-    private var textField: NSTextField!
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -115,49 +107,22 @@ class HotkeyRecorderNSView: NSView {
         setup()
     }
 
-    private func setup() {
-        // Create text field for display
-        textField = NSTextField()
-        textField.isEditable = false
-        textField.isBordered = false
-        textField.backgroundColor = .clear
-        textField.alignment = .center
-        textField.font = .systemFont(ofSize: 12, weight: .medium)
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(textField)
-
-        NSLayoutConstraint.activate([
-            textField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            textField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            textField.centerYAnchor.constraint(equalTo: centerYAnchor),
-        ])
-
-        // Set up accessibility
-        setAccessibilityRole(.button)
-        setAccessibilityLabel("Hotkey recorder")
-        updateAccessibility()
-    }
-
-    // MARK: - Display
-
-    func updateDisplay(hotkey: StoredHotkey) {
-        displayString = hotkey.displayString
-        textField.stringValue = isRecording ? "Press shortcut..." : displayString
-    }
-
-    private func updateAccessibility() {
-        if isRecording {
-            setAccessibilityValue("Recording")
-            setAccessibilityHelp("Press a key combination to set the hotkey, or Escape to cancel")
-        } else {
-            setAccessibilityValue(displayString)
-            setAccessibilityHelp("Click to record a new hotkey")
-        }
-    }
+    // MARK: Internal
 
     // MARK: - First Responder
 
-    override var acceptsFirstResponder: Bool { true }
+    override var acceptsFirstResponder: Bool {
+        true
+    }
+
+    weak var delegate: HotkeyRecorderNSViewDelegate?
+
+    var isRecording = false {
+        didSet {
+            needsDisplay = true
+            updateAccessibility()
+        }
+    }
 
     override func becomeFirstResponder() -> Bool {
         isRecording = true
@@ -232,6 +197,51 @@ class HotkeyRecorderNSView: NSView {
 
         delegate?.hotkeyRecorderDidRecordHotkey(newHotkey)
         window?.makeFirstResponder(nil)
+    }
+
+    // MARK: - Display
+
+    func updateDisplay(hotkey: StoredHotkey) {
+        displayString = hotkey.displayString
+        textField.stringValue = isRecording ? "Press shortcut..." : displayString
+    }
+
+    // MARK: Private
+
+    private var displayString = ""
+    private var textField: NSTextField!
+
+    private func setup() {
+        // Create text field for display
+        textField = NSTextField()
+        textField.isEditable = false
+        textField.isBordered = false
+        textField.backgroundColor = .clear
+        textField.alignment = .center
+        textField.font = .systemFont(ofSize: 12, weight: .medium)
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(textField)
+
+        NSLayoutConstraint.activate([
+            textField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            textField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            textField.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
+
+        // Set up accessibility
+        setAccessibilityRole(.button)
+        setAccessibilityLabel("Hotkey recorder")
+        updateAccessibility()
+    }
+
+    private func updateAccessibility() {
+        if isRecording {
+            setAccessibilityValue("Recording")
+            setAccessibilityHelp("Press a key combination to set the hotkey, or Escape to cancel")
+        } else {
+            setAccessibilityValue(displayString)
+            setAccessibilityHelp("Click to record a new hotkey")
+        }
     }
 
     // MARK: - Conflict Detection

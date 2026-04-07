@@ -13,6 +13,20 @@ import os.log
 /// Manages background OCR text extraction from images for search
 @MainActor
 final class OCRGenerator: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    private init(
+        storageManager: StorageManager = .shared,
+        ocrManager: OCRManager = .shared
+    ) {
+        self.storageManager = storageManager
+        self.ocrManager = ocrManager
+    }
+
+    // MARK: Internal
+
     // MARK: - Singleton
 
     static let shared = OCRGenerator()
@@ -30,55 +44,20 @@ final class OCRGenerator: ObservableObject {
 
     /// Progress percentage (0.0 to 1.0)
     var progress: Double {
-        guard totalToProcess > 0 else { return 0.0 }
+        guard totalToProcess > 0 else {
+            return 0.0
+        }
         return Double(processedCount) / Double(totalToProcess)
     }
 
-    // MARK: - Configuration
-
-    /// Number of items to process in each batch (smaller than embeddings since OCR is heavier)
-    private let batchSize: Int = 20
-
-    /// Delay between batches in milliseconds
-    private let batchDelayMs: Int = 200
-
-    /// Maximum items to process in a single session
-    private let maxItemsPerSession: Int = 200
-
-    // MARK: - Properties
-
-    /// Storage manager for item and OCR cache access
-    private let storageManager: StorageManager
-
-    /// OCR manager for text extraction
-    private let ocrManager: OCRManager
-
-    /// Logger for OCR operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "ocr-gen"
-    )
-
-    /// Current processing task
-    private var processingTask: Task<Int, Never>?
-
-    /// Image content types to process
-    private let imageContentTypes: Set<ContentType> = [.png, .jpeg, .tiff]
-
-    // MARK: - Initialization
-
-    private init(
-        storageManager: StorageManager = .shared,
-        ocrManager: OCRManager = .shared
-    ) {
-        self.storageManager = storageManager
-        self.ocrManager = ocrManager
+    /// Whether OCR search is available
+    var isAvailable: Bool {
+        ocrManager.isAvailable
     }
 
     /// Creates an OCRGenerator for testing
     static func forTesting(storageManager: StorageManager) -> OCRGenerator {
-        let generator = OCRGenerator()
-        return generator
+        OCRGenerator()
     }
 
     // MARK: - Single Item Processing
@@ -190,7 +169,9 @@ final class OCRGenerator: ObservableObject {
         totalToProcess = 0
 
         let task = Task<Int, Never>(priority: .background) { [weak self] in
-            guard let self else { return 0 }
+            guard let self else {
+                return 0
+            }
 
             var totalProcessed = 0
 
@@ -270,6 +251,70 @@ final class OCRGenerator: ObservableObject {
         return await task.value
     }
 
+    // MARK: - Control
+
+    /// Cancels the current processing operation
+    func cancelProcessing() {
+        processingTask?.cancel()
+        processingTask = nil
+        isProcessing = false
+    }
+
+    /// Clears all OCR cache and resets progress
+    func clearAllOCR() async {
+        cancelProcessing()
+        let deleted = await storageManager.deleteAllOCR()
+        logger.info("Cleared \(deleted) OCR entries")
+        processedCount = 0
+        totalToProcess = 0
+    }
+
+    /// Deletes outdated OCR entries (different version)
+    func clearOutdatedOCR() async {
+        let deleted = await storageManager.deleteOutdatedOCR()
+        if deleted > 0 {
+            logger.info("Cleared \(deleted) outdated OCR entries")
+        }
+    }
+
+    // MARK: - Statistics
+
+    /// Returns the number of processed items
+    func processedItemCount() async -> Int {
+        await storageManager.ocrCount()
+    }
+
+    // MARK: Private
+
+    // MARK: - Configuration
+
+    /// Number of items to process in each batch (smaller than embeddings since OCR is heavier)
+    private let batchSize: Int = 20
+
+    /// Delay between batches in milliseconds
+    private let batchDelayMs: Int = 200
+
+    /// Maximum items to process in a single session
+    private let maxItemsPerSession: Int = 200
+
+    /// Storage manager for item and OCR cache access
+    private let storageManager: StorageManager
+
+    /// OCR manager for text extraction
+    private let ocrManager: OCRManager
+
+    /// Logger for OCR operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "ocr-gen"
+    )
+
+    /// Current processing task
+    private var processingTask: Task<Int, Never>?
+
+    /// Image content types to process
+    private let imageContentTypes: Set<ContentType> = [.png, .jpeg, .tiff]
+
     /// Processes a single item for OCR
     private func processItem(itemId: UUID) async -> Bool {
         // Fetch the item
@@ -315,43 +360,5 @@ final class OCRGenerator: ObservableObject {
             language: result.language,
             imageHash: imageHash
         )
-    }
-
-    // MARK: - Control
-
-    /// Cancels the current processing operation
-    func cancelProcessing() {
-        processingTask?.cancel()
-        processingTask = nil
-        isProcessing = false
-    }
-
-    /// Clears all OCR cache and resets progress
-    func clearAllOCR() async {
-        cancelProcessing()
-        let deleted = await storageManager.deleteAllOCR()
-        logger.info("Cleared \(deleted) OCR entries")
-        processedCount = 0
-        totalToProcess = 0
-    }
-
-    /// Deletes outdated OCR entries (different version)
-    func clearOutdatedOCR() async {
-        let deleted = await storageManager.deleteOutdatedOCR()
-        if deleted > 0 {
-            logger.info("Cleared \(deleted) outdated OCR entries")
-        }
-    }
-
-    // MARK: - Statistics
-
-    /// Returns the number of processed items
-    func processedItemCount() async -> Int {
-        await storageManager.ocrCount()
-    }
-
-    /// Whether OCR search is available
-    var isAvailable: Bool {
-        ocrManager.isAvailable
     }
 }

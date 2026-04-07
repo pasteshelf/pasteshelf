@@ -10,14 +10,7 @@ import Foundation
 
 /// Represents metadata about the application that provided clipboard content
 struct SourceApp: Sendable, Equatable {
-    /// The bundle identifier of the application (e.g., "com.apple.Safari")
-    let bundleId: String
-
-    /// The localized display name of the application
-    let name: String
-
-    /// PNG data for the application's icon (optional for Sendable compliance)
-    let iconData: Data?
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -30,6 +23,31 @@ struct SourceApp: Sendable, Equatable {
         self.bundleId = bundleId
         self.name = name
         self.iconData = iconData
+    }
+
+    // MARK: Internal
+
+    /// The bundle identifier of the application (e.g., "com.apple.Safari")
+    let bundleId: String
+
+    /// The localized display name of the application
+    let name: String
+
+    /// PNG data for the application's icon (optional for Sendable compliance)
+    let iconData: Data?
+
+    // MARK: - Display
+
+    /// Returns the application icon as an NSImage
+    @MainActor var icon: NSImage? {
+        if let data = iconData {
+            return NSImage(data: data)
+        }
+        // Try to get icon from bundle
+        if let bundleURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) {
+            return NSWorkspace.shared.icon(forFile: bundleURL.path)
+        }
+        return nil
     }
 
     /// Creates a SourceApp from an NSRunningApplication
@@ -59,20 +77,6 @@ struct SourceApp: Sendable, Equatable {
             return nil
         }
         return from(runningApp: frontApp)
-    }
-
-    // MARK: - Display
-
-    /// Returns the application icon as an NSImage
-    @MainActor var icon: NSImage? {
-        if let data = iconData {
-            return NSImage(data: data)
-        }
-        // Try to get icon from bundle
-        if let bundleURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) {
-            return NSWorkspace.shared.icon(forFile: bundleURL.path)
-        }
-        return nil
     }
 }
 

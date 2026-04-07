@@ -12,11 +12,9 @@ import SwiftUI
 
 /// Settings view for SOC 2 compliance tools.
 struct SOC2SettingsView: View {
+    // MARK: Internal
 
     @ObservedObject var viewModel: ComplianceSettingsViewModel
-
-    @State private var trailStartDate = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
-    @State private var trailEndDate = Date()
 
     var body: some View {
         ScrollView {
@@ -85,7 +83,9 @@ struct SOC2SettingsView: View {
 
                         Button {
                             Task {
-                                if let url = await viewModel.exportAuditTrail(dateRange: trailStartDate...trailEndDate) {
+                                if let url = await viewModel
+                                    .exportAuditTrail(dateRange: trailStartDate ... trailEndDate)
+                                {
                                     NSWorkspace.shared.open(url)
                                 }
                             }
@@ -97,7 +97,8 @@ struct SOC2SettingsView: View {
                                 Label("Export Verified Audit Trail", systemImage: "link.badge.plus")
                             }
                         }
-                        .disabled(viewModel.isExporting || !ComplianceManager.shared.isSOC2Active || trailStartDate > trailEndDate)
+                        .disabled(viewModel.isExporting || !ComplianceManager.shared
+                            .isSOC2Active || trailStartDate > trailEndDate)
 
                         Text("Exports a cryptographically chained audit trail with SHA-256 integrity verification.")
                             .font(.caption)
@@ -111,6 +112,11 @@ struct SOC2SettingsView: View {
             .padding()
         }
     }
+
+    // MARK: Private
+
+    @State private var trailStartDate = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
+    @State private var trailEndDate = Date()
 
     @ViewBuilder
     private func statusIcon(_ status: ComplianceFindingStatus) -> some View {
@@ -129,5 +135,4 @@ struct SOC2SettingsView: View {
                 .font(.caption)
         }
     }
-
 }

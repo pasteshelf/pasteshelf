@@ -8,9 +8,11 @@
 
 import SwiftUI
 
+// MARK: - TagPickerView
+
 /// Popover view for selecting and managing tags
 struct TagPickerView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     /// All available tags
     let availableTags: [TagDisplayModel]
@@ -23,13 +25,6 @@ struct TagPickerView: View {
 
     /// Called when selection changes
     var onSelectionChanged: (() -> Void)?
-
-    // MARK: - State
-
-    @State private var searchText = ""
-    @State private var isCreatingTag = false
-    @State private var newTagName = ""
-    @State private var newTagColor = "#007AFF"
 
     // MARK: - Body
 
@@ -74,6 +69,15 @@ struct TagPickerView: View {
         .frame(width: 220)
     }
 
+    // MARK: Private
+
+    // MARK: - State
+
+    @State private var searchText = ""
+    @State private var isCreatingTag = false
+    @State private var newTagName = ""
+    @State private var newTagColor = "#007AFF"
+
     // MARK: - Filtered Tags
 
     private var filteredTags: [TagDisplayModel] {
@@ -88,40 +92,6 @@ struct TagPickerView: View {
     private var shouldShowCreateOption: Bool {
         !searchText.isEmpty &&
             !availableTags.contains(where: { $0.name.lowercased() == searchText.lowercased() })
-    }
-
-    // MARK: - Tag Row
-
-    private func tagRow(_ tag: TagDisplayModel) -> some View {
-        let isSelected = selectedTagIds.contains(tag.id)
-
-        return Button {
-            toggleTag(tag)
-        } label: {
-            HStack {
-                // Checkbox
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? tag.color : .secondary)
-                    .font(.system(size: 14))
-
-                // Color dot
-                Circle()
-                    .fill(tag.color)
-                    .frame(width: 8, height: 8)
-
-                // Tag name
-                Text(tag.name)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.primary)
-
-                Spacer()
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(isSelected ? tag.color.opacity(0.1) : Color.clear)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Create Tag Row
@@ -188,7 +158,39 @@ struct TagPickerView: View {
         .padding(8)
     }
 
-    // MARK: - Actions
+    // MARK: - Tag Row
+
+    private func tagRow(_ tag: TagDisplayModel) -> some View {
+        let isSelected = selectedTagIds.contains(tag.id)
+
+        return Button {
+            toggleTag(tag)
+        } label: {
+            HStack {
+                // Checkbox
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isSelected ? tag.color : .secondary)
+                    .font(.system(size: 14))
+
+                // Color dot
+                Circle()
+                    .fill(tag.color)
+                    .frame(width: 8, height: 8)
+
+                // Tag name
+                Text(tag.name)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.primary)
+
+                Spacer()
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(isSelected ? tag.color.opacity(0.1) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
 
     private func toggleTag(_ tag: TagDisplayModel) {
         if selectedTagIds.contains(tag.id) {
@@ -200,7 +202,9 @@ struct TagPickerView: View {
     }
 
     private func createTag() {
-        guard !newTagName.isEmpty else { return }
+        guard !newTagName.isEmpty else {
+            return
+        }
         onCreateTag?(newTagName, newTagColor)
         isCreatingTag = false
         newTagName = ""
@@ -208,24 +212,13 @@ struct TagPickerView: View {
     }
 }
 
-// MARK: - Color Picker Button
+// MARK: - ColorPickerButton
 
 /// Compact color picker button for tag colors
 struct ColorPickerButton: View {
+    // MARK: Internal
+
     @Binding var selectedColor: String
-
-    private let presetColors = [
-        "#007AFF", // Blue
-        "#34C759", // Green
-        "#FF3B30", // Red
-        "#FF9500", // Orange
-        "#FFCC00", // Yellow
-        "#5856D6", // Purple
-        "#AF52DE", // Violet
-        "#00C7BE", // Teal
-    ]
-
-    @State private var showPicker = false
 
     var body: some View {
         Button {
@@ -244,6 +237,21 @@ struct ColorPickerButton: View {
             colorGrid
         }
     }
+
+    // MARK: Private
+
+    @State private var showPicker = false
+
+    private let presetColors = [
+        "#007AFF", // Blue
+        "#34C759", // Green
+        "#FF3B30", // Red
+        "#FF9500", // Orange
+        "#FFCC00", // Yellow
+        "#5856D6", // Purple
+        "#AF52DE", // Violet
+        "#00C7BE", // Teal
+    ]
 
     private var colorGrid: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.fixed(28)), count: 4), spacing: 8) {
@@ -275,7 +283,7 @@ struct ColorPickerButton: View {
 #if DEBUG
     struct TagPickerView_Previews: PreviewProvider {
         struct PreviewWrapper: View {
-            @State private var selectedIds: Set<UUID> = [TagDisplayModel.sampleWork.id]
+            // MARK: Internal
 
             var body: some View {
                 TagPickerView(
@@ -289,6 +297,10 @@ struct ColorPickerButton: View {
                     }
                 )
             }
+
+            // MARK: Private
+
+            @State private var selectedIds: Set<UUID> = [TagDisplayModel.sampleWork.id]
         }
 
         static var previews: some View {

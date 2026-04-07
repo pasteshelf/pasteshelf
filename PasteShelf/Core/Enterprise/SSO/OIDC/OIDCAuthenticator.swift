@@ -10,18 +10,14 @@ import AppKit
 import AuthenticationServices
 import CryptoKit
 import Foundation
-import Security
 import os.log
+import Security
+
+// MARK: - OIDCAuthenticator
 
 /// OIDC SSO provider implementing authorization code flow with PKCE
 final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
-    // MARK: - Properties
-
-    let providerType: IdentityProviderType = .oidc
-
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "oidc-auth")
-    private let callbackScheme = "pasteshelf"
-    private let urlSession: URLSession
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -29,6 +25,10 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
         self.urlSession = urlSession
         super.init()
     }
+
+    // MARK: Internal
+
+    let providerType: IdentityProviderType = .oidc
 
     // MARK: - SSOProvider
 
@@ -87,7 +87,9 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
 
     func validateSession(_ session: SSOSession) async throws -> Bool {
         // Check local expiry first
-        guard session.isValid else { return false }
+        guard session.isValid else {
+            return false
+        }
 
         // If we have an access token, we could validate it at the userinfo endpoint
         // For now, rely on local expiry check
@@ -222,6 +224,12 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
         return tokenResponse
     }
 
+    // MARK: Private
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "oidc-auth")
+    private let callbackScheme = "pasteshelf"
+    private let urlSession: URLSession
+
     // MARK: - Browser Authentication
 
     @MainActor
@@ -296,12 +304,11 @@ final class OIDCAuthenticator: NSObject, SSOProvider, @unchecked Sendable {
             throw SSOError.authenticationFailed("Failed to decode ID token payload")
         }
 
-        let claims = try JSONDecoder().decode(IDTokenClaims.self, from: payloadData)
-        return claims
+        return try JSONDecoder().decode(IDTokenClaims.self, from: payloadData)
     }
 }
 
-// MARK: - ASWebAuthenticationPresentationContextProviding
+// MARK: ASWebAuthenticationPresentationContextProviding
 
 extension OIDCAuthenticator: ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
@@ -309,15 +316,11 @@ extension OIDCAuthenticator: ASWebAuthenticationPresentationContextProviding {
     }
 }
 
-// MARK: - PKCE Parameters
+// MARK: - PKCEParameters
 
 /// PKCE (Proof Key for Code Exchange) parameters for OAuth 2.0
 struct PKCEParameters: Sendable {
-    /// The code verifier (random 43-128 character string)
-    let codeVerifier: String
-
-    /// The code challenge (S256 hash of verifier)
-    let codeChallenge: String
+    // MARK: Lifecycle
 
     init() {
         // Generate 32 random bytes for the code verifier
@@ -340,12 +343,29 @@ struct PKCEParameters: Sendable {
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
     }
+
+    // MARK: Internal
+
+    /// The code verifier (random 43-128 character string)
+    let codeVerifier: String
+
+    /// The code challenge (S256 hash of verifier)
+    let codeChallenge: String
 }
 
-// MARK: - Token Response
+// MARK: - OIDCTokenResponse
 
 /// Response from the OIDC token endpoint
 struct OIDCTokenResponse: Codable, Sendable {
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case tokenType = "token_type"
+        case expiresIn = "expires_in"
+        case refreshToken = "refresh_token"
+        case idToken = "id_token"
+        case scope
+    }
+
     let accessToken: String?
     let tokenType: String?
     let expiresIn: Int?
@@ -355,24 +375,52 @@ struct OIDCTokenResponse: Codable, Sendable {
 
     /// Computed expiration date based on expiresIn
     var expiresAt: Date? {
-        guard let expiresIn else { return nil }
+        guard let expiresIn else {
+            return nil
+        }
         return Date().addingTimeInterval(TimeInterval(expiresIn))
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case accessToken = "access_token"
-        case tokenType = "token_type"
-        case expiresIn = "expires_in"
-        case refreshToken = "refresh_token"
-        case idToken = "id_token"
-        case scope
     }
 }
 
-// MARK: - ID Token Claims
+// MARK: - IDTokenClaims
 
 /// Standard OIDC ID token claims
 struct IDTokenClaims: Codable, Sendable {
+    // MARK: Lifecycle
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        subject = try container.decode(String.self, forKey: .subject)
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        emailVerified = try container.decodeIfPresent(Bool.self, forKey: .emailVerified)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        givenName = try container.decodeIfPresent(String.self, forKey: .givenName)
+        familyName = try container.decodeIfPresent(String.self, forKey: .familyName)
+        preferredUsername = try container.decodeIfPresent(String.self, forKey: .preferredUsername)
+        groups = (try? container.decodeIfPresent([String].self, forKey: .groups)) ?? []
+        issuer = try container.decodeIfPresent(String.self, forKey: .issuer)
+        audience = try container.decodeIfPresent(IDTokenAudience.self, forKey: .audience)
+        expiration = try container.decodeIfPresent(Int.self, forKey: .expiration)
+        issuedAt = try container.decodeIfPresent(Int.self, forKey: .issuedAt)
+    }
+
+    // MARK: Internal
+
+    enum CodingKeys: String, CodingKey {
+        case subject = "sub"
+        case email
+        case emailVerified = "email_verified"
+        case name
+        case givenName = "given_name"
+        case familyName = "family_name"
+        case preferredUsername = "preferred_username"
+        case groups
+        case issuer = "iss"
+        case audience = "aud"
+        case expiration = "exp"
+        case issuedAt = "iat"
+    }
+
     /// Subject identifier (unique user ID)
     let subject: String
 
@@ -408,50 +456,16 @@ struct IDTokenClaims: Codable, Sendable {
 
     /// Token issued-at (unix timestamp)
     let issuedAt: Int?
-
-    enum CodingKeys: String, CodingKey {
-        case subject = "sub"
-        case email
-        case emailVerified = "email_verified"
-        case name
-        case givenName = "given_name"
-        case familyName = "family_name"
-        case preferredUsername = "preferred_username"
-        case groups
-        case issuer = "iss"
-        case audience = "aud"
-        case expiration = "exp"
-        case issuedAt = "iat"
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        subject = try container.decode(String.self, forKey: .subject)
-        email = try container.decodeIfPresent(String.self, forKey: .email)
-        emailVerified = try container.decodeIfPresent(Bool.self, forKey: .emailVerified)
-        name = try container.decodeIfPresent(String.self, forKey: .name)
-        givenName = try container.decodeIfPresent(String.self, forKey: .givenName)
-        familyName = try container.decodeIfPresent(String.self, forKey: .familyName)
-        preferredUsername = try container.decodeIfPresent(String.self, forKey: .preferredUsername)
-        groups = (try? container.decodeIfPresent([String].self, forKey: .groups)) ?? []
-        issuer = try container.decodeIfPresent(String.self, forKey: .issuer)
-        audience = try container.decodeIfPresent(IDTokenAudience.self, forKey: .audience)
-        expiration = try container.decodeIfPresent(Int.self, forKey: .expiration)
-        issuedAt = try container.decodeIfPresent(Int.self, forKey: .issuedAt)
-    }
 }
+
+// MARK: - IDTokenAudience
 
 /// Audience claim that can be a single string or array of strings
 enum IDTokenAudience: Codable, Sendable {
     case single(String)
     case multiple([String])
 
-    var values: [String] {
-        switch self {
-        case .single(let value): return [value]
-        case .multiple(let values): return values
-        }
-    }
+    // MARK: Lifecycle
 
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
@@ -467,11 +481,20 @@ enum IDTokenAudience: Codable, Sendable {
         }
     }
 
+    // MARK: Internal
+
+    var values: [String] {
+        switch self {
+        case let .single(value): [value]
+        case let .multiple(values): values
+        }
+    }
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
-        case .single(let value): try container.encode(value)
-        case .multiple(let values): try container.encode(values)
+        case let .single(value): try container.encode(value)
+        case let .multiple(values): try container.encode(values)
         }
     }
 }

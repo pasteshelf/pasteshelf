@@ -18,11 +18,7 @@ import os.log
 /// and delegates all managed-object context work to `PersistenceController`. Reads use the
 /// shared `viewContext`; writes use a fresh background context to avoid blocking the main thread.
 final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @unchecked Sendable {
-
-    // MARK: - Dependencies
-
-    private let persistenceController: PersistenceController
-    private let logger = Logger.security
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -33,6 +29,8 @@ final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @un
     init(persistenceController: PersistenceController = .shared) {
         self.persistenceController = persistenceController
     }
+
+    // MARK: Internal
 
     // MARK: - DLPViolationStoring
 
@@ -51,7 +49,8 @@ final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @un
                 try context.save()
                 self.logger.debug("Saved DLP violation \(violation.id) (rule: \(violation.ruleName))")
             } catch {
-                self.logger.error("CoreData save failed for DLP violation \(violation.id): \(error.localizedDescription)")
+                self.logger
+                    .error("CoreData save failed for DLP violation \(violation.id): \(error.localizedDescription)")
                 throw DLPError.storageFailure(error.localizedDescription)
             }
         }
@@ -262,4 +261,11 @@ final class DLPViolationStorageService: DLPViolationStoring, DLPRuleStoring, @un
             }
         }
     }
+
+    // MARK: Private
+
+    // MARK: - Dependencies
+
+    private let persistenceController: PersistenceController
+    private let logger = Logger.security
 }

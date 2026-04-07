@@ -10,18 +10,11 @@ import AppKit
 import Foundation
 import os.log
 
+// MARK: - ImageProcessor
+
 /// Processes images for efficient storage and display
 final class ImageProcessor: ImageProcessing, Sendable {
-    // MARK: - Properties
-
-    /// Maximum storage size in bytes (default 10MB)
-    let maxStorageSize: Int
-
-    /// Maximum dimension for thumbnails in pixels (default 256)
-    let thumbnailSize: CGFloat
-
-    /// JPEG compression quality for large images (0.0-1.0)
-    let compressionQuality: CGFloat
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -39,6 +32,17 @@ final class ImageProcessor: ImageProcessing, Sendable {
         self.thumbnailSize = thumbnailSize
         self.compressionQuality = compressionQuality
     }
+
+    // MARK: Internal
+
+    /// Maximum storage size in bytes (default 10MB)
+    let maxStorageSize: Int
+
+    /// Maximum dimension for thumbnails in pixels (default 256)
+    let thumbnailSize: CGFloat
+
+    /// JPEG compression quality for large images (0.0-1.0)
+    let compressionQuality: CGFloat
 
     // MARK: - ImageProcessing
 
@@ -73,7 +77,7 @@ final class ImageProcessor: ImageProcessing, Sendable {
         let originalSize = image.size
 
         // Don't upscale small images
-        if originalSize.width <= thumbnailSize && originalSize.height <= thumbnailSize {
+        if originalSize.width <= thumbnailSize, originalSize.height <= thumbnailSize {
             return autoreleasepool { image.pngData }
         }
 
@@ -128,7 +132,8 @@ final class ImageProcessor: ImageProcessing, Sendable {
         if compressed.count > maxStorageSize {
             for quality in [0.6, 0.4, 0.2] as [CGFloat] {
                 if let moreCompressed = compressToJPEG(imageData, quality: quality),
-                   moreCompressed.count <= maxStorageSize {
+                   moreCompressed.count <= maxStorageSize
+                {
                     return (moreCompressed, true)
                 }
             }
@@ -137,17 +142,23 @@ final class ImageProcessor: ImageProcessing, Sendable {
         return (compressed, true)
     }
 
+    // MARK: Private
+
     // MARK: - Private Helpers
 
     /// Converts image data to PNG format
     private func convertToPNG(_ imageData: Data) -> Data? {
-        guard let bitmap = NSBitmapImageRep(data: imageData) else { return nil }
+        guard let bitmap = NSBitmapImageRep(data: imageData) else {
+            return nil
+        }
         return bitmap.representation(using: .png, properties: [:])
     }
 
     /// Compresses image data to JPEG with specified quality
     private func compressToJPEG(_ imageData: Data, quality: CGFloat) -> Data? {
-        guard let bitmap = NSBitmapImageRep(data: imageData) else { return nil }
+        guard let bitmap = NSBitmapImageRep(data: imageData) else {
+            return nil
+        }
         return bitmap.representation(
             using: .jpeg,
             properties: [.compressionFactor: quality]
@@ -174,7 +185,8 @@ extension NSImage {
     /// Converts the image to PNG data
     var pngData: Data? {
         guard let tiffData = tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData) else {
+              let bitmap = NSBitmapImageRep(data: tiffData)
+        else {
             return nil
         }
         return bitmap.representation(using: .png, properties: [:])
@@ -184,7 +196,8 @@ extension NSImage {
     /// - Parameter quality: Compression quality (0.0-1.0)
     func jpegData(quality: CGFloat) -> Data? {
         guard let tiffData = tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData) else {
+              let bitmap = NSBitmapImageRep(data: tiffData)
+        else {
             return nil
         }
         return bitmap.representation(
@@ -199,13 +212,17 @@ extension NSImage {
 extension ProcessedImage {
     /// Returns the image dimensions as a formatted string
     var dimensionsString: String? {
-        guard width > 0, height > 0 else { return nil }
+        guard width > 0, height > 0 else {
+            return nil
+        }
         return "\(width) × \(height)"
     }
 
     /// Returns the aspect ratio (width/height)
     var aspectRatio: CGFloat {
-        guard height > 0 else { return 1.0 }
+        guard height > 0 else {
+            return 1.0
+        }
         return CGFloat(width) / CGFloat(height)
     }
 
@@ -221,7 +238,9 @@ extension ProcessedImage {
 
     /// Returns the data size in a human-readable format
     var formattedSize: String? {
-        guard let data = data else { return nil }
+        guard let data else {
+            return nil
+        }
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         return formatter.string(fromByteCount: Int64(data.count))

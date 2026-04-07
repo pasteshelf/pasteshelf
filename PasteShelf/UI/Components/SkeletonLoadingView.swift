@@ -7,10 +7,11 @@
 
 import SwiftUI
 
+// MARK: - SkeletonItemRow
+
 /// A skeleton placeholder row for loading states
 struct SkeletonItemRow: View {
-    @State private var isAnimating = false
-    @Environment(\.reduceMotion) private var reduceMotion
+    // MARK: Internal
 
     var body: some View {
         HStack(spacing: 12) {
@@ -38,7 +39,9 @@ struct SkeletonItemRow: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .onAppear {
-            guard !reduceMotion else { return }
+            guard !reduceMotion else {
+                return
+            }
             withAnimation(
                 .easeInOut(duration: 1.5)
                     .repeatForever(autoreverses: true)
@@ -48,6 +51,11 @@ struct SkeletonItemRow: View {
         }
         .accessibilityLabel("Loading clipboard items")
     }
+
+    // MARK: Private
+
+    @State private var isAnimating = false
+    @Environment(\.reduceMotion) private var reduceMotion
 
     private var shimmerGradient: LinearGradient {
         let baseOpacity = reduceMotion ? 0.2 : (isAnimating ? 0.3 : 0.15)
@@ -64,13 +72,19 @@ struct SkeletonItemRow: View {
     }
 }
 
+// MARK: - SkeletonLoadingView
+
 /// A view showing multiple skeleton rows
 struct SkeletonLoadingView: View {
-    let rowCount: Int
+    // MARK: Lifecycle
 
     init(rowCount: Int = 5) {
         self.rowCount = rowCount
     }
+
+    // MARK: Internal
+
+    let rowCount: Int
 
     var body: some View {
         VStack(spacing: 0) {

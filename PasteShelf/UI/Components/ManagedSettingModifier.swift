@@ -27,12 +27,9 @@ import SwiftUI
 ///     .managedSetting(.maxHistoryItems)
 /// ```
 struct ManagedSettingModifier: ViewModifier {
-
-    // MARK: - Properties
+    // MARK: Internal
 
     let key: ManagedPreferenceKey
-
-    @ObservedObject private var settingsManager = SettingsManager.shared
 
     // MARK: - Body
 
@@ -52,6 +49,10 @@ struct ManagedSettingModifier: ViewModifier {
             content
         }
     }
+
+    // MARK: Private
+
+    @ObservedObject private var settingsManager = SettingsManager.shared
 }
 
 // MARK: - View Extension

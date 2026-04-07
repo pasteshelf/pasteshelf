@@ -56,22 +56,22 @@ extension Logger {
 // MARK: - Debug/Release Configuration
 
 #if DEBUG
-/// Debug-only logging utilities
-extension Logger {
-    /// Logs verbose debug information. Only available in DEBUG builds.
-    /// - Parameters:
-    ///   - message: The message to log
-    ///   - file: Source file (automatically captured)
-    ///   - function: Function name (automatically captured)
-    ///   - line: Line number (automatically captured)
-    func verbose(
-        _ message: String,
-        file: String = #file,
-        function: String = #function,
-        line: Int = #line
-    ) {
-        let filename = URL(fileURLWithPath: file).lastPathComponent
-        self.debug("[\(filename):\(line)] \(function) - \(message)")
+    /// Debug-only logging utilities
+    extension Logger {
+        /// Logs verbose debug information. Only available in DEBUG builds.
+        /// - Parameters:
+        ///   - message: The message to log
+        ///   - file: Source file (automatically captured)
+        ///   - function: Function name (automatically captured)
+        ///   - line: Line number (automatically captured)
+        func verbose(
+            _ message: String,
+            file: String = #file,
+            function: String = #function,
+            line: Int = #line
+        ) {
+            let filename = URL(fileURLWithPath: file).lastPathComponent
+            debug("[\(filename):\(line)] \(function) - \(message)")
+        }
     }
-}
 #endif

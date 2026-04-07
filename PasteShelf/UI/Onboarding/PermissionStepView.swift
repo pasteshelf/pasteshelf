@@ -7,10 +7,10 @@
 
 import SwiftUI
 
+// MARK: - PermissionStepView
+
 /// Permission request step view
 struct PermissionStepView: View {
-    // MARK: - Properties
-
     @ObservedObject var viewModel: OnboardingViewModel
 
     // MARK: - Body

@@ -22,19 +22,7 @@ import os.log
 /// Responses are expected to be JSON; non-2xx status codes are mapped to
 /// `AdminError` cases for structured error handling.
 final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
-
-    // MARK: - Properties
-
-    private let configuration: AdminConsoleConfiguration
-    private let session: URLSession
-    private let encoder: JSONEncoder
-    private let decoder: JSONDecoder
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "admin-api")
-
-    /// An optional Bearer token injected from an active SSO session.
-    ///
-    /// When set, it takes precedence over the API key in `configuration`.
-    var bearerToken: String?
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -61,6 +49,13 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
         decoder.dateDecodingStrategy = .iso8601
         self.decoder = decoder
     }
+
+    // MARK: Internal
+
+    /// An optional Bearer token injected from an active SSO session.
+    ///
+    /// When set, it takes precedence over the API key in `configuration`.
+    var bearerToken: String?
 
     // MARK: - AdminAPIProviding
 
@@ -125,6 +120,14 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
         return wrapper.status
     }
 
+    // MARK: Private
+
+    private let configuration: AdminConsoleConfiguration
+    private let session: URLSession
+    private let encoder: JSONEncoder
+    private let decoder: JSONDecoder
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "admin-api")
+
     // MARK: - Request Construction
 
     /// Builds a `URLRequest` for the given path, HTTP method, and optional body.
@@ -135,10 +138,10 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
     ///   - body: An optional `Encodable` payload to include in the request body.
     /// - Returns: A fully constructed `URLRequest` with auth headers.
     /// - Throws: `AdminError.notConfigured` if no server URL is available.
-    private func makeRequest<T: Encodable>(
+    private func makeRequest(
         path: String,
         method: String,
-        body: T
+        body: some Encodable
     ) throws -> URLRequest {
         var request = try makeBaseRequest(path: path, method: method)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -220,7 +223,7 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
         let statusCode = httpResponse.statusCode
 
         switch statusCode {
-        case 200...299:
+        case 200 ... 299:
             return // Success
         case 401:
             throw AdminError.authenticationRequired
@@ -232,7 +235,7 @@ final class AdminAPIClient: AdminAPIProviding, @unchecked Sendable {
     }
 }
 
-// MARK: - Internal Response Types
+// MARK: - StatusResponse
 
 /// Wrapper for the device status endpoint response.
 private struct StatusResponse: Decodable {

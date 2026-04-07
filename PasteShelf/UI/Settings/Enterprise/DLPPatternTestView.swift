@@ -15,18 +15,9 @@ import SwiftUI
 /// then run the test to see how many matches are found and what substrings matched.
 /// This helps verify DLP rule patterns before deploying them.
 struct DLPPatternTestView: View {
-
-    // MARK: - Properties
+    // MARK: Internal
 
     @Binding var isPresented: Bool
-
-    // MARK: - State
-
-    @State private var testText: String = ""
-    @State private var pattern: String = ""
-    @State private var matchResults: [String] = []
-    @State private var errorMessage: String?
-    @State private var hasRun: Bool = false
 
     // MARK: - Body
 
@@ -68,6 +59,16 @@ struct DLPPatternTestView: View {
         .frame(width: 520)
         .frame(minHeight: 460)
     }
+
+    // MARK: Private
+
+    // MARK: - State
+
+    @State private var testText: String = ""
+    @State private var pattern: String = ""
+    @State private var matchResults: [String] = []
+    @State private var errorMessage: String?
+    @State private var hasRun: Bool = false
 
     // MARK: - Test Input Section
 
@@ -181,7 +182,9 @@ struct DLPPatternTestView: View {
         let matches = regex.matches(in: trimmedText, options: [], range: range)
 
         matchResults = matches.compactMap { match -> String? in
-            guard match.range.location != NSNotFound else { return nil }
+            guard match.range.location != NSNotFound else {
+                return nil
+            }
             return nsText.substring(with: match.range)
         }
     }

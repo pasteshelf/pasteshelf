@@ -7,8 +7,12 @@
 
 import SwiftUI
 
+// MARK: - TutorialStepView
+
 /// Tutorial step view with shortcuts overview
 struct TutorialStepView: View {
+    // MARK: Internal
+
     // MARK: - Body
 
     var body: some View {
@@ -60,6 +64,8 @@ struct TutorialStepView: View {
         }
         .padding(.horizontal, 40)
     }
+
+    // MARK: Private
 
     // MARK: - Shortcut Row
 

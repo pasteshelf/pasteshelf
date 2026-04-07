@@ -16,18 +16,7 @@ import os.log
 /// Uses URLSession with optional certificate pinning. Supports both
 /// JWT Bearer tokens and API key authentication.
 final class SelfHostedAPIClient: @unchecked Sendable {
-
-    // MARK: - Properties
-
-    private let configuration: SelfHostedSyncConfiguration
-    private let session: URLSession
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-api")
-
-    /// Current JWT access token (short-lived, ~1 hour).
-    private var accessToken: String?
-
-    /// Current JWT refresh token (long-lived, ~7 days).
-    private var refreshToken: String?
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -36,13 +25,21 @@ final class SelfHostedAPIClient: @unchecked Sendable {
         let sessionConfig = URLSessionConfiguration.default
         sessionConfig.timeoutIntervalForRequest = 30
         sessionConfig.timeoutIntervalForResource = 120
-        self.session = URLSession(configuration: sessionConfig, delegate: urlSessionDelegate, delegateQueue: nil)
+        session = URLSession(configuration: sessionConfig, delegate: urlSessionDelegate, delegateQueue: nil)
     }
+
+    // MARK: Internal
 
     // MARK: - Auth Endpoints
 
     /// Exchange an SSO token for server access and refresh tokens.
-    func exchangeToken(ssoToken: String, deviceID: String, deviceName: String?, osVersion: String?, appVersion: String?) async throws -> TokenExchangeResult {
+    func exchangeToken(
+        ssoToken: String,
+        deviceID: String,
+        deviceName: String?,
+        osVersion: String?,
+        appVersion: String?
+    ) async throws -> TokenExchangeResult {
         let body: [String: Any?] = [
             "ssoToken": ssoToken,
             "provider": "sso",
@@ -52,8 +49,8 @@ final class SelfHostedAPIClient: @unchecked Sendable {
             "appVersion": appVersion,
         ]
         let result: TokenExchangeResult = try await post(path: "/api/v1/auth/token", body: body)
-        self.accessToken = result.accessToken
-        self.refreshToken = result.refreshToken
+        accessToken = result.accessToken
+        refreshToken = result.refreshToken
         return result
     }
 
@@ -64,7 +61,7 @@ final class SelfHostedAPIClient: @unchecked Sendable {
         }
         let body: [String: Any] = ["refreshToken": refreshToken]
         let result: TokenRefreshResult = try await post(path: "/api/v1/auth/refresh", body: body)
-        self.accessToken = result.accessToken
+        accessToken = result.accessToken
     }
 
     /// Create a persistent API key for this device.
@@ -79,7 +76,9 @@ final class SelfHostedAPIClient: @unchecked Sendable {
     // MARK: - Device Endpoints
 
     /// Register this device with the sync server.
-    func registerDevice(deviceID: String, deviceName: String?, osVersion: String?, appVersion: String?) async throws -> DeviceResult {
+    func registerDevice(deviceID: String, deviceName: String?, osVersion: String?,
+                        appVersion: String?) async throws -> DeviceResult
+    {
         let body: [String: Any?] = [
             "deviceID": deviceID,
             "deviceName": deviceName,
@@ -91,7 +90,7 @@ final class SelfHostedAPIClient: @unchecked Sendable {
 
     /// List all devices registered for the current user.
     func listDevices() async throws -> DeviceListResult {
-        return try await get(path: "/api/v1/devices")
+        try await get(path: "/api/v1/devices")
     }
 
     /// Unregister a device.
@@ -121,33 +120,45 @@ final class SelfHostedAPIClient: @unchecked Sendable {
 
     /// Get the current sync status for this device.
     func syncStatus() async throws -> SyncStatusResult {
-        return try await get(path: "/api/v1/sync/status")
+        try await get(path: "/api/v1/sync/status")
     }
 
     /// Reset all sync data for the current user.
     func resetSync() async throws -> SyncResetResult {
-        return try await post(path: "/api/v1/sync/reset", body: [:] as [String: Any])
+        try await post(path: "/api/v1/sync/reset", body: [:] as [String: Any])
     }
 
     // MARK: - Health
 
     /// Check server health.
     func healthCheck() async throws -> HealthResult {
-        return try await get(path: "/health")
+        try await get(path: "/health")
     }
 
     // MARK: - Token Management
 
     /// Set the access token directly (e.g., from stored keychain value).
     func setAccessToken(_ token: String) {
-        self.accessToken = token
+        accessToken = token
     }
 
     /// Set the API key for authentication.
     func setAPIKey(_ key: String) {
-        self.configuration.apiKey != nil ? () : ()
+        configuration.apiKey != nil ? () : ()
         // API key is read from configuration
     }
+
+    // MARK: Private
+
+    private let configuration: SelfHostedSyncConfiguration
+    private let session: URLSession
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-api")
+
+    /// Current JWT access token (short-lived, ~1 hour).
+    private var accessToken: String?
+
+    /// Current JWT refresh token (long-lived, ~7 days).
+    private var refreshToken: String?
 
     // MARK: - Internal HTTP Methods
 
@@ -215,7 +226,7 @@ final class SelfHostedAPIClient: @unchecked Sendable {
         }
 
         switch httpResponse.statusCode {
-        case 200...299:
+        case 200 ... 299:
             return
         case 401:
             throw SyncError.authenticationTokenExpired
@@ -227,7 +238,7 @@ final class SelfHostedAPIClient: @unchecked Sendable {
     }
 }
 
-// MARK: - Response Types
+// MARK: - TokenExchangeResult
 
 struct TokenExchangeResult: Codable {
     let accessToken: String
@@ -236,16 +247,22 @@ struct TokenExchangeResult: Codable {
     let userID: String
 }
 
+// MARK: - TokenRefreshResult
+
 struct TokenRefreshResult: Codable {
     let accessToken: String
     let expiresIn: Int
 }
+
+// MARK: - APIKeyResult
 
 struct APIKeyResult: Codable {
     let apiKey: String
     let keyPrefix: String
     let expiresAt: Date?
 }
+
+// MARK: - DeviceResult
 
 struct DeviceResult: Codable {
     let id: UUID
@@ -257,9 +274,13 @@ struct DeviceResult: Codable {
     let createdAt: Date?
 }
 
+// MARK: - DeviceListResult
+
 struct DeviceListResult: Codable {
     let devices: [DeviceResult]
 }
+
+// MARK: - SyncChangePayload
 
 struct SyncChangePayload {
     let entityID: UUID
@@ -275,18 +296,28 @@ struct SyncChangePayload {
             "entityType": entityType,
             "isDeleted": isDeleted,
         ]
-        if let data = encryptedData { dict["encryptedData"] = data }
-        if let hash = contentHash { dict["contentHash"] = hash }
-        if let version = clientVersion { dict["clientVersion"] = version }
+        if let data = encryptedData {
+            dict["encryptedData"] = data
+        }
+        if let hash = contentHash {
+            dict["contentHash"] = hash
+        }
+        if let version = clientVersion {
+            dict["clientVersion"] = version
+        }
         return dict
     }
 }
+
+// MARK: - SyncPushAPIResult
 
 struct SyncPushAPIResult: Codable {
     let accepted: Int
     let conflicts: [SyncConflictAPIResult]
     let serverTimestamp: Date
 }
+
+// MARK: - SyncConflictAPIResult
 
 struct SyncConflictAPIResult: Codable {
     let entityID: UUID
@@ -296,11 +327,15 @@ struct SyncConflictAPIResult: Codable {
     let serverContentHash: String?
 }
 
+// MARK: - SyncPullAPIResult
+
 struct SyncPullAPIResult: Codable {
     let changes: [SyncPullChangeAPIResult]
     let newToken: String
     let hasMore: Bool
 }
+
+// MARK: - SyncPullChangeAPIResult
 
 struct SyncPullChangeAPIResult: Codable {
     let entityID: UUID
@@ -314,6 +349,8 @@ struct SyncPullChangeAPIResult: Codable {
     let timestamp: Date
 }
 
+// MARK: - SyncStatusResult
+
 struct SyncStatusResult: Codable {
     let deviceID: String
     let lastSyncToken: String?
@@ -321,10 +358,14 @@ struct SyncStatusResult: Codable {
     let serverTimestamp: Date
 }
 
+// MARK: - SyncResetResult
+
 struct SyncResetResult: Codable {
     let deletedRecords: Int
     let message: String
 }
+
+// MARK: - HealthResult
 
 struct HealthResult: Codable {
     let status: String

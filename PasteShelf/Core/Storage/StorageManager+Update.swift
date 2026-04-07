@@ -15,7 +15,9 @@ extension StorageManager {
     /// - Parameter item: The item to toggle
     /// - Returns: The new favorite status, or nil if update failed
     func toggleFavorite(item: ClipboardItem) async -> Bool? {
-        guard let itemId = item.id else { return nil }
+        guard let itemId = item.id else {
+            return nil
+        }
         return await toggleFavorite(itemId: itemId)
     }
 
@@ -23,7 +25,7 @@ extension StorageManager {
     /// - Parameter itemId: The UUID of the item to toggle
     /// - Returns: The new favorite status, or nil if update failed
     func toggleFavorite(itemId: UUID) async -> Bool? {
-        return await performBackgroundTaskSafe { context -> Bool? in
+        await performBackgroundTaskSafe { context -> Bool? in
             let request = ClipboardItem.fetchRequest()
             request.predicate = NSPredicate(format: "id == %@", itemId as CVarArg)
             request.fetchLimit = 1
@@ -43,7 +45,9 @@ extension StorageManager {
     ///   - isFavorite: The new favorite status
     /// - Returns: True if update succeeded
     func setFavorite(item: ClipboardItem, isFavorite: Bool) async -> Bool {
-        guard let itemId = item.id else { return false }
+        guard let itemId = item.id else {
+            return false
+        }
 
         do {
             try await performBackgroundTask { context in
@@ -69,7 +73,9 @@ extension StorageManager {
     ///   - item: The item to add tags to
     /// - Returns: True if update succeeded
     func addTags(_ tags: [Tag], to item: ClipboardItem) async -> Bool {
-        guard let itemId = item.id else { return false }
+        guard let itemId = item.id else {
+            return false
+        }
         let tagIds = tags.compactMap(\.id)
 
         do {
@@ -102,7 +108,9 @@ extension StorageManager {
     ///   - item: The item to remove the tag from
     /// - Returns: True if update succeeded
     func removeTag(_ tag: Tag, from item: ClipboardItem) async -> Bool {
-        guard let itemId = item.id, let tagId = tag.id else { return false }
+        guard let itemId = item.id, let tagId = tag.id else {
+            return false
+        }
 
         do {
             try await performBackgroundTask { context in
@@ -134,7 +142,9 @@ extension StorageManager {
     ///   - tags: The new tags
     /// - Returns: True if update succeeded
     func setTags(_ tags: [Tag], on item: ClipboardItem) async -> Bool {
-        guard let itemId = item.id else { return false }
+        guard let itemId = item.id else {
+            return false
+        }
         let tagIds = tags.compactMap(\.id)
 
         do {
@@ -179,13 +189,17 @@ extension StorageManager {
                 itemRequest.predicate = NSPredicate(format: "id == %@", itemId as CVarArg)
                 itemRequest.fetchLimit = 1
 
-                guard let item = try context.fetch(itemRequest).first else { return }
+                guard let item = try context.fetch(itemRequest).first else {
+                    return
+                }
 
                 let tagRequest = Tag.fetchRequest()
                 tagRequest.predicate = NSPredicate(format: "id == %@", tagId as CVarArg)
                 tagRequest.fetchLimit = 1
 
-                guard let tag = try context.fetch(tagRequest).first else { return }
+                guard let tag = try context.fetch(tagRequest).first else {
+                    return
+                }
 
                 let currentTags = item.tags as? Set<Tag> ?? []
                 if currentTags.contains(tag) {
@@ -211,7 +225,9 @@ extension StorageManager {
 
             guard let item = try? self.viewContext.fetch(request).first,
                   let tags = item.tags as? Set<Tag>
-            else { return [] }
+            else {
+                return []
+            }
 
             return Set(tags.compactMap(\.id))
         }
@@ -236,10 +252,10 @@ extension StorageManager {
                     return
                 }
 
-                if let name = name {
+                if let name {
                     tag.name = name
                 }
-                if let color = color {
+                if let color {
                     tag.color = color
                 }
             }
@@ -268,10 +284,10 @@ extension StorageManager {
                     return
                 }
 
-                if let name = name {
+                if let name {
                     folder.name = name
                 }
-                if let icon = icon {
+                if let icon {
                     folder.icon = icon
                 }
             }
@@ -287,7 +303,9 @@ extension StorageManager {
     ///   - folder: The destination folder (nil to remove from folder)
     /// - Returns: True if update succeeded
     func moveItem(_ item: ClipboardItem, to folder: Folder?) async -> Bool {
-        guard let itemId = item.id else { return false }
+        guard let itemId = item.id else {
+            return false
+        }
 
         do {
             try await performBackgroundTask { context in
@@ -322,7 +340,9 @@ extension StorageManager {
     /// - Returns: Number of items moved
     func moveItems(_ items: [ClipboardItem], to folder: Folder?) async -> Int {
         let itemIds = items.compactMap(\.id)
-        if itemIds.isEmpty { return 0 }
+        if itemIds.isEmpty {
+            return 0
+        }
 
         let result = await performBackgroundTaskSafe { context -> Int in
             let itemRequest = ClipboardItem.fetchRequest()
@@ -389,7 +409,9 @@ extension StorageManager {
     /// - Parameter item: The item to update
     /// - Returns: True if update succeeded
     func incrementAccessCount(for item: ClipboardItem) async -> Bool {
-        guard let itemId = item.id else { return false }
+        guard let itemId = item.id else {
+            return false
+        }
 
         do {
             try await performBackgroundTask { context in

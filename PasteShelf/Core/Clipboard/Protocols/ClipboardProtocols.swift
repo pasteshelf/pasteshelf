@@ -9,7 +9,7 @@
 import AppKit
 import Foundation
 
-// MARK: - Clipboard Monitoring
+// MARK: - ClipboardMonitoring
 
 /// Protocol for clipboard monitoring functionality
 @MainActor
@@ -26,6 +26,8 @@ protocol ClipboardMonitoring: AnyObject {
     /// Stop monitoring the clipboard
     func stopMonitoring()
 }
+
+// MARK: - ClipboardMonitorDelegate
 
 /// Delegate protocol for receiving clipboard events
 @MainActor
@@ -60,6 +62,8 @@ protocol ClipboardMonitorDelegate: AnyObject {
     )
 }
 
+// MARK: - ExclusionReason
+
 /// Reasons why clipboard content may be excluded
 enum ExclusionReason: Sendable {
     case excludedApp(bundleId: String)
@@ -70,7 +74,7 @@ enum ExclusionReason: Sendable {
     case contentTypeDisabled
 }
 
-// MARK: - Content Parsing
+// MARK: - ContentParsing
 
 /// Protocol for parsing clipboard content from NSPasteboard
 protocol ContentParsing {
@@ -87,7 +91,7 @@ protocol ContentParsing {
     func parse(_ pasteboard: NSPasteboard, forType type: ContentType) -> ClipboardContent?
 }
 
-// MARK: - Sensitive Data Detection
+// MARK: - SensitiveDataDetecting
 
 /// Protocol for detecting sensitive data in clipboard content
 protocol SensitiveDataDetecting {
@@ -102,8 +106,17 @@ protocol SensitiveDataDetecting {
     func analyze(text: String) -> SensitiveDataResult
 }
 
+// MARK: - SensitiveDataResult
+
 /// Result of sensitive data analysis
 struct SensitiveDataResult: Sendable {
+    /// Empty result with no detections
+    static let empty = SensitiveDataResult(
+        isSensitive: false,
+        detections: [],
+        highestSeverity: .none
+    )
+
     /// Whether any sensitive data was detected
     let isSensitive: Bool
 
@@ -112,14 +125,9 @@ struct SensitiveDataResult: Sendable {
 
     /// The highest severity level detected
     let highestSeverity: SensitiveSeverity
-
-    /// Empty result with no detections
-    static let empty = SensitiveDataResult(
-        isSensitive: false,
-        detections: [],
-        highestSeverity: .none
-    )
 }
+
+// MARK: - SensitiveDetection
 
 /// Individual sensitive data detection
 struct SensitiveDetection: Sendable {
@@ -136,6 +144,8 @@ struct SensitiveDetection: Sendable {
     let redactedPreview: String?
 }
 
+// MARK: - SensitiveSeverity
+
 /// Severity levels for sensitive data
 enum SensitiveSeverity: Int, Codable, Comparable, Sendable {
     case none = 0
@@ -144,12 +154,14 @@ enum SensitiveSeverity: Int, Codable, Comparable, Sendable {
     case high = 3
     case critical = 4
 
+    // MARK: Internal
+
     static func < (lhs: SensitiveSeverity, rhs: SensitiveSeverity) -> Bool {
         lhs.rawValue < rhs.rawValue
     }
 }
 
-// MARK: - Deduplication
+// MARK: - Deduplicating
 
 /// Protocol for content deduplication
 protocol Deduplicating {
@@ -171,7 +183,7 @@ protocol Deduplicating {
     func isDuplicate(_ content: ClipboardContent, comparing recentHashes: [String]) -> Bool
 }
 
-// MARK: - Image Processing
+// MARK: - ImageProcessing
 
 /// Protocol for image processing operations
 protocol ImageProcessing {
@@ -197,6 +209,8 @@ protocol ImageProcessing {
     func compressIfNeeded(_ imageData: Data) -> (data: Data, isCompressed: Bool)
 }
 
+// MARK: - ProcessedImage
+
 /// Result of image processing
 struct ProcessedImage: Sendable {
     /// Processed image data (may be compressed)
@@ -215,7 +229,7 @@ struct ProcessedImage: Sendable {
     var isCompressed: Bool = false
 }
 
-// MARK: - App Exclusion
+// MARK: - AppExcluding
 
 /// Protocol for managing app exclusions
 protocol AppExcluding {
@@ -237,10 +251,9 @@ protocol AppExcluding {
 
     /// Get the list of default excluded bundle identifiers (password managers, etc.)
     var defaultExcludedBundleIds: [String] { get }
-
 }
 
-// MARK: - Clipboard Item Storage (Bridge to Phase 1.3)
+// MARK: - ClipboardItemStoring
 
 /// Protocol for storing clipboard items (to be implemented in Phase 1.3)
 protocol ClipboardItemStoring: AnyObject {
@@ -264,11 +277,17 @@ protocol ClipboardItemStoring: AnyObject {
     /// In-memory mock storage for testing
     @MainActor
     final class MockClipboardItemStore: ClipboardItemStoring {
-        private var items: [(content: ClipboardContent, sourceApp: SourceApp?)] = []
-        private let maxItems: Int
+        // MARK: Lifecycle
 
         init(maxItems: Int = 100) {
             self.maxItems = maxItems
+        }
+
+        // MARK: Internal
+
+        /// Access to stored items for testing
+        var storedItems: [(content: ClipboardContent, sourceApp: SourceApp?)] {
+            items
         }
 
         func save(content: ClipboardContent, from sourceApp: SourceApp?) async -> Bool {
@@ -280,18 +299,18 @@ protocol ClipboardItemStoring: AnyObject {
         }
 
         func fetchRecentHashes(limit: Int) async -> [String] {
-            items.prefix(limit).compactMap { $0.content.contentHash }
-        }
-
-        /// Access to stored items for testing
-        var storedItems: [(content: ClipboardContent, sourceApp: SourceApp?)] {
-            items
+            items.prefix(limit).compactMap(\.content.contentHash)
         }
 
         /// Clear all stored items
         func clear() {
             items.removeAll()
         }
+
+        // MARK: Private
+
+        private var items: [(content: ClipboardContent, sourceApp: SourceApp?)] = []
+        private let maxItems: Int
     }
 #endif
 

@@ -8,24 +8,11 @@
 
 import Foundation
 
+// MARK: - ActiveFilters
+
 /// Represents the current active filters in the floating panel
 struct ActiveFilters: Equatable, Sendable {
-    // MARK: - Properties
-
-    /// The search query text
-    var searchQuery: String
-
-    /// Selected content type filter (nil = all types)
-    var contentTypeFilter: ContentTypeFilter?
-
-    /// Whether to show only favorites
-    var favoritesOnly: Bool
-
-    /// Selected tag IDs for filtering
-    var selectedTagIds: Set<UUID>
-
-    /// Date range filter (nil = no date filter)
-    var dateRange: DateRange?
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -43,10 +30,25 @@ struct ActiveFilters: Equatable, Sendable {
         self.dateRange = dateRange
     }
 
+    // MARK: Internal
+
     /// Default filters (no filtering)
     static let none = ActiveFilters()
 
-    // MARK: - Computed Properties
+    /// The search query text
+    var searchQuery: String
+
+    /// Selected content type filter (nil = all types)
+    var contentTypeFilter: ContentTypeFilter?
+
+    /// Whether to show only favorites
+    var favoritesOnly: Bool
+
+    /// Selected tag IDs for filtering
+    var selectedTagIds: Set<UUID>
+
+    /// Date range filter (nil = no date filter)
+    var dateRange: DateRange?
 
     /// Whether any filters are currently active
     var hasActiveFilters: Bool {
@@ -157,7 +159,7 @@ struct ActiveFilters: Equatable, Sendable {
     }
 }
 
-// MARK: - Content Type Filter
+// MARK: - ContentTypeFilter
 
 /// Grouped content type filter for simpler UI
 enum ContentTypeFilter: String, CaseIterable, Identifiable, Sendable {
@@ -166,25 +168,29 @@ enum ContentTypeFilter: String, CaseIterable, Identifiable, Sendable {
     case files
     case links
 
-    var id: String { rawValue }
+    // MARK: Internal
+
+    var id: String {
+        rawValue
+    }
 
     /// Display name for the filter
     var displayName: String {
         switch self {
-        case .text: return "Text"
-        case .images: return "Images"
-        case .files: return "Files"
-        case .links: return "Links"
+        case .text: "Text"
+        case .images: "Images"
+        case .files: "Files"
+        case .links: "Links"
         }
     }
 
     /// SF Symbol icon name
     var icon: String {
         switch self {
-        case .text: return "doc.text"
-        case .images: return "photo"
-        case .files: return "folder"
-        case .links: return "link"
+        case .text: "doc.text"
+        case .images: "photo"
+        case .files: "folder"
+        case .links: "link"
         }
     }
 
@@ -192,27 +198,32 @@ enum ContentTypeFilter: String, CaseIterable, Identifiable, Sendable {
     var contentTypes: Set<ContentType> {
         switch self {
         case .text:
-            return [.plainText, .richText, .html]
+            [.plainText, .richText, .html]
         case .images:
-            return [.png, .jpeg, .tiff, .pdf]
+            [.png, .jpeg, .tiff, .pdf]
         case .files:
-            return [.fileURL]
+            [.fileURL]
         case .links:
-            return [.url]
+            [.url]
         }
     }
 
     /// Creates a filter from a ContentType
     static func from(_ contentType: ContentType) -> ContentTypeFilter {
         switch contentType {
-        case .plainText, .richText, .html:
-            return .text
-        case .png, .jpeg, .tiff, .pdf:
-            return .images
+        case .plainText,
+             .richText,
+             .html:
+            .text
+        case .png,
+             .jpeg,
+             .tiff,
+             .pdf:
+            .images
         case .fileURL:
-            return .files
+            .files
         case .url:
-            return .links
+            .links
         }
     }
 }

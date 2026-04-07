@@ -18,16 +18,17 @@ import SwiftUI
 /// - Export actions that produce CSV or JSON files via `NSSavePanel`.
 /// - Quick actions to install default rules and open the pattern tester.
 struct DLPSettingsView: View {
-
-    // MARK: - Properties
-
-    @StateObject private var viewModel = DLPSettingsViewModel()
+    // MARK: Internal
 
     // MARK: - Body
 
     var body: some View {
         dlpContent
     }
+
+    // MARK: Private
+
+    @StateObject private var viewModel = DLPSettingsViewModel()
 
     // MARK: - DLP Content
 
@@ -41,7 +42,9 @@ struct DLPSettingsView: View {
         .formStyle(.grouped)
         .alert("Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
-            set: { if !$0 { viewModel.errorMessage = nil } }
+            set: { if !$0 {
+                viewModel.errorMessage = nil
+            } }
         )) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
@@ -161,7 +164,6 @@ struct DLPSettingsView: View {
             }
         }
     }
-
 }
 
 // MARK: - DLPRuleRowView
@@ -170,8 +172,7 @@ struct DLPSettingsView: View {
 ///
 /// Displays a toggle, the rule name, category badge, severity badge, and an edit button.
 private struct DLPRuleRowView: View {
-
-    // MARK: Properties
+    // MARK: Internal
 
     let rule: DLPRule
     let onToggle: () -> Void
@@ -211,6 +212,8 @@ private struct DLPRuleRowView: View {
         .padding(.vertical, 2)
     }
 
+    // MARK: Private
+
     // MARK: Subviews
 
     private var categoryBadge: some View {
@@ -245,30 +248,30 @@ private struct DLPRuleRowView: View {
     private func severityDisplayName(_ severity: SensitiveSeverity) -> String {
         switch severity {
         case .none:
-            return "None"
+            "None"
         case .low:
-            return "Low"
+            "Low"
         case .medium:
-            return "Medium"
+            "Medium"
         case .high:
-            return "High"
+            "High"
         case .critical:
-            return "Critical"
+            "Critical"
         }
     }
 
     private func severityColor(_ severity: SensitiveSeverity) -> Color {
         switch severity {
         case .none:
-            return .secondary
+            .secondary
         case .low:
-            return .green
+            .green
         case .medium:
-            return .yellow
+            .yellow
         case .high:
-            return .orange
+            .orange
         case .critical:
-            return .red
+            .red
         }
     }
 }
@@ -279,8 +282,7 @@ private struct DLPRuleRowView: View {
 ///
 /// Displays a severity icon, rule name, action badge, and relative timestamp.
 private struct ViolationRowView: View {
-
-    // MARK: Properties
+    // MARK: Internal
 
     let violation: DLPViolation
 
@@ -313,6 +315,8 @@ private struct ViolationRowView: View {
         .padding(.vertical, 2)
     }
 
+    // MARK: Private
+
     // MARK: Subviews
 
     private var severityIcon: some View {
@@ -335,13 +339,13 @@ private struct ViolationRowView: View {
     private func actionColor(_ action: DLPAction) -> Color {
         switch action {
         case .block:
-            return .red
+            .red
         case .alert:
-            return .orange
+            .orange
         case .redact:
-            return .purple
+            .purple
         case .logOnly:
-            return .secondary
+            .secondary
         }
     }
 

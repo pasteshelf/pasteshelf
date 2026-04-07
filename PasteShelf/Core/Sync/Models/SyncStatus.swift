@@ -10,9 +10,9 @@ import SwiftUI
 
 // MARK: - SyncStatus Extensions
 
-extension SyncStatus {
+public extension SyncStatus {
     /// Human-readable description of the sync status
-    public var localizedDescription: String {
+    var localizedDescription: String {
         switch self {
         case .disabled:
             return String(localized: "Sync disabled")
@@ -35,106 +35,109 @@ extension SyncStatus {
     }
 
     /// SF Symbol name for this status
-    public var symbolName: String {
+    var symbolName: String {
         switch self {
         case .disabled:
-            return "icloud.slash"
+            "icloud.slash"
         case .idle:
-            return "icloud"
+            "icloud"
         case .syncing:
-            return "arrow.triangle.2.circlepath.icloud"
+            "arrow.triangle.2.circlepath.icloud"
         case .synced:
-            return "checkmark.icloud"
+            "checkmark.icloud"
         case .error:
-            return "exclamationmark.icloud"
+            "exclamationmark.icloud"
         case .offline:
-            return "icloud.slash"
+            "icloud.slash"
         case .waitingForAccount:
-            return "person.icloud"
+            "person.icloud"
         }
     }
 
     /// Color associated with this status
-    public var color: Color {
+    var color: Color {
         switch self {
-        case .disabled, .waitingForAccount:
-            return .secondary
+        case .disabled,
+             .waitingForAccount:
+            .secondary
         case .idle:
-            return .primary
+            .primary
         case .syncing:
-            return .blue
+            .blue
         case .synced:
-            return .green
+            .green
         case .error:
-            return .red
+            .red
         case .offline:
-            return .orange
+            .orange
         }
     }
 
     /// Whether sync is currently active
-    public var isActive: Bool {
+    var isActive: Bool {
         switch self {
         case .syncing:
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 
     /// Whether the user can trigger a manual sync
-    public var canSync: Bool {
+    var canSync: Bool {
         switch self {
-        case .idle, .synced, .error:
-            return true
+        case .idle,
+             .synced,
+             .error:
+            true
         default:
-            return false
+            false
         }
     }
 }
 
 // MARK: - ItemSyncState Extensions
 
-extension ItemSyncState {
+public extension ItemSyncState {
     /// Human-readable description
-    public var localizedDescription: String {
+    var localizedDescription: String {
         switch self {
         case .pending:
-            return String(localized: "Pending sync")
+            String(localized: "Pending sync")
         case .synced:
-            return String(localized: "Synced")
+            String(localized: "Synced")
         case .conflicted:
-            return String(localized: "Conflict")
+            String(localized: "Conflict")
         case .deleted:
-            return String(localized: "Deleted")
+            String(localized: "Deleted")
         }
     }
 
     /// SF Symbol name for this state
-    public var symbolName: String {
+    var symbolName: String {
         switch self {
         case .pending:
-            return "arrow.up.circle"
+            "arrow.up.circle"
         case .synced:
-            return "checkmark.circle"
+            "checkmark.circle"
         case .conflicted:
-            return "exclamationmark.triangle"
+            "exclamationmark.triangle"
         case .deleted:
-            return "trash.circle"
+            "trash.circle"
         }
     }
 
     /// Color for this state
-    public var color: Color {
+    var color: Color {
         switch self {
         case .pending:
-            return .blue
+            .blue
         case .synced:
-            return .green
+            .green
         case .conflicted:
-            return .orange
+            .orange
         case .deleted:
-            return .red
+            .red
         }
     }
 }

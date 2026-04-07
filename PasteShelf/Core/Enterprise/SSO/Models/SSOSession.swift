@@ -12,6 +12,40 @@ import Foundation
 
 /// An active SSO authentication session for an enterprise user
 struct SSOSession: Codable, Sendable, Identifiable, Equatable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(
+        id: UUID = UUID(),
+        providerId: UUID,
+        userId: String,
+        email: String? = nil,
+        displayName: String? = nil,
+        groups: [String] = [],
+        authenticatedAt: Date = Date(),
+        expiresAt: Date? = nil,
+        sessionIndex: String? = nil,
+        accessToken: String? = nil,
+        refreshToken: String? = nil,
+        idToken: String? = nil
+    ) {
+        self.id = id
+        self.providerId = providerId
+        self.userId = userId
+        self.email = email
+        self.displayName = displayName
+        self.groups = groups
+        self.authenticatedAt = authenticatedAt
+        self.expiresAt = expiresAt
+        self.sessionIndex = sessionIndex
+        self.accessToken = accessToken
+        self.refreshToken = refreshToken
+        self.idToken = idToken
+    }
+
+    // MARK: Internal
+
     // MARK: - Identity
 
     /// Unique identifier for this session record
@@ -58,38 +92,6 @@ struct SSOSession: Codable, Sendable, Identifiable, Equatable {
     /// OIDC ID token containing identity claims
     var idToken: String?
 
-    // MARK: - Initialization
-
-    init(
-        id: UUID = UUID(),
-        providerId: UUID,
-        userId: String,
-        email: String? = nil,
-        displayName: String? = nil,
-        groups: [String] = [],
-        authenticatedAt: Date = Date(),
-        expiresAt: Date? = nil,
-        sessionIndex: String? = nil,
-        accessToken: String? = nil,
-        refreshToken: String? = nil,
-        idToken: String? = nil
-    ) {
-        self.id = id
-        self.providerId = providerId
-        self.userId = userId
-        self.email = email
-        self.displayName = displayName
-        self.groups = groups
-        self.authenticatedAt = authenticatedAt
-        self.expiresAt = expiresAt
-        self.sessionIndex = sessionIndex
-        self.accessToken = accessToken
-        self.refreshToken = refreshToken
-        self.idToken = idToken
-    }
-
-    // MARK: - Computed Properties
-
     /// Whether this session has passed its expiration time
     var isExpired: Bool {
         guard let expiresAt else {
@@ -106,7 +108,9 @@ struct SSOSession: Codable, Sendable, Identifiable, Equatable {
 
     /// Time remaining until expiry; nil if the session does not expire
     var timeUntilExpiry: TimeInterval? {
-        guard let expiresAt else { return nil }
+        guard let expiresAt else {
+            return nil
+        }
         return expiresAt.timeIntervalSinceNow
     }
 

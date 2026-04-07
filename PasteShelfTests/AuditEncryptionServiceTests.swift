@@ -7,13 +7,12 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - AuditEncryptionServiceTests
 
 struct AuditEncryptionServiceTests {
-
     // MARK: - Encryption Round-trip
 
     @Test("Encrypt and decrypt a detail dict returns the original contents")
@@ -61,7 +60,7 @@ struct AuditEncryptionServiceTests {
         let original = [
             "text": "Hello, 世界! 🎉",
             "emoji": "🔐🛡️",
-            "arabic": "مرحبا"
+            "arabic": "مرحبا",
         ]
 
         do {
@@ -122,7 +121,7 @@ struct AuditEncryptionServiceTests {
         let service = AuditEncryptionService()
         // Build a payload that is large enough (>= 29 bytes) but has a wrong version byte (0x99)
         var fakePayload = Data(repeating: 0xAB, count: 30)
-        fakePayload[0] = 0x99  // Not the expected version 0x01
+        fakePayload[0] = 0x99 // Not the expected version 0x01
 
         do {
             _ = try service.decrypt(fakePayload)
@@ -142,7 +141,7 @@ struct AuditEncryptionServiceTests {
         // Build a payload that passes the size and version checks but has garbage ciphertext+tag
         // Version = 0x01, then 12 bytes nonce, then at least 16 bytes for the tag = 29 bytes total
         var garbagePayload = Data(repeating: 0xFF, count: 50)
-        garbagePayload[0] = 0x01  // Correct version byte
+        garbagePayload[0] = 0x01 // Correct version byte
 
         do {
             _ = try service.decrypt(garbagePayload)

@@ -8,6 +8,8 @@
 import XCTest
 
 final class PreferencesUITests: XCTestCase {
+    // MARK: Internal
+
     var app: XCUIApplication!
 
     override func setUpWithError() throws {
@@ -26,7 +28,7 @@ final class PreferencesUITests: XCTestCase {
     // MARK: - Window Tests
 
     @MainActor
-    func testPreferencesWindowOpens() throws {
+    func testPreferencesWindowOpens() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -34,7 +36,7 @@ final class PreferencesUITests: XCTestCase {
     }
 
     @MainActor
-    func testPreferencesWindowHasAllTabs() throws {
+    func testPreferencesWindowHasAllTabs() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -54,7 +56,7 @@ final class PreferencesUITests: XCTestCase {
     // MARK: - General Tab Tests
 
     @MainActor
-    func testGeneralTabContent() throws {
+    func testGeneralTabContent() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -82,7 +84,7 @@ final class PreferencesUITests: XCTestCase {
     }
 
     @MainActor
-    func testHistoryLimitPicker() throws {
+    func testHistoryLimitPicker() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -101,7 +103,7 @@ final class PreferencesUITests: XCTestCase {
     // MARK: - Privacy Tab Tests
 
     @MainActor
-    func testPrivacyTabContent() throws {
+    func testPrivacyTabContent() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -121,7 +123,7 @@ final class PreferencesUITests: XCTestCase {
     }
 
     @MainActor
-    func testClearHistoryButton() throws {
+    func testClearHistoryButton() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -143,7 +145,7 @@ final class PreferencesUITests: XCTestCase {
     // MARK: - Appearance Tab Tests
 
     @MainActor
-    func testAppearanceTabContent() throws {
+    func testAppearanceTabContent() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -163,7 +165,7 @@ final class PreferencesUITests: XCTestCase {
     }
 
     @MainActor
-    func testThemePicker() throws {
+    func testThemePicker() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -188,7 +190,7 @@ final class PreferencesUITests: XCTestCase {
     // MARK: - Shortcuts Tab Tests
 
     @MainActor
-    func testShortcutsTabContent() throws {
+    func testShortcutsTabContent() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -208,7 +210,7 @@ final class PreferencesUITests: XCTestCase {
     }
 
     @MainActor
-    func testHotkeyRecorder() throws {
+    func testHotkeyRecorder() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -234,7 +236,7 @@ final class PreferencesUITests: XCTestCase {
     // MARK: - About Tab Tests
 
     @MainActor
-    func testAboutTabContent() throws {
+    func testAboutTabContent() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -250,18 +252,18 @@ final class PreferencesUITests: XCTestCase {
         XCTAssertTrue(
             prefsWindow.staticTexts["PasteShelf"].exists
                 || prefsWindow.staticTexts.matching(NSPredicate(format: "value CONTAINS 'PasteShelf'"))
-                    .firstMatch.exists
+                .firstMatch.exists
         )
         XCTAssertTrue(
             prefsWindow.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Version'"))
                 .firstMatch.exists
                 || prefsWindow.staticTexts.matching(NSPredicate(format: "value CONTAINS 'Version'"))
-                    .firstMatch.exists
+                .firstMatch.exists
         )
     }
 
     @MainActor
-    func testAboutLinks() throws {
+    func testAboutLinks() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -285,7 +287,7 @@ final class PreferencesUITests: XCTestCase {
     // MARK: - Tab Navigation Tests
 
     @MainActor
-    func testTabSwitching() throws {
+    func testTabSwitching() {
         openPreferences()
 
         let prefsWindow = app.windows["PasteShelf Preferences"]
@@ -304,13 +306,17 @@ final class PreferencesUITests: XCTestCase {
         }
     }
 
+    // MARK: Private
+
     // MARK: - Helper Methods
 
     private func openPreferences() {
         // Preferences window auto-opens via --show-preferences launch argument
         // Wait for window and its sidebar to fully render
         let prefsWindow = app.windows["PasteShelf Preferences"]
-        guard prefsWindow.waitForExistence(timeout: 5) else { return }
+        guard prefsWindow.waitForExistence(timeout: 5) else {
+            return
+        }
         // Wait for sidebar content to render
         _ = prefsWindow.staticTexts["General"].waitForExistence(timeout: 5)
     }

@@ -10,16 +10,14 @@ import SwiftUI
 // MARK: - SelfHostedSyncSettingsView
 
 struct SelfHostedSyncSettingsView: View {
-
-    // MARK: - Properties
-
-    @StateObject private var viewModel = SelfHostedSyncSettingsViewModel()
+    // MARK: Internal
 
     // MARK: - Body
 
     var body: some View {
         Form {
             // MARK: Server Configuration
+
             Section("Server Configuration") {
                 TextField("Server URL", text: $viewModel.serverURLString, prompt: Text("https://sync.company.internal"))
                     .textFieldStyle(.roundedBorder)
@@ -32,6 +30,7 @@ struct SelfHostedSyncSettingsView: View {
             }
 
             // MARK: Security
+
             Section("Security") {
                 Toggle("Certificate Pinning", isOn: $viewModel.certificatePinningEnabled)
 
@@ -43,6 +42,7 @@ struct SelfHostedSyncSettingsView: View {
             }
 
             // MARK: Connection Test
+
             Section("Connection Test") {
                 Button(action: {
                     Task { await viewModel.testConnection() }
@@ -65,6 +65,7 @@ struct SelfHostedSyncSettingsView: View {
             }
 
             // MARK: Enable/Disable
+
             Section {
                 Toggle("Enable Self-Hosted Sync", isOn: $viewModel.isEnabled)
 
@@ -76,6 +77,7 @@ struct SelfHostedSyncSettingsView: View {
             }
 
             // MARK: Actions
+
             Section {
                 Button("Save Configuration") {
                     viewModel.saveConfiguration()
@@ -86,11 +88,17 @@ struct SelfHostedSyncSettingsView: View {
         .formStyle(.grouped)
         .navigationTitle("Self-Hosted Sync")
     }
+
+    // MARK: Private
+
+    @StateObject private var viewModel = SelfHostedSyncSettingsViewModel()
 }
 
 // MARK: - ConnectionTestStepRow
 
 struct ConnectionTestStepRow: View {
+    // MARK: Internal
+
     let step: ConnectionTestStep
 
     var body: some View {
@@ -114,13 +122,15 @@ struct ConnectionTestStepRow: View {
         }
     }
 
+    // MARK: Private
+
     private var stepColor: Color {
         switch step.status {
-        case .inProgress: return .blue
-        case .passed: return .green
-        case .failed: return .red
-        case .warning: return .orange
-        case .skipped: return .gray
+        case .inProgress: .blue
+        case .passed: .green
+        case .failed: .red
+        case .warning: .orange
+        case .skipped: .gray
         }
     }
 }

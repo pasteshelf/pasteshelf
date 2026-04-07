@@ -20,12 +20,7 @@ import os.log
 /// The `detail` dictionary of every `AuditEvent` is encrypted via `AuditEncryptionService`
 /// before being stored in the `encryptedDetail` binary attribute of `AuditLogEntry`.
 final class AuditLogStorageService: AuditLogStoring, @unchecked Sendable {
-
-    // MARK: - Dependencies
-
-    private let persistenceController: PersistenceController
-    private let encryption: AuditEncryptionService
-    private let logger = Logger.audit
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -43,6 +38,8 @@ final class AuditLogStorageService: AuditLogStoring, @unchecked Sendable {
         self.persistenceController = persistenceController
         self.encryption = encryption
     }
+
+    // MARK: Internal
 
     // MARK: - AuditLogStoring
 
@@ -149,7 +146,9 @@ final class AuditLogStorageService: AuditLogStoring, @unchecked Sendable {
     /// - Parameter ids: The UUIDs of the `AuditLogEntry` records to mark as synced.
     /// - Throws: `AuditError.storageFailure` if the CoreData save fails.
     func markSynced(_ ids: [UUID]) async throws {
-        guard !ids.isEmpty else { return }
+        guard !ids.isEmpty else {
+            return
+        }
 
         let context = persistenceController.newBackgroundContext()
         try await context.perform {
@@ -241,4 +240,12 @@ final class AuditLogStorageService: AuditLogStoring, @unchecked Sendable {
         }
         return try encryption.decrypt(encryptedDetail)
     }
+
+    // MARK: Private
+
+    // MARK: - Dependencies
+
+    private let persistenceController: PersistenceController
+    private let encryption: AuditEncryptionService
+    private let logger = Logger.audit
 }

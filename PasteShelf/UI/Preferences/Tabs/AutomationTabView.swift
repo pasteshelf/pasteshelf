@@ -8,14 +8,11 @@
 
 import SwiftUI
 
+// MARK: - AutomationTabView
+
 /// Automation preferences tab view
 struct AutomationTabView: View {
-    // MARK: - Properties
-
-    @StateObject private var viewModel = AutomationViewModel()
-    @State private var showingRuleEditor = false
-    @State private var showingDeleteConfirmation = false
-    @State private var ruleToDelete: AutomationRule?
+    // MARK: Internal
 
     // MARK: - Body
 
@@ -48,13 +45,22 @@ struct AutomationTabView: View {
         }
         .alert("Error", isPresented: .init(
             get: { viewModel.errorMessage != nil },
-            set: { if !$0 { viewModel.clearError() } }
+            set: { if !$0 {
+                viewModel.clearError()
+            } }
         )) {
             Button("OK") { viewModel.clearError() }
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
     }
+
+    // MARK: Private
+
+    @StateObject private var viewModel = AutomationViewModel()
+    @State private var showingRuleEditor = false
+    @State private var showingDeleteConfirmation = false
+    @State private var ruleToDelete: AutomationRule?
 
     // MARK: - Subviews
 
@@ -185,7 +191,7 @@ struct AutomationTabView: View {
     }
 }
 
-// MARK: - Rule Row View
+// MARK: - RuleRowView
 
 struct RuleRowView: View {
     let rule: AutomationRule

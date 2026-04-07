@@ -12,25 +12,7 @@ import os.log
 
 /// Search engine that uses AI embeddings for semantic similarity search
 final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
-    // MARK: - Properties
-
-    /// Storage manager for CoreData access
-    private let storageManager: StorageManager
-
-    /// Embedding manager for generating query embeddings
-    private let embeddingManager: EmbeddingManager
-
-    /// Logger for search operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "semantic-search"
-    )
-
-    /// Task handle for cancellation
-    private var currentSearchTask: Task<[SearchResult], Never>?
-
-    /// Lock for thread-safe task management
-    private let lock = NSLock()
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -40,6 +22,15 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
     ) {
         self.storageManager = storageManager
         self.embeddingManager = embeddingManager
+    }
+
+    // MARK: Internal
+
+    // MARK: - Availability
+
+    /// Whether semantic search is available on this system
+    var isAvailable: Bool {
+        embeddingManager.isAvailable
     }
 
     // MARK: - SearchEngine Protocol
@@ -63,7 +54,9 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
 
         // Create and store the search task
         let task = Task<[SearchResult], Never> { [weak self] in
-            guard let self else { return [] }
+            guard let self else {
+                return []
+            }
 
             logger.debug("Starting semantic search for: \(trimmedQuery)")
 
@@ -136,6 +129,26 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
         lock.unlock()
     }
 
+    // MARK: Private
+
+    /// Storage manager for CoreData access
+    private let storageManager: StorageManager
+
+    /// Embedding manager for generating query embeddings
+    private let embeddingManager: EmbeddingManager
+
+    /// Logger for search operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "semantic-search"
+    )
+
+    /// Task handle for cancellation
+    private var currentSearchTask: Task<[SearchResult], Never>?
+
+    /// Lock for thread-safe task management
+    private let lock = NSLock()
+
     // MARK: - Candidate Selection
 
     /// Fetches IDs of clipboard items that match the filter criteria
@@ -159,7 +172,7 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
 
         // Content type filter
         if let contentTypes = options.contentTypes, !contentTypes.isEmpty {
-            let typeStrings = contentTypes.map { $0.rawValue }
+            let typeStrings = contentTypes.map(\.rawValue)
             predicates.append(NSPredicate(format: "contentType IN %@", typeStrings))
         }
 
@@ -202,12 +215,5 @@ final class SemanticSearchEngine: SearchEngine, @unchecked Sendable {
             return nil
         }
         return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-    }
-
-    // MARK: - Availability
-
-    /// Whether semantic search is available on this system
-    var isAvailable: Bool {
-        embeddingManager.isAvailable
     }
 }

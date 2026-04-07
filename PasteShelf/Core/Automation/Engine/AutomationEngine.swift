@@ -10,6 +10,8 @@ import CoreData
 import Foundation
 import os.log
 
+// MARK: - AutomationResult
+
 /// Result of automation rule evaluation and execution
 struct AutomationResult: Sendable {
     /// The original content (before any transformations)
@@ -34,6 +36,8 @@ struct AutomationResult: Sendable {
     var errors: [AutomationError]
 }
 
+// MARK: - AutomationError
+
 /// Errors that can occur during automation execution
 enum AutomationError: Error, Sendable {
     case ruleEvaluationFailed(ruleName: String, reason: String)
@@ -43,35 +47,24 @@ enum AutomationError: Error, Sendable {
     case invalidConfiguration(reason: String)
 }
 
+// MARK: - AutomationEngine
+
 /// Main automation engine that evaluates and executes rules
 @MainActor
 final class AutomationEngine {
-    // MARK: - Singleton
-
-    static let shared = AutomationEngine()
-
-    // MARK: - Properties
-
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "automation"
-    )
-
-    private let storageManager = StorageManager.shared
-
-    /// Cache of enabled rules (refreshed on rule changes)
-    private var cachedRules: [AutomationRule] = []
-    private var lastRuleRefresh: Date = .distantPast
-    private let ruleCacheTTL: TimeInterval = 60 // 1 minute
-
-    /// Action executor for running actions
-    private lazy var actionExecutor = ActionExecutor()
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     private init() {
         logger.info("AutomationEngine initialized")
     }
+
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    static let shared = AutomationEngine()
 
     // MARK: - Rule Evaluation
 
@@ -148,10 +141,10 @@ final class AutomationEngine {
         }
 
         logger.debug("""
-            Automation complete: \(matchedRules.count) rules matched, \
-            \(executedActions.count) actions executed, \
-            \(errors.count) errors
-            """)
+        Automation complete: \(matchedRules.count) rules matched, \
+        \(executedActions.count) actions executed, \
+        \(errors.count) errors
+        """)
 
         return AutomationResult(
             originalContent: content,
@@ -172,8 +165,32 @@ final class AutomationEngine {
     func evaluateRule(_ rule: AutomationRule, against content: ClipboardContent) -> Bool {
         // Create a temporary ClipboardItem-like structure for RuleEvaluator
         // Since we're working with ClipboardContent directly, we need to adapt
-        return evaluateConditions(rule: rule, content: content, sourceApp: content.sourceApp)
+        evaluateConditions(rule: rule, content: content, sourceApp: content.sourceApp)
     }
+
+    /// Invalidates the rule cache (call when rules are modified)
+    func invalidateRuleCache() {
+        cachedRules = []
+        lastRuleRefresh = .distantPast
+        logger.debug("Rule cache invalidated")
+    }
+
+    // MARK: Private
+
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "automation"
+    )
+
+    private let storageManager = StorageManager.shared
+
+    /// Cache of enabled rules (refreshed on rule changes)
+    private var cachedRules: [AutomationRule] = []
+    private var lastRuleRefresh: Date = .distantPast
+    private let ruleCacheTTL: TimeInterval = 60 // 1 minute
+
+    /// Action executor for running actions
+    private lazy var actionExecutor = ActionExecutor()
 
     // MARK: - Condition Evaluation
 
@@ -210,18 +227,18 @@ final class AutomationEngine {
     ) -> Bool {
         switch condition.field {
         case .contentType:
-            return evaluateContentTypeCondition(condition, content: content)
+            evaluateContentTypeCondition(condition, content: content)
         case .sourceApp:
-            return evaluateSourceAppCondition(condition, sourceApp: sourceApp)
+            evaluateSourceAppCondition(condition, sourceApp: sourceApp)
         case .textContent:
-            return evaluateTextContentCondition(condition, content: content)
+            evaluateTextContentCondition(condition, content: content)
         case .dateCreated:
-            return evaluateDateCondition(condition, content: content)
+            evaluateDateCondition(condition, content: content)
         case .isFavorite:
             // ClipboardContent doesn't have isFavorite, assume false for new content
-            return evaluateBooleanCondition(condition, value: false)
+            evaluateBooleanCondition(condition, value: false)
         case .isSensitive:
-            return evaluateBooleanCondition(condition, value: content.isSensitive)
+            evaluateBooleanCondition(condition, value: content.isSensitive)
         }
     }
 
@@ -231,11 +248,10 @@ final class AutomationEngine {
     ) -> Bool {
         let contentTypeRaw = content.primaryType.rawValue
 
-        let targetTypes: Set<String>
-        if let contentTypeValue = ContentTypeValue(rawValue: condition.value) {
-            targetTypes = Set(contentTypeValue.contentTypeRawValues)
+        let targetTypes: Set<String> = if let contentTypeValue = ContentTypeValue(rawValue: condition.value) {
+            Set(contentTypeValue.contentTypeRawValues)
         } else {
-            targetTypes = [condition.value]
+            [condition.value]
         }
 
         switch condition.comparisonOperator {
@@ -274,7 +290,9 @@ final class AutomationEngine {
         _ condition: RuleCondition,
         content: ClipboardContent
     ) -> Bool {
-        guard let text = content.plainText else { return false }
+        guard let text = content.plainText else {
+            return false
+        }
         let value = condition.value
 
         switch condition.comparisonOperator {
@@ -287,7 +305,9 @@ final class AutomationEngine {
         case .notEquals:
             return text.lowercased() != value.lowercased()
         case .matches:
-            guard let regex = try? NSRegularExpression(pattern: value) else { return false }
+            guard let regex = try? NSRegularExpression(pattern: value) else {
+                return false
+            }
             let range = NSRange(text.startIndex..., in: text)
             return regex.firstMatch(in: text, range: range) != nil
         default:
@@ -332,9 +352,13 @@ final class AutomationEngine {
     private func evaluateBooleanCondition(_ condition: RuleCondition, value: Bool) -> Bool {
         let targetValue: Bool
         switch condition.value.lowercased() {
-        case "true", "yes", "1":
+        case "true",
+             "yes",
+             "1":
             targetValue = true
-        case "false", "no", "0":
+        case "false",
+             "no",
+             "0":
             targetValue = false
         default:
             return false
@@ -355,7 +379,7 @@ final class AutomationEngine {
     /// Fetches enabled rules for the given trigger type
     private func fetchEnabledRules(for trigger: AutomationTrigger) async -> [AutomationRule] {
         // Check cache first
-        if Date().timeIntervalSince(lastRuleRefresh) < ruleCacheTTL && !cachedRules.isEmpty {
+        if Date().timeIntervalSince(lastRuleRefresh) < ruleCacheTTL, !cachedRules.isEmpty {
             return cachedRules.filter { $0.trigger == trigger }
         }
 
@@ -379,13 +403,6 @@ final class AutomationEngine {
             logger.error("Failed to fetch automation rules: \(error.localizedDescription)")
             return []
         }
-    }
-
-    /// Invalidates the rule cache (call when rules are modified)
-    func invalidateRuleCache() {
-        cachedRules = []
-        lastRuleRefresh = .distantPast
-        logger.debug("Rule cache invalidated")
     }
 
     // MARK: - Execution Recording
@@ -459,7 +476,7 @@ final class AutomationEngine {
     }
 }
 
-// MARK: - Action Execution Result
+// MARK: - ActionExecutionResult
 
 /// Result of executing a single automation action
 struct ActionExecutionResult {

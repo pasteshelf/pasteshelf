@@ -9,6 +9,8 @@
 import AppIntents
 import Foundation
 
+// MARK: - TransformContentIntent
+
 /// Intent for transforming text using presets
 @available(macOS 13.0, *)
 struct TransformContentIntent: AppIntent {
@@ -46,48 +48,49 @@ struct TransformContentIntent: AppIntent {
 
         return .result(value: result)
     }
-
 }
 
-// MARK: - Transformation Type Enum
+// MARK: - TransformationType
 
 /// App Intent enum for transformation types
 @available(macOS 13.0, *)
 enum TransformationType: String, AppEnum, CaseIterable {
     // Case transformations
-    case uppercase = "uppercase"
-    case lowercase = "lowercase"
-    case titleCase = "titleCase"
-    case sentenceCase = "sentenceCase"
+    case uppercase
+    case lowercase
+    case titleCase
+    case sentenceCase
 
     // Whitespace transformations
-    case trimWhitespace = "trimWhitespace"
-    case removeNewlines = "removeNewlines"
-    case collapseSpaces = "collapseSpaces"
+    case trimWhitespace
+    case removeNewlines
+    case collapseSpaces
 
     // Line transformations
-    case sortLines = "sortLines"
-    case uniqueLines = "uniqueLines"
-    case reverseLines = "reverseLines"
+    case sortLines
+    case uniqueLines
+    case reverseLines
 
     // Encoding transformations
-    case base64Encode = "base64Encode"
-    case base64Decode = "base64Decode"
-    case urlEncode = "urlEncode"
-    case urlDecode = "urlDecode"
+    case base64Encode
+    case base64Decode
+    case urlEncode
+    case urlDecode
 
     // JSON transformations
-    case formatJSON = "formatJSON"
-    case minifyJSON = "minifyJSON"
+    case formatJSON
+    case minifyJSON
 
     // HTML transformations
-    case escapeHTML = "escapeHTML"
-    case unescapeHTML = "unescapeHTML"
-    case stripHTMLTags = "stripHTMLTags"
+    case escapeHTML
+    case unescapeHTML
+    case stripHTMLTags
 
     // Hash transformations
-    case md5Hash = "md5Hash"
-    case sha256Hash = "sha256Hash"
+    case md5Hash
+    case sha256Hash
+
+    // MARK: Internal
 
     // MARK: - AppEnum Conformance
 
@@ -223,27 +226,27 @@ enum TransformationType: String, AppEnum, CaseIterable {
     /// Maps to TransformPreset
     var preset: TransformPreset {
         switch self {
-        case .uppercase: return .uppercase
-        case .lowercase: return .lowercase
-        case .titleCase: return .titleCase
-        case .sentenceCase: return .sentenceCase
-        case .trimWhitespace: return .trimWhitespace
-        case .removeNewlines: return .removeNewlines
-        case .collapseSpaces: return .collapseSpaces
-        case .sortLines: return .sortLines
-        case .uniqueLines: return .uniqueLines
-        case .reverseLines: return .reverseLines
-        case .base64Encode: return .base64Encode
-        case .base64Decode: return .base64Decode
-        case .urlEncode: return .urlEncode
-        case .urlDecode: return .urlDecode
-        case .formatJSON: return .formatJSON
-        case .minifyJSON: return .minifyJSON
-        case .escapeHTML: return .escapeHTML
-        case .unescapeHTML: return .unescapeHTML
-        case .stripHTMLTags: return .stripHTMLTags
-        case .md5Hash: return .md5Hash
-        case .sha256Hash: return .sha256Hash
+        case .uppercase: .uppercase
+        case .lowercase: .lowercase
+        case .titleCase: .titleCase
+        case .sentenceCase: .sentenceCase
+        case .trimWhitespace: .trimWhitespace
+        case .removeNewlines: .removeNewlines
+        case .collapseSpaces: .collapseSpaces
+        case .sortLines: .sortLines
+        case .uniqueLines: .uniqueLines
+        case .reverseLines: .reverseLines
+        case .base64Encode: .base64Encode
+        case .base64Decode: .base64Decode
+        case .urlEncode: .urlEncode
+        case .urlDecode: .urlDecode
+        case .formatJSON: .formatJSON
+        case .minifyJSON: .minifyJSON
+        case .escapeHTML: .escapeHTML
+        case .unescapeHTML: .unescapeHTML
+        case .stripHTMLTags: .stripHTMLTags
+        case .md5Hash: .md5Hash
+        case .sha256Hash: .sha256Hash
         }
     }
 }

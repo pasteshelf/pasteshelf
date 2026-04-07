@@ -9,10 +9,10 @@
 import AppKit
 import SwiftUI
 
+// MARK: - TagDisplayModel
+
 /// UI-friendly model for displaying tags
 struct TagDisplayModel: Identifiable, Hashable, Sendable {
-    // MARK: - Properties
-
     /// Unique identifier
     let id: UUID
 
@@ -21,8 +21,6 @@ struct TagDisplayModel: Identifiable, Hashable, Sendable {
 
     /// Tag color as hex string
     let colorHex: String
-
-    // MARK: - Computed Properties
 
     /// SwiftUI Color from hex string
     var color: Color {
@@ -34,14 +32,14 @@ struct TagDisplayModel: Identifiable, Hashable, Sendable {
         !name.isEmpty
     }
 
+    static func == (lhs: TagDisplayModel, rhs: TagDisplayModel) -> Bool {
+        lhs.id == rhs.id
+    }
+
     // MARK: - Hashable
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-    }
-
-    static func == (lhs: TagDisplayModel, rhs: TagDisplayModel) -> Bool {
-        lhs.id == rhs.id
     }
 }
 

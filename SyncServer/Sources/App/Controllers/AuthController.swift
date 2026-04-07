@@ -10,6 +10,8 @@ import JWT
 import Vapor
 
 struct AuthController: RouteCollection {
+    // MARK: Internal
+
     func boot(routes: any RoutesBuilder) throws {
         let auth = routes.grouped("api", "v1", "auth")
         auth.post("token", use: exchangeToken)
@@ -170,10 +172,12 @@ struct AuthController: RouteCollection {
         )
     }
 
+    // MARK: Private
+
     // MARK: - Helpers
 
     private func generateAPIKey() -> String {
-        let bytes = (0..<32).map { _ in UInt8.random(in: 0...255) }
+        let bytes = (0 ..< 32).map { _ in UInt8.random(in: 0 ... 255) }
         return "ps_" + Data(bytes).base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")

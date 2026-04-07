@@ -9,7 +9,7 @@ import CloudKit
 import Combine
 import Foundation
 
-// MARK: - Sync Status Types
+// MARK: - SyncStatus
 
 /// Represents the current state of the sync system
 public enum SyncStatus: Equatable, Sendable {
@@ -35,6 +35,8 @@ public enum SyncStatus: Equatable, Sendable {
     case waitingForAccount
 }
 
+// MARK: - ItemSyncState
+
 /// Represents the sync state of an individual item
 public enum ItemSyncState: Int16, Sendable {
     /// Item has local changes not yet synced
@@ -50,7 +52,7 @@ public enum ItemSyncState: Int16, Sendable {
     case deleted = 3
 }
 
-// MARK: - SyncManaging Protocol
+// MARK: - SyncManaging
 
 /// Main protocol for managing sync operations
 @MainActor
@@ -80,7 +82,7 @@ public protocol SyncManaging: ObservableObject {
     func reset() async throws
 }
 
-// MARK: - SyncProviding Protocol
+// MARK: - SyncProviding
 
 /// Protocol for CloudKit operations
 public protocol SyncProviding: Sendable {
@@ -94,7 +96,8 @@ public protocol SyncProviding: Sendable {
     func pushChanges(_ changes: [SyncChange]) async throws
 
     /// Pull remote changes from CloudKit
-    func pullChanges(since token: CKServerChangeToken?) async throws -> (changes: [SyncChange], newToken: CKServerChangeToken?)
+    func pullChanges(since token: CKServerChangeToken?) async throws
+        -> (changes: [SyncChange], newToken: CKServerChangeToken?)
 
     /// Delete a record from CloudKit
     func deleteRecord(withID recordID: CKRecord.ID) async throws
@@ -106,7 +109,7 @@ public protocol SyncProviding: Sendable {
     func subscribeToChanges() async throws
 }
 
-// MARK: - SyncEncrypting Protocol
+// MARK: - SyncEncrypting
 
 /// Protocol for end-to-end encryption operations
 public protocol SyncEncrypting: Sendable {
@@ -126,7 +129,7 @@ public protocol SyncEncrypting: Sendable {
     func rotateKey() async throws
 }
 
-// MARK: - ChangeTracking Protocol
+// MARK: - ChangeTracking
 
 /// Protocol for tracking local changes
 public protocol ChangeTracking: Sendable {
@@ -143,7 +146,7 @@ public protocol ChangeTracking: Sendable {
     func clearHistory(before date: Date) async throws
 }
 
-// MARK: - ConflictResolving Protocol
+// MARK: - ConflictResolving
 
 /// Protocol for resolving sync conflicts
 public protocol ConflictResolving: Sendable {
@@ -159,6 +162,8 @@ public protocol ConflictResolving: Sendable {
     ) async throws -> [ConflictResolution]
 }
 
+// MARK: - ConflictResolution
+
 /// Result of conflict resolution
 public enum ConflictResolution: Sendable {
     /// Use the local version
@@ -171,7 +176,7 @@ public enum ConflictResolution: Sendable {
     case merged(SyncChange)
 }
 
-// MARK: - Record Mapping Protocol
+// MARK: - CloudKitRecordMapping
 
 /// Protocol for mapping between CoreData entities and CloudKit records
 public protocol CloudKitRecordMapping: Sendable {

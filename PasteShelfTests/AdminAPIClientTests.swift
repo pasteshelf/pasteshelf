@@ -7,29 +7,37 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - MockURLProtocol
 
 /// A custom `URLProtocol` that intercepts all requests and returns a pre-configured
 /// response. This allows unit testing of `AdminAPIClient` without hitting a real server.
 final class MockURLProtocol: URLProtocol, @unchecked Sendable {
-
     /// Handler called for each intercepted request. Must be set before the test begins.
     nonisolated(unsafe) static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
 
     /// Captures the most recent request for assertion purposes.
     nonisolated(unsafe) static var lastRequest: URLRequest?
 
-    override class func canInit(with request: URLRequest) -> Bool { true }
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
 
     override func startLoading() {
         Self.lastRequest = request
 
         guard let handler = Self.requestHandler else {
-            let error = NSError(domain: "MockURLProtocol", code: 0, userInfo: [NSLocalizedDescriptionKey: "No request handler set"])
+            let error = NSError(
+                domain: "MockURLProtocol",
+                code: 0,
+                userInfo: [NSLocalizedDescriptionKey: "No request handler set"]
+            )
             client?.urlProtocol(self, didFailWithError: error)
             return
         }
@@ -89,7 +97,6 @@ private func makeSuccessResponse(
 // MARK: - AdminAPIClientTests
 
 struct AdminAPIClientTests {
-
     // MARK: - Request Construction
 
     @Test("registerDevice sends POST to /api/v1/devices/register")
@@ -198,7 +205,7 @@ struct AdminAPIClientTests {
     func submitAnalyticsEventsPath() async throws {
         let client = makeClient(bearerToken: "test-token")
         let events = [
-            AdminAnalyticsEvent(deviceId: "dev-1", eventType: .appLaunched)
+            AdminAnalyticsEvent(deviceId: "dev-1", eventType: .appLaunched),
         ]
 
         MockURLProtocol.requestHandler = { request in
@@ -354,7 +361,7 @@ struct AdminAPIClientTests {
             _ = try await client.fetchPolicy(for: "dev-1")
             #expect(Bool(false), "Expected AdminError.serverError")
         } catch let error as AdminError {
-            if case .serverError(let code, let message) = error {
+            if case let .serverError(code, message) = error {
                 #expect(code == 500)
                 #expect(message == "Internal Server Error")
             } else {
@@ -376,7 +383,7 @@ struct AdminAPIClientTests {
             _ = try await client.fetchPolicy(for: "dev-1")
             #expect(Bool(false), "Expected AdminError.serverError")
         } catch let error as AdminError {
-            if case .serverError(let code, _) = error {
+            if case let .serverError(code, _) = error {
                 #expect(code == 403)
             } else {
                 #expect(Bool(false), "Expected serverError, got \(error)")

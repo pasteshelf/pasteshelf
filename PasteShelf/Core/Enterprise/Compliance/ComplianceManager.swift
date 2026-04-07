@@ -23,6 +23,13 @@ import os.log
 /// - Exposes `isEnabled` for downstream services to consult
 @MainActor
 final class ComplianceManager: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    private init() {}
+
+    // MARK: Internal
 
     // MARK: - Singleton
 
@@ -46,14 +53,6 @@ final class ComplianceManager: ObservableObject {
     /// The most recent error encountered by the compliance subsystem, if any.
     @Published var lastError: ComplianceError?
 
-    // MARK: - Dependencies
-
-    private let logger = Logger.compliance
-
-    // MARK: - Initialization
-
-    private init() {}
-
     // MARK: - Configuration
 
     /// Configures the compliance manager and initializes sub-frameworks.
@@ -75,7 +74,7 @@ final class ComplianceManager: ObservableObject {
         isGDPRActive = enterpriseSettings.gdprEnabled
         isSOC2Active = enterpriseSettings.soc2Enabled
 
-        logger.info("ComplianceManager configured (HIPAA=\(self.isHIPAAActive), GDPR=\(self.isGDPRActive), SOC2=\(self.isSOC2Active))")
+        logger.info("ComplianceManager configured (HIPAA=\(isHIPAAActive), GDPR=\(isGDPRActive), SOC2=\(isSOC2Active))")
     }
 
     /// Disables the compliance subsystem.
@@ -92,7 +91,7 @@ final class ComplianceManager: ObservableObject {
         let enterpriseSettings = SettingsManager.shared.enterprise
         isGDPRActive = enterpriseSettings.gdprEnabled
         isSOC2Active = enterpriseSettings.soc2Enabled
-        logger.debug("Compliance settings refreshed: GDPR=\(self.isGDPRActive), SOC2=\(self.isSOC2Active)")
+        logger.debug("Compliance settings refreshed: GDPR=\(isGDPRActive), SOC2=\(isSOC2Active)")
     }
 
     /// Refreshes HIPAA state after configuration changes.
@@ -103,6 +102,12 @@ final class ComplianceManager: ObservableObject {
         if isHIPAAActive {
             HIPAAAccessControlService.shared.configure()
         }
-        logger.debug("HIPAA state refreshed: \(self.isHIPAAActive)")
+        logger.debug("HIPAA state refreshed: \(isHIPAAActive)")
     }
+
+    // MARK: Private
+
+    // MARK: - Dependencies
+
+    private let logger = Logger.compliance
 }

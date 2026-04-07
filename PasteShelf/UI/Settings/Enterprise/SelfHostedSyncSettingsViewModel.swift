@@ -14,6 +14,24 @@ import Security
 
 @MainActor
 final class SelfHostedSyncSettingsViewModel: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init() {
+        loadConfiguration()
+    }
+
+    // MARK: Internal
+
+    // MARK: - Types
+
+    enum ConnectionStatus {
+        case unknown
+        case testing
+        case connected
+        case failed
+    }
 
     // MARK: - Published Properties
 
@@ -28,25 +46,14 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
     @Published var testSteps: [ConnectionTestStep] = []
     @Published var errorMessage: String?
 
-    // MARK: - Properties
-
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-settings")
-    private let configKey = "com.pasteshelf.selfhosted.config"
-    private let apiKeyService = "com.pasteshelf.selfhosted.apiKey"
-    private let apiKeyAccount = "selfHostedConfig"
-
-    // MARK: - Initialization
-
-    init() {
-        loadConfiguration()
-    }
-
     // MARK: - Configuration
 
     func loadConfiguration() {
         guard let data = UserDefaults.standard.data(forKey: configKey),
               let config = try? JSONDecoder().decode(SelfHostedSyncConfiguration.self, from: data)
-        else { return }
+        else {
+            return
+        }
 
         serverURLString = config.serverURL?.absoluteString ?? ""
         organizationID = config.organizationID
@@ -89,7 +96,7 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         SyncManager.shared.selfHostedConfiguration = syncConfig
 
         // Restart sync if the new configuration is valid and enabled
-        if syncConfig.isEnabled && syncConfig.isConfigured {
+        if syncConfig.isEnabled, syncConfig.isConfigured {
             Task { [weak self] in
                 do {
                     try await SyncManager.shared.stop()
@@ -102,57 +109,6 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         }
 
         logger.info("Self-hosted sync configuration saved")
-    }
-
-    // MARK: - Keychain Helpers
-
-    private func saveApiKeyToKeychain(_ key: String) {
-        guard let data = key.data(using: .utf8) else { return }
-        let deleteQuery: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: apiKeyService,
-            kSecAttrAccount as String: apiKeyAccount
-        ]
-        let deleteStatus = SecItemDelete(deleteQuery as CFDictionary)
-        if deleteStatus != errSecSuccess && deleteStatus != errSecItemNotFound {
-            logger.warning("Keychain delete returned status \(deleteStatus)")
-        }
-
-        let addQuery: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: apiKeyService,
-            kSecAttrAccount as String: apiKeyAccount,
-            kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
-        ]
-        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
-        if addStatus != errSecSuccess {
-            logger.error("Keychain add failed with status \(addStatus)")
-            errorMessage = "Failed to save API key to Keychain (error \(addStatus))"
-        }
-    }
-
-    private func loadApiKeyFromKeychain() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: apiKeyService,
-            kSecAttrAccount as String: apiKeyAccount,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess, let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
-    private func deleteApiKeyFromKeychain() {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: apiKeyService,
-            kSecAttrAccount as String: apiKeyAccount
-        ]
-        SecItemDelete(query as CFDictionary)
     }
 
     // MARK: - Connection Test
@@ -255,6 +211,68 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         isTestingConnection = false
     }
 
+    // MARK: Private
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-settings")
+    private let configKey = "com.pasteshelf.selfhosted.config"
+    private let apiKeyService = "com.pasteshelf.selfhosted.apiKey"
+    private let apiKeyAccount = "selfHostedConfig"
+
+    // MARK: - Keychain Helpers
+
+    private func saveApiKeyToKeychain(_ key: String) {
+        guard let data = key.data(using: .utf8) else {
+            return
+        }
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: apiKeyService,
+            kSecAttrAccount as String: apiKeyAccount,
+        ]
+        let deleteStatus = SecItemDelete(deleteQuery as CFDictionary)
+        if deleteStatus != errSecSuccess, deleteStatus != errSecItemNotFound {
+            logger.warning("Keychain delete returned status \(deleteStatus)")
+        }
+
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: apiKeyService,
+            kSecAttrAccount as String: apiKeyAccount,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+        ]
+        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        if addStatus != errSecSuccess {
+            logger.error("Keychain add failed with status \(addStatus)")
+            errorMessage = "Failed to save API key to Keychain (error \(addStatus))"
+        }
+    }
+
+    private func loadApiKeyFromKeychain() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: apiKeyService,
+            kSecAttrAccount as String: apiKeyAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private func deleteApiKeyFromKeychain() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: apiKeyService,
+            kSecAttrAccount as String: apiKeyAccount,
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
     // MARK: - Helpers
 
     private func addStep(title: String, status: ConnectionTestStep.StepStatus) {
@@ -262,47 +280,49 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
     }
 
     private func updateLastStep(status: ConnectionTestStep.StepStatus, detail: String? = nil) {
-        guard !testSteps.isEmpty else { return }
+        guard !testSteps.isEmpty else {
+            return
+        }
         testSteps[testSteps.count - 1].status = status
         testSteps[testSteps.count - 1].detail = detail
-    }
-
-    // MARK: - Types
-
-    enum ConnectionStatus {
-        case unknown, testing, connected, failed
     }
 }
 
 // MARK: - ConnectionTestStep
 
 struct ConnectionTestStep: Identifiable {
-    let id = UUID()
-    let title: String
-    var status: StepStatus
-    var detail: String?
-
     enum StepStatus {
-        case inProgress, passed, failed, warning, skipped
+        case inProgress
+        case passed
+        case failed
+        case warning
+        case skipped
+
+        // MARK: Internal
 
         var icon: String {
             switch self {
-            case .inProgress: return "arrow.trianglehead.2.counterclockwise"
-            case .passed: return "checkmark.circle.fill"
-            case .failed: return "xmark.circle.fill"
-            case .warning: return "exclamationmark.triangle.fill"
-            case .skipped: return "minus.circle"
+            case .inProgress: "arrow.trianglehead.2.counterclockwise"
+            case .passed: "checkmark.circle.fill"
+            case .failed: "xmark.circle.fill"
+            case .warning: "exclamationmark.triangle.fill"
+            case .skipped: "minus.circle"
             }
         }
 
         var color: String {
             switch self {
-            case .inProgress: return "blue"
-            case .passed: return "green"
-            case .failed: return "red"
-            case .warning: return "orange"
-            case .skipped: return "gray"
+            case .inProgress: "blue"
+            case .passed: "green"
+            case .failed: "red"
+            case .warning: "orange"
+            case .skipped: "gray"
             }
         }
     }
+
+    let id = UUID()
+    let title: String
+    var status: StepStatus
+    var detail: String?
 }

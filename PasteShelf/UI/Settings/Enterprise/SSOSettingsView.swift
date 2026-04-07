@@ -13,15 +13,17 @@ import SwiftUI
 
 /// Main SSO settings view, displayed in the Enterprise section of Preferences.
 struct SSOSettingsView: View {
-    // MARK: - Properties
-
-    @StateObject private var viewModel = SSOSettingsViewModel()
+    // MARK: Internal
 
     // MARK: - Body
 
     var body: some View {
         ssoContent
     }
+
+    // MARK: Private
+
+    @StateObject private var viewModel = SSOSettingsViewModel()
 
     // MARK: - Main Content
 
@@ -59,7 +61,9 @@ struct SSOSettingsView: View {
         }
         .alert("Error", isPresented: .init(
             get: { viewModel.errorMessage != nil },
-            set: { if !$0 { viewModel.errorMessage = nil } }
+            set: { if !$0 {
+                viewModel.errorMessage = nil
+            } }
         )) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
@@ -163,6 +167,55 @@ struct SSOSettingsView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
         }
+    }
+
+    // MARK: - Empty Detail State
+
+    private var emptyDetailState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "key.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary)
+
+            Text("No Provider Selected")
+                .font(.title2)
+
+            Text("Select an identity provider from the list, or add a new one to get started.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 300)
+
+            Button("Add Identity Provider") {
+                viewModel.addProvider()
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Form Sheet
+
+    private var providerFormSheet: some View {
+        IdentityProviderFormView(
+            provider: viewModel.editingProvider,
+            onSave: { saved in
+                Task {
+                    await viewModel.saveProvider(saved)
+                    viewModel.isShowingForm = false
+                    viewModel.selectedProvider = saved
+                }
+            },
+            onCancel: {
+                viewModel.isShowingForm = false
+            },
+            onTestConnection: { provider in
+                Task { await viewModel.testConnection(provider) }
+            },
+            testResult: $viewModel.testResult,
+            isTestingConnection: $viewModel.isTestingConnection
+        )
+        .frame(minWidth: 560, minHeight: 500)
     }
 
     // MARK: - Provider Detail
@@ -360,62 +413,13 @@ struct SSOSettingsView: View {
             }
         }
     }
-
-    // MARK: - Empty Detail State
-
-    private var emptyDetailState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "key.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-
-            Text("No Provider Selected")
-                .font(.title2)
-
-            Text("Select an identity provider from the list, or add a new one to get started.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 300)
-
-            Button("Add Identity Provider") {
-                viewModel.addProvider()
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    // MARK: - Form Sheet
-
-    @ViewBuilder
-    private var providerFormSheet: some View {
-        IdentityProviderFormView(
-            provider: viewModel.editingProvider,
-            onSave: { saved in
-                Task {
-                    await viewModel.saveProvider(saved)
-                    viewModel.isShowingForm = false
-                    viewModel.selectedProvider = saved
-                }
-            },
-            onCancel: {
-                viewModel.isShowingForm = false
-            },
-            onTestConnection: { provider in
-                Task { await viewModel.testConnection(provider) }
-            },
-            testResult: $viewModel.testResult,
-            isTestingConnection: $viewModel.isTestingConnection
-        )
-        .frame(minWidth: 560, minHeight: 500)
-    }
-
 }
 
-// MARK: - Provider List Row
+// MARK: - ProviderListRow
 
 private struct ProviderListRow: View {
+    // MARK: Internal
+
     let provider: IdentityProvider
     let onToggle: () -> Void
 
@@ -445,20 +449,28 @@ private struct ProviderListRow: View {
         .padding(.vertical, 3)
     }
 
+    // MARK: Private
+
     private var statusColor: Color {
-        if !provider.isConfigured { return .orange }
+        if !provider.isConfigured {
+            return .orange
+        }
         return provider.isEnabled ? .green : .secondary
     }
 
     private var statusHelp: String {
-        if !provider.isConfigured { return "Incomplete configuration" }
+        if !provider.isConfigured {
+            return "Incomplete configuration"
+        }
         return provider.isEnabled ? "Active" : "Disabled"
     }
 }
 
-// MARK: - Provider Type Badge
+// MARK: - ProviderTypeBadge
 
 private struct ProviderTypeBadge: View {
+    // MARK: Internal
+
     let type: IdentityProviderType
 
     var body: some View {
@@ -471,17 +483,21 @@ private struct ProviderTypeBadge: View {
             .foregroundStyle(badgeColor)
     }
 
+    // MARK: Private
+
     private var badgeColor: Color {
         switch type {
-        case .saml: return .blue
-        case .oidc: return .purple
+        case .saml: .blue
+        case .oidc: .purple
         }
     }
 }
 
-// MARK: - Connection Status Badge
+// MARK: - ConnectionStatusBadge
 
 private struct ConnectionStatusBadge: View {
+    // MARK: Internal
+
     let isEnabled: Bool
     let isConfigured: Bool
 
@@ -496,13 +512,19 @@ private struct ConnectionStatusBadge: View {
         }
     }
 
+    // MARK: Private
+
     private var dotColor: Color {
-        if !isConfigured { return .orange }
+        if !isConfigured {
+            return .orange
+        }
         return isEnabled ? .green : .secondary
     }
 
     private var label: String {
-        if !isConfigured { return "Incomplete" }
+        if !isConfigured {
+            return "Incomplete"
+        }
         return isEnabled ? "Active" : "Disabled"
     }
 }
@@ -512,14 +534,14 @@ private struct ConnectionStatusBadge: View {
 private extension SAMLNameIDFormat {
     var shortDisplayName: String {
         switch self {
-        case .emailAddress: return "Email Address"
-        case .persistent: return "Persistent"
-        case .transient: return "Transient"
-        case .entity: return "Entity"
-        case .kerberos: return "Kerberos"
-        case .windowsDomainQualifiedName: return "Windows Domain"
-        case .x509SubjectName: return "X.509 Subject"
-        case .unspecified: return "Unspecified"
+        case .emailAddress: "Email Address"
+        case .persistent: "Persistent"
+        case .transient: "Transient"
+        case .entity: "Entity"
+        case .kerberos: "Kerberos"
+        case .windowsDomainQualifiedName: "Windows Domain"
+        case .x509SubjectName: "X.509 Subject"
+        case .unspecified: "Unspecified"
         }
     }
 }

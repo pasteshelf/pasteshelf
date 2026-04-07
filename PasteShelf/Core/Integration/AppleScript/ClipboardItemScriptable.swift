@@ -10,59 +10,57 @@ import AppKit
 import CoreData
 import Foundation
 
+// MARK: - ClipboardItemScriptable
+
 /// Scriptable wrapper for ClipboardItem that provides AppleScript access
 @MainActor @objc(ClipboardItemScriptable)
 class ClipboardItemScriptable: NSObject {
-    // MARK: - Properties
-
-    private var item: ClipboardItem?
-    private var itemID: UUID?
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     init(item: ClipboardItem) {
         self.item = item
-        self.itemID = item.id
+        itemID = item.id
         super.init()
     }
 
     init(id: UUID) {
-        self.itemID = id
+        itemID = id
         super.init()
     }
 
-    // MARK: - Lazy Loading
+    // MARK: Internal
 
-    private func loadItem() -> ClipboardItem? {
-        if let item = item {
-            return item
-        }
+    // MARK: - Object Specifier
 
-        guard let id = itemID else { return nil }
-
-        let context = StorageManager.shared.viewContext
-        let fetchRequest = ClipboardItem.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-        fetchRequest.fetchLimit = 1
-
-        do {
-            item = try context.fetch(fetchRequest).first
-            return item
-        } catch {
+    override var objectSpecifier: NSScriptObjectSpecifier? {
+        guard let uniqueID = itemID?.uuidString else {
             return nil
         }
+
+        let appDescription = NSApplication.shared.classDescription as? NSScriptClassDescription
+
+        return NSUniqueIDSpecifier(
+            containerClassDescription: appDescription!,
+            containerSpecifier: nil,
+            key: "clipboardItems",
+            uniqueID: uniqueID
+        )
     }
 
     // MARK: - Scriptable Properties
 
     /// Unique identifier as a string
     @objc var uniqueID: String {
-        return itemID?.uuidString ?? ""
+        itemID?.uuidString ?? ""
     }
 
     /// Text content of the item
     @objc var textContent: String {
-        guard let item = loadItem() else { return "" }
+        guard let item = loadItem() else {
+            return ""
+        }
         return item.plainTextPreview ?? ""
     }
 
@@ -79,24 +77,32 @@ class ClipboardItemScriptable: NSObject {
 
     /// Source application name
     @objc var sourceApplication: String {
-        guard let item = loadItem() else { return "" }
+        guard let item = loadItem() else {
+            return ""
+        }
         return item.sourceAppName ?? ""
     }
 
     /// Capture date
     @objc var captureDate: Date {
-        guard let item = loadItem() else { return Date() }
+        guard let item = loadItem() else {
+            return Date()
+        }
         return item.timestamp ?? Date()
     }
 
     /// Whether item is a favorite
     @objc var isFavorite: Bool {
         get {
-            guard let item = loadItem() else { return false }
+            guard let item = loadItem() else {
+                return false
+            }
             return item.isFavorite
         }
         set {
-            guard let item = loadItem() else { return }
+            guard let item = loadItem() else {
+                return
+            }
             let context = StorageManager.shared.viewContext
             context.perform {
                 item.isFavorite = newValue
@@ -107,13 +113,17 @@ class ClipboardItemScriptable: NSObject {
 
     /// Whether item is sensitive
     @objc var isSensitive: Bool {
-        guard let item = loadItem() else { return false }
+        guard let item = loadItem() else {
+            return false
+        }
         return item.isSensitive
     }
 
     /// Preview text
     @objc var previewText: String {
-        guard let item = loadItem() else { return "" }
+        guard let item = loadItem() else {
+            return ""
+        }
 
         if let preview = item.plainTextPreview {
             let firstLine = preview.components(separatedBy: .newlines).first ?? preview
@@ -126,19 +136,33 @@ class ClipboardItemScriptable: NSObject {
         return contentType
     }
 
-    // MARK: - Object Specifier
+    // MARK: Private
 
-    override var objectSpecifier: NSScriptObjectSpecifier? {
-        guard let uniqueID = itemID?.uuidString else { return nil }
+    private var item: ClipboardItem?
+    private var itemID: UUID?
 
-        let appDescription = NSApplication.shared.classDescription as? NSScriptClassDescription
+    // MARK: - Lazy Loading
 
-        return NSUniqueIDSpecifier(
-            containerClassDescription: appDescription!,
-            containerSpecifier: nil,
-            key: "clipboardItems",
-            uniqueID: uniqueID
-        )
+    private func loadItem() -> ClipboardItem? {
+        if let item {
+            return item
+        }
+
+        guard let id = itemID else {
+            return nil
+        }
+
+        let context = StorageManager.shared.viewContext
+        let fetchRequest = ClipboardItem.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        fetchRequest.fetchLimit = 1
+
+        do {
+            item = try context.fetch(fetchRequest).first
+            return item
+        } catch {
+            return nil
+        }
     }
 }
 
@@ -170,7 +194,9 @@ extension NSApplication {
 
     /// Get a clipboard item by unique ID
     @objc func clipboardItem(withUniqueID uniqueID: String) -> ClipboardItemScriptable? {
-        guard let uuid = UUID(uuidString: uniqueID) else { return nil }
+        guard let uuid = UUID(uuidString: uniqueID) else {
+            return nil
+        }
 
         let context = StorageManager.shared.viewContext
         var result: ClipboardItemScriptable?

@@ -19,7 +19,6 @@ import Foundation
 /// Evaluation is performed asynchronously to avoid blocking the main thread during
 /// potentially expensive regex operations on large content payloads.
 protocol DLPRuleEvaluating: Sendable {
-
     /// Evaluates the given clipboard content against the provided rules.
     ///
     /// Only rules with `isEnabled == true` are evaluated. Rules with invalid patterns
@@ -41,7 +40,6 @@ protocol DLPRuleEvaluating: Sendable {
 /// support filtered queries for the violation log viewer, and enforce the configured
 /// retention window by pruning expired records.
 protocol DLPViolationStoring: Sendable {
-
     /// Persists a single DLP violation record to local CoreData storage.
     ///
     /// - Parameter violation: The `DLPViolation` to persist.
@@ -77,7 +75,6 @@ protocol DLPViolationStoring: Sendable {
 /// full CRUD operations. Rules loaded from storage are used by `DLPRuleEvaluating`
 /// implementations at clipboard capture time.
 protocol DLPRuleStoring: Sendable {
-
     /// Fetches all stored DLP rules.
     ///
     /// Results are returned sorted by creation date ascending.

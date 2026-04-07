@@ -9,9 +9,11 @@
 import AppKit
 import SwiftUI
 
+// MARK: - ClipboardItemView
+
 /// View for displaying a single clipboard item
 struct ClipboardItemView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     let item: ClipboardItemDisplayModel
 
@@ -23,17 +25,6 @@ struct ClipboardItemView: View {
 
     /// Observe settings for reactive updates
     @EnvironmentObject var settingsManager: SettingsManager
-
-    /// Whether sensitive content should be revealed
-    @State private var isRevealed = false
-
-    /// Whether OCR text is expanded
-    @State private var isOCRExpanded = false
-
-    /// Whether there are search highlights to show
-    private var hasSearchHighlights: Bool {
-        !searchHighlights.isEmpty || searchQuery != nil
-    }
 
     // MARK: - Body
 
@@ -60,6 +51,55 @@ struct ClipboardItemView: View {
         .padding(.vertical, settingsManager.appearance.compactMode ? 4 : 8)
     }
 
+    // MARK: Private
+
+    /// Whether sensitive content should be revealed
+    @State private var isRevealed = false
+
+    /// Whether OCR text is expanded
+    @State private var isOCRExpanded = false
+
+    /// Whether there are search highlights to show
+    private var hasSearchHighlights: Bool {
+        !searchHighlights.isEmpty || searchQuery != nil
+    }
+
+    private var iconBackgroundColor: Color {
+        switch item.contentType {
+        case .plainText,
+             .richText,
+             .html:
+            Color.blue.opacity(0.15)
+        case .png,
+             .jpeg,
+             .tiff:
+            Color.green.opacity(0.15)
+        case .pdf:
+            Color.red.opacity(0.15)
+        case .url,
+             .fileURL:
+            Color.purple.opacity(0.15)
+        }
+    }
+
+    private var iconForegroundColor: Color {
+        switch item.contentType {
+        case .plainText,
+             .richText,
+             .html:
+            .blue
+        case .png,
+             .jpeg,
+             .tiff:
+            .green
+        case .pdf:
+            .red
+        case .url,
+             .fileURL:
+            .purple
+        }
+    }
+
     // MARK: - Content Type Icon
 
     private var contentTypeIcon: some View {
@@ -71,32 +111,6 @@ struct ClipboardItemView: View {
             Image(systemName: item.icon)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(iconForegroundColor)
-        }
-    }
-
-    private var iconBackgroundColor: Color {
-        switch item.contentType {
-        case .plainText, .richText, .html:
-            return Color.blue.opacity(0.15)
-        case .png, .jpeg, .tiff:
-            return Color.green.opacity(0.15)
-        case .pdf:
-            return Color.red.opacity(0.15)
-        case .url, .fileURL:
-            return Color.purple.opacity(0.15)
-        }
-    }
-
-    private var iconForegroundColor: Color {
-        switch item.contentType {
-        case .plainText, .richText, .html:
-            return .blue
-        case .png, .jpeg, .tiff:
-            return .green
-        case .pdf:
-            return .red
-        case .url, .fileURL:
-            return .purple
         }
     }
 

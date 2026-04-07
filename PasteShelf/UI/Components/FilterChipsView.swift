@@ -8,10 +8,10 @@
 
 import SwiftUI
 
+// MARK: - FilterChipsView
+
 /// Horizontal filter chips for quick filtering
 struct FilterChipsView: View {
-    // MARK: - Properties
-
     /// Currently selected content type filter
     @Binding var selectedContentType: ContentTypeFilter?
 
@@ -102,11 +102,11 @@ struct FilterChipsView: View {
     }
 }
 
-// MARK: - Filter Chip
+// MARK: - FilterChip
 
 /// Individual filter chip button
 struct FilterChip: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     /// Title text for the chip
     let title: String
@@ -146,7 +146,7 @@ struct FilterChip: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Computed Properties
+    // MARK: Private
 
     private var background: Color {
         isSelected ? selectedColor.opacity(0.15) : Color.clear
@@ -161,12 +161,13 @@ struct FilterChip: View {
     }
 }
 
-// MARK: - Compact Filter Chips (for smaller spaces)
+// MARK: - CompactFilterChipsView
 
 /// Compact version with icons only
 struct CompactFilterChipsView: View {
     @Binding var selectedContentType: ContentTypeFilter?
     @Binding var favoritesOnly: Bool
+
     var onContentTypeToggle: ((ContentTypeFilter) -> Void)?
     var onFavoritesToggle: (() -> Void)?
 
@@ -200,6 +201,8 @@ struct CompactFilterChipsView: View {
     }
 }
 
+// MARK: - CompactFilterChip
+
 /// Individual compact filter chip (icon only)
 struct CompactFilterChip: View {
     let icon: String
@@ -228,7 +231,7 @@ struct CompactFilterChip: View {
     }
 }
 
-// MARK: - Active Filter Summary
+// MARK: - ActiveFilterSummaryView
 
 /// Shows a summary of active filters with clear button
 struct ActiveFilterSummaryView: View {
@@ -263,9 +266,7 @@ struct ActiveFilterSummaryView: View {
 #if DEBUG
     struct FilterChipsView_Previews: PreviewProvider {
         struct PreviewWrapper: View {
-            @State private var selectedType: ContentTypeFilter?
-            @State private var favoritesOnly = false
-            @State private var selectedTagIds: Set<UUID> = []
+            // MARK: Internal
 
             var body: some View {
                 VStack(alignment: .leading, spacing: 16) {
@@ -309,6 +310,12 @@ struct ActiveFilterSummaryView: View {
                 .padding()
                 .frame(width: 350)
             }
+
+            // MARK: Private
+
+            @State private var selectedType: ContentTypeFilter?
+            @State private var favoritesOnly = false
+            @State private var selectedTagIds: Set<UUID> = []
         }
 
         static var previews: some View {

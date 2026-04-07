@@ -133,57 +133,60 @@ enum SSOError: Error, LocalizedError, Sendable {
     /// The provider configuration is missing required fields or contains invalid values
     case configurationInvalid(String)
 
+    // MARK: Internal
+
     // MARK: - LocalizedError
 
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "No identity provider has been configured. Please set up an SSO provider in the enterprise settings."
-        case .providerNotFound(let id):
-            return "Identity provider with ID \(id.uuidString) could not be found."
-        case .authenticationFailed(let reason):
-            return "Authentication failed: \(reason)"
+            "No identity provider has been configured. Please set up an SSO provider in the enterprise settings."
+        case let .providerNotFound(id):
+            "Identity provider with ID \(id.uuidString) could not be found."
+        case let .authenticationFailed(reason):
+            "Authentication failed: \(reason)"
         case .sessionExpired:
-            return "Your SSO session has expired. Please sign in again."
+            "Your SSO session has expired. Please sign in again."
         case .sessionInvalid:
-            return "Your SSO session is no longer valid. Please sign in again."
-        case .logoutFailed(let reason):
-            return "Logout could not be completed: \(reason)"
-        case .networkError(let reason):
-            return "A network error occurred while contacting the identity provider: \(reason)"
-        case .configurationInvalid(let reason):
-            return "The identity provider configuration is invalid: \(reason)"
+            "Your SSO session is no longer valid. Please sign in again."
+        case let .logoutFailed(reason):
+            "Logout could not be completed: \(reason)"
+        case let .networkError(reason):
+            "A network error occurred while contacting the identity provider: \(reason)"
+        case let .configurationInvalid(reason):
+            "The identity provider configuration is invalid: \(reason)"
         }
     }
 
     var failureReason: String? {
         switch self {
-        case .authenticationFailed(let reason),
-             .logoutFailed(let reason),
-             .networkError(let reason),
-             .configurationInvalid(let reason):
-            return reason
+        case let .authenticationFailed(reason),
+             let .logoutFailed(reason),
+             let .networkError(reason),
+             let .configurationInvalid(reason):
+            reason
         default:
-            return nil
+            nil
         }
     }
 
     var recoverySuggestion: String? {
         switch self {
         case .notConfigured:
-            return "Contact your IT administrator to configure an identity provider."
+            "Contact your IT administrator to configure an identity provider."
         case .providerNotFound:
-            return "Verify the provider configuration in enterprise settings."
+            "Verify the provider configuration in enterprise settings."
         case .authenticationFailed:
-            return "Check your credentials and try again, or contact your IT administrator."
-        case .sessionExpired, .sessionInvalid:
-            return "Sign in again to start a new session."
+            "Check your credentials and try again, or contact your IT administrator."
+        case .sessionExpired,
+             .sessionInvalid:
+            "Sign in again to start a new session."
         case .logoutFailed:
-            return "Try signing out again or clear your session data manually."
+            "Try signing out again or clear your session data manually."
         case .networkError:
-            return "Check your network connection and try again."
+            "Check your network connection and try again."
         case .configurationInvalid:
-            return "Review the identity provider configuration and correct any errors."
+            "Review the identity provider configuration and correct any errors."
         }
     }
 }

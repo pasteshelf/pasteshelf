@@ -1,26 +1,32 @@
 #if !APP_STORE
-import Combine
-import Sparkle
+    import Combine
+    import Sparkle
 
-final class SparkleUpdaterController: ObservableObject {
-    private let updater: SPUUpdater
+    final class SparkleUpdaterController: ObservableObject {
+        // MARK: Lifecycle
 
-    init() {
-        let controller = SPUStandardUpdaterController(
-            startingUpdater: false,
-            updaterDelegate: nil,
-            userDriverDelegate: nil
-        )
-        self.updater = controller.updater
-        controller.startUpdater()
+        init() {
+            let controller = SPUStandardUpdaterController(
+                startingUpdater: false,
+                updaterDelegate: nil,
+                userDriverDelegate: nil
+            )
+            updater = controller.updater
+            controller.startUpdater()
+        }
+
+        // MARK: Internal
+
+        var canCheckForUpdates: Bool {
+            updater.canCheckForUpdates
+        }
+
+        func checkForUpdates() {
+            updater.checkForUpdates()
+        }
+
+        // MARK: Private
+
+        private let updater: SPUUpdater
     }
-
-    var canCheckForUpdates: Bool {
-        updater.canCheckForUpdates
-    }
-
-    func checkForUpdates() {
-        updater.checkForUpdates()
-    }
-}
 #endif

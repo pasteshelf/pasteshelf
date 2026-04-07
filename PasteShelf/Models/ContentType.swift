@@ -21,46 +21,23 @@ public enum ContentType: String, CaseIterable, Codable, Sendable {
     case fileURL = "public.file-url"
     case url = "public.url"
 
+    // MARK: Internal
+
     // MARK: - UTType Conversion
 
     /// Returns the corresponding UTType for this content type
     var utType: UTType? {
         switch self {
-        case .plainText: return .plainText
-        case .richText: return .rtf
-        case .html: return .html
-        case .png: return .png
-        case .jpeg: return .jpeg
-        case .tiff: return .tiff
-        case .pdf: return .pdf
-        case .fileURL: return .fileURL
-        case .url: return .url
+        case .plainText: .plainText
+        case .richText: .rtf
+        case .html: .html
+        case .png: .png
+        case .jpeg: .jpeg
+        case .tiff: .tiff
+        case .pdf: .pdf
+        case .fileURL: .fileURL
+        case .url: .url
         }
-    }
-
-    /// Creates a ContentType from a UTType
-    /// - Parameter utType: The UTType to convert
-    /// - Returns: The corresponding ContentType, or nil if not supported
-    static func from(utType: UTType) -> ContentType? {
-        switch utType {
-        case .plainText: return .plainText
-        case .rtf: return .richText
-        case .html: return .html
-        case .png: return .png
-        case .jpeg: return .jpeg
-        case .tiff: return .tiff
-        case .pdf: return .pdf
-        case .fileURL: return .fileURL
-        case .url: return .url
-        default: return nil
-        }
-    }
-
-    /// Creates a ContentType from a raw UTI string
-    /// - Parameter uti: The UTI string
-    /// - Returns: The corresponding ContentType, or nil if not supported
-    static func from(uti: String) -> ContentType? {
-        ContentType(rawValue: uti)
     }
 
     // MARK: - Priority
@@ -69,15 +46,15 @@ public enum ContentType: String, CaseIterable, Codable, Sendable {
     /// Lower values indicate higher priority (richer content preferred).
     var priority: Int {
         switch self {
-        case .richText: return 1
-        case .html: return 2
-        case .fileURL: return 3
-        case .url: return 4
-        case .png: return 5
-        case .jpeg: return 6
-        case .tiff: return 7
-        case .pdf: return 8
-        case .plainText: return 9
+        case .richText: 1
+        case .html: 2
+        case .fileURL: 3
+        case .url: 4
+        case .png: 5
+        case .jpeg: 6
+        case .tiff: 7
+        case .pdf: 8
+        case .plainText: 9
         }
     }
 
@@ -86,28 +63,30 @@ public enum ContentType: String, CaseIterable, Codable, Sendable {
     /// SF Symbol icon name for display
     var icon: String {
         switch self {
-        case .plainText: return "doc.text"
-        case .richText: return "doc.richtext"
-        case .html: return "chevron.left.forwardslash.chevron.right"
-        case .png, .jpeg, .tiff: return "photo"
-        case .pdf: return "doc.fill"
-        case .fileURL: return "folder"
-        case .url: return "link"
+        case .plainText: "doc.text"
+        case .richText: "doc.richtext"
+        case .html: "chevron.left.forwardslash.chevron.right"
+        case .png,
+             .jpeg,
+             .tiff: "photo"
+        case .pdf: "doc.fill"
+        case .fileURL: "folder"
+        case .url: "link"
         }
     }
 
     /// Human-readable display name
     var displayName: String {
         switch self {
-        case .plainText: return "Plain Text"
-        case .richText: return "Rich Text"
-        case .html: return "HTML"
-        case .png: return "PNG Image"
-        case .jpeg: return "JPEG Image"
-        case .tiff: return "TIFF Image"
-        case .pdf: return "PDF Document"
-        case .fileURL: return "File"
-        case .url: return "URL"
+        case .plainText: "Plain Text"
+        case .richText: "Rich Text"
+        case .html: "HTML"
+        case .png: "PNG Image"
+        case .jpeg: "JPEG Image"
+        case .tiff: "TIFF Image"
+        case .pdf: "PDF Document"
+        case .fileURL: "File"
+        case .url: "URL"
         }
     }
 
@@ -116,24 +95,54 @@ public enum ContentType: String, CaseIterable, Codable, Sendable {
     /// Whether this content type represents text content
     var isTextType: Bool {
         switch self {
-        case .plainText, .richText, .html: return true
-        default: return false
+        case .plainText,
+             .richText,
+             .html: true
+        default: false
         }
     }
 
     /// Whether this content type represents image content
     var isImageType: Bool {
         switch self {
-        case .png, .jpeg, .tiff: return true
-        default: return false
+        case .png,
+             .jpeg,
+             .tiff: true
+        default: false
         }
     }
 
     /// Whether this content type represents a URL or file reference
     var isReferenceType: Bool {
         switch self {
-        case .url, .fileURL: return true
-        default: return false
+        case .url,
+             .fileURL: true
+        default: false
         }
+    }
+
+    /// Creates a ContentType from a UTType
+    /// - Parameter utType: The UTType to convert
+    /// - Returns: The corresponding ContentType, or nil if not supported
+    static func from(utType: UTType) -> ContentType? {
+        switch utType {
+        case .plainText: .plainText
+        case .rtf: .richText
+        case .html: .html
+        case .png: .png
+        case .jpeg: .jpeg
+        case .tiff: .tiff
+        case .pdf: .pdf
+        case .fileURL: .fileURL
+        case .url: .url
+        default: nil
+        }
+    }
+
+    /// Creates a ContentType from a raw UTI string
+    /// - Parameter uti: The UTI string
+    /// - Returns: The corresponding ContentType, or nil if not supported
+    static func from(uti: String) -> ContentType? {
+        ContentType(rawValue: uti)
     }
 }

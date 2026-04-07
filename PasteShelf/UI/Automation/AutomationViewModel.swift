@@ -11,9 +11,25 @@ import Foundation
 import os.log
 import SwiftUI
 
+// MARK: - AutomationViewModel
+
 /// ViewModel for managing automation rules
 @MainActor
 final class AutomationViewModel: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(storage: AutomationRuleStorage = .shared, engine: AutomationEngine = .shared) {
+        self.storage = storage
+        self.engine = engine
+        Task {
+            await loadRules()
+        }
+    }
+
+    // MARK: Internal
+
     // MARK: - Published Properties
 
     /// All automation rules
@@ -37,8 +53,6 @@ final class AutomationViewModel: ObservableObject {
     /// Search query for filtering rules
     @Published var searchQuery = ""
 
-    // MARK: - Computed Properties
-
     /// Filtered rules based on search query
     var filteredRules: [AutomationRule] {
         if searchQuery.isEmpty {
@@ -60,27 +74,6 @@ final class AutomationViewModel: ObservableObject {
         rules.filter { !$0.isEnabled }.count
     }
 
-    // MARK: - Private Properties
-
-    private let storage: AutomationRuleStorage
-    private let engine: AutomationEngine
-    private var cancellables = Set<AnyCancellable>()
-
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "automation-vm"
-    )
-
-    // MARK: - Initialization
-
-    init(storage: AutomationRuleStorage = .shared, engine: AutomationEngine = .shared) {
-        self.storage = storage
-        self.engine = engine
-        Task {
-            await loadRules()
-        }
-    }
-
     // MARK: - Public Methods
 
     /// Load all automation rules
@@ -90,7 +83,7 @@ final class AutomationViewModel: ObservableObject {
 
         do {
             rules = try await storage.fetchAllRules()
-            logger.info("Loaded \(self.rules.count) automation rules")
+            logger.info("Loaded \(rules.count) automation rules")
         } catch {
             errorMessage = "Failed to load rules: \(error.localizedDescription)"
             logger.error("Failed to load rules: \(error.localizedDescription)")
@@ -211,7 +204,9 @@ final class AutomationViewModel: ObservableObject {
 
     /// Save the current rule being edited
     func saveCurrentRule() async {
-        guard let rule = selectedRule else { return }
+        guard let rule = selectedRule else {
+            return
+        }
 
         if isCreating {
             await createRule(rule)
@@ -226,6 +221,19 @@ final class AutomationViewModel: ObservableObject {
     func clearError() {
         errorMessage = nil
     }
+
+    // MARK: Private
+
+    // MARK: - Private Properties
+
+    private let storage: AutomationRuleStorage
+    private let engine: AutomationEngine
+    private var cancellables = Set<AnyCancellable>()
+
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "automation-vm"
+    )
 }
 
 // MARK: - AutomationRule Extension

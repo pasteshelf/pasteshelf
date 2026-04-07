@@ -12,6 +12,8 @@ import XCTest
 /// These tests are designed to set up realistic content and capture high-quality screenshots
 /// that showcase PasteShelf's features.
 final class ScreenshotUITests: XCTestCase {
+    // MARK: Internal
+
     var app: XCUIApplication!
     var locale: String = "en"
 
@@ -54,7 +56,7 @@ final class ScreenshotUITests: XCTestCase {
     /// Captures the main floating panel showing clipboard history.
     /// Shows: 8-10 items, mixed content types, date groupings, search field, filter chips.
     @MainActor
-    func testScreenshot1_FloatingPanelOverview() throws {
+    func testScreenshot1_FloatingPanelOverview() {
         // Open the floating panel via menu bar
         showFloatingPanel()
 
@@ -85,7 +87,7 @@ final class ScreenshotUITests: XCTestCase {
     /// Captures the floating panel with an active search query.
     /// Shows: Search query typed, filtered results, highlighted matches.
     @MainActor
-    func testScreenshot2_SearchInAction() throws {
+    func testScreenshot2_SearchInAction() {
         // Open the floating panel
         showFloatingPanel()
 
@@ -130,7 +132,7 @@ final class ScreenshotUITests: XCTestCase {
     /// Captures the Preferences window showing the Privacy tab.
     /// Shows: Excluded apps list, privacy toggles, Clear History button.
     @MainActor
-    func testScreenshot3_PreferencesPrivacy() throws {
+    func testScreenshot3_PreferencesPrivacy() {
         // Open Preferences via menu bar
         openPreferences()
 
@@ -150,8 +152,8 @@ final class ScreenshotUITests: XCTestCase {
         // Verify Privacy content is showing
         XCTAssertTrue(
             prefsWindow.staticTexts["Excluded Apps"].exists ||
-            prefsWindow.staticTexts["Privacy"].exists ||
-            prefsWindow.buttons["Clear History"].exists,
+                prefsWindow.staticTexts["Privacy"].exists ||
+                prefsWindow.buttons["Clear History"].exists,
             "Privacy tab content should be visible"
         )
 
@@ -169,7 +171,7 @@ final class ScreenshotUITests: XCTestCase {
     /// Note: This screenshot may need manual capture due to NSStatusItem limitations.
     /// Shows: Menu bar icon, dropdown with recent items, quick actions.
     @MainActor
-    func testScreenshot4_MenuBarIntegration() throws {
+    func testScreenshot4_MenuBarIntegration() {
         // Click the menu bar item to open dropdown
         let menuBarItem = app.menuBars.statusItems.firstMatch
         guard menuBarItem.exists else {
@@ -204,7 +206,7 @@ final class ScreenshotUITests: XCTestCase {
     /// Captures the Preferences window showing the Shortcuts tab.
     /// Shows: Global hotkey configuration, navigation shortcuts.
     @MainActor
-    func testScreenshot5_KeyboardShortcuts() throws {
+    func testScreenshot5_KeyboardShortcuts() {
         // Open Preferences via menu bar
         openPreferences()
 
@@ -224,8 +226,8 @@ final class ScreenshotUITests: XCTestCase {
         // Verify Shortcuts content is showing
         XCTAssertTrue(
             prefsWindow.staticTexts["Global Hotkey"].exists ||
-            prefsWindow.staticTexts["Shortcuts"].exists ||
-            prefsWindow.staticTexts.matching(NSPredicate(format: "label CONTAINS '⌘'")).firstMatch.exists,
+                prefsWindow.staticTexts["Shortcuts"].exists ||
+                prefsWindow.staticTexts.matching(NSPredicate(format: "label CONTAINS '⌘'")).firstMatch.exists,
             "Shortcuts tab content should be visible"
         )
 
@@ -272,11 +274,13 @@ final class ScreenshotUITests: XCTestCase {
         // Terminate and relaunch with dark mode
         app.terminate()
         ScreenshotHelper.setAppearance(darkMode: true, app: app)
-        locale = "en_dark"  // Mark as dark mode variant
+        locale = "en_dark" // Mark as dark mode variant
         app.launch()
 
         try testAllScreenshots()
     }
+
+    // MARK: Private
 
     // MARK: - Helper Methods
 

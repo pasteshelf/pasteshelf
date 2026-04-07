@@ -24,40 +24,7 @@ import os.log
 /// setting already locked by MDM (`MDMManager.shared.isSettingLocked`).
 @MainActor
 final class AdminManager: ObservableObject {
-
-    // MARK: - Singleton
-
-    static let shared = AdminManager()
-
-    // MARK: - Published State
-
-    /// The current admin console connection configuration.
-    @Published private(set) var configuration: AdminConsoleConfiguration = .empty
-
-    /// The locally persisted device registration, if enrolled.
-    @Published private(set) var deviceRegistration: DeviceRegistration?
-
-    /// The current device enrollment status.
-    @Published private(set) var enrollmentStatus: DeviceEnrollmentStatus = .notEnrolled
-
-    /// The most recently fetched admin policy, if any.
-    @Published private(set) var currentPolicy: AdminPolicy?
-
-    /// Whether the device is successfully connected to the admin console.
-    @Published private(set) var isConnected: Bool = false
-
-    /// The most recent admin error, if any.
-    @Published var lastError: AdminError?
-
-    // MARK: - Dependencies
-
-    private var apiClient: AdminAPIClient?
-    private var registrationService: DeviceRegistrationService?
-    private var healthService: HealthReportingService?
-    private var policyService: PolicySyncService?
-    private var analyticsReporter: AnalyticsReporter?
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "admin-manager")
-    private var cancellables = Set<AnyCancellable>()
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -85,6 +52,46 @@ final class AdminManager: ObservableObject {
         self.analyticsReporter = analyticsReporter
     }
 
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    static let shared = AdminManager()
+
+    // MARK: - Published State
+
+    /// The current admin console connection configuration.
+    @Published private(set) var configuration: AdminConsoleConfiguration = .empty
+
+    /// The locally persisted device registration, if enrolled.
+    @Published private(set) var deviceRegistration: DeviceRegistration?
+
+    /// The current device enrollment status.
+    @Published private(set) var enrollmentStatus: DeviceEnrollmentStatus = .notEnrolled
+
+    /// The most recently fetched admin policy, if any.
+    @Published private(set) var currentPolicy: AdminPolicy?
+
+    /// Whether the device is successfully connected to the admin console.
+    @Published private(set) var isConnected: Bool = false
+
+    /// The most recent admin error, if any.
+    @Published var lastError: AdminError?
+
+    // MARK: - Enterprise Key Access
+
+    /// Returns the admin console server URL, either from direct configuration
+    /// or from the MDM-pushed `adminConsoleURL` key.
+    var adminConsoleURL: String? {
+        if let url = configuration.serverURL?.absoluteString {
+            return url
+        }
+        if case let .string(url) = MDMManager.shared.configuration.effectiveValue(for: .adminConsoleURL) {
+            return url
+        }
+        return nil
+    }
+
     // MARK: - Configuration
 
     /// Configures the manager with admin console connection parameters.
@@ -104,23 +111,23 @@ final class AdminManager: ObservableObject {
         }
 
         let client = AdminAPIClient(configuration: config)
-        self.apiClient = client
+        apiClient = client
 
         let store = KeychainDeviceRegistrationStore()
         let registration = DeviceRegistrationService(apiClient: client, store: store)
-        self.registrationService = registration
+        registrationService = registration
 
-        self.healthService = HealthReportingService(
+        healthService = HealthReportingService(
             apiClient: client,
             registrationProvider: registration
         )
 
-        self.policyService = PolicySyncService(
+        policyService = PolicySyncService(
             apiClient: client,
             deviceId: { [weak self] in self?.deviceRegistration?.deviceId }
         )
 
-        self.analyticsReporter = AnalyticsReporter(apiClient: client)
+        analyticsReporter = AnalyticsReporter(apiClient: client)
 
         // Configure audit logging
         AuditManager.shared.configure(with: client)
@@ -235,7 +242,7 @@ final class AdminManager: ObservableObject {
         currentPolicy = policy
         trackEvent(.policyApplied, metadata: [
             "policyId": policy.id,
-            "policyVersion": policy.version
+            "policyVersion": policy.version,
         ])
     }
 
@@ -246,7 +253,9 @@ final class AdminManager: ObservableObject {
     ///
     /// - Parameter settings: The application settings to apply overrides to.
     func applyPolicyOverrides(to settings: inout AppSettings) {
-        guard let policy = currentPolicy, let policyService else { return }
+        guard let policy = currentPolicy, let policyService else {
+            return
+        }
         policyService.applyPolicy(policy, to: &settings)
     }
 
@@ -281,7 +290,9 @@ final class AdminManager: ObservableObject {
         _ type: AdminAnalyticsEventType,
         metadata: [String: String] = [:]
     ) {
-        guard let deviceId = deviceRegistration?.deviceId else { return }
+        guard let deviceId = deviceRegistration?.deviceId else {
+            return
+        }
         analyticsReporter?.track(
             type,
             deviceId: deviceId,
@@ -290,19 +301,17 @@ final class AdminManager: ObservableObject {
         )
     }
 
-    // MARK: - Enterprise Key Access
+    // MARK: Private
 
-    /// Returns the admin console server URL, either from direct configuration
-    /// or from the MDM-pushed `adminConsoleURL` key.
-    var adminConsoleURL: String? {
-        if let url = configuration.serverURL?.absoluteString {
-            return url
-        }
-        if case .string(let url) = MDMManager.shared.configuration.effectiveValue(for: .adminConsoleURL) {
-            return url
-        }
-        return nil
-    }
+    // MARK: - Dependencies
+
+    private var apiClient: AdminAPIClient?
+    private var registrationService: DeviceRegistrationService?
+    private var healthService: HealthReportingService?
+    private var policyService: PolicySyncService?
+    private var analyticsReporter: AnalyticsReporter?
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "admin-manager")
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Private Helpers
 

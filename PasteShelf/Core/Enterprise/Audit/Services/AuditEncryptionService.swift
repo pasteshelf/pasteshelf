@@ -23,30 +23,7 @@ import Security
 /// Keychain under the `com.pasteshelf.audit.detail.key` service so that it survives
 /// application restarts without requiring re-encryption of existing records.
 struct AuditEncryptionService: Sendable {
-
-    // MARK: - Constants
-
-    /// Keychain service identifier for the audit encryption key.
-    private static let keychainService = "com.pasteshelf.audit.detail.key"
-
-    /// Keychain account name for the audit encryption key.
-    private static let keychainAccount = "audit-encryption-key"
-
-    /// Current wire-format version byte prepended to every encrypted payload.
-    private static let currentVersion: UInt8 = 1
-
-    /// Size of the AES-GCM nonce in bytes (96-bit).
-    private static let nonceSize = 12
-
-    /// Size of the AES-GCM authentication tag in bytes (128-bit).
-    private static let tagSize = 16
-
-    /// Minimum valid size of an encrypted payload: version + nonce + tag.
-    private static let minEncryptedSize = 1 + nonceSize + tagSize
-
-    // MARK: - Logger
-
-    private static let logger = Logger.audit
+    // MARK: Internal
 
     // MARK: - Encryption
 
@@ -181,6 +158,32 @@ struct AuditEncryptionService: Sendable {
         }
     }
 
+    // MARK: Private
+
+    // MARK: - Constants
+
+    /// Keychain service identifier for the audit encryption key.
+    private static let keychainService = "com.pasteshelf.audit.detail.key"
+
+    /// Keychain account name for the audit encryption key.
+    private static let keychainAccount = "audit-encryption-key"
+
+    /// Current wire-format version byte prepended to every encrypted payload.
+    private static let currentVersion: UInt8 = 1
+
+    /// Size of the AES-GCM nonce in bytes (96-bit).
+    private static let nonceSize = 12
+
+    /// Size of the AES-GCM authentication tag in bytes (128-bit).
+    private static let tagSize = 16
+
+    /// Minimum valid size of an encrypted payload: version + nonce + tag.
+    private static let minEncryptedSize = 1 + nonceSize + tagSize
+
+    // MARK: - Logger
+
+    private static let logger = Logger.audit
+
     // MARK: - Key Management
 
     /// Loads the existing key from the Keychain, or generates and saves a new one.
@@ -231,7 +234,7 @@ struct AuditEncryptionService: Sendable {
         // Delete any existing item first (ignore errSecItemNotFound)
         let deleteQuery = keychainQuery()
         let deleteStatus = SecItemDelete(deleteQuery as CFDictionary)
-        if deleteStatus != errSecSuccess && deleteStatus != errSecItemNotFound {
+        if deleteStatus != errSecSuccess, deleteStatus != errSecItemNotFound {
             Self.logger.warning("SecItemDelete for audit key returned status \(deleteStatus)")
         }
 
@@ -252,7 +255,7 @@ struct AuditEncryptionService: Sendable {
         [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: Self.keychainService,
-            kSecAttrAccount as String: Self.keychainAccount
+            kSecAttrAccount as String: Self.keychainAccount,
         ]
     }
 }

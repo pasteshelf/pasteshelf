@@ -2,6 +2,29 @@ import Fluent
 import Vapor
 
 final class Device: Model, Content, @unchecked Sendable {
+    // MARK: Lifecycle
+
+    init() {}
+
+    init(
+        id: UUID? = nil,
+        userID: UUID,
+        deviceID: String,
+        deviceName: String? = nil,
+        osVersion: String? = nil,
+        appVersion: String? = nil
+    ) {
+        self.id = id
+        $user.id = userID
+        self.deviceID = deviceID
+        self.deviceName = deviceName
+        self.osVersion = osVersion
+        self.appVersion = appVersion
+        lastSeen = Date()
+    }
+
+    // MARK: Internal
+
     static let schema = "devices"
 
     @ID(key: .id) var id: UUID?
@@ -14,16 +37,4 @@ final class Device: Model, Content, @unchecked Sendable {
     @Timestamp(key: "created_at", on: .create) var createdAt: Date?
 
     @Children(for: \.$device) var apiKeys: [APIKey]
-
-    init() {}
-
-    init(id: UUID? = nil, userID: UUID, deviceID: String, deviceName: String? = nil, osVersion: String? = nil, appVersion: String? = nil) {
-        self.id = id
-        self.$user.id = userID
-        self.deviceID = deviceID
-        self.deviceName = deviceName
-        self.osVersion = osVersion
-        self.appVersion = appVersion
-        self.lastSeen = Date()
-    }
 }

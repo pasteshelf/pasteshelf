@@ -13,7 +13,7 @@ import Foundation
 import PasteShelfPluginKit
 import SwiftUI
 
-// MARK: - Main Plugin Class
+// MARK: - ExamplePlugin
 
 /// Example plugin that demonstrates common plugin patterns.
 ///
@@ -30,6 +30,8 @@ import SwiftUI
 /// 4. Update Info.plist accordingly
 @objc(ExamplePlugin)
 public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginExtended, PasteShelfPluginWithSettings {
+    // MARK: Public
+
     // MARK: - Plugin Metadata
 
     /// Unique identifier for this plugin (reverse-DNS format)
@@ -43,30 +45,6 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
 
     /// Content types this plugin can handle
     public static let supportedTypes: [ContentType] = [.plainText]
-
-    // MARK: - State
-
-    /// Reference to the plugin context (stored from didLoad)
-    private var context: (any PluginContext)?
-
-    /// Convenience accessor for storage
-    private var storage: (any PluginStorage)? {
-        context?.storage
-    }
-
-    // MARK: - Settings
-
-    /// User preference: whether to add prefix to output
-    private var addPrefix: Bool {
-        storage?.bool(forKey: "addPrefix") ?? true
-    }
-
-    /// User preference: custom prefix text
-    private var prefixText: String {
-        storage?.string(forKey: "prefixText") ?? "[Reversed] "
-    }
-
-    // MARK: - Lifecycle
 
     /// Called when PasteShelf loads this plugin.
     ///
@@ -92,17 +70,6 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
         // Release any resources
     }
 
-    // MARK: - Settings Initialization
-
-    private func initializeDefaultSettings() {
-        // Only set defaults if they haven't been set before
-        guard let storage else { return }
-
-        if storage.string(forKey: "prefixText") == nil {
-            storage.setString("[Reversed] ", forKey: "prefixText")
-        }
-    }
-
     // MARK: - Menu Items
 
     /// Returns menu items for the PasteShelf UI.
@@ -125,7 +92,7 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
                 iconName: "arrow.left.arrow.right"
             ) { [weak self] content in
                 try await self?.reverseText(content, addPrefix: false)
-            }
+            },
         ]
     }
 
@@ -150,10 +117,49 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
         Self.supportedTypes.contains(contentType)
     }
 
+    // MARK: Private
+
+    // MARK: - State
+
+    /// Reference to the plugin context (stored from didLoad)
+    private var context: (any PluginContext)?
+
+    /// Convenience accessor for storage
+    private var storage: (any PluginStorage)? {
+        context?.storage
+    }
+
+    // MARK: - Settings
+
+    /// User preference: whether to add prefix to output
+    private var addPrefix: Bool {
+        storage?.bool(forKey: "addPrefix") ?? true
+    }
+
+    /// User preference: custom prefix text
+    private var prefixText: String {
+        storage?.string(forKey: "prefixText") ?? "[Reversed] "
+    }
+
+    // MARK: - Settings Initialization
+
+    private func initializeDefaultSettings() {
+        // Only set defaults if they haven't been set before
+        guard let storage else {
+            return
+        }
+
+        if storage.string(forKey: "prefixText") == nil {
+            storage.setString("[Reversed] ", forKey: "prefixText")
+        }
+    }
+
     // MARK: - Core Logic
 
     /// Reverses the text content.
-    private func reverseText(_ content: PluginClipboardContent, addPrefix: Bool) async throws -> PluginClipboardContent? {
+    private func reverseText(_ content: PluginClipboardContent,
+                             addPrefix: Bool) async throws -> PluginClipboardContent?
+    {
         // Validate input
         guard let text = content.text, !text.isEmpty else {
             context?.logger.warning("No text content to reverse")
@@ -181,31 +187,32 @@ public final class ExamplePlugin: NSObject, PasteShelfPlugin, PasteShelfPluginEx
     }
 }
 
-// MARK: - Errors
+// MARK: - ExamplePluginError
 
 /// Errors that can occur in this plugin.
 enum ExamplePluginError: Error, LocalizedError {
     case noContent
     case transformationFailed(String)
 
+    // MARK: Internal
+
     var errorDescription: String? {
         switch self {
         case .noContent:
-            return "No text content to process. Copy some text first."
-        case .transformationFailed(let reason):
-            return "Transformation failed: \(reason)"
+            "No text content to process. Copy some text first."
+        case let .transformationFailed(reason):
+            "Transformation failed: \(reason)"
         }
     }
 }
 
-// MARK: - Settings View
+// MARK: - ExamplePluginSettingsView
 
 /// SwiftUI settings view for the plugin.
 private struct ExamplePluginSettingsView: View {
-    let storage: (any PluginStorage)?
+    // MARK: Internal
 
-    @State private var addPrefix: Bool = true
-    @State private var prefixText: String = "[Reversed] "
+    let storage: (any PluginStorage)?
 
     var body: some View {
         Form {
@@ -234,6 +241,11 @@ private struct ExamplePluginSettingsView: View {
             loadSettings()
         }
     }
+
+    // MARK: Private
+
+    @State private var addPrefix: Bool = true
+    @State private var prefixText: String = "[Reversed] "
 
     private func loadSettings() {
         addPrefix = storage?.bool(forKey: "addPrefix") ?? true

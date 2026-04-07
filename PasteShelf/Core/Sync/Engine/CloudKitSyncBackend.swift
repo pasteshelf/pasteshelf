@@ -18,16 +18,26 @@ import os.log
 /// by `CloudKitProvider` (e.g., `CKServerChangeToken`, `CKRecord.ID`) and the
 /// opaque `Data` tokens expected by `SyncBackend`.
 final class CloudKitSyncBackend: SyncBackend {
-
-    // MARK: - Properties
-
-    private let provider: CloudKitProvider
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "cloudkit-backend")
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     init(provider: CloudKitProvider = CloudKitProvider()) {
         self.provider = provider
+    }
+
+    // MARK: Internal
+
+    // MARK: - Token Serialization
+
+    /// Serialize a `CKServerChangeToken` to opaque `Data` for the backend-agnostic interface.
+    static func serializeChangeToken(_ token: CKServerChangeToken) -> Data? {
+        try? NSKeyedArchiver.archivedData(withRootObject: token, requiringSecureCoding: true)
+    }
+
+    /// Deserialize `Data` back to a `CKServerChangeToken`.
+    static func deserializeChangeToken(_ data: Data) -> CKServerChangeToken? {
+        try? NSKeyedUnarchiver.unarchivedObject(ofClass: CKServerChangeToken.self, from: data)
     }
 
     // MARK: - SyncBackend Protocol
@@ -42,7 +52,8 @@ final class CloudKitSyncBackend: SyncBackend {
                 return .authenticationRequired
             case .restricted:
                 return .unavailable(reason: "iCloud access is restricted")
-            case .couldNotDetermine, .temporarilyUnavailable:
+            case .couldNotDetermine,
+                 .temporarilyUnavailable:
                 return .unavailable(reason: "iCloud is temporarily unavailable")
             @unknown default:
                 return .unavailable(reason: "Unknown iCloud status")
@@ -111,15 +122,8 @@ final class CloudKitSyncBackend: SyncBackend {
         logger.info("CloudKit sync data reset")
     }
 
-    // MARK: - Token Serialization
+    // MARK: Private
 
-    /// Serialize a `CKServerChangeToken` to opaque `Data` for the backend-agnostic interface.
-    static func serializeChangeToken(_ token: CKServerChangeToken) -> Data? {
-        try? NSKeyedArchiver.archivedData(withRootObject: token, requiringSecureCoding: true)
-    }
-
-    /// Deserialize `Data` back to a `CKServerChangeToken`.
-    static func deserializeChangeToken(_ data: Data) -> CKServerChangeToken? {
-        try? NSKeyedUnarchiver.unarchivedObject(ofClass: CKServerChangeToken.self, from: data)
-    }
+    private let provider: CloudKitProvider
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "cloudkit-backend")
 }

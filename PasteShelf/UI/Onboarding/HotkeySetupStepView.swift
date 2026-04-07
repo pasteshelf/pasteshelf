@@ -7,12 +7,11 @@
 
 import SwiftUI
 
+// MARK: - HotkeySetupStepView
+
 /// Hotkey setup step view
 struct HotkeySetupStepView: View {
-    // MARK: - Properties
-
-    @State private var hotkey: StoredHotkey = SettingsManager.shared.settings.shortcuts.globalHotkey
-    @State private var isRecording = false
+    // MARK: Internal
 
     // MARK: - Body
 
@@ -81,6 +80,11 @@ struct HotkeySetupStepView: View {
         }
         .padding(.horizontal, 40)
     }
+
+    // MARK: Private
+
+    @State private var hotkey: StoredHotkey = SettingsManager.shared.settings.shortcuts.globalHotkey
+    @State private var isRecording = false
 
     // MARK: - Preset Button
 

@@ -6,55 +6,57 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
+
+// MARK: - AutoCleanupManagerTests
 
 struct AutoCleanupManagerTests {
     // MARK: - Cleanup Logic Tests
 
     @Test("Should cleanup when auto-delete is enabled and days exceeded")
-    func shouldCleanupWhenEnabled() {
+    func shouldCleanupWhenEnabled() throws {
         var settings = PrivacySettings.default
         settings.autoDeleteEnabled = true
         settings.autoDeleteDays = 7
 
         // Calculate a date 10 days ago
-        let oldDate = Calendar.current.date(byAdding: .day, value: -10, to: Date())!
+        let oldDate = try #require(Calendar.current.date(byAdding: .day, value: -10, to: Date()))
 
         #expect(AutoCleanupManager.shouldDelete(itemDate: oldDate, settings: settings) == true)
     }
 
     @Test("Should not cleanup when auto-delete is disabled")
-    func shouldNotCleanupWhenDisabled() {
+    func shouldNotCleanupWhenDisabled() throws {
         var settings = PrivacySettings.default
         settings.autoDeleteEnabled = false
         settings.autoDeleteDays = 7
 
-        let oldDate = Calendar.current.date(byAdding: .day, value: -10, to: Date())!
+        let oldDate = try #require(Calendar.current.date(byAdding: .day, value: -10, to: Date()))
 
         #expect(AutoCleanupManager.shouldDelete(itemDate: oldDate, settings: settings) == false)
     }
 
     @Test("Should not cleanup recent items")
-    func shouldNotCleanupRecentItems() {
+    func shouldNotCleanupRecentItems() throws {
         var settings = PrivacySettings.default
         settings.autoDeleteEnabled = true
         settings.autoDeleteDays = 7
 
         // 3 days ago is within the 7-day window
-        let recentDate = Calendar.current.date(byAdding: .day, value: -3, to: Date())!
+        let recentDate = try #require(Calendar.current.date(byAdding: .day, value: -3, to: Date()))
 
         #expect(AutoCleanupManager.shouldDelete(itemDate: recentDate, settings: settings) == false)
     }
 
     @Test("Boundary date is handled correctly")
-    func boundaryDateIsHandledCorrectly() {
+    func boundaryDateIsHandledCorrectly() throws {
         var settings = PrivacySettings.default
         settings.autoDeleteEnabled = true
         settings.autoDeleteDays = 7
 
         // Exactly 7 days ago
-        let boundaryDate = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+        let boundaryDate = try #require(Calendar.current.date(byAdding: .day, value: -7, to: Date()))
 
         // Implementation-dependent: could be true or false at boundary
         let result = AutoCleanupManager.shouldDelete(itemDate: boundaryDate, settings: settings)
@@ -112,8 +114,8 @@ struct AutoCleanupManagerTests {
         // Default cleanup interval should be at least 1 hour
         let interval = AutoCleanupManager.defaultCleanupInterval
 
-        #expect(interval >= 3600)  // At least 1 hour
-        #expect(interval <= 86400)  // At most 1 day
+        #expect(interval >= 3600) // At least 1 hour
+        #expect(interval <= 86400) // At most 1 day
     }
 }
 
@@ -122,7 +124,9 @@ struct AutoCleanupManagerTests {
 extension AutoCleanupManager {
     /// Check if an item should be deleted based on date and settings
     nonisolated static func shouldDelete(itemDate: Date, settings: PrivacySettings) -> Bool {
-        guard settings.autoDeleteEnabled else { return false }
+        guard settings.autoDeleteEnabled else {
+            return false
+        }
 
         let cutoffDate = Calendar.current.date(
             byAdding: .day,
@@ -140,12 +144,14 @@ extension AutoCleanupManager {
 
     /// Calculate how many items need to be removed based on limit
     nonisolated static func itemsToRemove(currentCount: Int, limit: Int?) -> Int {
-        guard let limit = limit else { return 0 }
+        guard let limit else {
+            return 0
+        }
         return max(0, currentCount - limit)
     }
 
     /// Default cleanup interval in seconds
     nonisolated static var defaultCleanupInterval: TimeInterval {
-        86400  // 24 hours
+        86400 // 24 hours
     }
 }

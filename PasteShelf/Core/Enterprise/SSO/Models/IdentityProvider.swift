@@ -12,18 +12,10 @@ import Foundation
 
 /// The protocol type used by an identity provider
 enum IdentityProviderType: String, Codable, Sendable, CaseIterable {
-    case saml = "saml"
-    case oidc = "oidc"
+    case saml
+    case oidc
 
-    /// Human-readable label for display
-    var displayName: String {
-        switch self {
-        case .saml:
-            return "SAML 2.0"
-        case .oidc:
-            return "OpenID Connect"
-        }
-    }
+    // MARK: Lifecycle
 
     init(rawValue: String) {
         switch rawValue {
@@ -35,13 +27,51 @@ enum IdentityProviderType: String, Codable, Sendable, CaseIterable {
             self = .saml
         }
     }
+
+    // MARK: Internal
+
+    /// Human-readable label for display
+    var displayName: String {
+        switch self {
+        case .saml:
+            "SAML 2.0"
+        case .oidc:
+            "OpenID Connect"
+        }
+    }
 }
 
 // MARK: - IdentityProvider
 
 /// Configuration for an enterprise identity provider
 struct IdentityProvider: Codable, Sendable, Identifiable, Equatable {
-    // MARK: - Properties
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        type: IdentityProviderType,
+        entityId: String,
+        isEnabled: Bool = false,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date(),
+        samlConfig: SAMLProviderConfig? = nil,
+        oidcConfig: OIDCProviderConfig? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.type = type
+        self.entityId = entityId
+        self.isEnabled = isEnabled
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.samlConfig = samlConfig
+        self.oidcConfig = oidcConfig
+    }
+
+    // MARK: Internal
 
     /// Unique identifier for this provider configuration
     let id: UUID
@@ -70,39 +100,15 @@ struct IdentityProvider: Codable, Sendable, Identifiable, Equatable {
     /// OIDC-specific configuration; non-nil when type == .oidc
     var oidcConfig: OIDCProviderConfig?
 
-    // MARK: - Initialization
-
-    init(
-        id: UUID = UUID(),
-        name: String,
-        type: IdentityProviderType,
-        entityId: String,
-        isEnabled: Bool = false,
-        createdAt: Date = Date(),
-        updatedAt: Date = Date(),
-        samlConfig: SAMLProviderConfig? = nil,
-        oidcConfig: OIDCProviderConfig? = nil
-    ) {
-        self.id = id
-        self.name = name
-        self.type = type
-        self.entityId = entityId
-        self.isEnabled = isEnabled
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.samlConfig = samlConfig
-        self.oidcConfig = oidcConfig
-    }
-
     // MARK: - Validation
 
     /// Whether this provider has a valid configuration for its type
     var isConfigured: Bool {
         switch type {
         case .saml:
-            return samlConfig != nil
+            samlConfig != nil
         case .oidc:
-            return oidcConfig != nil
+            oidcConfig != nil
         }
     }
 }
@@ -114,15 +120,7 @@ enum SAMLBinding: String, Codable, Sendable, CaseIterable {
     case httpPost = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
     case httpRedirect = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 
-    /// Human-readable label for display
-    var displayName: String {
-        switch self {
-        case .httpPost:
-            return "HTTP POST"
-        case .httpRedirect:
-            return "HTTP Redirect"
-        }
-    }
+    // MARK: Lifecycle
 
     init(rawValue: String) {
         switch rawValue {
@@ -134,12 +132,50 @@ enum SAMLBinding: String, Codable, Sendable, CaseIterable {
             self = .httpPost
         }
     }
+
+    // MARK: Internal
+
+    /// Human-readable label for display
+    var displayName: String {
+        switch self {
+        case .httpPost:
+            "HTTP POST"
+        case .httpRedirect:
+            "HTTP Redirect"
+        }
+    }
 }
 
 // MARK: - SAMLProviderConfig
 
 /// SAML 2.0 identity provider configuration
 struct SAMLProviderConfig: Codable, Sendable, Equatable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(
+        ssoURL: URL,
+        sloURL: URL? = nil,
+        certificate: String,
+        signAuthnRequests: Bool = false,
+        nameIDFormat: SAMLNameIDFormat = .emailAddress,
+        binding: SAMLBinding = .httpPost,
+        assertionConsumerServiceURL: String,
+        audienceRestriction: String
+    ) {
+        self.ssoURL = ssoURL
+        self.sloURL = sloURL
+        self.certificate = certificate
+        self.signAuthnRequests = signAuthnRequests
+        self.nameIDFormat = nameIDFormat
+        self.binding = binding
+        self.assertionConsumerServiceURL = assertionConsumerServiceURL
+        self.audienceRestriction = audienceRestriction
+    }
+
+    // MARK: Internal
+
     // MARK: - IdP Endpoints
 
     /// The identity provider's single sign-on endpoint
@@ -171,34 +207,46 @@ struct SAMLProviderConfig: Codable, Sendable, Equatable {
 
     /// Our SP entity ID used as the audience restriction value
     var audienceRestriction: String
-
-    // MARK: - Initialization
-
-    init(
-        ssoURL: URL,
-        sloURL: URL? = nil,
-        certificate: String,
-        signAuthnRequests: Bool = false,
-        nameIDFormat: SAMLNameIDFormat = .emailAddress,
-        binding: SAMLBinding = .httpPost,
-        assertionConsumerServiceURL: String,
-        audienceRestriction: String
-    ) {
-        self.ssoURL = ssoURL
-        self.sloURL = sloURL
-        self.certificate = certificate
-        self.signAuthnRequests = signAuthnRequests
-        self.nameIDFormat = nameIDFormat
-        self.binding = binding
-        self.assertionConsumerServiceURL = assertionConsumerServiceURL
-        self.audienceRestriction = audienceRestriction
-    }
 }
 
 // MARK: - OIDCProviderConfig
 
 /// OpenID Connect identity provider configuration
 struct OIDCProviderConfig: Codable, Sendable, Equatable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(
+        issuerURL: URL,
+        authorizationEndpoint: URL,
+        tokenEndpoint: URL,
+        userInfoEndpoint: URL? = nil,
+        jwksURL: URL,
+        endSessionEndpoint: URL? = nil,
+        clientId: String,
+        clientSecret: String? = nil,
+        scopes: [String] = ["openid", "profile", "email"],
+        responseType: String = "code",
+        usePKCE: Bool = true,
+        redirectURI: String
+    ) {
+        self.issuerURL = issuerURL
+        self.authorizationEndpoint = authorizationEndpoint
+        self.tokenEndpoint = tokenEndpoint
+        self.userInfoEndpoint = userInfoEndpoint
+        self.jwksURL = jwksURL
+        self.endSessionEndpoint = endSessionEndpoint
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+        self.scopes = scopes
+        self.responseType = responseType
+        self.usePKCE = usePKCE
+        self.redirectURI = redirectURI
+    }
+
+    // MARK: Internal
+
     // MARK: - Discovery / Endpoints
 
     /// The issuer URL (used for discovery and token validation)
@@ -240,38 +288,6 @@ struct OIDCProviderConfig: Codable, Sendable, Equatable {
 
     /// The redirect URI registered with the identity provider
     var redirectURI: String
-
-    // MARK: - Initialization
-
-    init(
-        issuerURL: URL,
-        authorizationEndpoint: URL,
-        tokenEndpoint: URL,
-        userInfoEndpoint: URL? = nil,
-        jwksURL: URL,
-        endSessionEndpoint: URL? = nil,
-        clientId: String,
-        clientSecret: String? = nil,
-        scopes: [String] = ["openid", "profile", "email"],
-        responseType: String = "code",
-        usePKCE: Bool = true,
-        redirectURI: String
-    ) {
-        self.issuerURL = issuerURL
-        self.authorizationEndpoint = authorizationEndpoint
-        self.tokenEndpoint = tokenEndpoint
-        self.userInfoEndpoint = userInfoEndpoint
-        self.jwksURL = jwksURL
-        self.endSessionEndpoint = endSessionEndpoint
-        self.clientId = clientId
-        self.clientSecret = clientSecret
-        self.scopes = scopes
-        self.responseType = responseType
-        self.usePKCE = usePKCE
-        self.redirectURI = redirectURI
-    }
-
-    // MARK: - Computed Properties
 
     /// Whether this is a confidential client (has a client secret)
     var isConfidentialClient: Bool {

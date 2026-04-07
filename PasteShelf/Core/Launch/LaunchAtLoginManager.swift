@@ -11,9 +11,21 @@ import Foundation
 import os.log
 import ServiceManagement
 
+// MARK: - LaunchAtLoginManager
+
 /// Manages the "Launch at Login" preference
 @MainActor
 final class LaunchAtLoginManager: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    private init() {
+        refreshStatus()
+    }
+
+    // MARK: Internal
+
     // MARK: - Singleton
 
     /// Shared instance
@@ -24,19 +36,6 @@ final class LaunchAtLoginManager: ObservableObject {
     /// Whether the app is configured to launch at login
     @Published private(set) var isEnabled: Bool = false
 
-    // MARK: - Private Properties
-
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "launch-at-login"
-    )
-
-    // MARK: - Initialization
-
-    private init() {
-        refreshStatus()
-    }
-
     // MARK: - Public Methods
 
     /// Enables or disables launch at login
@@ -45,9 +44,9 @@ final class LaunchAtLoginManager: ObservableObject {
     @discardableResult
     func setEnabled(_ enabled: Bool) -> Bool {
         if #available(macOS 13.0, *) {
-            return setEnabledModern(enabled)
+            setEnabledModern(enabled)
         } else {
-            return setEnabledLegacy(enabled)
+            setEnabledLegacy(enabled)
         }
     }
 
@@ -59,6 +58,15 @@ final class LaunchAtLoginManager: ObservableObject {
             refreshStatusLegacy()
         }
     }
+
+    // MARK: Private
+
+    // MARK: - Private Properties
+
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "launch-at-login"
+    )
 
     // MARK: - Modern Implementation (macOS 13+)
 
@@ -83,7 +91,7 @@ final class LaunchAtLoginManager: ObservableObject {
     @available(macOS 13.0, *)
     private func refreshStatusModern() {
         isEnabled = SMAppService.mainApp.status == .enabled
-        logger.debug("Launch at login status: \(self.isEnabled)")
+        logger.debug("Launch at login status: \(isEnabled)")
     }
 
     // MARK: - Legacy Implementation (macOS 12 and earlier)
@@ -113,26 +121,23 @@ final class LaunchAtLoginManager: ObservableObject {
     }
 }
 
-// MARK: - Dock Visibility Manager
+// MARK: - DockVisibilityManager
 
 /// Manages the app's Dock visibility
 @MainActor
 final class DockVisibilityManager {
-    // MARK: - Singleton
-
-    /// Shared instance
-    static let shared = DockVisibilityManager()
-
-    // MARK: - Private Properties
-
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "dock-visibility"
-    )
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     private init() {}
+
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    /// Shared instance
+    static let shared = DockVisibilityManager()
 
     // MARK: - Public Methods
 
@@ -153,4 +158,13 @@ final class DockVisibilityManager {
             logger.error("Failed to set dock visibility")
         }
     }
+
+    // MARK: Private
+
+    // MARK: - Private Properties
+
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "dock-visibility"
+    )
 }

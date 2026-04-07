@@ -7,8 +7,12 @@
 
 import SwiftUI
 
+// MARK: - WelcomeStepView
+
 /// Welcome step view with app icon and feature highlights
 struct WelcomeStepView: View {
+    // MARK: Internal
+
     // MARK: - Body
 
     var body: some View {
@@ -64,6 +68,8 @@ struct WelcomeStepView: View {
         }
         .padding(.horizontal, 40)
     }
+
+    // MARK: Private
 
     // MARK: - Feature Row
 

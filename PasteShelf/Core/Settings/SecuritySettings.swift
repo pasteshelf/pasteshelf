@@ -10,6 +10,14 @@ import Foundation
 
 /// Security settings for authentication and data protection.
 struct SecuritySettings: Codable, Equatable {
+    // MARK: - Defaults
+
+    static let `default` = SecuritySettings(
+        requireBiometricAuth: false,
+        autoLockTimeout: 0,
+        clearOnQuit: false
+    )
+
     /// Whether biometric authentication (Touch ID) is required to access the app.
     var requireBiometricAuth: Bool
 
@@ -18,12 +26,4 @@ struct SecuritySettings: Codable, Equatable {
 
     /// Whether clipboard history is cleared when the app quits.
     var clearOnQuit: Bool
-
-    // MARK: - Defaults
-
-    static let `default` = SecuritySettings(
-        requireBiometricAuth: false,
-        autoLockTimeout: 0,
-        clearOnQuit: false
-    )
 }

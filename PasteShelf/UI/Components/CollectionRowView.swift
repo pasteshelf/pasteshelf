@@ -7,9 +7,11 @@
 
 import SwiftUI
 
+// MARK: - CollectionRowView
+
 /// Displays a collection as a row in the sidebar
 struct CollectionRowView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     /// The collection to display
     let collection: CollectionDisplayModel
@@ -19,10 +21,6 @@ struct CollectionRowView: View {
 
     /// Called when the row is tapped
     let onSelect: () -> Void
-
-    // MARK: - State
-
-    @State private var isHovered = false
 
     // MARK: - Body
 
@@ -71,9 +69,25 @@ struct CollectionRowView: View {
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
+    // MARK: Private
+
+    // MARK: - State
+
+    @State private var isHovered = false
+
+    // MARK: - Accessibility
+
+    private var accessibilityLabel: String {
+        var label = collection.name
+        label += ", \(collection.itemCount) items"
+        if collection.isAutomatic {
+            label += ", smart collection"
+        }
+        return label
+    }
+
     // MARK: - Icon View
 
-    @ViewBuilder
     private var iconView: some View {
         ZStack {
             if collection.hasCustomColor {
@@ -105,17 +119,6 @@ struct CollectionRowView: View {
         } else {
             Color.clear
         }
-    }
-
-    // MARK: - Accessibility
-
-    private var accessibilityLabel: String {
-        var label = collection.name
-        label += ", \(collection.itemCount) items"
-        if collection.isAutomatic {
-            label += ", smart collection"
-        }
-        return label
     }
 }
 

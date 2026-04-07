@@ -10,44 +10,28 @@ import AppKit
 import os.log
 import SwiftUI
 
+// MARK: - OnboardingWindowController
+
 /// Controller for the onboarding window
 @MainActor
 final class OnboardingWindowController: NSObject {
-    // MARK: - Singleton
-
-    /// Shared instance
-    static let shared = OnboardingWindowController()
-
-    // MARK: - Properties
-
-    /// The onboarding window
-    private var window: NSWindow?
-
-    /// View model for the onboarding flow
-    private var viewModel: OnboardingViewModel?
-
-    /// Callback when onboarding completes
-    var onComplete: (() -> Void)?
-
-    /// Logger for onboarding operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "onboarding"
-    )
-
-    // MARK: - Configuration
-
-    /// Window width
-    private let windowWidth: CGFloat = 520
-
-    /// Window height
-    private let windowHeight: CGFloat = 560
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     override private init() {
         super.init()
     }
+
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    /// Shared instance
+    static let shared = OnboardingWindowController()
+
+    /// Callback when onboarding completes
+    var onComplete: (() -> Void)?
 
     // MARK: - Public Methods
 
@@ -84,6 +68,28 @@ final class OnboardingWindowController: NSObject {
     func shouldShowOnboarding() -> Bool {
         OnboardingViewModel.shouldShowOnboarding()
     }
+
+    // MARK: Private
+
+    /// The onboarding window
+    private var window: NSWindow?
+
+    /// View model for the onboarding flow
+    private var viewModel: OnboardingViewModel?
+
+    /// Logger for onboarding operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "onboarding"
+    )
+
+    // MARK: - Configuration
+
+    /// Window width
+    private let windowWidth: CGFloat = 520
+
+    /// Window height
+    private let windowHeight: CGFloat = 560
 
     // MARK: - Private Methods
 
@@ -141,7 +147,7 @@ final class OnboardingWindowController: NSObject {
     }
 }
 
-// MARK: - NSWindowDelegate
+// MARK: NSWindowDelegate
 
 extension OnboardingWindowController: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {

@@ -12,7 +12,33 @@ import Foundation
 
 /// Represents a change to be synced to or from CloudKit
 public struct SyncChange: Identifiable, Sendable, Equatable {
-    // MARK: - Properties
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    public init(
+        id: UUID = UUID(),
+        changeType: ChangeType,
+        entityType: EntityType,
+        entityID: UUID,
+        cloudKitRecordID: String? = nil,
+        localTimestamp: Date = Date(),
+        serverTimestamp: Date? = nil,
+        encryptedData: Data? = nil,
+        serverRecord: CKRecord? = nil
+    ) {
+        self.id = id
+        self.changeType = changeType
+        self.entityType = entityType
+        self.entityID = entityID
+        self.cloudKitRecordID = cloudKitRecordID
+        self.localTimestamp = localTimestamp
+        self.serverTimestamp = serverTimestamp
+        self.encryptedData = encryptedData
+        self.serverRecord = serverRecord
+    }
+
+    // MARK: Public
 
     /// Unique identifier for this change
     public let id: UUID
@@ -40,37 +66,13 @@ public struct SyncChange: Identifiable, Sendable, Equatable {
 
     /// Original CloudKit record (for updates with conflicts)
     public var serverRecord: CKRecord?
-
-    // MARK: - Initialization
-
-    public init(
-        id: UUID = UUID(),
-        changeType: ChangeType,
-        entityType: EntityType,
-        entityID: UUID,
-        cloudKitRecordID: String? = nil,
-        localTimestamp: Date = Date(),
-        serverTimestamp: Date? = nil,
-        encryptedData: Data? = nil,
-        serverRecord: CKRecord? = nil
-    ) {
-        self.id = id
-        self.changeType = changeType
-        self.entityType = entityType
-        self.entityID = entityID
-        self.cloudKitRecordID = cloudKitRecordID
-        self.localTimestamp = localTimestamp
-        self.serverTimestamp = serverTimestamp
-        self.encryptedData = encryptedData
-        self.serverRecord = serverRecord
-    }
 }
 
-// MARK: - Change Type
+// MARK: SyncChange.ChangeType
 
-extension SyncChange {
+public extension SyncChange {
     /// Type of change operation
-    public enum ChangeType: String, Sendable, Codable {
+    enum ChangeType: String, Sendable, Codable {
         /// New item created locally
         case insert
 
@@ -91,16 +93,18 @@ extension SyncChange {
     }
 }
 
-// MARK: - Entity Type
+// MARK: SyncChange.EntityType
 
-extension SyncChange {
+public extension SyncChange {
     /// Type of entity being synced
-    public enum EntityType: String, Sendable, Codable {
+    enum EntityType: String, Sendable, Codable {
         case clipboardItem = "ClipboardItem"
         case clipboardContentData = "ClipboardContentData"
         case contentPreview = "ContentPreview"
         case tag = "Tag"
         case folder = "Folder"
+
+        // MARK: Public
 
         /// CloudKit record type name
         public var recordType: String {
@@ -111,29 +115,33 @@ extension SyncChange {
 
 // MARK: - Helpers
 
-extension SyncChange {
+public extension SyncChange {
     /// Whether this is a local change (needs to be pushed)
-    public var isLocalChange: Bool {
+    var isLocalChange: Bool {
         switch changeType {
-        case .insert, .update, .delete:
-            return true
-        case .remoteInsert, .remoteUpdate, .remoteDelete:
-            return false
+        case .insert,
+             .update,
+             .delete:
+            true
+        case .remoteInsert,
+             .remoteUpdate,
+             .remoteDelete:
+            false
         }
     }
 
     /// Whether this is a remote change (needs to be applied locally)
-    public var isRemoteChange: Bool {
+    var isRemoteChange: Bool {
         !isLocalChange
     }
 
     /// Whether this change deletes the entity
-    public var isDeletion: Bool {
+    var isDeletion: Bool {
         changeType == .delete || changeType == .remoteDelete
     }
 
     /// Create a CloudKit record ID from this change
-    public func makeRecordID(zoneID: CKRecordZone.ID) -> CKRecord.ID {
+    func makeRecordID(zoneID: CKRecordZone.ID) -> CKRecord.ID {
         if let recordID = cloudKitRecordID {
             return CKRecord.ID(recordName: recordID, zoneID: zoneID)
         }
@@ -141,7 +149,7 @@ extension SyncChange {
     }
 }
 
-// MARK: - Codable
+// MARK: Codable
 
 extension SyncChange: Codable {
     enum CodingKeys: String, CodingKey {
@@ -185,8 +193,8 @@ extension SyncChange: Codable {
 
 // MARK: - Equatable
 
-extension SyncChange {
-    public static func == (lhs: SyncChange, rhs: SyncChange) -> Bool {
+public extension SyncChange {
+    static func == (lhs: SyncChange, rhs: SyncChange) -> Bool {
         lhs.id == rhs.id &&
             lhs.changeType == rhs.changeType &&
             lhs.entityType == rhs.entityType &&
@@ -198,7 +206,7 @@ extension SyncChange {
     }
 }
 
-// MARK: - Debug Description
+// MARK: CustomDebugStringConvertible
 
 extension SyncChange: CustomDebugStringConvertible {
     public var debugDescription: String {

@@ -8,108 +8,110 @@
 import CoreData
 import Foundation
 
-extension ClipboardItem {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<ClipboardItem> {
+public extension ClipboardItem {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<ClipboardItem> {
         NSFetchRequest<ClipboardItem>(entityName: "ClipboardItem")
     }
 
     // MARK: - Attributes
 
     /// Unique identifier for this clipboard item
-    @NSManaged public var id: UUID?
+    @NSManaged var id: UUID?
 
     /// Timestamp when the content was captured
-    @NSManaged public var timestamp: Date?
+    @NSManaged var timestamp: Date?
 
     /// Primary content type (UTI raw value)
-    @NSManaged public var contentType: String?
+    @NSManaged var contentType: String?
 
     /// SHA256 hash of content for deduplication
-    @NSManaged public var contentHash: String?
+    @NSManaged var contentHash: String?
 
     /// First 500 characters of plain text content
-    @NSManaged public var plainTextPreview: String?
+    @NSManaged var plainTextPreview: String?
 
     /// Bundle identifier of source application
-    @NSManaged public var sourceAppBundleId: String?
+    @NSManaged var sourceAppBundleId: String?
 
     /// Display name of source application
-    @NSManaged public var sourceAppName: String?
+    @NSManaged var sourceAppName: String?
 
     /// Whether this item contains sensitive data
-    @NSManaged public var isSensitive: Bool
+    @NSManaged var isSensitive: Bool
 
     /// JSON-encoded array of sensitive data types detected (e.g., "password", "creditCard")
-    @NSManaged public var sensitiveTypesJSON: String?
+    @NSManaged var sensitiveTypesJSON: String?
 
     /// Whether this item is marked as favorite
-    @NSManaged public var isFavorite: Bool
+    @NSManaged var isFavorite: Bool
 
     /// Number of times this item has been accessed/pasted
-    @NSManaged public var accessCount: Int32
+    @NSManaged var accessCount: Int32
 
     // MARK: - Sync Attributes
 
     /// Sync state: 0 = pending, 1 = synced, 2 = conflicted, 3 = deleted
-    @NSManaged public var syncState: Int16
+    @NSManaged var syncState: Int16
 
     /// CloudKit record identifier for this item
-    @NSManaged public var cloudKitRecordID: String?
+    @NSManaged var cloudKitRecordID: String?
 
     /// Timestamp when item was last synced to CloudKit
-    @NSManaged public var lastSyncedAt: Date?
+    @NSManaged var lastSyncedAt: Date?
 
     /// Timestamp when item was last modified locally (for conflict resolution)
-    @NSManaged public var modifiedAt: Date?
+    @NSManaged var modifiedAt: Date?
 
     // MARK: - Relationships
 
     /// Binary content data (one-to-one)
-    @NSManaged public var content: ClipboardContentData?
+    @NSManaged var content: ClipboardContentData?
 
     /// Thumbnail preview (one-to-one)
-    @NSManaged public var preview: ContentPreview?
+    @NSManaged var preview: ContentPreview?
 
     /// Tags assigned to this item (many-to-many)
-    @NSManaged public var tags: NSSet?
+    @NSManaged var tags: NSSet?
 
     /// Folder containing this item (optional, many-to-one)
-    @NSManaged public var folder: Folder?
+    @NSManaged var folder: Folder?
 
     /// Collections containing this item (many-to-many)
-    @NSManaged public var collections: NSSet?
+    @NSManaged var collections: NSSet?
 }
 
 // MARK: - Generated accessors for tags
 
-extension ClipboardItem {
+public extension ClipboardItem {
     @objc(addTagsObject:)
-    @NSManaged public func addToTags(_ value: Tag)
+    @NSManaged func addToTags(_ value: Tag)
 
     @objc(removeTagsObject:)
-    @NSManaged public func removeFromTags(_ value: Tag)
+    @NSManaged func removeFromTags(_ value: Tag)
 
     @objc(addTags:)
-    @NSManaged public func addToTags(_ values: NSSet)
+    @NSManaged func addToTags(_ values: NSSet)
 
     @objc(removeTags:)
-    @NSManaged public func removeFromTags(_ values: NSSet)
+    @NSManaged func removeFromTags(_ values: NSSet)
 }
 
 // MARK: - Generated accessors for collections
 
-extension ClipboardItem {
+public extension ClipboardItem {
     @objc(addCollectionsObject:)
-    @NSManaged public func addToCollections(_ value: SmartCollection)
+    @NSManaged func addToCollections(_ value: SmartCollection)
 
     @objc(removeCollectionsObject:)
-    @NSManaged public func removeFromCollections(_ value: SmartCollection)
+    @NSManaged func removeFromCollections(_ value: SmartCollection)
 
     @objc(addCollections:)
-    @NSManaged public func addToCollections(_ values: NSSet)
+    @NSManaged func addToCollections(_ values: NSSet)
 
     @objc(removeCollections:)
-    @NSManaged public func removeFromCollections(_ values: NSSet)
+    @NSManaged func removeFromCollections(_ values: NSSet)
 }
+
+// MARK: - ClipboardItem + Identifiable
 
 extension ClipboardItem: Identifiable {}

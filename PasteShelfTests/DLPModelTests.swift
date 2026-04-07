@@ -7,14 +7,13 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - DLPModelTests
 
 @Suite("DLP Model Tests")
 struct DLPModelTests {
-
     // MARK: - DLPRule
 
     @Test("DLPRule init with defaults")
@@ -217,7 +216,7 @@ struct DLPModelTests {
             .invalidPattern("[bad regex"),
             .storageFailure("disk full"),
             .ruleNotFound(UUID()),
-            .evaluationFailed("unexpected nil")
+            .evaluationFailed("unexpected nil"),
         ]
 
         for error in errors {

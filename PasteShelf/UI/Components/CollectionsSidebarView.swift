@@ -8,9 +8,11 @@
 import AppKit
 import SwiftUI
 
+// MARK: - CollectionsSidebarView
+
 /// Sidebar view showing all collections
 struct CollectionsSidebarView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     /// Collections to display
     let collections: [CollectionDisplayModel]
@@ -65,6 +67,8 @@ struct CollectionsSidebarView: View {
         }
         .frame(minWidth: 180, maxWidth: 220)
     }
+
+    // MARK: Private
 
     // MARK: - Header
 
@@ -125,6 +129,28 @@ struct CollectionsSidebarView: View {
         }
     }
 
+    // MARK: - Footer
+
+    private var footerView: some View {
+        VStack(spacing: 0) {
+            Divider()
+                .padding(.horizontal, 12)
+
+            Button(action: { onCreate?() }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 14))
+                    Text("New Collection")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .foregroundColor(.accentColor)
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+        }
+    }
+
     // MARK: - Collection Row
 
     private func collectionRow(_ collection: CollectionDisplayModel) -> some View {
@@ -158,28 +184,6 @@ struct CollectionsSidebarView: View {
             Label("Delete Collection", systemImage: "trash")
         }
     }
-
-    // MARK: - Footer
-
-    private var footerView: some View {
-        VStack(spacing: 0) {
-            Divider()
-                .padding(.horizontal, 12)
-
-            Button(action: { onCreate?() }) {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 14))
-                    Text("New Collection")
-                        .font(.system(size: 12, weight: .medium))
-                }
-                .foregroundColor(.accentColor)
-            }
-            .buttonStyle(.plain)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-        }
-    }
 }
 
 // MARK: - Preview
@@ -187,7 +191,7 @@ struct CollectionsSidebarView: View {
 #if DEBUG
     struct CollectionsSidebarView_Previews: PreviewProvider {
         struct PreviewWrapper: View {
-            @State private var selectedId: UUID?
+            // MARK: Internal
 
             var body: some View {
                 CollectionsSidebarView(
@@ -198,6 +202,10 @@ struct CollectionsSidebarView: View {
                     onCreate: {}
                 )
             }
+
+            // MARK: Private
+
+            @State private var selectedId: UUID?
         }
 
         static var previews: some View {

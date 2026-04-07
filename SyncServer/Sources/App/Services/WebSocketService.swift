@@ -16,8 +16,7 @@ import Vapor
 /// When a device pushes changes, all other devices for the same user
 /// receive a lightweight `changes_available` notification.
 final class WebSocketService: Sendable {
-
-    private let connections = WebSocketConnectionStore()
+    // MARK: Internal
 
     // MARK: - Connection Handling
 
@@ -60,7 +59,9 @@ final class WebSocketService: Sendable {
         ws.onText { [connections] ws, text in
             guard let data = text.data(using: .utf8),
                   let message = try? JSONDecoder().decode(WebSocketMessage.self, from: data)
-            else { return }
+            else {
+                return
+            }
 
             switch message.type {
             case "ping":
@@ -107,12 +108,16 @@ final class WebSocketService: Sendable {
         await broadcast(to: userID, excluding: nil, message: message)
     }
 
-    // MARK: - Internal
+    // MARK: Private
+
+    private let connections = WebSocketConnectionStore()
 
     private func broadcast(to userID: UUID, excluding deviceID: String?, message: WebSocketMessage) async {
         guard let data = try? JSONEncoder().encode(message),
               let jsonString = String(data: data, encoding: .utf8)
-        else { return }
+        else {
+            return
+        }
 
         let userConnections = await connections.connections(for: userID)
         for connection in userConnections {
@@ -124,11 +129,11 @@ final class WebSocketService: Sendable {
     }
 }
 
-// MARK: - Connection Store
+// MARK: - WebSocketConnectionStore
 
 /// Thread-safe storage for active WebSocket connections.
 actor WebSocketConnectionStore {
-    private var store: [UUID: WebSocketConnection] = [:]
+    // MARK: Internal
 
     func add(_ connection: WebSocketConnection) {
         store[connection.id] = connection
@@ -141,9 +146,13 @@ actor WebSocketConnectionStore {
     func connections(for userID: UUID) -> [WebSocketConnection] {
         store.values.filter { $0.userID == userID }
     }
+
+    // MARK: Private
+
+    private var store: [UUID: WebSocketConnection] = [:]
 }
 
-// MARK: - Connection Model
+// MARK: - WebSocketConnection
 
 struct WebSocketConnection {
     let id: UUID
@@ -152,7 +161,7 @@ struct WebSocketConnection {
     let ws: WebSocket
 }
 
-// MARK: - Message Types
+// MARK: - WebSocketMessage
 
 struct WebSocketMessage: Codable {
     let type: String

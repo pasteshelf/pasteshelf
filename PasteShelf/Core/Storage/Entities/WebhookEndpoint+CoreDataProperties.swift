@@ -11,63 +11,63 @@ import Foundation
 
 // MARK: - CoreData Properties
 
-extension WebhookEndpoint {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<WebhookEndpoint> {
+public extension WebhookEndpoint {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<WebhookEndpoint> {
         NSFetchRequest<WebhookEndpoint>(entityName: "WebhookEndpoint")
     }
 
     /// Unique identifier
-    @NSManaged public var id: UUID?
+    @NSManaged var id: UUID?
 
     /// Display name for the endpoint
-    @NSManaged public var name: String?
+    @NSManaged var name: String?
 
     /// Webhook URL to POST to
-    @NSManaged public var url: String?
+    @NSManaged var url: String?
 
     /// HMAC secret key for signing payloads
-    @NSManaged public var secretKey: String?
+    @NSManaged var secretKey: String?
 
     /// Whether the endpoint is active
-    @NSManaged public var isEnabled: Bool
+    @NSManaged var isEnabled: Bool
 
     /// JSON array of event types to send (e.g., ["clipboard.created", "clipboard.deleted"])
-    @NSManaged public var eventsJSON: String?
+    @NSManaged var eventsJSON: String?
 
     /// JSON object of content type filters (e.g., {"contentTypes": ["text", "url"]})
-    @NSManaged public var filtersJSON: String?
+    @NSManaged var filtersJSON: String?
 
     /// JSON object of custom HTTP headers
-    @NSManaged public var headersJSON: String?
+    @NSManaged var headersJSON: String?
 
     /// Number of consecutive failures
-    @NSManaged public var failureCount: Int32
+    @NSManaged var failureCount: Int32
 
     /// Last successful delivery timestamp
-    @NSManaged public var lastSuccessAt: Date?
+    @NSManaged var lastSuccessAt: Date?
 
     /// Last failure timestamp
-    @NSManaged public var lastFailureAt: Date?
+    @NSManaged var lastFailureAt: Date?
 
     /// Last failure error message
-    @NSManaged public var lastFailureMessage: String?
+    @NSManaged var lastFailureMessage: String?
 
     /// Creation timestamp
-    @NSManaged public var createdAt: Date?
+    @NSManaged var createdAt: Date?
 
     /// Last modification timestamp
-    @NSManaged public var modifiedAt: Date?
+    @NSManaged var modifiedAt: Date?
 }
 
-// MARK: - Identifiable Conformance
+// MARK: - WebhookEndpoint + Identifiable
 
 extension WebhookEndpoint: Identifiable {}
 
 // MARK: - Convenience Fetch Requests
 
-extension WebhookEndpoint {
+public extension WebhookEndpoint {
     /// Fetch all enabled webhook endpoints
-    @nonobjc public class func enabledEndpointsFetchRequest() -> NSFetchRequest<WebhookEndpoint> {
+    @nonobjc class func enabledEndpointsFetchRequest() -> NSFetchRequest<WebhookEndpoint> {
         let request = fetchRequest()
         request.predicate = NSPredicate(format: "isEnabled == YES")
         request.sortDescriptors = [
@@ -77,7 +77,7 @@ extension WebhookEndpoint {
     }
 
     /// Fetch endpoints for a specific event type
-    @nonobjc public class func endpointsForEventFetchRequest(event: String) -> NSFetchRequest<WebhookEndpoint> {
+    @nonobjc class func endpointsForEventFetchRequest(event: String) -> NSFetchRequest<WebhookEndpoint> {
         let request = fetchRequest()
         request.predicate = NSPredicate(
             format: "isEnabled == YES AND eventsJSON CONTAINS %@",
@@ -90,7 +90,7 @@ extension WebhookEndpoint {
     }
 
     /// Fetch all endpoints sorted by name
-    @nonobjc public class func allEndpointsFetchRequest() -> NSFetchRequest<WebhookEndpoint> {
+    @nonobjc class func allEndpointsFetchRequest() -> NSFetchRequest<WebhookEndpoint> {
         let request = fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \WebhookEndpoint.name, ascending: true),
@@ -99,7 +99,7 @@ extension WebhookEndpoint {
     }
 
     /// Fetch endpoints with failures
-    @nonobjc public class func failedEndpointsFetchRequest(minFailures: Int32 = 1) -> NSFetchRequest<WebhookEndpoint> {
+    @nonobjc class func failedEndpointsFetchRequest(minFailures: Int32 = 1) -> NSFetchRequest<WebhookEndpoint> {
         let request = fetchRequest()
         request.predicate = NSPredicate(format: "failureCount >= %d", minFailures)
         request.sortDescriptors = [
@@ -109,7 +109,7 @@ extension WebhookEndpoint {
     }
 }
 
-// MARK: - Webhook Event Types
+// MARK: - WebhookEventType
 
 enum WebhookEventType: String, CaseIterable, Codable {
     case clipboardCreated = "clipboard.created"
@@ -119,25 +119,27 @@ enum WebhookEventType: String, CaseIterable, Codable {
     case clipboardPasted = "clipboard.pasted"
     case ruleExecuted = "rule.executed"
 
+    // MARK: Internal
+
     var displayName: String {
         switch self {
-        case .clipboardCreated: return "Clipboard Created"
-        case .clipboardDeleted: return "Clipboard Deleted"
-        case .clipboardFavorited: return "Clipboard Favorited"
-        case .clipboardUnfavorited: return "Clipboard Unfavorited"
-        case .clipboardPasted: return "Clipboard Pasted"
-        case .ruleExecuted: return "Rule Executed"
+        case .clipboardCreated: "Clipboard Created"
+        case .clipboardDeleted: "Clipboard Deleted"
+        case .clipboardFavorited: "Clipboard Favorited"
+        case .clipboardUnfavorited: "Clipboard Unfavorited"
+        case .clipboardPasted: "Clipboard Pasted"
+        case .ruleExecuted: "Rule Executed"
         }
     }
 
     var description: String {
         switch self {
-        case .clipboardCreated: return "Triggered when a new item is captured"
-        case .clipboardDeleted: return "Triggered when an item is deleted"
-        case .clipboardFavorited: return "Triggered when an item is favorited"
-        case .clipboardUnfavorited: return "Triggered when an item is unfavorited"
-        case .clipboardPasted: return "Triggered when an item is pasted"
-        case .ruleExecuted: return "Triggered when an automation rule executes"
+        case .clipboardCreated: "Triggered when a new item is captured"
+        case .clipboardDeleted: "Triggered when an item is deleted"
+        case .clipboardFavorited: "Triggered when an item is favorited"
+        case .clipboardUnfavorited: "Triggered when an item is unfavorited"
+        case .clipboardPasted: "Triggered when an item is pasted"
+        case .ruleExecuted: "Triggered when an automation rule executes"
         }
     }
 }
@@ -278,18 +280,11 @@ extension WebhookEndpoint {
     }
 }
 
-// MARK: - Webhook Configuration Struct
+// MARK: - WebhookConfiguration
 
 /// Lightweight configuration for webhook endpoint
 struct WebhookConfiguration: Identifiable, Codable, Equatable {
-    let id: UUID
-    var name: String
-    var url: String
-    var secretKey: String?
-    var isEnabled: Bool
-    var events: [WebhookEventType]
-    var contentTypeFilters: [String]
-    var customHeaders: [String: String]
+    // MARK: Lifecycle
 
     init(
         id: UUID = UUID(),
@@ -310,6 +305,17 @@ struct WebhookConfiguration: Identifiable, Codable, Equatable {
         self.contentTypeFilters = contentTypeFilters
         self.customHeaders = customHeaders
     }
+
+    // MARK: Internal
+
+    let id: UUID
+    var name: String
+    var url: String
+    var secretKey: String?
+    var isEnabled: Bool
+    var events: [WebhookEventType]
+    var contentTypeFilters: [String]
+    var customHeaders: [String: String]
 
     /// Validate the configuration
     var isValid: Bool {

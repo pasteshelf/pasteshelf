@@ -8,7 +8,7 @@
 
 import Foundation
 
-// MARK: - Search Engine Protocol
+// MARK: - SearchEngine
 
 /// Protocol for search engine implementations
 protocol SearchEngine: Sendable {
@@ -23,10 +23,49 @@ protocol SearchEngine: Sendable {
     func cancelSearch() async
 }
 
-// MARK: - Search Options
+// MARK: - SearchOptions
 
 /// Configuration options for search operations
 struct SearchOptions: Sendable, Equatable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(
+        limit: Int = 50,
+        offset: Int = 0,
+        contentTypes: Set<ContentType>? = nil,
+        favoritesOnly: Bool = false,
+        tagIds: [UUID]? = nil,
+        dateRange: DateRange? = nil,
+        fuzzyMatching: Bool = true,
+        fuzzyThreshold: Double = 0.6,
+        includeSensitive: Bool = true,
+        enableSemanticSearch: Bool = false,
+        semanticThreshold: Double = 0.5,
+        sourceAppHints: [String]? = nil,
+        enableOCRSearch: Bool = false
+    ) {
+        self.limit = limit
+        self.offset = offset
+        self.contentTypes = contentTypes
+        self.favoritesOnly = favoritesOnly
+        self.tagIds = tagIds
+        self.dateRange = dateRange
+        self.fuzzyMatching = fuzzyMatching
+        self.fuzzyThreshold = fuzzyThreshold
+        self.includeSensitive = includeSensitive
+        self.enableSemanticSearch = enableSemanticSearch
+        self.semanticThreshold = semanticThreshold
+        self.sourceAppHints = sourceAppHints
+        self.enableOCRSearch = enableOCRSearch
+    }
+
+    // MARK: Internal
+
+    /// Default search options
+    static let `default` = SearchOptions()
+
     // MARK: - Result Limits
 
     /// Maximum number of results to return
@@ -76,41 +115,6 @@ struct SearchOptions: Sendable, Equatable {
     /// Enable OCR text extraction search from images
     var enableOCRSearch: Bool
 
-    // MARK: - Initialization
-
-    init(
-        limit: Int = 50,
-        offset: Int = 0,
-        contentTypes: Set<ContentType>? = nil,
-        favoritesOnly: Bool = false,
-        tagIds: [UUID]? = nil,
-        dateRange: DateRange? = nil,
-        fuzzyMatching: Bool = true,
-        fuzzyThreshold: Double = 0.6,
-        includeSensitive: Bool = true,
-        enableSemanticSearch: Bool = false,
-        semanticThreshold: Double = 0.5,
-        sourceAppHints: [String]? = nil,
-        enableOCRSearch: Bool = false
-    ) {
-        self.limit = limit
-        self.offset = offset
-        self.contentTypes = contentTypes
-        self.favoritesOnly = favoritesOnly
-        self.tagIds = tagIds
-        self.dateRange = dateRange
-        self.fuzzyMatching = fuzzyMatching
-        self.fuzzyThreshold = fuzzyThreshold
-        self.includeSensitive = includeSensitive
-        self.enableSemanticSearch = enableSemanticSearch
-        self.semanticThreshold = semanticThreshold
-        self.sourceAppHints = sourceAppHints
-        self.enableOCRSearch = enableOCRSearch
-    }
-
-    /// Default search options
-    static let `default` = SearchOptions()
-
     /// Options for favorites-only search
     static func favorites(limit: Int = 50) -> SearchOptions {
         SearchOptions(limit: limit, favoritesOnly: true)
@@ -122,21 +126,19 @@ struct SearchOptions: Sendable, Equatable {
     }
 }
 
-// MARK: - Date Range
+// MARK: - DateRange
 
 /// Represents a date range for filtering
 struct DateRange: Sendable, Equatable {
-    /// Start date (inclusive)
-    let start: Date?
-
-    /// End date (inclusive)
-    let end: Date?
+    // MARK: Lifecycle
 
     /// Creates a date range
     init(start: Date? = nil, end: Date? = nil) {
         self.start = start
         self.end = end
     }
+
+    // MARK: Internal
 
     /// Today only
     static var today: DateRange {
@@ -161,14 +163,18 @@ struct DateRange: Sendable, Equatable {
         let start = calendar.date(byAdding: .day, value: -30, to: end)
         return DateRange(start: start, end: end)
     }
+
+    /// Start date (inclusive)
+    let start: Date?
+
+    /// End date (inclusive)
+    let end: Date?
 }
 
-// MARK: - Search Result
+// MARK: - SearchResult
 
 /// Represents a single search result with match information
 struct SearchResult: Identifiable, Sendable, Equatable {
-    // MARK: - Properties
-
     /// Unique identifier for the result (same as item ID)
     let id: UUID
 
@@ -183,8 +189,6 @@ struct SearchResult: Identifiable, Sendable, Equatable {
 
     /// Type of match that was found
     let matchType: MatchType
-
-    // MARK: - Computed Properties
 
     /// Whether this result has highlighted matches
     var hasHighlights: Bool {
@@ -206,7 +210,7 @@ struct SearchResult: Identifiable, Sendable, Equatable {
     }
 }
 
-// MARK: - Match Range
+// MARK: - MatchRange
 
 /// Represents a range in text where a search match was found
 struct MatchRange: Sendable, Equatable, Hashable {
@@ -236,7 +240,7 @@ struct MatchRange: Sendable, Equatable, Hashable {
     }
 }
 
-// MARK: - Match Type
+// MARK: - MatchType
 
 /// Type of match found during search
 enum MatchType: String, Sendable, Equatable {
@@ -264,22 +268,24 @@ enum MatchType: String, Sendable, Equatable {
     /// Match found in OCR-extracted text from image
     case ocr
 
+    // MARK: Internal
+
     /// Score multiplier for ranking
     var scoreMultiplier: Double {
         switch self {
-        case .exact: return 1.0
-        case .prefix: return 0.9
-        case .hybrid: return 0.85
-        case .contains: return 0.7
-        case .ocr: return 0.68
-        case .semantic: return 0.65
-        case .metadata: return 0.6
-        case .fuzzy: return 0.5
+        case .exact: 1.0
+        case .prefix: 0.9
+        case .hybrid: 0.85
+        case .contains: 0.7
+        case .ocr: 0.68
+        case .semantic: 0.65
+        case .metadata: 0.6
+        case .fuzzy: 0.5
         }
     }
 }
 
-// MARK: - Search State
+// MARK: - SearchState
 
 /// Represents the current state of a search operation
 enum SearchState: Sendable, Equatable {
@@ -295,6 +301,8 @@ enum SearchState: Sendable, Equatable {
     /// Search failed with error
     case failed(message: String)
 
+    // MARK: Internal
+
     /// Whether a search is currently in progress
     var isSearching: Bool {
         if case .searching = self {
@@ -304,7 +312,7 @@ enum SearchState: Sendable, Equatable {
     }
 }
 
-// MARK: - Search Error
+// MARK: - SearchError
 
 /// Errors that can occur during search operations
 enum SearchError: Error, Sendable {
@@ -320,16 +328,18 @@ enum SearchError: Error, Sendable {
     /// Invalid search options
     case invalidOptions(String)
 
+    // MARK: Internal
+
     var localizedDescription: String {
         switch self {
         case .cancelled:
-            return "Search was cancelled"
+            "Search was cancelled"
         case let .queryTooShort(minLength):
-            return "Query must be at least \(minLength) characters"
+            "Query must be at least \(minLength) characters"
         case let .storageError(message):
-            return "Storage error: \(message)"
+            "Storage error: \(message)"
         case let .invalidOptions(message):
-            return "Invalid options: \(message)"
+            "Invalid options: \(message)"
         }
     }
 }

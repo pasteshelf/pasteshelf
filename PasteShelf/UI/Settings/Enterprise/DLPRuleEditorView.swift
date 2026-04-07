@@ -17,22 +17,7 @@ import SwiftUI
 ///
 /// The caller receives the constructed `DLPRule` via the `onSave` closure.
 struct DLPRuleEditorView: View {
-
-    // MARK: - Properties
-
-    @Binding var isPresented: Bool
-    let rule: DLPRule?
-    let onSave: (DLPRule) -> Void
-
-    // MARK: - State
-
-    @State private var name: String
-    @State private var pattern: String
-    @State private var patternCategory: DLPPatternCategory
-    @State private var severity: SensitiveSeverity
-    @State private var selectedActions: Set<DLPAction>
-    @State private var isEnabled: Bool
-    @State private var regexError: String?
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -63,6 +48,13 @@ struct DLPRuleEditorView: View {
             _isEnabled = State(initialValue: true)
         }
     }
+
+    // MARK: Internal
+
+    @Binding var isPresented: Bool
+
+    let rule: DLPRule?
+    let onSave: (DLPRule) -> Void
 
     // MARK: - Body
 
@@ -103,7 +95,8 @@ struct DLPRuleEditorView: View {
                     saveRule()
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || pattern.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || pattern
+                    .trimmingCharacters(in: .whitespaces).isEmpty)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
@@ -111,6 +104,18 @@ struct DLPRuleEditorView: View {
         .frame(width: 480)
         .frame(minHeight: 480)
     }
+
+    // MARK: Private
+
+    // MARK: - State
+
+    @State private var name: String
+    @State private var pattern: String
+    @State private var patternCategory: DLPPatternCategory
+    @State private var severity: SensitiveSeverity
+    @State private var selectedActions: Set<DLPAction>
+    @State private var isEnabled: Bool
+    @State private var regexError: String?
 
     // MARK: - Rule Details Section
 
@@ -195,9 +200,8 @@ struct DLPRuleEditorView: View {
         let now = Date()
         let orderedActions = DLPAction.allCases.filter { selectedActions.contains($0) }
 
-        let saved: DLPRule
-        if let existing = rule {
-            saved = DLPRule(
+        let saved = if let existing = rule {
+            DLPRule(
                 id: existing.id,
                 name: name.trimmingCharacters(in: .whitespaces),
                 isEnabled: isEnabled,
@@ -209,7 +213,7 @@ struct DLPRuleEditorView: View {
                 updatedAt: now
             )
         } else {
-            saved = DLPRule(
+            DLPRule(
                 name: name.trimmingCharacters(in: .whitespaces),
                 isEnabled: isEnabled,
                 patternCategory: patternCategory,
@@ -230,13 +234,13 @@ struct DLPRuleEditorView: View {
     private func actionDisplayName(_ action: DLPAction) -> String {
         switch action {
         case .block:
-            return "Block — prevent clipboard item from being stored"
+            "Block — prevent clipboard item from being stored"
         case .alert:
-            return "Alert — notify the user and log to audit trail"
+            "Alert — notify the user and log to audit trail"
         case .redact:
-            return "Redact — replace matched content with [REDACTED]"
+            "Redact — replace matched content with [REDACTED]"
         case .logOnly:
-            return "Log Only — record in audit log without alerting"
+            "Log Only — record in audit log without alerting"
         }
     }
 }

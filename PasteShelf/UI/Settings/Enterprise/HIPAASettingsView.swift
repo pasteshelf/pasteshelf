@@ -11,6 +11,7 @@ import SwiftUI
 
 /// Settings view for HIPAA compliance configuration.
 struct HIPAASettingsView: View {
+    // MARK: Internal
 
     @ObservedObject var viewModel: ComplianceSettingsViewModel
 
@@ -105,7 +106,8 @@ struct HIPAASettingsView: View {
         }
     }
 
-    @ViewBuilder
+    // MARK: Private
+
     private func encryptionReportView(_ report: HIPAAEncryptionReport) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             statusRow("Audit Log Encryption", status: report.auditEncryptionActive)

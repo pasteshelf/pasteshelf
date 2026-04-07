@@ -168,7 +168,9 @@ extension StorageManager {
     ///   - limit: Maximum number of items to return
     /// - Returns: Array of ClipboardItem objects
     func fetchItems(inFolder folder: Folder, limit: Int = 50) async -> [ClipboardItem] {
-        guard let folderId = folder.id else { return [] }
+        guard let folderId = folder.id else {
+            return []
+        }
 
         let predicate = NSPredicate(format: "folder.id == %@", folderId as CVarArg)
         return await fetchRecentItems(limit: limit, predicate: predicate)
@@ -244,4 +246,3 @@ extension StorageManager {
         }
     }
 }
-

@@ -8,19 +8,14 @@
 
 import SwiftUI
 
+// MARK: - RuleEditorView
+
 /// View for editing an automation rule
 struct RuleEditorView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     @ObservedObject var viewModel: AutomationViewModel
     @Binding var isPresented: Bool
-
-    @State private var name: String = ""
-    @State private var trigger: AutomationTrigger = .onCapture
-    @State private var isEnabled: Bool = true
-    @State private var actions: [AutomationAction] = []
-    @State private var showingAddAction = false
-    @State private var scheduleExpression = ""
 
     // MARK: - Body
 
@@ -64,6 +59,15 @@ struct RuleEditorView: View {
             loadRule()
         }
     }
+
+    // MARK: Private
+
+    @State private var name: String = ""
+    @State private var trigger: AutomationTrigger = .onCapture
+    @State private var isEnabled: Bool = true
+    @State private var actions: [AutomationAction] = []
+    @State private var showingAddAction = false
+    @State private var scheduleExpression = ""
 
     // MARK: - Subviews
 
@@ -223,7 +227,9 @@ struct RuleEditorView: View {
     // MARK: - Methods
 
     private func loadRule() {
-        guard let rule = viewModel.selectedRule else { return }
+        guard let rule = viewModel.selectedRule else {
+            return
+        }
         name = rule.name
         trigger = rule.trigger
         isEnabled = rule.isEnabled
@@ -236,11 +242,10 @@ struct RuleEditorView: View {
     }
 
     private func saveRule() {
-        let finalTrigger: AutomationTrigger
-        if case .schedule = trigger {
-            finalTrigger = .schedule(CronExpression(expression: scheduleExpression))
+        let finalTrigger: AutomationTrigger = if case .schedule = trigger {
+            .schedule(CronExpression(expression: scheduleExpression))
         } else {
-            finalTrigger = trigger
+            trigger
         }
 
         let rule = AutomationRule(
@@ -266,9 +271,11 @@ struct RuleEditorView: View {
     }
 }
 
-// MARK: - Trigger Picker View
+// MARK: - TriggerPickerView
 
 struct TriggerPickerView: View {
+    // MARK: Internal
+
     @Binding var selectedTrigger: AutomationTrigger
     @Binding var scheduleExpression: String
 
@@ -306,19 +313,23 @@ struct TriggerPickerView: View {
         }
     }
 
+    // MARK: Private
+
     private func schedulePreset(for expression: String) -> CronExpression {
         switch expression {
-        case CronExpression.hourly.expression: return .hourly
-        case CronExpression.weekly.expression: return .weekly
-        case CronExpression.monthly.expression: return .monthly
-        default: return .daily
+        case CronExpression.hourly.expression: .hourly
+        case CronExpression.weekly.expression: .weekly
+        case CronExpression.monthly.expression: .monthly
+        default: .daily
         }
     }
 }
 
-// MARK: - Action Row View
+// MARK: - ActionRowView
 
 struct ActionRowView: View {
+    // MARK: Internal
+
     let action: AutomationAction
     let onEdit: () -> Void
     let onDelete: () -> Void
@@ -353,27 +364,30 @@ struct ActionRowView: View {
         .cornerRadius(6)
     }
 
+    // MARK: Private
+
     private var actionDescription: String {
         switch action {
-        case .transform(_, let preset):
-            return "Transform: \(preset.displayName)"
-        case .addTag(_, let tagName):
-            return "Add tag: \(tagName)"
-        case .notify(_, let title, _):
-            return "Notify: \(title)"
-        case .webhook(_, let endpointId):
-            return "Webhook: \(endpointId.uuidString.prefix(8))..."
+        case let .transform(_, preset):
+            "Transform: \(preset.displayName)"
+        case let .addTag(_, tagName):
+            "Add tag: \(tagName)"
+        case let .notify(_, title, _):
+            "Notify: \(title)"
+        case let .webhook(_, endpointId):
+            "Webhook: \(endpointId.uuidString.prefix(8))..."
         default:
-            return action.description
+            action.description
         }
     }
 }
 
-// MARK: - Action Picker View
+// MARK: - ActionPickerView
 
 struct ActionPickerView: View {
+    // MARK: Internal
+
     let onSelect: (AutomationAction) -> Void
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 0) {
@@ -409,6 +423,10 @@ struct ActionPickerView: View {
         .frame(width: 400, height: 500)
     }
 
+    // MARK: Private
+
+    @Environment(\.dismiss) private var dismiss
+
     private func createDefaultAction(for type: ActionType) -> AutomationAction {
         switch type {
         case .transform:
@@ -428,8 +446,8 @@ struct ActionPickerView: View {
         case .openURL:
             return .openURL(urlTemplate: "")
         #if !APP_STORE
-        case .runScript:
-            return .runScript(scriptPath: "")
+            case .runScript:
+                return .runScript(scriptPath: "")
         #endif
         case .webhook:
             return .webhook(endpointId: UUID())
@@ -440,6 +458,8 @@ struct ActionPickerView: View {
         }
     }
 }
+
+// MARK: - ActionTypeButton
 
 struct ActionTypeButton: View {
     let actionType: ActionType

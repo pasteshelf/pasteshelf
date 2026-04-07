@@ -10,7 +10,7 @@ import Accelerate
 import Foundation
 
 /// Calculates similarity between embedding vectors using cosine similarity
-struct VectorSimilarityCalculator {
+enum VectorSimilarityCalculator {
     // MARK: - Cosine Similarity
 
     /// Calculates cosine similarity between two vectors
@@ -24,9 +24,9 @@ struct VectorSimilarityCalculator {
         }
 
         // Use Accelerate framework for efficient SIMD operations
-        var dotProduct: Double = 0.0
-        var magnitudeA: Double = 0.0
-        var magnitudeB: Double = 0.0
+        var dotProduct = 0.0
+        var magnitudeA = 0.0
+        var magnitudeB = 0.0
 
         vDSP_dotprD(vectorA, 1, vectorB, 1, &dotProduct, vDSP_Length(vectorA.count))
         vDSP_dotprD(vectorA, 1, vectorA, 1, &magnitudeA, vDSP_Length(vectorA.count))
@@ -119,7 +119,7 @@ struct VectorSimilarityCalculator {
         var difference = [Double](repeating: 0, count: vectorA.count)
         vDSP_vsubD(vectorB, 1, vectorA, 1, &difference, 1, vDSP_Length(vectorA.count))
 
-        var sumOfSquares: Double = 0.0
+        var sumOfSquares = 0.0
         vDSP_dotprD(difference, 1, difference, 1, &sumOfSquares, vDSP_Length(difference.count))
 
         return sqrt(sumOfSquares)

@@ -11,6 +11,17 @@ import os.log
 
 /// Manages CloudKit zone and subscription setup
 final class CloudKitZoneManager: Sendable {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(container: CKContainer = CKContainer(identifier: "iCloud.com.pasteshelf.PasteShelf")) {
+        database = container.privateCloudDatabase
+        zone = CKRecordZone(zoneName: Self.zoneName)
+    }
+
+    // MARK: Internal
+
     // MARK: - Constants
 
     /// Custom zone name for PasteShelf data
@@ -19,31 +30,12 @@ final class CloudKitZoneManager: Sendable {
     /// Subscription ID for remote change notifications
     static let subscriptionID = "com.pasteshelf.sync-subscription"
 
-    // MARK: - Properties
-
     /// The custom record zone
     let zone: CKRecordZone
 
     /// Zone ID for convenience
     var zoneID: CKRecordZone.ID {
         zone.zoneID
-    }
-
-    /// Private database reference
-    private let database: CKDatabase
-
-    // MARK: - Logger
-
-    private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "cloudkit-zone"
-    )
-
-    // MARK: - Initialization
-
-    init(container: CKContainer = CKContainer(identifier: "iCloud.com.pasteshelf.PasteShelf")) {
-        self.database = container.privateCloudDatabase
-        self.zone = CKRecordZone(zoneName: Self.zoneName)
     }
 
     // MARK: - Zone Management
@@ -63,32 +55,6 @@ final class CloudKitZoneManager: Sendable {
         } catch {
             Self.logger.error("Failed to check zone: \(error.localizedDescription)")
             throw SyncError.from(error as? CKError ?? CKError(.serverRejectedRequest))
-        }
-    }
-
-    /// Create the custom zone
-    private func createZone() async throws {
-        let operation = CKModifyRecordZonesOperation(
-            recordZonesToSave: [zone],
-            recordZoneIDsToDelete: nil
-        )
-
-        operation.qualityOfService = .userInitiated
-
-        return try await withCheckedThrowingContinuation { continuation in
-            operation.modifyRecordZonesResultBlock = { result in
-                switch result {
-                case .success:
-                    Self.logger.info("Zone created successfully")
-                    continuation.resume()
-                case let .failure(error):
-                    Self.logger.error("Failed to create zone: \(error.localizedDescription)")
-                    let syncError = SyncError.from(error as? CKError ?? CKError(.serverRejectedRequest))
-                    continuation.resume(throwing: syncError)
-                }
-            }
-
-            self.database.add(operation)
         }
     }
 
@@ -154,32 +120,6 @@ final class CloudKitZoneManager: Sendable {
         try await saveSubscription(subscription)
     }
 
-    /// Save a subscription to CloudKit
-    private func saveSubscription(_ subscription: CKSubscription) async throws {
-        let operation = CKModifySubscriptionsOperation(
-            subscriptionsToSave: [subscription],
-            subscriptionIDsToDelete: nil
-        )
-
-        operation.qualityOfService = .userInitiated
-
-        return try await withCheckedThrowingContinuation { continuation in
-            operation.modifySubscriptionsResultBlock = { result in
-                switch result {
-                case .success:
-                    Self.logger.info("Subscription created successfully")
-                    continuation.resume()
-                case let .failure(error):
-                    Self.logger.error("Failed to create subscription: \(error.localizedDescription)")
-                    let syncError = SyncError.from(error as? CKError ?? CKError(.serverRejectedRequest))
-                    continuation.resume(throwing: syncError)
-                }
-            }
-
-            self.database.add(operation)
-        }
-    }
-
     /// Delete the subscription
     func deleteSubscription() async throws {
         Self.logger.info("Deleting subscription")
@@ -228,5 +168,69 @@ final class CloudKitZoneManager: Sendable {
         try await deleteSubscription()
         try await deleteZone()
         Self.logger.info("CloudKit zone teardown complete")
+    }
+
+    // MARK: Private
+
+    // MARK: - Logger
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "cloudkit-zone"
+    )
+
+    /// Private database reference
+    private let database: CKDatabase
+
+    /// Create the custom zone
+    private func createZone() async throws {
+        let operation = CKModifyRecordZonesOperation(
+            recordZonesToSave: [zone],
+            recordZoneIDsToDelete: nil
+        )
+
+        operation.qualityOfService = .userInitiated
+
+        return try await withCheckedThrowingContinuation { continuation in
+            operation.modifyRecordZonesResultBlock = { result in
+                switch result {
+                case .success:
+                    Self.logger.info("Zone created successfully")
+                    continuation.resume()
+                case let .failure(error):
+                    Self.logger.error("Failed to create zone: \(error.localizedDescription)")
+                    let syncError = SyncError.from(error as? CKError ?? CKError(.serverRejectedRequest))
+                    continuation.resume(throwing: syncError)
+                }
+            }
+
+            self.database.add(operation)
+        }
+    }
+
+    /// Save a subscription to CloudKit
+    private func saveSubscription(_ subscription: CKSubscription) async throws {
+        let operation = CKModifySubscriptionsOperation(
+            subscriptionsToSave: [subscription],
+            subscriptionIDsToDelete: nil
+        )
+
+        operation.qualityOfService = .userInitiated
+
+        return try await withCheckedThrowingContinuation { continuation in
+            operation.modifySubscriptionsResultBlock = { result in
+                switch result {
+                case .success:
+                    Self.logger.info("Subscription created successfully")
+                    continuation.resume()
+                case let .failure(error):
+                    Self.logger.error("Failed to create subscription: \(error.localizedDescription)")
+                    let syncError = SyncError.from(error as? CKError ?? CKError(.serverRejectedRequest))
+                    continuation.resume(throwing: syncError)
+                }
+            }
+
+            self.database.add(operation)
+        }
     }
 }

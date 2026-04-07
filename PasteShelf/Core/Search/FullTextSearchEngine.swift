@@ -10,30 +10,19 @@ import CoreData
 import Foundation
 import os.log
 
+// MARK: - FullTextSearchEngine
+
 /// Full-text search engine using CoreData NSPredicate
 final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
-    // MARK: - Properties
-
-    /// Storage manager for CoreData access
-    private let storageManager: StorageManager
-
-    /// Logger for search operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "search"
-    )
-
-    /// Task handle for cancellation
-    private var currentSearchTask: Task<[SearchResult], Never>?
-
-    /// Lock for thread-safe task management
-    private let lock = NSLock()
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     init(storageManager: StorageManager = .shared) {
         self.storageManager = storageManager
     }
+
+    // MARK: Internal
 
     // MARK: - SearchEngine Protocol
 
@@ -51,7 +40,9 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
 
         // Create and store the search task
         let task = Task<[SearchResult], Never> { [weak self] in
-            guard let self else { return [] }
+            guard let self else {
+                return []
+            }
 
             logger.debug("Starting search for: \(trimmedQuery)")
 
@@ -73,7 +64,9 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
 
             // Convert to search results with relevance scoring
             let results = items.compactMap { item -> SearchResult? in
-                guard let id = item.id else { return nil }
+                guard let id = item.id else {
+                    return nil
+                }
                 return createSearchResult(
                     for: item,
                     query: trimmedQuery,
@@ -102,6 +95,50 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
         lock.unlock()
     }
 
+    // MARK: - Simple Text Matching (for testing)
+
+    /// Checks if text matches the given query using case-insensitive, diacritic-insensitive comparison
+    /// - Parameters:
+    ///   - text: The text to search in
+    ///   - query: The search query
+    ///   - options: Search options (optional, uses default if not provided)
+    /// - Returns: True if the text contains or matches the query
+    func matches(text: String, query: String, options: SearchOptions = .default) -> Bool {
+        let normalizedText = text.searchNormalized
+        let normalizedQuery = query.searchNormalized
+
+        // Empty query never matches
+        guard !normalizedQuery.isEmpty else {
+            return false
+        }
+
+        // Check for exact, prefix, or contains match based on options
+        if normalizedText == normalizedQuery {
+            return true
+        }
+        if normalizedText.hasPrefix(normalizedQuery) {
+            return true
+        }
+        return normalizedText.contains(normalizedQuery)
+    }
+
+    // MARK: Private
+
+    /// Storage manager for CoreData access
+    private let storageManager: StorageManager
+
+    /// Logger for search operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "search"
+    )
+
+    /// Task handle for cancellation
+    private var currentSearchTask: Task<[SearchResult], Never>?
+
+    /// Lock for thread-safe task management
+    private let lock = NSLock()
+
     // MARK: - Predicate Building
 
     /// Builds an NSPredicate for the search query and options
@@ -116,7 +153,7 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
 
         // Content type filter
         if let contentTypes = options.contentTypes, !contentTypes.isEmpty {
-            let typeStrings = contentTypes.map { $0.rawValue }
+            let typeStrings = contentTypes.map(\.rawValue)
             predicates.append(NSPredicate(format: "contentType IN %@", typeStrings))
         }
 
@@ -186,7 +223,9 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
         query: String,
         options _: SearchOptions
     ) -> SearchResult? {
-        guard let id = item.id else { return nil }
+        guard let id = item.id else {
+            return nil
+        }
 
         let preview = item.plainTextPreview ?? ""
         let appName = item.sourceAppName ?? ""
@@ -194,7 +233,7 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
         // Find match ranges and determine match type
         var matchRanges: [MatchRange] = []
         var matchType: MatchType = .contains
-        var relevanceScore: Double = 0.5
+        var relevanceScore = 0.5
 
         // Check for exact match
         if preview.searchNormalized == query.searchNormalized {
@@ -244,31 +283,6 @@ final class FullTextSearchEngine: SearchEngine, @unchecked Sendable {
             matchType: matchType
         )
     }
-
-    // MARK: - Simple Text Matching (for testing)
-
-    /// Checks if text matches the given query using case-insensitive, diacritic-insensitive comparison
-    /// - Parameters:
-    ///   - text: The text to search in
-    ///   - query: The search query
-    ///   - options: Search options (optional, uses default if not provided)
-    /// - Returns: True if the text contains or matches the query
-    func matches(text: String, query: String, options: SearchOptions = .default) -> Bool {
-        let normalizedText = text.searchNormalized
-        let normalizedQuery = query.searchNormalized
-
-        // Empty query never matches
-        guard !normalizedQuery.isEmpty else { return false }
-
-        // Check for exact, prefix, or contains match based on options
-        if normalizedText == normalizedQuery {
-            return true
-        }
-        if normalizedText.hasPrefix(normalizedQuery) {
-            return true
-        }
-        return normalizedText.contains(normalizedQuery)
-    }
 }
 
 // MARK: - StorageManager Extension
@@ -278,7 +292,9 @@ extension StorageManager {
     /// - Parameter ids: Array of UUIDs to fetch
     /// - Returns: Array of matching ClipboardItem objects (order not guaranteed)
     func fetchItems(byIds ids: [UUID]) async -> [ClipboardItem] {
-        guard !ids.isEmpty else { return [] }
+        guard !ids.isEmpty else {
+            return []
+        }
 
         return await viewContext.perform {
             let request = ClipboardItem.fetchRequest()

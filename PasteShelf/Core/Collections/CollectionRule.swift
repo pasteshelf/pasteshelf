@@ -8,15 +8,11 @@
 
 import Foundation
 
-// MARK: - Collection Rules
+// MARK: - CollectionRules
 
 /// Container for collection filtering rules
 struct CollectionRules: Codable, Equatable, Sendable {
-    /// Individual conditions to evaluate
-    var conditions: [RuleCondition]
-
-    /// Logical operator to combine conditions (AND/OR)
-    var logicalOperator: LogicalOperator
+    // MARK: Lifecycle
 
     /// Creates default empty rules
     init(
@@ -27,27 +23,25 @@ struct CollectionRules: Codable, Equatable, Sendable {
         self.logicalOperator = logicalOperator
     }
 
+    // MARK: Internal
+
+    /// Individual conditions to evaluate
+    var conditions: [RuleCondition]
+
+    /// Logical operator to combine conditions (AND/OR)
+    var logicalOperator: LogicalOperator
+
     /// Whether the rules have any conditions
     var isEmpty: Bool {
         conditions.isEmpty
     }
 }
 
-// MARK: - Rule Condition
+// MARK: - RuleCondition
 
 /// A single rule condition for filtering clipboard items
 struct RuleCondition: Codable, Equatable, Identifiable, Sendable {
-    /// Unique identifier for this condition
-    let id: UUID
-
-    /// The field to evaluate
-    var field: RuleField
-
-    /// The comparison operator
-    var comparisonOperator: RuleOperator
-
-    /// The value to compare against
-    var value: String
+    // MARK: Lifecycle
 
     init(
         id: UUID = UUID(),
@@ -60,9 +54,23 @@ struct RuleCondition: Codable, Equatable, Identifiable, Sendable {
         self.comparisonOperator = comparisonOperator
         self.value = value
     }
+
+    // MARK: Internal
+
+    /// Unique identifier for this condition
+    let id: UUID
+
+    /// The field to evaluate
+    var field: RuleField
+
+    /// The comparison operator
+    var comparisonOperator: RuleOperator
+
+    /// The value to compare against
+    var value: String
 }
 
-// MARK: - Rule Field
+// MARK: - RuleField
 
 /// Fields that can be used in rule conditions
 enum RuleField: String, Codable, CaseIterable, Sendable {
@@ -84,27 +92,29 @@ enum RuleField: String, Codable, CaseIterable, Sendable {
     /// Whether the item contains sensitive data
     case isSensitive
 
+    // MARK: Internal
+
     /// Human-readable display name
     var displayName: String {
         switch self {
-        case .contentType: return "Content Type"
-        case .sourceApp: return "Source App"
-        case .textContent: return "Text Content"
-        case .dateCreated: return "Date Created"
-        case .isFavorite: return "Is Favorite"
-        case .isSensitive: return "Is Sensitive"
+        case .contentType: "Content Type"
+        case .sourceApp: "Source App"
+        case .textContent: "Text Content"
+        case .dateCreated: "Date Created"
+        case .isFavorite: "Is Favorite"
+        case .isSensitive: "Is Sensitive"
         }
     }
 
     /// SF Symbol icon for the field
     var icon: String {
         switch self {
-        case .contentType: return "doc"
-        case .sourceApp: return "app.badge"
-        case .textContent: return "text.alignleft"
-        case .dateCreated: return "calendar"
-        case .isFavorite: return "star"
-        case .isSensitive: return "lock.shield"
+        case .contentType: "doc"
+        case .sourceApp: "app.badge"
+        case .textContent: "text.alignleft"
+        case .dateCreated: "calendar"
+        case .isFavorite: "star"
+        case .isSensitive: "lock.shield"
         }
     }
 
@@ -112,31 +122,33 @@ enum RuleField: String, Codable, CaseIterable, Sendable {
     var availableOperators: [RuleOperator] {
         switch self {
         case .contentType:
-            return [.equals, .notEquals]
+            [.equals, .notEquals]
         case .sourceApp:
-            return [.equals, .notEquals, .contains, .notContains]
+            [.equals, .notEquals, .contains, .notContains]
         case .textContent:
-            return [.contains, .notContains, .matches]
+            [.contains, .notContains, .matches]
         case .dateCreated:
-            return [.before, .after, .withinLast]
-        case .isFavorite, .isSensitive:
-            return [.equals]
+            [.before, .after, .withinLast]
+        case .isFavorite,
+             .isSensitive:
+            [.equals]
         }
     }
 
     /// Default operator for this field
     var defaultOperator: RuleOperator {
         switch self {
-        case .contentType: return .equals
-        case .sourceApp: return .equals
-        case .textContent: return .contains
-        case .dateCreated: return .withinLast
-        case .isFavorite, .isSensitive: return .equals
+        case .contentType: .equals
+        case .sourceApp: .equals
+        case .textContent: .contains
+        case .dateCreated: .withinLast
+        case .isFavorite,
+             .isSensitive: .equals
         }
     }
 }
 
-// MARK: - Rule Operator
+// MARK: - RuleOperator
 
 /// Comparison operators for rule conditions
 enum RuleOperator: String, Codable, CaseIterable, Sendable {
@@ -164,22 +176,24 @@ enum RuleOperator: String, Codable, CaseIterable, Sendable {
     /// Date is within last N days/hours
     case withinLast
 
+    // MARK: Internal
+
     /// Human-readable display name
     var displayName: String {
         switch self {
-        case .equals: return "is"
-        case .notEquals: return "is not"
-        case .contains: return "contains"
-        case .notContains: return "does not contain"
-        case .matches: return "matches pattern"
-        case .before: return "is before"
-        case .after: return "is after"
-        case .withinLast: return "is within last"
+        case .equals: "is"
+        case .notEquals: "is not"
+        case .contains: "contains"
+        case .notContains: "does not contain"
+        case .matches: "matches pattern"
+        case .before: "is before"
+        case .after: "is after"
+        case .withinLast: "is within last"
         }
     }
 }
 
-// MARK: - Logical Operator
+// MARK: - LogicalOperator
 
 /// Logical operators to combine multiple conditions
 enum LogicalOperator: String, Codable, CaseIterable, Sendable {
@@ -189,24 +203,26 @@ enum LogicalOperator: String, Codable, CaseIterable, Sendable {
     /// Any condition can match
     case or
 
+    // MARK: Internal
+
     /// Human-readable display name
     var displayName: String {
         switch self {
-        case .and: return "All"
-        case .or: return "Any"
+        case .and: "All"
+        case .or: "Any"
         }
     }
 
     /// Description for UI
     var conditionDescription: String {
         switch self {
-        case .and: return "Match all of the following"
-        case .or: return "Match any of the following"
+        case .and: "Match all of the following"
+        case .or: "Match any of the following"
         }
     }
 }
 
-// MARK: - Content Type Values
+// MARK: - ContentTypeValue
 
 /// Predefined content type values for rule conditions
 enum ContentTypeValue: String, CaseIterable, Sendable {
@@ -218,15 +234,17 @@ enum ContentTypeValue: String, CaseIterable, Sendable {
     case html
     case pdf
 
+    // MARK: Internal
+
     var displayName: String {
         switch self {
-        case .text: return "Text"
-        case .images: return "Images"
-        case .files: return "Files"
-        case .links: return "Links"
-        case .richText: return "Rich Text"
-        case .html: return "HTML"
-        case .pdf: return "PDF"
+        case .text: "Text"
+        case .images: "Images"
+        case .files: "Files"
+        case .links: "Links"
+        case .richText: "Rich Text"
+        case .html: "HTML"
+        case .pdf: "PDF"
         }
     }
 
@@ -234,29 +252,29 @@ enum ContentTypeValue: String, CaseIterable, Sendable {
     var contentTypes: Set<ContentType> {
         switch self {
         case .text:
-            return [.plainText]
+            [.plainText]
         case .images:
-            return [.png, .jpeg, .tiff]
+            [.png, .jpeg, .tiff]
         case .files:
-            return [.fileURL]
+            [.fileURL]
         case .links:
-            return [.url]
+            [.url]
         case .richText:
-            return [.richText]
+            [.richText]
         case .html:
-            return [.html]
+            [.html]
         case .pdf:
-            return [.pdf]
+            [.pdf]
         }
     }
 
     /// All content type raw values for this category
     var contentTypeRawValues: [String] {
-        contentTypes.map { $0.rawValue }
+        contentTypes.map(\.rawValue)
     }
 }
 
-// MARK: - Date Range Values
+// MARK: - DateRangeValue
 
 /// Predefined date range values for rule conditions
 enum DateRangeValue: String, CaseIterable, Sendable {
@@ -266,13 +284,15 @@ enum DateRangeValue: String, CaseIterable, Sendable {
     case last30Days = "30d"
     case last90Days = "90d"
 
+    // MARK: Internal
+
     var displayName: String {
         switch self {
-        case .lastHour: return "Last Hour"
-        case .last24Hours: return "Last 24 Hours"
-        case .last7Days: return "Last 7 Days"
-        case .last30Days: return "Last 30 Days"
-        case .last90Days: return "Last 90 Days"
+        case .lastHour: "Last Hour"
+        case .last24Hours: "Last 24 Hours"
+        case .last7Days: "Last 7 Days"
+        case .last30Days: "Last 30 Days"
+        case .last90Days: "Last 90 Days"
         }
     }
 
@@ -280,15 +300,15 @@ enum DateRangeValue: String, CaseIterable, Sendable {
     var startDate: Date {
         switch self {
         case .lastHour:
-            return Calendar.current.date(byAdding: .hour, value: -1, to: Date()) ?? Date()
+            Calendar.current.date(byAdding: .hour, value: -1, to: Date()) ?? Date()
         case .last24Hours:
-            return Calendar.current.date(byAdding: .hour, value: -24, to: Date()) ?? Date()
+            Calendar.current.date(byAdding: .hour, value: -24, to: Date()) ?? Date()
         case .last7Days:
-            return Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+            Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
         case .last30Days:
-            return Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+            Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
         case .last90Days:
-            return Calendar.current.date(byAdding: .day, value: -90, to: Date()) ?? Date()
+            Calendar.current.date(byAdding: .day, value: -90, to: Date()) ?? Date()
         }
     }
 }
@@ -300,13 +320,17 @@ extension CollectionRules {
     func toJSON() -> String? {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .sortedKeys
-        guard let data = try? encoder.encode(self) else { return nil }
+        guard let data = try? encoder.encode(self) else {
+            return nil
+        }
         return String(data: data, encoding: .utf8)
     }
 
     /// Deserializes rules from JSON string
     static func fromJSON(_ json: String?) -> CollectionRules? {
-        guard let json, let data = json.data(using: .utf8) else { return nil }
+        guard let json, let data = json.data(using: .utf8) else {
+            return nil
+        }
         return try? JSONDecoder().decode(CollectionRules.self, from: data)
     }
 }

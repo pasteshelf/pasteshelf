@@ -21,22 +21,7 @@ import os.log
 /// - **REST API** for push/pull/auth operations
 /// - **WebSocket** for real-time change notifications
 final class SelfHostedSyncBackend: SyncBackend {
-
-    // MARK: - Properties
-
-    private let configuration: SelfHostedSyncConfiguration
-    private let apiClient: SelfHostedAPIClient
-    private let webSocketClient: SelfHostedWebSocketClient
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-backend")
-
-    /// Device identifier for this client (persisted across launches).
-    private let deviceID: String
-
-    /// Human-readable device name.
-    private let deviceName: String
-
-    /// Handler for incoming sync notifications.
-    private var notificationHandler: (@Sendable (SyncNotification) -> Void)?
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -44,20 +29,21 @@ final class SelfHostedSyncBackend: SyncBackend {
         self.configuration = configuration
 
         // Create cert pinning delegate if enabled
-        let sessionDelegate: URLSessionDelegate?
-        if configuration.certificatePinningEnabled {
-            sessionDelegate = CertificatePinningDelegate(configuration: configuration)
+        let sessionDelegate: URLSessionDelegate? = if configuration.certificatePinningEnabled {
+            CertificatePinningDelegate(configuration: configuration)
         } else {
-            sessionDelegate = nil
+            nil
         }
 
-        self.apiClient = SelfHostedAPIClient(configuration: configuration, urlSessionDelegate: sessionDelegate)
-        self.webSocketClient = SelfHostedWebSocketClient(configuration: configuration)
+        apiClient = SelfHostedAPIClient(configuration: configuration, urlSessionDelegate: sessionDelegate)
+        webSocketClient = SelfHostedWebSocketClient(configuration: configuration)
 
         // Use a stable device ID (persisted in UserDefaults)
-        self.deviceID = Self.resolveDeviceID()
-        self.deviceName = Host.current().localizedName ?? "Mac"
+        deviceID = Self.resolveDeviceID()
+        deviceName = Host.current().localizedName ?? "Mac"
     }
+
+    // MARK: Internal
 
     // MARK: - SyncBackend Protocol
 
@@ -91,7 +77,7 @@ final class SelfHostedSyncBackend: SyncBackend {
             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         )
 
-        logger.info("Device registered with self-hosted server: \(self.deviceID)")
+        logger.info("Device registered with self-hosted server: \(deviceID)")
     }
 
     func pushChanges(_ changes: [SyncChange]) async throws -> SyncPushResult {
@@ -138,16 +124,15 @@ final class SelfHostedSyncBackend: SyncBackend {
 
         // Convert API changes to SyncChange
         let syncChanges: [SyncChange] = result.changes.map { apiChange in
-            let changeType: SyncChange.ChangeType
-            switch apiChange.changeType {
+            let changeType: SyncChange.ChangeType = switch apiChange.changeType {
             case "insert":
-                changeType = .remoteInsert
+                .remoteInsert
             case "update":
-                changeType = .remoteUpdate
+                .remoteUpdate
             case "delete":
-                changeType = .remoteDelete
+                .remoteDelete
             default:
-                changeType = .remoteUpdate
+                .remoteUpdate
             }
 
             let entityType = SyncChange.EntityType(rawValue: apiChange.entityType) ?? .clipboardItem
@@ -188,11 +173,13 @@ final class SelfHostedSyncBackend: SyncBackend {
 
     func subscribeToChanges(handler: @escaping @Sendable (SyncNotification) -> Void) async throws {
         logger.info("Subscribing to self-hosted sync notifications")
-        self.notificationHandler = handler
+        notificationHandler = handler
 
         // Set up WebSocket notification handling
         webSocketClient.onNotification = { [weak self] wsNotification in
-            guard let self else { return }
+            guard let self else {
+                return
+            }
 
             let notificationType: SyncNotification.NotificationType
             switch wsNotification.type {
@@ -236,9 +223,25 @@ final class SelfHostedSyncBackend: SyncBackend {
         }
     }
 
+    // MARK: Private
+
     // MARK: - Device ID
 
     private static let deviceIDKey = "com.pasteshelf.selfhosted.deviceID"
+
+    private let configuration: SelfHostedSyncConfiguration
+    private let apiClient: SelfHostedAPIClient
+    private let webSocketClient: SelfHostedWebSocketClient
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-backend")
+
+    /// Device identifier for this client (persisted across launches).
+    private let deviceID: String
+
+    /// Human-readable device name.
+    private let deviceName: String
+
+    /// Handler for incoming sync notifications.
+    private var notificationHandler: (@Sendable (SyncNotification) -> Void)?
 
     /// Get or create a stable device identifier persisted in UserDefaults.
     private static func resolveDeviceID() -> String {

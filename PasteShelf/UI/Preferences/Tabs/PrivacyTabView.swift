@@ -8,13 +8,13 @@
 import AppKit
 import SwiftUI
 
+// MARK: - PrivacyTabView
+
 /// Privacy settings tab view
 struct PrivacyTabView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     @ObservedObject var viewModel: PreferencesViewModel
-    @State private var showClearHistoryAlert = false
-    @State private var showAppPicker = false
 
     // MARK: - Body
 
@@ -32,7 +32,9 @@ struct PrivacyTabView: View {
             Section {
                 Toggle("Detect sensitive data in clipboard", isOn: $viewModel.sensitiveDetectionEnabled)
                     .accessibilityLabel("Detect sensitive data")
-                    .accessibilityHint("When enabled, clipboard items containing sensitive data like API keys, passwords, and credit cards are labeled as sensitive")
+                    .accessibilityHint(
+                        "When enabled, clipboard items containing sensitive data like API keys, passwords, and credit cards are labeled as sensitive"
+                    )
 
                 if viewModel.sensitiveDetectionEnabled {
                     VStack(alignment: .leading, spacing: 6) {
@@ -54,9 +56,11 @@ struct PrivacyTabView: View {
             } header: {
                 Text("Sensitive Data Detection")
             } footer: {
-                Text("Detected items are labeled as sensitive but still captured. This helps you identify and manage sensitive content in your clipboard history.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Text(
+                    "Detected items are labeled as sensitive but still captured. This helps you identify and manage sensitive content in your clipboard history."
+                )
+                .font(.caption)
+                .foregroundColor(.secondary)
             }
 
             Section {
@@ -96,7 +100,9 @@ struct PrivacyTabView: View {
             Section {
                 Toggle("Auto-delete old items", isOn: $viewModel.autoDeleteEnabled)
                     .accessibilityLabel("Auto-delete old items")
-                    .accessibilityHint("When enabled, items older than the specified period will be automatically deleted")
+                    .accessibilityHint(
+                        "When enabled, items older than the specified period will be automatically deleted"
+                    )
                     .managedSetting(.maxHistoryDays)
 
                 if viewModel.autoDeleteEnabled {
@@ -140,7 +146,9 @@ struct PrivacyTabView: View {
                 clearHistory()
             }
         } message: {
-            Text("This will permanently delete all clipboard items. Favorites will be preserved. This action cannot be undone.")
+            Text(
+                "This will permanently delete all clipboard items. Favorites will be preserved. This action cannot be undone."
+            )
         }
         .sheet(isPresented: $showAppPicker) {
             AppPickerSheet(
@@ -151,6 +159,11 @@ struct PrivacyTabView: View {
             )
         }
     }
+
+    // MARK: Private
+
+    @State private var showClearHistoryAlert = false
+    @State private var showAppPicker = false
 
     // MARK: - Helpers
 
@@ -171,15 +184,13 @@ struct PrivacyTabView: View {
     }
 }
 
-// MARK: - App Picker Sheet
+// MARK: - AppPickerSheet
 
 struct AppPickerSheet: View {
+    // MARK: Internal
+
     let excludedBundleIds: [String]
     let onSelect: (String) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var installedApps: [InstalledApp] = []
-    @State private var searchText = ""
 
     var filteredApps: [InstalledApp] {
         let nonExcluded = installedApps.filter { !excludedBundleIds.contains($0.bundleId) }
@@ -236,6 +247,12 @@ struct AppPickerSheet: View {
         }
     }
 
+    // MARK: Private
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var installedApps: [InstalledApp] = []
+    @State private var searchText = ""
+
     private func loadInstalledApps() {
         let workspace = NSWorkspace.shared
         let urls = FileManager.default.urls(for: .applicationDirectory, in: .localDomainMask)
@@ -251,8 +268,8 @@ struct AppPickerSheet: View {
                     if let bundle = Bundle(url: appURL),
                        let bundleId = bundle.bundleIdentifier,
                        let name = bundle.infoDictionary?["CFBundleName"] as? String
-                           ?? bundle.infoDictionary?["CFBundleDisplayName"] as? String
-                           ?? appURL.deletingPathExtension().lastPathComponent as String?
+                       ?? bundle.infoDictionary?["CFBundleDisplayName"] as? String
+                       ?? appURL.deletingPathExtension().lastPathComponent as String?
                     {
                         let icon = workspace.icon(forFile: appURL.path)
                         apps.append(InstalledApp(bundleId: bundleId, name: name, icon: icon))
@@ -265,14 +282,16 @@ struct AppPickerSheet: View {
     }
 }
 
-// MARK: - Installed App
+// MARK: - InstalledApp
 
 struct InstalledApp: Identifiable {
     let bundleId: String
     let name: String
     let icon: NSImage?
 
-    var id: String { bundleId }
+    var id: String {
+        bundleId
+    }
 }
 
 // MARK: - Preview

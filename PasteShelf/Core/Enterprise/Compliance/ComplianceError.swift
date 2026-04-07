@@ -20,24 +20,26 @@ enum ComplianceError: Error, LocalizedError, Sendable {
     case reportGenerationFailed(String)
     case invalidConfiguration(String)
 
+    // MARK: Internal
+
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "Compliance tools are not configured"
+            "Compliance tools are not configured"
         case .featureUnavailable:
-            return "Compliance features are not enabled"
-        case .exportFailed(let error):
-            return "Data export failed: \(error.localizedDescription)"
-        case .deletionFailed(let error):
-            return "Data deletion failed: \(error.localizedDescription)"
-        case .encryptionVerificationFailed(let error):
-            return "Encryption verification failed: \(error.localizedDescription)"
-        case .consentNotGranted(let cat):
-            return "Consent not granted for: \(cat)"
-        case .reportGenerationFailed(let msg):
-            return "Report generation failed: \(msg)"
-        case .invalidConfiguration(let msg):
-            return "Invalid configuration: \(msg)"
+            "Compliance features are not enabled"
+        case let .exportFailed(error):
+            "Data export failed: \(error.localizedDescription)"
+        case let .deletionFailed(error):
+            "Data deletion failed: \(error.localizedDescription)"
+        case let .encryptionVerificationFailed(error):
+            "Encryption verification failed: \(error.localizedDescription)"
+        case let .consentNotGranted(cat):
+            "Consent not granted for: \(cat)"
+        case let .reportGenerationFailed(msg):
+            "Report generation failed: \(msg)"
+        case let .invalidConfiguration(msg):
+            "Invalid configuration: \(msg)"
         }
     }
 }

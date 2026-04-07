@@ -5,8 +5,8 @@
 //  Unit tests for StorageManager save operations.
 //
 
-@testable import PasteShelf
 import CoreData
+@testable import PasteShelf
 import XCTest
 
 final class StorageManagerSaveTests: XCTestCase {
@@ -89,7 +89,7 @@ final class StorageManagerSaveTests: XCTestCase {
     func testSaveMultipleTags() async {
         let tags = await storageManager.saveTags([
             (name: "Work", color: "#0000FF"),
-            (name: "Personal", color: "#00FF00")
+            (name: "Personal", color: "#00FF00"),
         ])
 
         XCTAssertEqual(tags.count, 2)
@@ -193,7 +193,7 @@ final class StorageManagerSaveTests: XCTestCase {
     }
 
     func testFetchRecentHashesRespectLimit() async {
-        for i in 1...10 {
+        for i in 1 ... 10 {
             let content = ClipboardContent(
                 primaryType: .plainText,
                 availableTypes: [.plainText],

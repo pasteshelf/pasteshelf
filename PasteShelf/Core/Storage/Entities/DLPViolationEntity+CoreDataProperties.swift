@@ -8,50 +8,51 @@
 import CoreData
 import Foundation
 
-extension DLPViolationEntity {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<DLPViolationEntity> {
+public extension DLPViolationEntity {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<DLPViolationEntity> {
         NSFetchRequest<DLPViolationEntity>(entityName: "DLPViolationEntity")
     }
 
     // MARK: - Attributes
 
     /// A locally generated UUID that uniquely identifies this violation record.
-    @NSManaged public var id: UUID?
+    @NSManaged var id: UUID?
 
     /// The UUID of the `DLPRule` that was violated.
-    @NSManaged public var ruleId: UUID?
+    @NSManaged var ruleId: UUID?
 
     /// The human-readable name of the violated rule, captured at the time of detection.
-    @NSManaged public var ruleName: String?
+    @NSManaged var ruleName: String?
 
     /// When the violation was detected.
-    @NSManaged public var timestamp: Date?
+    @NSManaged var timestamp: Date?
 
     /// A redacted preview of the clipboard content that triggered the violation.
-    @NSManaged public var contentPreview: String?
+    @NSManaged var contentPreview: String?
 
     /// The portion of the content that matched the rule's regex pattern.
-    @NSManaged public var matchedPattern: String?
+    @NSManaged var matchedPattern: String?
 
     /// The raw value of the `DLPAction` that was taken as the primary enforcement response.
-    @NSManaged public var actionTaken: String?
+    @NSManaged var actionTaken: String?
 
     /// The bundle identifier of the application that was the clipboard's source, if known.
-    @NSManaged public var sourceAppBundleId: String?
+    @NSManaged var sourceAppBundleId: String?
 
     /// The display name of the source application, if known.
-    @NSManaged public var sourceAppName: String?
+    @NSManaged var sourceAppName: String?
 
     /// Whether the clipboard item was prevented from being stored due to this violation.
-    @NSManaged public var wasBlocked: Bool
+    @NSManaged var wasBlocked: Bool
 }
+
+// MARK: - DLPViolationEntity + Identifiable
 
 extension DLPViolationEntity: Identifiable {}
 
 // MARK: - Convenience Initializers
 
 extension DLPViolationEntity {
-
     /// Creates a new `DLPViolationEntity` from a `DLPViolation` domain model.
     ///
     /// The `actionTaken` field is stored as the raw `String` value of the `DLPAction` enum.
@@ -64,16 +65,16 @@ extension DLPViolationEntity {
         violation: DLPViolation
     ) {
         self.init(context: context)
-        self.id = violation.id
-        self.ruleId = violation.ruleId
-        self.ruleName = violation.ruleName
-        self.timestamp = violation.timestamp
-        self.contentPreview = violation.contentPreview
-        self.matchedPattern = violation.matchedPattern
-        self.actionTaken = violation.actionTaken.rawValue
-        self.sourceAppBundleId = violation.sourceAppBundleId
-        self.sourceAppName = violation.sourceAppName
-        self.wasBlocked = violation.wasBlocked
+        id = violation.id
+        ruleId = violation.ruleId
+        ruleName = violation.ruleName
+        timestamp = violation.timestamp
+        contentPreview = violation.contentPreview
+        matchedPattern = violation.matchedPattern
+        actionTaken = violation.actionTaken.rawValue
+        sourceAppBundleId = violation.sourceAppBundleId
+        sourceAppName = violation.sourceAppName
+        wasBlocked = violation.wasBlocked
     }
 
     // MARK: - Domain Model Conversion
@@ -114,7 +115,6 @@ extension DLPViolationEntity {
 // MARK: - Fetch Requests
 
 extension DLPViolationEntity {
-
     /// Returns a fetch request for violations within a date range, sorted by timestamp descending.
     ///
     /// Pass `nil` for either bound to leave that side of the range open.
@@ -142,7 +142,7 @@ extension DLPViolationEntity {
         }
 
         request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: false)
+            NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: false),
         ]
         return request
     }
@@ -154,7 +154,7 @@ extension DLPViolationEntity {
     static func recentViolationsFetchRequest(limit: Int) -> NSFetchRequest<DLPViolationEntity> {
         let request = fetchRequest()
         request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: false)
+            NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: false),
         ]
         request.fetchLimit = limit
         return request
@@ -169,7 +169,7 @@ extension DLPViolationEntity {
         let request = fetchRequest()
         request.predicate = NSPredicate(format: "ruleId == %@", ruleId as CVarArg)
         request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: false)
+            NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: false),
         ]
         return request
     }
@@ -185,7 +185,7 @@ extension DLPViolationEntity {
         let request = fetchRequest()
         request.predicate = NSPredicate(format: "timestamp < %@", cutoff as NSDate)
         request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: true)
+            NSSortDescriptor(keyPath: \DLPViolationEntity.timestamp, ascending: true),
         ]
         return request
     }

@@ -6,8 +6,10 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
+
+// MARK: - DeduplicatorTests
 
 struct DeduplicatorTests {
     let deduplicator = Deduplicator()
@@ -132,19 +134,10 @@ struct DeduplicatorTests {
     }
 }
 
-// MARK: - Deduplication Options (test-only)
+// MARK: - DeduplicationOptions
 
 /// Options for customizing deduplication behavior
 struct DeduplicationOptions: Sendable {
-    /// Whether to consider whitespace differences as unique content
-    var whitespaceSignificant: Bool = false
-
-    /// Whether to consider case differences as unique content
-    var caseSensitive: Bool = true
-
-    /// Whether to consider RTF formatting as part of uniqueness
-    var formattingSignificant: Bool = false
-
     /// Default options - semantic comparison only
     static let `default` = DeduplicationOptions()
 
@@ -154,18 +147,28 @@ struct DeduplicationOptions: Sendable {
         caseSensitive: true,
         formattingSignificant: true
     )
+
+    /// Whether to consider whitespace differences as unique content
+    var whitespaceSignificant: Bool = false
+
+    /// Whether to consider case differences as unique content
+    var caseSensitive: Bool = true
+
+    /// Whether to consider RTF formatting as part of uniqueness
+    var formattingSignificant: Bool = false
 }
 
-// MARK: - Configurable Deduplicator (test-only)
+// MARK: - ConfigurableDeduplicator
 
 /// Deduplicator with configurable comparison options (used only in tests)
 final class ConfigurableDeduplicator: Deduplicating, Sendable {
-    private let options: DeduplicationOptions
-    private let baseDeduplicator = Deduplicator()
+    // MARK: Lifecycle
 
     init(options: DeduplicationOptions = .default) {
         self.options = options
     }
+
+    // MARK: Internal
 
     func computeHash(for content: ClipboardContent) -> String {
         guard content.primaryType.isTextType else {
@@ -202,9 +205,14 @@ final class ConfigurableDeduplicator: Deduplicating, Sendable {
         let hash = computeHash(for: content)
         return recentHashes.contains(hash)
     }
+
+    // MARK: Private
+
+    private let options: DeduplicationOptions
+    private let baseDeduplicator = Deduplicator()
 }
 
-// MARK: - Configurable Deduplicator Tests
+// MARK: - ConfigurableDeduplicatorTests
 
 struct ConfigurableDeduplicatorTests {
     @Test("Case insensitive option works")

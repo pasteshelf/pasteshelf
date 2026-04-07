@@ -11,27 +11,30 @@ import CoreData
 import Foundation
 import os.log
 
+// MARK: - StorageManager
+
 /// Manages CoreData persistence for clipboard items
 @MainActor
 final class StorageManager: ObservableObject {
-    // MARK: - Singleton
-
-    static let shared = StorageManager()
-
-    // MARK: - Properties
-
-    private let persistenceController: PersistenceController
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf", category: "storage")
-
-    /// Main context for UI reads (main queue only)
-    var viewContext: NSManagedObjectContext {
-        persistenceController.container.viewContext
-    }
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     init(persistenceController: PersistenceController = .shared) {
         self.persistenceController = persistenceController
+    }
+
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    static let shared = StorageManager()
+
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf", category: "storage")
+
+    /// Main context for UI reads (main queue only)
+    var viewContext: NSManagedObjectContext {
+        persistenceController.container.viewContext
     }
 
     /// Creates a StorageManager for testing with in-memory store
@@ -84,9 +87,13 @@ final class StorageManager: ObservableObject {
             return result
         }
     }
+
+    // MARK: Private
+
+    private let persistenceController: PersistenceController
 }
 
-// MARK: - ClipboardItemStoring Conformance
+// MARK: ClipboardItemStoring
 
 extension StorageManager: ClipboardItemStoring {
     func save(content: ClipboardContent, from sourceApp: SourceApp?) async -> Bool {

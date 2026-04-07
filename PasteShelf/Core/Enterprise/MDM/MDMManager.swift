@@ -19,6 +19,27 @@ import os.log
 /// Follows the same singleton pattern as `SSOManager`.
 @MainActor
 final class MDMManager: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    private init() {
+        let reader = ManagedPreferencesReader()
+        self.reader = reader
+        enforcer = MDMPolicyEnforcer()
+    }
+
+    /// Creates a manager with injected dependencies (for testing).
+    ///
+    /// - Parameters:
+    ///   - reader: The managed preferences reader to use.
+    ///   - enforcer: The policy enforcer to use.
+    init(reader: ManagedPreferencesReading & MDMConfigurationObserving, enforcer: MDMPolicyEnforcer) {
+        self.reader = reader
+        self.enforcer = enforcer
+    }
+
+    // MARK: Internal
 
     // MARK: - Singleton
 
@@ -35,29 +56,17 @@ final class MDMManager: ObservableObject {
     /// Set of preference keys that are forced (locked) by MDM
     @Published private(set) var forcedKeys: Set<ManagedPreferenceKey> = []
 
-    // MARK: - Properties
+    // MARK: - Enterprise Key Access
 
-    private let reader: ManagedPreferencesReading & MDMConfigurationObserving
-    private let enforcer: MDMPolicyEnforcer
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "mdm-manager")
-    private var cancellables = Set<AnyCancellable>()
-
-    // MARK: - Initialization
-
-    private init() {
-        let reader = ManagedPreferencesReader()
-        self.reader = reader
-        self.enforcer = MDMPolicyEnforcer()
-    }
-
-    /// Creates a manager with injected dependencies (for testing).
+    /// Returns the organization ID from MDM configuration, if set.
     ///
-    /// - Parameters:
-    ///   - reader: The managed preferences reader to use.
-    ///   - enforcer: The policy enforcer to use.
-    init(reader: ManagedPreferencesReading & MDMConfigurationObserving, enforcer: MDMPolicyEnforcer) {
-        self.reader = reader
-        self.enforcer = enforcer
+    /// This is always read regardless of configuration since it's used for
+    /// organization identification.
+    var organizationID: String? {
+        if case let .string(id) = configuration.effectiveValue(for: .organizationID) {
+            return id
+        }
+        return nil
     }
 
     // MARK: - Configuration Loading
@@ -75,7 +84,9 @@ final class MDMManager: ObservableObject {
     ///
     /// - Parameter settings: The application settings to apply overrides to.
     func applyOverrides(to settings: inout AppSettings) {
-        guard configuration.isManaged else { return }
+        guard configuration.isManaged else {
+            return
+        }
 
         enforcer.applyForcedPreferences(to: &settings, from: configuration)
         enforcer.applyDefaults(to: &settings, from: configuration)
@@ -115,18 +126,12 @@ final class MDMManager: ObservableObject {
         logger.info("MDM monitoring stopped")
     }
 
-    // MARK: - Enterprise Key Access
+    // MARK: Private
 
-    /// Returns the organization ID from MDM configuration, if set.
-    ///
-    /// This is always read regardless of configuration since it's used for
-    /// organization identification.
-    var organizationID: String? {
-        if case .string(let id) = configuration.effectiveValue(for: .organizationID) {
-            return id
-        }
-        return nil
-    }
+    private let reader: ManagedPreferencesReading & MDMConfigurationObserving
+    private let enforcer: MDMPolicyEnforcer
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "mdm-manager")
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Private Helpers
 
@@ -141,6 +146,6 @@ final class MDMManager: ObservableObject {
     private func handleConfigurationChange(_ config: MDMConfiguration) {
         updateState(with: config)
         SettingsManager.shared.applyMDMOverridesIfNeeded()
-        logger.info("MDM configuration updated: \(self.forcedKeys.count) forced keys")
+        logger.info("MDM configuration updated: \(forcedKeys.count) forced keys")
     }
 }

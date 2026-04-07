@@ -17,6 +17,7 @@ import os.log
 /// to present a comprehensive privacy overview.
 @MainActor
 final class PrivacyDashboardViewModel: ObservableObject {
+    // MARK: Internal
 
     // MARK: - Published State
 
@@ -24,8 +25,6 @@ final class PrivacyDashboardViewModel: ObservableObject {
     @Published var connectedServices: [(name: String, isActive: Bool, icon: String)] = []
     @Published var storageDuration: String = "Not configured"
     @Published var isLoading = false
-
-    private let logger = Logger.compliance
 
     // MARK: - Load Data
 
@@ -44,7 +43,7 @@ final class PrivacyDashboardViewModel: ObservableObject {
             (name: "Clipboard Items", count: clipboardItems.count, icon: "doc.on.clipboard"),
             (name: "Tags", count: tags.count, icon: "tag"),
             (name: "Folders", count: folders.count, icon: "folder"),
-            (name: "Collections", count: collections.count, icon: "tray.full")
+            (name: "Collections", count: collections.count, icon: "tray.full"),
         ]
 
         // Connected services
@@ -52,7 +51,7 @@ final class PrivacyDashboardViewModel: ObservableObject {
 
         connectedServices = [
             (name: "Audit Logging", isActive: auditEnabled, icon: "list.clipboard.fill"),
-            (name: "SSO", isActive: SSOManager.shared.currentSession != nil, icon: "key.fill")
+            (name: "SSO", isActive: SSOManager.shared.currentSession != nil, icon: "key.fill"),
         ]
 
         // Storage duration
@@ -66,4 +65,8 @@ final class PrivacyDashboardViewModel: ObservableObject {
 
         logger.info("Privacy dashboard loaded: \(clipboardItems.count) items")
     }
+
+    // MARK: Private
+
+    private let logger = Logger.compliance
 }

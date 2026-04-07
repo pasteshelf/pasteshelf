@@ -15,6 +15,21 @@ import Foundation
 /// stored items, or both.  When `enforced` is `true` the application must apply
 /// whichever limits are set and must not allow the user to exceed them.
 struct HistoryLimitPolicy: Codable, Sendable, Equatable {
+    // MARK: Lifecycle
+
+    /// Creates a history limit policy.
+    ///
+    /// - Parameters:
+    ///   - maxItems: Optional upper bound on the number of retained items.
+    ///   - maxDays: Optional upper bound on retention age in days.
+    ///   - enforced: Whether the limits are administrator-locked. Defaults to `false`.
+    init(maxItems: Int? = nil, maxDays: Int? = nil, enforced: Bool = false) {
+        self.maxItems = maxItems
+        self.maxDays = maxDays
+        self.enforced = enforced
+    }
+
+    // MARK: Internal
 
     /// The maximum number of clipboard items to retain.
     ///
@@ -28,18 +43,6 @@ struct HistoryLimitPolicy: Codable, Sendable, Equatable {
 
     /// When `true` the limits must be enforced and the user cannot override them.
     var enforced: Bool
-
-    /// Creates a history limit policy.
-    ///
-    /// - Parameters:
-    ///   - maxItems: Optional upper bound on the number of retained items.
-    ///   - maxDays: Optional upper bound on retention age in days.
-    ///   - enforced: Whether the limits are administrator-locked. Defaults to `false`.
-    init(maxItems: Int? = nil, maxDays: Int? = nil, enforced: Bool = false) {
-        self.maxItems = maxItems
-        self.maxDays = maxDays
-        self.enforced = enforced
-    }
 }
 
 // MARK: - ExcludedAppsPolicy
@@ -50,12 +53,7 @@ struct HistoryLimitPolicy: Codable, Sendable, Equatable {
 /// When `enforced` is `true` the user cannot remove entries from this list, though
 /// they may still add their own exclusions.
 struct ExcludedAppsPolicy: Codable, Sendable, Equatable {
-
-    /// The bundle identifiers of applications whose clipboard content must not be captured.
-    var bundleIds: [String]
-
-    /// When `true` the listed exclusions are administrator-locked and cannot be removed by the user.
-    var enforced: Bool
+    // MARK: Lifecycle
 
     /// Creates an excluded apps policy.
     ///
@@ -66,6 +64,14 @@ struct ExcludedAppsPolicy: Codable, Sendable, Equatable {
         self.bundleIds = bundleIds
         self.enforced = enforced
     }
+
+    // MARK: Internal
+
+    /// The bundle identifiers of applications whose clipboard content must not be captured.
+    var bundleIds: [String]
+
+    /// When `true` the listed exclusions are administrator-locked and cannot be removed by the user.
+    var enforced: Bool
 }
 
 // MARK: - SyncSettingsPolicy
@@ -76,15 +82,7 @@ struct ExcludedAppsPolicy: Codable, Sendable, Equatable {
 /// conversely require it to be enabled.  When `enforced` is `true` the user cannot
 /// change the sync-related settings covered by this policy.
 struct SyncSettingsPolicy: Codable, Sendable, Equatable {
-
-    /// When non-`nil`, overrides whether iCloud sync is active.
-    var syncEnabled: Bool?
-
-    /// When `true` (and enforced), the device must store clipboard data locally only.
-    var localStorageOnly: Bool?
-
-    /// When `true` these sync settings are administrator-locked and cannot be changed by the user.
-    var enforced: Bool
+    // MARK: Lifecycle
 
     /// Creates a sync settings policy.
     ///
@@ -97,6 +95,17 @@ struct SyncSettingsPolicy: Codable, Sendable, Equatable {
         self.localStorageOnly = localStorageOnly
         self.enforced = enforced
     }
+
+    // MARK: Internal
+
+    /// When non-`nil`, overrides whether iCloud sync is active.
+    var syncEnabled: Bool?
+
+    /// When `true` (and enforced), the device must store clipboard data locally only.
+    var localStorageOnly: Bool?
+
+    /// When `true` these sync settings are administrator-locked and cannot be changed by the user.
+    var enforced: Bool
 }
 
 // MARK: - EncryptionPolicy
@@ -107,23 +116,7 @@ struct SyncSettingsPolicy: Codable, Sendable, Equatable {
 /// specify a minimum encryption key length, and optionally require biometric
 /// authentication before decrypting data.
 struct EncryptionPolicy: Codable, Sendable, Equatable {
-
-    /// When `true` all locally stored clipboard data must be encrypted.
-    var requireEncryption: Bool
-
-    /// The minimum acceptable encryption key length in bits.
-    ///
-    /// `nil` means no specific key-length requirement is imposed.
-    var minimumKeyLength: Int?
-
-    /// When `true` the user must authenticate with biometrics (Touch ID / Apple Watch)
-    /// before clipboard data can be decrypted.
-    ///
-    /// `nil` means no biometric requirement is imposed.
-    var requireBiometricAuth: Bool?
-
-    /// When `true` these encryption requirements are administrator-locked.
-    var enforced: Bool
+    // MARK: Lifecycle
 
     /// Creates an encryption policy.
     ///
@@ -143,6 +136,25 @@ struct EncryptionPolicy: Codable, Sendable, Equatable {
         self.requireBiometricAuth = requireBiometricAuth
         self.enforced = enforced
     }
+
+    // MARK: Internal
+
+    /// When `true` all locally stored clipboard data must be encrypted.
+    var requireEncryption: Bool
+
+    /// The minimum acceptable encryption key length in bits.
+    ///
+    /// `nil` means no specific key-length requirement is imposed.
+    var minimumKeyLength: Int?
+
+    /// When `true` the user must authenticate with biometrics (Touch ID / Apple Watch)
+    /// before clipboard data can be decrypted.
+    ///
+    /// `nil` means no biometric requirement is imposed.
+    var requireBiometricAuth: Bool?
+
+    /// When `true` these encryption requirements are administrator-locked.
+    var enforced: Bool
 }
 
 // MARK: - AdminPolicy
@@ -157,40 +169,7 @@ struct EncryptionPolicy: Codable, Sendable, Equatable {
 ///
 /// Use `.empty` as a safe default before any policy has been received from the server.
 struct AdminPolicy: Codable, Sendable, Identifiable, Equatable {
-
-    // MARK: - Identity
-
-    /// The server-assigned unique identifier for this policy document.
-    let id: String
-
-    /// A monotonically increasing version string used to detect stale cached policies.
-    let version: String
-
-    /// A human-readable name for this policy, shown in the admin console UI.
-    let name: String
-
-    /// When this policy was last modified on the server.
-    let updatedAt: Date
-
-    // MARK: - Sub-Policies
-
-    /// Clipboard history retention limits, or `nil` if not configured.
-    var historyLimits: HistoryLimitPolicy?
-
-    /// Application exclusion rules, or `nil` if not configured.
-    var excludedApps: ExcludedAppsPolicy?
-
-    /// iCloud sync settings, or `nil` if not configured.
-    var syncSettings: SyncSettingsPolicy?
-
-    /// Local data encryption requirements, or `nil` if not configured.
-    var encryptionRequirements: EncryptionPolicy?
-
-    /// Data Loss Prevention policy, or `nil` if not configured.
-    ///
-    /// When present, the DLP policy's rules are evaluated against clipboard content
-    /// at capture time. See `DLPPolicy` for enforcement and rule details.
-    var dlpPolicy: DLPPolicy?
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -228,6 +207,8 @@ struct AdminPolicy: Codable, Sendable, Identifiable, Equatable {
         self.dlpPolicy = dlpPolicy
     }
 
+    // MARK: Internal
+
     // MARK: - Empty Sentinel
 
     /// An `AdminPolicy` with no sub-policies — represents a device with no active policy.
@@ -244,4 +225,38 @@ struct AdminPolicy: Codable, Sendable, Identifiable, Equatable {
         encryptionRequirements: nil,
         dlpPolicy: nil
     )
+
+    // MARK: - Identity
+
+    /// The server-assigned unique identifier for this policy document.
+    let id: String
+
+    /// A monotonically increasing version string used to detect stale cached policies.
+    let version: String
+
+    /// A human-readable name for this policy, shown in the admin console UI.
+    let name: String
+
+    /// When this policy was last modified on the server.
+    let updatedAt: Date
+
+    // MARK: - Sub-Policies
+
+    /// Clipboard history retention limits, or `nil` if not configured.
+    var historyLimits: HistoryLimitPolicy?
+
+    /// Application exclusion rules, or `nil` if not configured.
+    var excludedApps: ExcludedAppsPolicy?
+
+    /// iCloud sync settings, or `nil` if not configured.
+    var syncSettings: SyncSettingsPolicy?
+
+    /// Local data encryption requirements, or `nil` if not configured.
+    var encryptionRequirements: EncryptionPolicy?
+
+    /// Data Loss Prevention policy, or `nil` if not configured.
+    ///
+    /// When present, the DLP policy's rules are evaluated against clipboard content
+    /// at capture time. See `DLPPolicy` for enforcement and rule details.
+    var dlpPolicy: DLPPolicy?
 }

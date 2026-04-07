@@ -8,42 +8,44 @@
 import CoreData
 import Foundation
 
-extension Tag {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Tag> {
+public extension Tag {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<Tag> {
         NSFetchRequest<Tag>(entityName: "Tag")
     }
 
     // MARK: - Attributes
 
     /// Unique identifier
-    @NSManaged public var id: UUID?
+    @NSManaged var id: UUID?
 
     /// Tag display name
-    @NSManaged public var name: String?
+    @NSManaged var name: String?
 
     /// Tag color as hex string (e.g., "#FF5733")
-    @NSManaged public var color: String?
+    @NSManaged var color: String?
 
     // MARK: - Relationships
 
     /// Clipboard items with this tag (many-to-many)
-    @NSManaged public var items: NSSet?
+    @NSManaged var items: NSSet?
 }
 
 // MARK: - Generated accessors for items
 
-extension Tag {
+public extension Tag {
     @objc(addItemsObject:)
-    @NSManaged public func addToItems(_ value: ClipboardItem)
+    @NSManaged func addToItems(_ value: ClipboardItem)
 
     @objc(removeItemsObject:)
-    @NSManaged public func removeFromItems(_ value: ClipboardItem)
+    @NSManaged func removeFromItems(_ value: ClipboardItem)
 
     @objc(addItems:)
-    @NSManaged public func addToItems(_ values: NSSet)
+    @NSManaged func addToItems(_ values: NSSet)
 
     @objc(removeItems:)
-    @NSManaged public func removeFromItems(_ values: NSSet)
+    @NSManaged func removeFromItems(_ values: NSSet)
 }
+
+// MARK: - Tag + Identifiable
 
 extension Tag: Identifiable {}

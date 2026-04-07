@@ -14,11 +14,11 @@ import Foundation
 extension DeviceEnrollmentStatus {
     var displayName: String {
         switch self {
-        case .notEnrolled: return "Not Enrolled"
-        case .enrolling: return "Enrolling..."
-        case .enrolled: return "Enrolled"
-        case .suspended: return "Suspended"
-        case .revoked: return "Revoked"
+        case .notEnrolled: "Not Enrolled"
+        case .enrolling: "Enrolling..."
+        case .enrolled: "Enrolled"
+        case .suspended: "Suspended"
+        case .revoked: "Revoked"
         }
     }
 }
@@ -32,6 +32,16 @@ extension DeviceEnrollmentStatus {
 /// and unenroll the device with the admin console.
 @MainActor
 final class AdminSettingsViewModel: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init() {
+        loadState()
+        observeChanges()
+    }
+
+    // MARK: Internal
 
     // MARK: - Published State
 
@@ -59,22 +69,9 @@ final class AdminSettingsViewModel: ObservableObject {
     /// Whether an enrollment or unenrollment operation is in progress.
     @Published private(set) var isProcessing: Bool = false
 
-    // MARK: - Computed Properties
-
     /// Whether the device is fully enrolled with the admin console.
     var isEnrolled: Bool {
         enrollmentStatus == .enrolled
-    }
-
-    // MARK: - Private Properties
-
-    private var cancellables = Set<AnyCancellable>()
-
-    // MARK: - Initialization
-
-    init() {
-        loadState()
-        observeChanges()
     }
 
     // MARK: - State Loading
@@ -91,13 +88,13 @@ final class AdminSettingsViewModel: ObservableObject {
         lastError = admin.lastError
     }
 
-    // MARK: - Actions
-
     /// Enrolls this device with the admin console.
     ///
     /// On failure, sets `lastError` with the caught `AdminError`.
     func enrollDevice() async {
-        guard !isProcessing else { return }
+        guard !isProcessing else {
+            return
+        }
         isProcessing = true
         defer { isProcessing = false }
         do {
@@ -114,7 +111,9 @@ final class AdminSettingsViewModel: ObservableObject {
     ///
     /// On failure, sets `lastError` with the caught `AdminError`.
     func unenrollDevice() async {
-        guard !isProcessing else { return }
+        guard !isProcessing else {
+            return
+        }
         isProcessing = true
         defer { isProcessing = false }
         do {
@@ -126,6 +125,12 @@ final class AdminSettingsViewModel: ObservableObject {
             lastError = AdminError.enrollmentFailed(error.localizedDescription)
         }
     }
+
+    // MARK: Private
+
+    // MARK: - Private Properties
+
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Private Helpers
 

@@ -6,13 +6,12 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
-// MARK: - PreferenceValue Tests
+// MARK: - PreferenceValueTests
 
 struct PreferenceValueTests {
-
     // MARK: Bool Equality
 
     @Test("PreferenceValue bool true equals bool true")
@@ -100,10 +99,9 @@ struct PreferenceValueTests {
     }
 }
 
-// MARK: - MDMConfiguration Tests
+// MARK: - MDMConfigurationTests
 
 struct MDMConfigurationTests {
-
     // MARK: Empty Configuration
 
     @Test("MDMConfiguration.empty has no preferences and isManaged is false")
@@ -225,7 +223,7 @@ struct MDMConfigurationTests {
         let config1 = MDMConfiguration(forcedPreferences: [.theme: .string("dark")])
         let config2 = MDMConfiguration(forcedPreferences: [
             .theme: .string("dark"),
-            .maxHistoryItems: .int(100)
+            .maxHistoryItems: .int(100),
         ])
         #expect(config1 != config2)
     }
@@ -238,10 +236,9 @@ struct MDMConfigurationTests {
     }
 }
 
-// MARK: - ManagedPreferenceKey Metadata Tests
+// MARK: - ManagedPreferenceKeyTests
 
 struct ManagedPreferenceKeyTests {
-
     @Test("All ManagedPreferenceKey cases have non-empty display names")
     func allKeysHaveDisplayNames() {
         for key in ManagedPreferenceKey.allCases {

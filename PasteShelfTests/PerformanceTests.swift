@@ -5,10 +5,14 @@
 //  Performance tests for critical operations.
 //
 
-import XCTest
 @testable import PasteShelf
+import XCTest
+
+// MARK: - PerformanceTests
 
 final class PerformanceTests: XCTestCase {
+    // MARK: Internal
+
     // MARK: - Fuzzy Search Performance Tests
 
     func testFuzzySearchPerformance_smallDataset() {
@@ -48,7 +52,7 @@ final class PerformanceTests: XCTestCase {
 
     func testDeduplicationPerformance_duplicateCheck() {
         let deduplicator = Deduplicator()
-        let existingHashes = (0..<1000).map { _ in UUID().uuidString }
+        let existingHashes = (0 ..< 1000).map { _ in UUID().uuidString }
         let items = generateTestItems(count: 100)
 
         measure {
@@ -69,7 +73,7 @@ final class PerformanceTests: XCTestCase {
         let testImage = createTestImage(size: NSSize(width: 200, height: 200))
 
         measure {
-            for _ in 0..<100 {
+            for _ in 0 ..< 100 {
                 _ = processor.generateThumbnail(testImage)
             }
         }
@@ -80,7 +84,7 @@ final class PerformanceTests: XCTestCase {
         let testImage = createTestImage(size: NSSize(width: 1000, height: 1000))
 
         measure {
-            for _ in 0..<50 {
+            for _ in 0 ..< 50 {
                 _ = processor.generateThumbnail(testImage)
             }
         }
@@ -91,7 +95,7 @@ final class PerformanceTests: XCTestCase {
         let testImage = createTestImage(size: NSSize(width: 4000, height: 3000))
 
         measure {
-            for _ in 0..<10 {
+            for _ in 0 ..< 10 {
                 _ = processor.generateThumbnail(testImage)
             }
         }
@@ -101,7 +105,7 @@ final class PerformanceTests: XCTestCase {
 
     func testSensitiveDataDetection_smallText() {
         let detector = SensitiveDataDetector()
-        let texts = (0..<100).map { _ in "This is a simple text without sensitive data \(UUID().uuidString)" }
+        let texts = (0 ..< 100).map { _ in "This is a simple text without sensitive data \(UUID().uuidString)" }
 
         measure {
             for text in texts {
@@ -115,7 +119,7 @@ final class PerformanceTests: XCTestCase {
         let largeText = String(repeating: "This is some text with potential data 4532-1234-5678-9012 ", count: 100)
 
         measure {
-            for _ in 0..<50 {
+            for _ in 0 ..< 50 {
                 _ = detector.analyze(text: largeText)
             }
         }
@@ -128,36 +132,38 @@ final class PerformanceTests: XCTestCase {
         let encoder = JSONEncoder()
 
         measure {
-            for _ in 0..<1000 {
+            for _ in 0 ..< 1000 {
                 _ = try? encoder.encode(settings)
             }
         }
     }
 
-    func testSettingsDecode() {
+    func testSettingsDecode() throws {
         let settings = AppSettings.default
         let encoder = JSONEncoder()
-        let data = try! encoder.encode(settings)
+        let data = try encoder.encode(settings)
         let decoder = JSONDecoder()
 
         measure {
-            for _ in 0..<1000 {
+            for _ in 0 ..< 1000 {
                 _ = try? decoder.decode(AppSettings.self, from: data)
             }
         }
     }
+
+    // MARK: Private
 
     // MARK: - Helper Methods
 
     private func generateTestItems(count: Int) -> [String] {
         let words = [
             "clipboard", "manager", "paste", "copy", "test", "item",
-            "search", "query", "result", "filter", "favorite", "history"
+            "search", "query", "result", "filter", "favorite", "history",
         ]
 
-        return (0..<count).map { _ in
-            let wordCount = Int.random(in: 5...20)
-            return (0..<wordCount)
+        return (0 ..< count).map { _ in
+            let wordCount = Int.random(in: 5 ... 20)
+            return (0 ..< wordCount)
                 .map { _ in words.randomElement()! }
                 .joined(separator: " ")
         }
@@ -173,14 +179,14 @@ final class PerformanceTests: XCTestCase {
     }
 }
 
-// MARK: - Memory Tests
+// MARK: - MemoryTests
 
 final class MemoryTests: XCTestCase {
     /// Test that image processing doesn't leak memory
     func testImageProcessingMemoryUsage() {
         let processor = ImageProcessor(thumbnailSize: 256)
 
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             autoreleasepool {
                 let image = NSImage(size: NSSize(width: 1000, height: 1000))
                 image.lockFocus()
@@ -195,7 +201,7 @@ final class MemoryTests: XCTestCase {
 
     /// Test that clipboard content objects don't leak
     func testClipboardContentMemoryUsage() {
-        for _ in 0..<100 {
+        for _ in 0 ..< 100 {
             autoreleasepool {
                 var content = ClipboardContent(primaryType: .plainText)
                 content.plainText = String(repeating: "x", count: 10000)

@@ -6,13 +6,12 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - MDMPolicyEnforcerTests
 
 struct MDMPolicyEnforcerTests {
-
     // MARK: - maxHistoryDays
 
     @Test("applyForcedPreferences enables auto-delete and sets days for maxHistoryDays")
@@ -256,7 +255,7 @@ struct MDMPolicyEnforcerTests {
         var settings = AppSettings.default
         let config = MDMConfiguration(forcedPreferences: [
             .theme: .string("dark"),
-            .maxHistoryDays: .int(90)
+            .maxHistoryDays: .int(90),
         ])
         let enforcer = MDMPolicyEnforcer()
 
@@ -311,7 +310,7 @@ struct MDMPolicyEnforcerTests {
         var settings = AppSettings.default
         let config = MDMConfiguration(defaultPreferences: [
             .maxHistoryDays: .int(90),
-            .theme: .string("dark")
+            .theme: .string("dark"),
         ])
         let enforcer = MDMPolicyEnforcer()
 
@@ -462,7 +461,7 @@ struct MDMPolicyEnforcerTests {
             .pluginsEnabled: .bool(true),
             .dlpEnabled: .bool(true),
             .blockCreditCards: .bool(true),
-            .blockAPIKeys: .bool(true)
+            .blockAPIKeys: .bool(true),
         ])
         let enforcer = MDMPolicyEnforcer()
 

@@ -12,12 +12,9 @@ import SwiftUI
 
 /// Settings view for GDPR compliance tools.
 struct GDPRSettingsView: View {
+    // MARK: Internal
 
     @ObservedObject var viewModel: ComplianceSettingsViewModel
-    @ObservedObject private var consentManager = GDPRConsentManager.shared
-
-    @State private var showDeleteConfirmation = false
-    @State private var showPrivacyDashboard = false
 
     var body: some View {
         ScrollView {
@@ -142,7 +139,9 @@ struct GDPRSettingsView: View {
                 Task { await viewModel.deleteAllGDPRData() }
             }
         } message: {
-            Text("This will permanently delete all clipboard items, tags, folders, collections, audit logs, and encryption keys. This action cannot be undone.")
+            Text(
+                "This will permanently delete all clipboard items, tags, folders, collections, audit logs, and encryption keys. This action cannot be undone."
+            )
         }
         .sheet(isPresented: $showPrivacyDashboard) {
             PrivacyDashboardView()
@@ -150,7 +149,12 @@ struct GDPRSettingsView: View {
         }
     }
 
-    // MARK: - Actions
+    // MARK: Private
+
+    @ObservedObject private var consentManager = GDPRConsentManager.shared
+
+    @State private var showDeleteConfirmation = false
+    @State private var showPrivacyDashboard = false
 
     private func exportData() async {
         if let url = await viewModel.exportGDPRData() {

@@ -6,8 +6,10 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
+
+// MARK: - ExclusionManagerTests
 
 @MainActor
 struct ExclusionManagerTests {
@@ -113,7 +115,7 @@ struct ExclusionManagerTests {
     }
 }
 
-// MARK: - Exclusion Reason Tests
+// MARK: - ExclusionReasonTests
 
 struct ExclusionReasonTests {
     @Test("Exclusion reasons are sendable")
@@ -133,7 +135,7 @@ struct ExclusionReasonTests {
             .ownPasteOperation,
             .emptyContent,
             .duplicate,
-            .userPaused
+            .userPaused,
         ]
 
         #expect(reasons.count == 5)

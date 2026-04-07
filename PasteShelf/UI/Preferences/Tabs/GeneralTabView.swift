@@ -7,18 +7,13 @@
 
 import SwiftUI
 
+// MARK: - GeneralTabView
+
 /// General settings tab view
 struct GeneralTabView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     @ObservedObject var viewModel: PreferencesViewModel
-
-    // MARK: - Tag Management State
-
-    @State private var tags: [TagDisplayModel] = []
-    @State private var newTagName = ""
-    @State private var newTagColor = "#007AFF"
-    @State private var showTagInput = false
 
     // MARK: - Body
 
@@ -48,9 +43,11 @@ struct GeneralTabView: View {
             } header: {
                 Text("History")
             } footer: {
-                Text("Items beyond this limit will be automatically removed (oldest first). Favorites are always preserved.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Text(
+                    "Items beyond this limit will be automatically removed (oldest first). Favorites are always preserved."
+                )
+                .font(.caption)
+                .foregroundColor(.secondary)
             }
 
             Section {
@@ -144,7 +141,6 @@ struct GeneralTabView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-
         }
         .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -155,6 +151,15 @@ struct GeneralTabView: View {
         }
     }
 
+    // MARK: Private
+
+    // MARK: - Tag Management State
+
+    @State private var tags: [TagDisplayModel] = []
+    @State private var newTagName = ""
+    @State private var newTagColor = "#007AFF"
+    @State private var showTagInput = false
+
     // MARK: - Capture Type Helper
 
     /// Returns true if this is the only enabled capture type (prevents disabling all)
@@ -163,7 +168,7 @@ struct GeneralTabView: View {
             viewModel.captureTextContent,
             viewModel.captureImageContent,
             viewModel.captureFileContent,
-            viewModel.captureLinkContent
+            viewModel.captureLinkContent,
         ].filter { $0 }.count
         return enabledCount == 1 && viewModel[keyPath: keyPath]
     }
@@ -176,7 +181,9 @@ struct GeneralTabView: View {
     }
 
     private func createTag() {
-        guard !newTagName.isEmpty else { return }
+        guard !newTagName.isEmpty else {
+            return
+        }
         let name = newTagName
         let color = newTagColor
         newTagName = ""

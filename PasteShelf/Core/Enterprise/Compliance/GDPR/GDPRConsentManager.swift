@@ -19,6 +19,20 @@ import os.log
 /// All consent changes are audit-logged via `AuditManager.shared.logComplianceEvent()`.
 @MainActor
 final class GDPRConsentManager: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    private init() {
+        loadConsentStatuses()
+    }
+
+    /// Designated initializer for dependency injection in tests.
+    init(context: NSManagedObjectContext) {
+        loadConsentStatuses(in: context)
+    }
+
+    // MARK: Internal
 
     // MARK: - Singleton
 
@@ -31,24 +45,6 @@ final class GDPRConsentManager: ObservableObject {
 
     /// The most recent error encountered, if any.
     @Published var lastError: ComplianceError?
-
-    // MARK: - Dependencies
-
-    private let logger = Logger.compliance
-
-    /// The current consent version string used for re-consent tracking.
-    private let consentVersion = "1.0"
-
-    // MARK: - Initialization
-
-    private init() {
-        loadConsentStatuses()
-    }
-
-    /// Designated initializer for dependency injection in tests.
-    init(context: NSManagedObjectContext) {
-        loadConsentStatuses(in: context)
-    }
 
     // MARK: - Public API
 
@@ -87,27 +83,43 @@ final class GDPRConsentManager: ObservableObject {
         let context = StorageManager.shared.newBackgroundContext()
         return await context.perform {
             let request = ConsentRecord.allRecordsFetchRequest()
-            guard let records = try? context.fetch(request) else { return [] }
+            guard let records = try? context.fetch(request) else {
+                return []
+            }
             return records.compactMap { record in
                 guard let categoryRaw = record.category,
                       let category = GDPRConsentCategory(rawValue: categoryRaw)
-                else { return nil }
+                else {
+                    return nil
+                }
                 return (category: category, isGranted: record.isGranted, updatedAt: record.updatedAt)
             }
         }
     }
+
+    // MARK: Private
+
+    // MARK: - Dependencies
+
+    private let logger = Logger.compliance
+
+    /// The current consent version string used for re-consent tracking.
+    private let consentVersion = "1.0"
 
     // MARK: - Private Helpers
 
     private func loadConsentStatuses(in context: NSManagedObjectContext? = nil) {
         let ctx = context ?? StorageManager.shared.viewContext
         let request = ConsentRecord.allRecordsFetchRequest()
-        guard let records = try? ctx.fetch(request) else { return }
+        guard let records = try? ctx.fetch(request) else {
+            return
+        }
 
         var statuses: [GDPRConsentCategory: Bool] = [:]
         for record in records {
             if let categoryRaw = record.category,
-               let category = GDPRConsentCategory(rawValue: categoryRaw) {
+               let category = GDPRConsentCategory(rawValue: categoryRaw)
+            {
                 statuses[category] = record.isGranted
             }
         }
@@ -149,7 +161,7 @@ final class GDPRConsentManager: ObservableObject {
             detail: [
                 "category": category.rawValue,
                 "granted": granted ? "true" : "false",
-                "version": consentVersion
+                "version": consentVersion,
             ]
         )
 

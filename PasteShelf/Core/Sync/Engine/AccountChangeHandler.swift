@@ -10,32 +10,12 @@ import Combine
 import Foundation
 import os.log
 
+// MARK: - AccountChangeHandler
+
 /// Handles iCloud account status changes and triggers appropriate sync actions
 @MainActor
 final class AccountChangeHandler: ObservableObject {
-    // MARK: - Published Properties
-
-    @Published private(set) var accountStatus: CKAccountStatus = .couldNotDetermine
-    @Published private(set) var currentUserID: String?
-
-    // MARK: - Properties
-
-    private let container: CKContainer
-    private weak var syncManager: SyncManager?
-
-    private var accountStatusTask: Task<Void, Never>?
-    private var notificationObserver: NSObjectProtocol?
-
-    // MARK: - Logger
-
-    private static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "account-handler"
-    )
-
-    // MARK: - UserDefaults Keys
-
-    private static let lastUserIDKey = "com.pasteshelf.sync.lastUserID"
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -57,6 +37,87 @@ final class AccountChangeHandler: ObservableObject {
         }
     }
 
+    // MARK: Internal
+
+    // MARK: - Published Properties
+
+    @Published private(set) var accountStatus: CKAccountStatus = .couldNotDetermine
+    @Published private(set) var currentUserID: String?
+
+    // MARK: - Account Status
+
+    /// Check current iCloud account status
+    func checkAccountStatus() {
+        accountStatusTask?.cancel()
+        accountStatusTask = Task { [weak self] in
+            guard let self else {
+                return
+            }
+
+            do {
+                let status = try await container.accountStatus()
+                await MainActor.run {
+                    self.updateAccountStatus(status)
+                }
+            } catch {
+                Self.logger.error("Failed to check account status: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    // MARK: - First Sync Detection
+
+    /// Check if this is the first time syncing on this device
+    func isFirstSync() -> Bool {
+        // No change token and no stored user ID indicates first sync
+        let hasToken = UserDefaults.standard.data(forKey: "com.pasteshelf.sync.changeToken") != nil
+        let hasUserID = UserDefaults.standard.string(forKey: Self.lastUserIDKey) != nil
+
+        return !hasToken || !hasUserID
+    }
+
+    /// Check if this is a new device joining existing sync
+    func isNewDeviceJoiningSync() async -> Bool {
+        // New device if:
+        // 1. No local change token
+        // 2. But zone already exists in CloudKit
+
+        let hasLocalToken = UserDefaults.standard.data(forKey: "com.pasteshelf.sync.changeToken") != nil
+
+        if hasLocalToken {
+            return false
+        }
+
+        // Check if zone exists
+        let zoneManager = CloudKitZoneManager(container: container)
+        do {
+            // Try to fetch zone - if it exists, this is a new device
+            _ = try await container.privateCloudDatabase.recordZone(for: zoneManager.zoneID)
+            return true
+        } catch {
+            return false // Zone doesn't exist, this is first device
+        }
+    }
+
+    // MARK: Private
+
+    // MARK: - Logger
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "account-handler"
+    )
+
+    // MARK: - UserDefaults Keys
+
+    private static let lastUserIDKey = "com.pasteshelf.sync.lastUserID"
+
+    private let container: CKContainer
+    private weak var syncManager: SyncManager?
+
+    private var accountStatusTask: Task<Void, Never>?
+    private var notificationObserver: NSObjectProtocol?
+
     // MARK: - Setup
 
     private func setupAccountChangeNotification() {
@@ -68,25 +129,6 @@ final class AccountChangeHandler: ObservableObject {
         ) { [weak self] _ in
             Self.logger.info("iCloud account change notification received")
             self?.handleAccountChange()
-        }
-    }
-
-    // MARK: - Account Status
-
-    /// Check current iCloud account status
-    func checkAccountStatus() {
-        accountStatusTask?.cancel()
-        accountStatusTask = Task { [weak self] in
-            guard let self else { return }
-
-            do {
-                let status = try await container.accountStatus()
-                await MainActor.run {
-                    self.updateAccountStatus(status)
-                }
-            } catch {
-                Self.logger.error("Failed to check account status: \(error.localizedDescription)")
-            }
         }
     }
 
@@ -172,7 +214,8 @@ final class AccountChangeHandler: ObservableObject {
 
         if let previousUserID, previousUserID != newUserID {
             // Different user - account switch detected!
-            Self.logger.warning("iCloud account switch detected: \(previousUserID.prefix(8))... -> \(newUserID.prefix(8))...")
+            Self.logger
+                .warning("iCloud account switch detected: \(previousUserID.prefix(8))... -> \(newUserID.prefix(8))...")
             handleAccountSwitch(from: previousUserID, to: newUserID)
         }
 
@@ -185,7 +228,9 @@ final class AccountChangeHandler: ObservableObject {
 
     /// Handle account becoming available
     private func handleAccountAvailable() {
-        guard let syncManager, syncManager.isEnabled else { return }
+        guard let syncManager, syncManager.isEnabled else {
+            return
+        }
 
         Task {
             do {
@@ -218,7 +263,9 @@ final class AccountChangeHandler: ObservableObject {
 
     /// Handle account switch (different user signed in)
     private func handleAccountSwitch(from _: String, to _: String) {
-        guard let syncManager else { return }
+        guard let syncManager else {
+            return
+        }
 
         Self.logger.warning("Account switch requires sync reset")
 
@@ -234,40 +281,6 @@ final class AccountChangeHandler: ObservableObject {
             object: nil,
             userInfo: nil
         )
-    }
-
-    // MARK: - First Sync Detection
-
-    /// Check if this is the first time syncing on this device
-    func isFirstSync() -> Bool {
-        // No change token and no stored user ID indicates first sync
-        let hasToken = UserDefaults.standard.data(forKey: "com.pasteshelf.sync.changeToken") != nil
-        let hasUserID = UserDefaults.standard.string(forKey: Self.lastUserIDKey) != nil
-
-        return !hasToken || !hasUserID
-    }
-
-    /// Check if this is a new device joining existing sync
-    func isNewDeviceJoiningSync() async -> Bool {
-        // New device if:
-        // 1. No local change token
-        // 2. But zone already exists in CloudKit
-
-        let hasLocalToken = UserDefaults.standard.data(forKey: "com.pasteshelf.sync.changeToken") != nil
-
-        if hasLocalToken {
-            return false
-        }
-
-        // Check if zone exists
-        let zoneManager = CloudKitZoneManager(container: container)
-        do {
-            // Try to fetch zone - if it exists, this is a new device
-            _ = try await container.privateCloudDatabase.recordZone(for: zoneManager.zoneID)
-            return true
-        } catch {
-            return false // Zone doesn't exist, this is first device
-        }
     }
 }
 

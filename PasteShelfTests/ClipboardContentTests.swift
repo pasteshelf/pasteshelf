@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 struct ClipboardContentTests {
     // MARK: - Initialization Tests
@@ -18,7 +18,7 @@ struct ClipboardContentTests {
 
         #expect(content.primaryType == .plainText)
         #expect(content.availableTypes == [.plainText])
-        #expect(content.id != UUID())  // ID is generated
+        #expect(content.id != UUID()) // ID is generated
         #expect(content.timestamp <= Date())
     }
 
@@ -50,14 +50,14 @@ struct ClipboardContentTests {
     @Test("Preview text is truncated for long content")
     func previewTextIsTruncatedForLongContent() {
         var content = ClipboardContent(primaryType: .plainText)
-        content.plainText = String(repeating: "a", count: 1_000)
+        content.plainText = String(repeating: "a", count: 1000)
 
         guard let preview = content.previewText else {
             Issue.record("Preview should not be nil")
             return
         }
 
-        #expect(preview.count == 503)  // 500 chars + "..."
+        #expect(preview.count == 503) // 500 chars + "..."
         #expect(preview.hasSuffix("..."))
     }
 
@@ -114,8 +114,8 @@ struct ClipboardContentTests {
     @Test("Total size includes all data")
     func totalSizeIncludesAllData() {
         var content = ClipboardContent(primaryType: .plainText)
-        content.plainText = "Hello"  // 5 bytes
-        content.html = "<p>Hi</p>"  // 9 bytes
+        content.plainText = "Hello" // 5 bytes
+        content.html = "<p>Hi</p>" // 9 bytes
 
         #expect(content.totalSizeBytes == 14)
     }
@@ -202,7 +202,7 @@ struct ClipboardContentTests {
         content.fileURLs = [
             URL(fileURLWithPath: "/tmp/file1.txt"),
             URL(fileURLWithPath: "/tmp/file2.txt"),
-            URL(fileURLWithPath: "/tmp/file3.txt")
+            URL(fileURLWithPath: "/tmp/file3.txt"),
         ]
 
         #expect(content.fileCount == 3)
@@ -213,7 +213,7 @@ struct ClipboardContentTests {
         var content = ClipboardContent(primaryType: .fileURL)
         content.fileURLs = [
             URL(fileURLWithPath: "/tmp/first.txt"),
-            URL(fileURLWithPath: "/tmp/second.txt")
+            URL(fileURLWithPath: "/tmp/second.txt"),
         ]
 
         #expect(content.primaryFileName == "first.txt")

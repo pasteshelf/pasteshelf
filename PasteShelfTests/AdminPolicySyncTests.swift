@@ -7,26 +7,13 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - AdminPolicySyncTests
 
 struct AdminPolicySyncTests {
-
-    // MARK: - Test Helpers
-
-    /// Creates a `PolicySyncService` wired to a mock API client.
-    private func makeService(
-        api: MockAdminAPIClient = MockAdminAPIClient(),
-        deviceId: String? = "dev-test"
-    ) -> (PolicySyncService, MockAdminAPIClient) {
-        let service = PolicySyncService(
-            apiClient: api,
-            deviceId: { deviceId }
-        )
-        return (service, api)
-    }
+    // MARK: Internal
 
     // MARK: - History Limits Mapping
 
@@ -479,7 +466,7 @@ struct AdminPolicySyncTests {
             _ = try await service.fetchLatestPolicy()
             #expect(Bool(false), "Expected AdminError.networkError")
         } catch let error as AdminError {
-            if case .networkError(let msg) = error {
+            if case let .networkError(msg) = error {
                 #expect(msg == "DNS failure")
             } else {
                 #expect(Bool(false), "Expected networkError, got \(error)")
@@ -491,5 +478,21 @@ struct AdminPolicySyncTests {
     func currentPolicyNilBeforeFetch() {
         let (service, _) = makeService()
         #expect(service.currentPolicy == nil)
+    }
+
+    // MARK: Private
+
+    // MARK: - Test Helpers
+
+    /// Creates a `PolicySyncService` wired to a mock API client.
+    private func makeService(
+        api: MockAdminAPIClient = MockAdminAPIClient(),
+        deviceId: String? = "dev-test"
+    ) -> (PolicySyncService, MockAdminAPIClient) {
+        let service = PolicySyncService(
+            apiClient: api,
+            deviceId: { deviceId }
+        )
+        return (service, api)
     }
 }

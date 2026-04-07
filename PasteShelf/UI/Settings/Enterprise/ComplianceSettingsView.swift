@@ -13,8 +13,7 @@ import SwiftUI
 ///
 /// Hosts `HIPAASettingsView`, `GDPRSettingsView`, and `SOC2SettingsView` as sub-tabs.
 struct ComplianceSettingsView: View {
-
-    @StateObject private var viewModel = ComplianceSettingsViewModel()
+    // MARK: Internal
 
     // MARK: - Body
 
@@ -31,15 +30,19 @@ struct ComplianceSettingsView: View {
         }
         .task { viewModel.loadConfiguration() }
     }
+
+    // MARK: Private
+
+    @StateObject private var viewModel = ComplianceSettingsViewModel()
 }
 
 // MARK: - Previews
 
 #if DEBUG
-struct ComplianceSettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        ComplianceSettingsView()
-            .frame(width: 600, height: 500)
+    struct ComplianceSettingsView_Previews: PreviewProvider {
+        static var previews: some View {
+            ComplianceSettingsView()
+                .frame(width: 600, height: 500)
+        }
     }
-}
 #endif

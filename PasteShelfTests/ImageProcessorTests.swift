@@ -6,29 +6,19 @@
 //
 
 import AppKit
-import Testing
 @testable import PasteShelf
+import Testing
 
 struct ImageProcessorTests {
+    // MARK: Internal
+
     let processor = ImageProcessor()
-
-    // MARK: - Test Helpers
-
-    /// Creates a test image of specified size
-    private func createTestImage(width: Int, height: Int) -> NSImage {
-        let image = NSImage(size: NSSize(width: width, height: height))
-        image.lockFocus()
-        NSColor.blue.setFill()
-        NSBezierPath.fill(NSRect(origin: .zero, size: image.size))
-        image.unlockFocus()
-        return image
-    }
 
     // MARK: - Thumbnail Tests
 
     @Test("Thumbnail is generated for large images")
     func thumbnailIsGeneratedForLargeImages() {
-        let image = createTestImage(width: 1_000, height: 800)
+        let image = createTestImage(width: 1000, height: 800)
         let result = processor.process(image)
 
         #expect(result.thumbnail != nil)
@@ -44,11 +34,12 @@ struct ImageProcessorTests {
 
     @Test("Thumbnail respects max dimension")
     func thumbnailRespectsMaxDimension() {
-        let image = createTestImage(width: 1_000, height: 500)
+        let image = createTestImage(width: 1000, height: 500)
         let result = processor.process(image)
 
         guard let thumbnailData = result.thumbnail,
-              let thumbnail = NSImage(data: thumbnailData) else {
+              let thumbnail = NSImage(data: thumbnailData)
+        else {
             Issue.record("Failed to create thumbnail")
             return
         }
@@ -60,16 +51,17 @@ struct ImageProcessorTests {
 
     @Test("Thumbnail maintains aspect ratio")
     func thumbnailMaintainsAspectRatio() {
-        let image = createTestImage(width: 1_000, height: 500)
+        let image = createTestImage(width: 1000, height: 500)
         let result = processor.process(image)
 
         guard let thumbnailData = result.thumbnail,
-              let thumbnail = NSImage(data: thumbnailData) else {
+              let thumbnail = NSImage(data: thumbnailData)
+        else {
             Issue.record("Failed to create thumbnail")
             return
         }
 
-        let originalRatio = 1_000.0 / 500.0
+        let originalRatio = 1000.0 / 500.0
         let thumbnailRatio = thumbnail.size.width / thumbnail.size.height
 
         // Allow small floating point difference
@@ -109,7 +101,7 @@ struct ImageProcessorTests {
 
     @Test("Compress if needed returns original for small data")
     func compressIfNeededReturnsOriginalForSmallData() {
-        let smallData = Data(repeating: 0, count: 1_000)
+        let smallData = Data(repeating: 0, count: 1000)
         let (resultData, isCompressed) = processor.compressIfNeeded(smallData)
 
         #expect(!isCompressed)
@@ -121,9 +113,9 @@ struct ImageProcessorTests {
 
     @Test("Custom max storage size is respected")
     func customMaxStorageSizeIsRespected() {
-        let customProcessor = ImageProcessor(maxStorageSize: 1_000)
+        let customProcessor = ImageProcessor(maxStorageSize: 1000)
 
-        #expect(customProcessor.maxStorageSize == 1_000)
+        #expect(customProcessor.maxStorageSize == 1000)
     }
 
     @Test("Custom thumbnail size is respected")
@@ -177,7 +169,7 @@ struct ImageProcessorTests {
     @Test("Formatted size is human readable")
     func formattedSizeIsHumanReadable() {
         var processed = ProcessedImage()
-        processed.data = Data(repeating: 0, count: 1_024 * 1_024)  // 1MB
+        processed.data = Data(repeating: 0, count: 1024 * 1024) // 1MB
 
         guard let formattedSize = processed.formattedSize else {
             Issue.record("Formatted size should not be nil")
@@ -185,5 +177,19 @@ struct ImageProcessorTests {
         }
 
         #expect(formattedSize.contains("MB") || formattedSize.contains("KB"))
+    }
+
+    // MARK: Private
+
+    // MARK: - Test Helpers
+
+    /// Creates a test image of specified size
+    private func createTestImage(width: Int, height: Int) -> NSImage {
+        let image = NSImage(size: NSSize(width: width, height: height))
+        image.lockFocus()
+        NSColor.blue.setFill()
+        NSBezierPath.fill(NSRect(origin: .zero, size: image.size))
+        image.unlockFocus()
+        return image
     }
 }

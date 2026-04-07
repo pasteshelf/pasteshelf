@@ -8,19 +8,11 @@
 
 import Foundation
 
+// MARK: - FuzzyMatcher
+
 /// Provides fuzzy string matching capabilities using Levenshtein distance
 struct FuzzyMatcher: Sendable {
-    // MARK: - Configuration
-
-    /// Minimum similarity threshold (0.0 to 1.0)
-    /// Higher values require closer matches
-    let threshold: Double
-
-    /// Maximum query length for fuzzy matching (performance optimization)
-    let maxQueryLength: Int
-
-    /// Whether to normalize strings before comparison
-    let normalizeStrings: Bool
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -34,6 +26,8 @@ struct FuzzyMatcher: Sendable {
         self.normalizeStrings = normalizeStrings
     }
 
+    // MARK: Internal
+
     /// Default matcher with standard threshold
     static let `default` = FuzzyMatcher()
 
@@ -42,6 +36,18 @@ struct FuzzyMatcher: Sendable {
 
     /// Lenient matcher allowing looser matches
     static let lenient = FuzzyMatcher(threshold: 0.4)
+
+    // MARK: - Configuration
+
+    /// Minimum similarity threshold (0.0 to 1.0)
+    /// Higher values require closer matches
+    let threshold: Double
+
+    /// Maximum query length for fuzzy matching (performance optimization)
+    let maxQueryLength: Int
+
+    /// Whether to normalize strings before comparison
+    let normalizeStrings: Bool
 
     // MARK: - Matching
 
@@ -64,13 +70,19 @@ struct FuzzyMatcher: Sendable {
         let s2 = normalizeStrings ? query.searchNormalized : query.lowercased()
 
         // Exact match
-        if s1 == s2 { return 1.0 }
+        if s1 == s2 {
+            return 1.0
+        }
 
         // Empty strings
-        if s1.isEmpty || s2.isEmpty { return 0.0 }
+        if s1.isEmpty || s2.isEmpty {
+            return 0.0
+        }
 
         // If query is too long, skip fuzzy matching
-        if s2.count > maxQueryLength { return 0.0 }
+        if s2.count > maxQueryLength {
+            return 0.0
+        }
 
         // Calculate Levenshtein distance
         let distance = levenshteinDistance(s1, s2)
@@ -90,11 +102,13 @@ struct FuzzyMatcher: Sendable {
         let s2 = normalizeStrings ? query.searchNormalized : query.lowercased()
 
         // Skip if query is too long
-        if s2.count > maxQueryLength { return nil }
+        if s2.count > maxQueryLength {
+            return nil
+        }
 
         // Try to find the best matching substring
         var bestMatch: FuzzyMatch?
-        var bestSimilarity: Double = 0.0
+        var bestSimilarity = 0.0
 
         // Extract words from source
         let words = s1.components(separatedBy: .whitespacesAndNewlines)
@@ -149,7 +163,9 @@ struct FuzzyMatcher: Sendable {
         let s2 = normalizeStrings ? query.searchNormalized : query.lowercased()
 
         // Skip if query is too long
-        if s2.count > maxQueryLength { return [] }
+        if s2.count > maxQueryLength {
+            return []
+        }
 
         var matches: [FuzzyMatch] = []
 
@@ -170,7 +186,9 @@ struct FuzzyMatcher: Sendable {
                         originalQuery: query
                     ))
 
-                    if matches.count >= maxMatches { break }
+                    if matches.count >= maxMatches {
+                        break
+                    }
                 }
             }
         }
@@ -188,8 +206,12 @@ struct FuzzyMatcher: Sendable {
         let n = s2.count
 
         // Quick returns for edge cases
-        if m == 0 { return n }
-        if n == 0 { return m }
+        if m == 0 {
+            return n
+        }
+        if n == 0 {
+            return m
+        }
 
         // Ensure s1 is the shorter string for space optimization
         if m > n {
@@ -222,6 +244,15 @@ struct FuzzyMatcher: Sendable {
         return previousRow[m]
     }
 
+    /// Converts a FuzzyMatch to a MatchRange
+    func toMatchRange(_ match: FuzzyMatch, in source: String) -> MatchRange {
+        let start = source.distance(from: source.startIndex, to: match.range.lowerBound)
+        let length = source.distance(from: match.range.lowerBound, to: match.range.upperBound)
+        return MatchRange(start: start, length: length, matchedText: match.matchedText)
+    }
+
+    // MARK: Private
+
     // MARK: - Helper Methods
 
     /// Finds the range of a word at a specific position in the original string
@@ -241,7 +272,9 @@ struct FuzzyMatcher: Sendable {
                 currentIndex = source.index(after: currentIndex)
             }
 
-            if currentIndex >= source.endIndex { break }
+            if currentIndex >= source.endIndex {
+                break
+            }
 
             // Find word end
             let wordStart = currentIndex
@@ -269,13 +302,6 @@ struct FuzzyMatcher: Sendable {
 
         // Fallback: search for the word directly
         return source.range(of: word, options: [.caseInsensitive, .diacriticInsensitive])
-    }
-
-    /// Converts a FuzzyMatch to a MatchRange
-    func toMatchRange(_ match: FuzzyMatch, in source: String) -> MatchRange {
-        let start = source.distance(from: source.startIndex, to: match.range.lowerBound)
-        let length = source.distance(from: match.range.lowerBound, to: match.range.upperBound)
-        return MatchRange(start: start, length: length, matchedText: match.matchedText)
     }
 }
 

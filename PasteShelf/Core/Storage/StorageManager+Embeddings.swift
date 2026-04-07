@@ -98,7 +98,11 @@ extension StorageManager {
 
         return await context.perform {
             let request = EmbeddingCache.fetchRequest()
-            request.predicate = NSPredicate(format: "clipboardItemId == %@ AND embeddingVersion == %d", itemId as CVarArg, EmbeddingManager.embeddingVersion)
+            request.predicate = NSPredicate(
+                format: "clipboardItemId == %@ AND embeddingVersion == %d",
+                itemId as CVarArg,
+                EmbeddingManager.embeddingVersion
+            )
             request.fetchLimit = 1
 
             guard let cache = try? context.fetch(request).first else {
@@ -112,7 +116,9 @@ extension StorageManager {
     /// - Parameter itemIds: Array of clipboard item IDs
     /// - Returns: Dictionary mapping item ID to embedding vector
     func fetchEmbeddings(for itemIds: [UUID]) async -> [UUID: [Double]] {
-        guard !itemIds.isEmpty else { return [:] }
+        guard !itemIds.isEmpty else {
+            return [:]
+        }
 
         let context = newBackgroundContext()
 
@@ -190,7 +196,9 @@ extension StorageManager {
     /// - Parameter itemIds: Array of item IDs to check
     /// - Returns: Array of item IDs without embeddings
     func findItemsWithoutEmbeddings(from itemIds: [UUID]) async -> [UUID] {
-        guard !itemIds.isEmpty else { return [] }
+        guard !itemIds.isEmpty else {
+            return []
+        }
 
         let context = newBackgroundContext()
 
@@ -238,7 +246,9 @@ extension StorageManager {
     /// - Parameter itemIds: Array of clipboard item IDs
     /// - Returns: Number of embeddings deleted
     func deleteEmbeddings(for itemIds: [UUID]) async -> Int {
-        guard !itemIds.isEmpty else { return 0 }
+        guard !itemIds.isEmpty else {
+            return 0
+        }
 
         let result = await performBackgroundTaskSafe { context -> Int in
             let request = EmbeddingCache.fetchRequest()

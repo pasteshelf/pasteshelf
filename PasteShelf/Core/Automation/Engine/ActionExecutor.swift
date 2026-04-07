@@ -12,17 +12,12 @@ import Foundation
 import os.log
 import UserNotifications
 
+// MARK: - ActionExecutor
+
 /// Executes automation actions on clipboard content
 @MainActor
 final class ActionExecutor {
-    // MARK: - Properties
-
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "automation.actions"
-    )
-
-    private let storageManager = StorageManager.shared
+    // MARK: Internal
 
     // MARK: - Action Execution
 
@@ -40,45 +35,122 @@ final class ActionExecutor {
         logger.debug("Executing action: \(action.displayName)")
 
         switch action {
-        case .transform(_, let preset):
+        case let .transform(_, preset):
             return try await executeTransform(preset: preset, content: content)
 
-        case .addTag(_, let tagName):
+        case let .addTag(_, tagName):
             return try await executeAddTag(tagName: tagName, content: content)
 
-        case .removeTag(_, let tagName):
+        case let .removeTag(_, tagName):
             return try await executeRemoveTag(tagName: tagName, content: content)
 
-        case .setFavorite(_, let isFavorite):
+        case let .setFavorite(_, isFavorite):
             return try await executeSetFavorite(isFavorite: isFavorite, content: content)
 
-        case .moveToFolder(_, let folderName):
+        case let .moveToFolder(_, folderName):
             return try await executeMoveToFolder(folderName: folderName, content: content)
 
         case .copyToClipboard:
             return try executeCopyToClipboard(content: content)
 
-        case .notify(_, let title, let message):
+        case let .notify(_, title, message):
             return try await executeNotify(title: title, message: message, content: content, rule: rule)
 
-        case .openURL(_, let urlTemplate):
+        case let .openURL(_, urlTemplate):
             return try executeOpenURL(urlTemplate: urlTemplate, content: content)
 
         #if !APP_STORE
-        case .runScript(_, let scriptPath):
-            return try await executeRunScript(scriptPath: scriptPath, content: content)
+            case let .runScript(_, scriptPath):
+                return try await executeRunScript(scriptPath: scriptPath, content: content)
         #endif
 
-        case .webhook(_, let endpointId):
+        case let .webhook(_, endpointId):
             return try await executeWebhook(endpointId: endpointId, content: content, rule: rule)
 
-        case .markSensitive(_, let isSensitive):
+        case let .markSensitive(_, isSensitive):
             return executeMarkSensitive(isSensitive: isSensitive, content: content)
 
         case .delete:
             return executeDelete(content: content)
         }
     }
+
+    // MARK: Private
+
+    #if !APP_STORE
+
+        // MARK: - Run Script Action
+
+        /// Script execution timeout in seconds
+        private static let scriptTimeout: UInt64 = 30_000_000_000 // 30s in nanoseconds
+
+        private func executeRunScript(
+            scriptPath: String,
+            content: ClipboardContent
+        ) async throws -> ActionExecutionResult {
+            let expandedPath = expandTemplate(scriptPath, content: content, rule: nil)
+            let scriptURL = URL(fileURLWithPath: expandedPath)
+
+            guard FileManager.default.fileExists(atPath: expandedPath) else {
+                throw AutomationError.scriptExecutionFailed(
+                    path: expandedPath,
+                    reason: "Script file not found"
+                )
+            }
+
+            // Execute AppleScript on a background thread with timeout to avoid
+            // blocking the main thread (NSAppleScript.executeAndReturnError is synchronous)
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                group.addTask { @Sendable in
+                    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                        DispatchQueue.global(qos: .userInitiated).async {
+                            var errorInfo: NSDictionary?
+                            guard let script = NSAppleScript(contentsOf: scriptURL, error: &errorInfo) else {
+                                let errorMessage = errorInfo?.description ?? "Unknown error"
+                                continuation.resume(throwing: AutomationError.scriptExecutionFailed(
+                                    path: expandedPath, reason: errorMessage
+                                ))
+                                return
+                            }
+
+                            var executeError: NSDictionary?
+                            script.executeAndReturnError(&executeError)
+
+                            if let error = executeError {
+                                continuation.resume(throwing: AutomationError.scriptExecutionFailed(
+                                    path: expandedPath, reason: error.description
+                                ))
+                            } else {
+                                continuation.resume()
+                            }
+                        }
+                    }
+                }
+
+                group.addTask { @Sendable in
+                    try await Task.sleep(nanoseconds: Self.scriptTimeout)
+                    throw AutomationError.scriptExecutionFailed(
+                        path: expandedPath,
+                        reason: "Script execution timed out after 30 seconds"
+                    )
+                }
+
+                // Wait for the first task to complete (either script finishes or timeout fires)
+                _ = try await group.next()
+                group.cancelAll()
+            }
+
+            logger.debug("Executed script: \(expandedPath)")
+            return ActionExecutionResult(content: content)
+        }
+    #endif
+
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "automation.actions"
+    )
+
+    private let storageManager = StorageManager.shared
 
     // MARK: - Transform Action
 
@@ -272,73 +344,6 @@ final class ActionExecutor {
         return ActionExecutionResult(content: content)
     }
 
-    #if !APP_STORE
-    // MARK: - Run Script Action
-
-    /// Script execution timeout in seconds
-    private static let scriptTimeout: UInt64 = 30_000_000_000 // 30s in nanoseconds
-
-    private func executeRunScript(
-        scriptPath: String,
-        content: ClipboardContent
-    ) async throws -> ActionExecutionResult {
-        let expandedPath = expandTemplate(scriptPath, content: content, rule: nil)
-        let scriptURL = URL(fileURLWithPath: expandedPath)
-
-        guard FileManager.default.fileExists(atPath: expandedPath) else {
-            throw AutomationError.scriptExecutionFailed(
-                path: expandedPath,
-                reason: "Script file not found"
-            )
-        }
-
-        // Execute AppleScript on a background thread with timeout to avoid
-        // blocking the main thread (NSAppleScript.executeAndReturnError is synchronous)
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            group.addTask { @Sendable in
-                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                    DispatchQueue.global(qos: .userInitiated).async {
-                        var errorInfo: NSDictionary?
-                        guard let script = NSAppleScript(contentsOf: scriptURL, error: &errorInfo) else {
-                            let errorMessage = errorInfo?.description ?? "Unknown error"
-                            continuation.resume(throwing: AutomationError.scriptExecutionFailed(
-                                path: expandedPath, reason: errorMessage
-                            ))
-                            return
-                        }
-
-                        var executeError: NSDictionary?
-                        script.executeAndReturnError(&executeError)
-
-                        if let error = executeError {
-                            continuation.resume(throwing: AutomationError.scriptExecutionFailed(
-                                path: expandedPath, reason: error.description
-                            ))
-                        } else {
-                            continuation.resume()
-                        }
-                    }
-                }
-            }
-
-            group.addTask { @Sendable in
-                try await Task.sleep(nanoseconds: Self.scriptTimeout)
-                throw AutomationError.scriptExecutionFailed(
-                    path: expandedPath,
-                    reason: "Script execution timed out after 30 seconds"
-                )
-            }
-
-            // Wait for the first task to complete (either script finishes or timeout fires)
-            _ = try await group.next()
-            group.cancelAll()
-        }
-
-        logger.debug("Executed script: \(expandedPath)")
-        return ActionExecutionResult(content: content)
-    }
-    #endif
-
     // MARK: - Webhook Action
 
     private func executeWebhook(
@@ -423,7 +428,7 @@ final class ActionExecutor {
         let (_, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode)
+              (200 ... 299).contains(httpResponse.statusCode)
         else {
             let statusCode = (response as? HTTPURLResponse)?.statusCode
             throw AutomationError.webhookFailed(url: endpoint.url, statusCode: statusCode)
@@ -481,7 +486,7 @@ final class ActionExecutor {
         )
 
         // Rule variables
-        if let rule = rule {
+        if let rule {
             result = result.replacingOccurrences(
                 of: "{{ruleName}}",
                 with: rule.name
@@ -498,7 +503,7 @@ final class ActionExecutor {
     }
 }
 
-// MARK: - Webhook Types
+// MARK: - WebhookEndpointConfig
 
 /// Configuration for a webhook endpoint
 struct WebhookEndpointConfig {
@@ -509,13 +514,27 @@ struct WebhookEndpointConfig {
     let isEnabled: Bool
 }
 
+// MARK: - AutomationWebhookPayload
+
 /// Payload sent to webhook endpoints for automation events
 struct AutomationWebhookPayload: Codable {
-    let event: String
-    let timestamp: Date
-    let ruleId: UUID
-    let ruleName: String
-    let data: PayloadData
+    // MARK: Lifecycle
+
+    init(event: String, ruleId: UUID, ruleName: String, content: ClipboardContent) {
+        self.event = event
+        timestamp = Date()
+        self.ruleId = ruleId
+        self.ruleName = ruleName
+        data = PayloadData(
+            contentType: content.primaryType.rawValue,
+            preview: content.previewText,
+            sourceApp: content.sourceApp?.name,
+            characterCount: content.characterCount,
+            isSensitive: content.isSensitive
+        )
+    }
+
+    // MARK: Internal
 
     struct PayloadData: Codable {
         let contentType: String
@@ -525,19 +544,11 @@ struct AutomationWebhookPayload: Codable {
         let isSensitive: Bool
     }
 
-    init(event: String, ruleId: UUID, ruleName: String, content: ClipboardContent) {
-        self.event = event
-        self.timestamp = Date()
-        self.ruleId = ruleId
-        self.ruleName = ruleName
-        self.data = PayloadData(
-            contentType: content.primaryType.rawValue,
-            preview: content.previewText,
-            sourceApp: content.sourceApp?.name,
-            characterCount: content.characterCount,
-            isSensitive: content.isSensitive
-        )
-    }
+    let event: String
+    let timestamp: Date
+    let ruleId: UUID
+    let ruleName: String
+    let data: PayloadData
 
     /// Signs the payload with a secret key using HMAC-SHA256
     func sign(with secret: String) -> String {

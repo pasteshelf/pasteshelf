@@ -7,26 +7,11 @@
 
 import SwiftUI
 
+// MARK: - CollectionEditorView
+
 /// View for creating or editing a smart collection
 struct CollectionEditorView: View {
-    // MARK: - Properties
-
-    /// The collection being edited (nil for new collection)
-    let collection: CollectionDisplayModel?
-
-    /// Called when save is requested
-    let onSave: (CollectionDisplayModel) -> Void
-
-    /// Called when cancel is requested
-    let onCancel: () -> Void
-
-    // MARK: - State
-
-    @State private var name: String = ""
-    @State private var icon: String = "folder"
-    @State private var colorHex: String = "#007AFF"
-    @State private var isAutomatic: Bool = true
-    @State private var rules = CollectionRules()
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -48,6 +33,17 @@ struct CollectionEditorView: View {
             _rules = State(initialValue: collection.rules ?? CollectionRules())
         }
     }
+
+    // MARK: Internal
+
+    /// The collection being edited (nil for new collection)
+    let collection: CollectionDisplayModel?
+
+    /// Called when save is requested
+    let onSave: (CollectionDisplayModel) -> Void
+
+    /// Called when cancel is requested
+    let onCancel: () -> Void
 
     // MARK: - Body
 
@@ -84,6 +80,39 @@ struct CollectionEditorView: View {
             footerView
         }
         .frame(width: 500, height: 520)
+    }
+
+    // MARK: Private
+
+    // MARK: - State
+
+    @State private var name: String = ""
+    @State private var icon: String = "folder"
+    @State private var colorHex: String = "#007AFF"
+    @State private var isAutomatic: Bool = true
+    @State private var rules = CollectionRules()
+
+    // MARK: - Data
+
+    private var availableIcons: [String] {
+        [
+            "folder", "folder.fill", "tray", "tray.fill",
+            "doc", "doc.text", "photo", "photo.stack",
+            "link", "globe", "star", "star.fill",
+            "bookmark", "bookmark.fill", "tag", "tag.fill",
+            "archivebox", "archivebox.fill", "clock", "clock.fill",
+            "heart", "heart.fill", "flag", "flag.fill",
+            "bell", "bell.fill", "pin", "pin.fill",
+            "paperclip", "scissors", "highlighter", "pencil",
+        ]
+    }
+
+    private var availableColors: [String] {
+        [
+            "#FF3B30", "#FF9500", "#FFCC00", "#34C759",
+            "#00C7BE", "#007AFF", "#5856D6", "#AF52DE",
+            "#FF2D55", "#8E8E93",
+        ]
     }
 
     // MARK: - Header
@@ -245,8 +274,6 @@ struct CollectionEditorView: View {
         .padding()
     }
 
-    // MARK: - Actions
-
     private func saveCollection() {
         let model = CollectionDisplayModel(
             id: collection?.id ?? UUID(),
@@ -259,29 +286,6 @@ struct CollectionEditorView: View {
             rules: isAutomatic ? rules : nil
         )
         onSave(model)
-    }
-
-    // MARK: - Data
-
-    private var availableIcons: [String] {
-        [
-            "folder", "folder.fill", "tray", "tray.fill",
-            "doc", "doc.text", "photo", "photo.stack",
-            "link", "globe", "star", "star.fill",
-            "bookmark", "bookmark.fill", "tag", "tag.fill",
-            "archivebox", "archivebox.fill", "clock", "clock.fill",
-            "heart", "heart.fill", "flag", "flag.fill",
-            "bell", "bell.fill", "pin", "pin.fill",
-            "paperclip", "scissors", "highlighter", "pencil",
-        ]
-    }
-
-    private var availableColors: [String] {
-        [
-            "#FF3B30", "#FF9500", "#FFCC00", "#34C759",
-            "#00C7BE", "#007AFF", "#5856D6", "#AF52DE",
-            "#FF2D55", "#8E8E93",
-        ]
     }
 }
 

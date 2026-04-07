@@ -1,14 +1,16 @@
 import Vapor
 
+// MARK: - RateLimitStore
+
 actor RateLimitStore {
-    private var requests: [String: [Date]] = [:]
-    private let limit: Int
-    private let window: TimeInterval
+    // MARK: Lifecycle
 
     init(limit: Int = 100, window: TimeInterval = 60) {
         self.limit = limit
         self.window = window
     }
+
+    // MARK: Internal
 
     func check(key: String) -> Bool {
         let now = Date()
@@ -18,10 +20,18 @@ actor RateLimitStore {
         requests[key] = entries
         return entries.count <= limit
     }
+
+    // MARK: Private
+
+    private var requests: [String: [Date]] = [:]
+    private let limit: Int
+    private let window: TimeInterval
 }
 
+// MARK: - RateLimitMiddleware
+
 struct RateLimitMiddleware: AsyncMiddleware {
-    private let store = RateLimitStore()
+    // MARK: Internal
 
     func respond(to request: Request, chainingTo next: any AsyncResponder) async throws -> Response {
         let key = request.peerAddress?.description ?? "unknown"
@@ -30,4 +40,8 @@ struct RateLimitMiddleware: AsyncMiddleware {
         }
         return try await next.respond(to: request)
     }
+
+    // MARK: Private
+
+    private let store = RateLimitStore()
 }

@@ -7,13 +7,12 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - SelfHostedSyncConfigurationTests
 
 struct SelfHostedSyncConfigurationTests {
-
     // MARK: - Initialization
 
     @Test("Default configuration has no server URL and is disabled")
@@ -109,7 +108,6 @@ struct SelfHostedSyncConfigurationTests {
 // MARK: - SyncBackendTypeTests
 
 struct SyncBackendTypeTests {
-
     @Test("CloudKit backend type has correct raw value")
     func cloudKitRawValue() {
         #expect(SyncBackendType.cloudKit.rawValue == "cloudkit")
@@ -132,7 +130,6 @@ struct SyncBackendTypeTests {
 // MARK: - SyncBackendStatusTests
 
 struct SyncBackendStatusTests {
-
     @Test("Available status equals itself")
     func availableEquality() {
         #expect(SyncBackendStatus.available == SyncBackendStatus.available)
@@ -166,7 +163,6 @@ struct SyncBackendStatusTests {
 // MARK: - SyncPushResultTests
 
 struct SyncPushResultTests {
-
     @Test("Push result initializes with defaults")
     func defaultInit() {
         let result = SyncPushResult(accepted: 5)
@@ -191,7 +187,6 @@ struct SyncPushResultTests {
 // MARK: - SyncPullResultTests
 
 struct SyncPullResultTests {
-
     @Test("Pull result with no changes and no more data")
     func emptyPull() {
         let result = SyncPullResult(changes: [], newToken: nil)
@@ -211,7 +206,6 @@ struct SyncPullResultTests {
 // MARK: - SyncNotificationTests
 
 struct SyncNotificationTests {
-
     @Test("Notification types have correct raw values")
     func notificationTypeRawValues() {
         #expect(SyncNotification.NotificationType.changesAvailable.rawValue == "changes_available")
@@ -245,7 +239,6 @@ struct SyncNotificationTests {
 // MARK: - SyncErrorSelfHostedTests
 
 struct SyncErrorSelfHostedTests {
-
     @Test("serverConnectionFailed error has localized description")
     func serverConnectionFailedDescription() {
         let error = SyncError.serverConnectionFailed(message: "timeout")
@@ -289,7 +282,13 @@ struct SyncErrorSelfHostedTests {
         #expect(SyncError.authenticationTokenExpired == SyncError.authenticationTokenExpired)
         #expect(SyncError.serverConnectionFailed(message: "a") == SyncError.serverConnectionFailed(message: "a"))
         #expect(SyncError.serverConnectionFailed(message: "a") != SyncError.serverConnectionFailed(message: "b"))
-        #expect(SyncError.selfHostedServerError(code: 500, message: "x") == SyncError.selfHostedServerError(code: 500, message: "x"))
-        #expect(SyncError.selfHostedServerError(code: 500, message: "x") != SyncError.selfHostedServerError(code: 404, message: "x"))
+        #expect(SyncError.selfHostedServerError(code: 500, message: "x") == SyncError.selfHostedServerError(
+            code: 500,
+            message: "x"
+        ))
+        #expect(SyncError.selfHostedServerError(code: 500, message: "x") != SyncError.selfHostedServerError(
+            code: 404,
+            message: "x"
+        ))
     }
 }

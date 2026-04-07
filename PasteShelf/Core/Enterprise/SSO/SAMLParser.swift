@@ -9,60 +9,11 @@
 import Foundation
 import os.log
 
+// MARK: - SAMLParser
+
 /// Parses SAML 2.0 XML documents into Swift models
 final class SAMLParser: NSObject, @unchecked Sendable {
-    // MARK: - SAML XML Namespaces
-
-    private enum Namespace {
-        static let saml = "urn:oasis:names:tc:SAML:2.0:assertion"
-        static let samlp = "urn:oasis:names:tc:SAML:2.0:protocol"
-        static let ds = "http://www.w3.org/2000/09/xmldsig#"
-    }
-
-    // MARK: - Properties
-
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "saml")
-
-    /// Date formatter for SAML timestamps (ISO 8601)
-    private let dateFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-
-    /// Fallback date formatter without fractional seconds
-    private let fallbackDateFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter
-    }()
-
-    // MARK: - Parsing State
-
-    private var currentElement = ""
-    private var elementStack: [String] = []
-    private var currentText = ""
-    private var attributes: [String: String] = [:]
-
-    // Response state
-    private var responseId = ""
-    private var responseInResponseTo: String?
-    private var responseDestination: String?
-    private var responseIssueInstant: Date?
-    private var responseIssuer = ""
-    private var responseVersion = "2.0"
-    private var statusCode: SAMLStatusCode = .unknown
-    private var statusSubCode: SAMLStatusCode?
-    private var statusMessage: String?
-
-    // Assertion state
-    private var assertions: [SAMLAssertion] = []
-    private var currentAssertion: AssertionBuilder?
-    private var currentAttributeStatement: [SAMLAttribute] = []
-    private var currentAttribute: AttributeBuilder?
-    private var currentSubject: SubjectBuilder?
-    private var currentConditions: ConditionsBuilder?
-    private var currentAuthnStatement: AuthnStatementBuilder?
+    // MARK: Internal
 
     // MARK: - Parsing
 
@@ -141,6 +92,59 @@ final class SAMLParser: NSObject, @unchecked Sendable {
         return assertion
     }
 
+    // MARK: Private
+
+    // MARK: - SAML XML Namespaces
+
+    private enum Namespace {
+        static let saml = "urn:oasis:names:tc:SAML:2.0:assertion"
+        static let samlp = "urn:oasis:names:tc:SAML:2.0:protocol"
+        static let ds = "http://www.w3.org/2000/09/xmldsig#"
+    }
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "saml")
+
+    /// Date formatter for SAML timestamps (ISO 8601)
+    private let dateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    /// Fallback date formatter without fractional seconds
+    private let fallbackDateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
+
+    // MARK: - Parsing State
+
+    private var currentElement = ""
+    private var elementStack: [String] = []
+    private var currentText = ""
+    private var attributes: [String: String] = [:]
+
+    // Response state
+    private var responseId = ""
+    private var responseInResponseTo: String?
+    private var responseDestination: String?
+    private var responseIssueInstant: Date?
+    private var responseIssuer = ""
+    private var responseVersion = "2.0"
+    private var statusCode: SAMLStatusCode = .unknown
+    private var statusSubCode: SAMLStatusCode?
+    private var statusMessage: String?
+
+    // Assertion state
+    private var assertions: [SAMLAssertion] = []
+    private var currentAssertion: AssertionBuilder?
+    private var currentAttributeStatement: [SAMLAttribute] = []
+    private var currentAttribute: AttributeBuilder?
+    private var currentSubject: SubjectBuilder?
+    private var currentConditions: ConditionsBuilder?
+    private var currentAuthnStatement: AuthnStatementBuilder?
+
     // MARK: - State Management
 
     private func resetState() {
@@ -173,7 +177,7 @@ final class SAMLParser: NSObject, @unchecked Sendable {
     }
 }
 
-// MARK: - XMLParserDelegate
+// MARK: XMLParserDelegate
 
 extension SAMLParser: XMLParserDelegate {
     func parser(
@@ -189,7 +193,8 @@ extension SAMLParser: XMLParserDelegate {
         attributes = attributeDict
 
         switch elementName {
-        case "Response", "samlp:Response":
+        case "Response",
+             "samlp:Response":
             responseId = attributeDict["ID"] ?? ""
             responseInResponseTo = attributeDict["InResponseTo"]
             responseDestination = attributeDict["Destination"]
@@ -198,7 +203,8 @@ extension SAMLParser: XMLParserDelegate {
                 responseIssueInstant = parseDate(instant)
             }
 
-        case "Assertion", "saml:Assertion":
+        case "Assertion",
+             "saml:Assertion":
             currentAssertion = AssertionBuilder()
             currentAssertion?.id = attributeDict["ID"] ?? ""
             currentAssertion?.version = attributeDict["Version"] ?? "2.0"
@@ -206,24 +212,29 @@ extension SAMLParser: XMLParserDelegate {
                 currentAssertion?.issueInstant = parseDate(instant)
             }
 
-        case "Subject", "saml:Subject":
+        case "Subject",
+             "saml:Subject":
             currentSubject = SubjectBuilder()
 
-        case "NameID", "saml:NameID":
+        case "NameID",
+             "saml:NameID":
             currentSubject?.nameIDFormat = SAMLNameIDFormat(rawValue: attributeDict["Format"] ?? "")
             currentSubject?.nameQualifier = attributeDict["NameQualifier"]
 
-        case "SubjectConfirmation", "saml:SubjectConfirmation":
+        case "SubjectConfirmation",
+             "saml:SubjectConfirmation":
             currentSubject?.confirmationMethod = SAMLConfirmationMethod(rawValue: attributeDict["Method"] ?? "")
 
-        case "SubjectConfirmationData", "saml:SubjectConfirmationData":
+        case "SubjectConfirmationData",
+             "saml:SubjectConfirmationData":
             currentSubject?.confirmationRecipient = attributeDict["Recipient"]
             currentSubject?.confirmationInResponseTo = attributeDict["InResponseTo"]
             if let notOnOrAfter = attributeDict["NotOnOrAfter"] {
                 currentSubject?.confirmationNotOnOrAfter = parseDate(notOnOrAfter)
             }
 
-        case "Conditions", "saml:Conditions":
+        case "Conditions",
+             "saml:Conditions":
             currentConditions = ConditionsBuilder()
             if let notBefore = attributeDict["NotBefore"] {
                 currentConditions?.notBefore = parseDate(notBefore)
@@ -232,7 +243,8 @@ extension SAMLParser: XMLParserDelegate {
                 currentConditions?.notOnOrAfter = parseDate(notOnOrAfter)
             }
 
-        case "AuthnStatement", "saml:AuthnStatement":
+        case "AuthnStatement",
+             "saml:AuthnStatement":
             currentAuthnStatement = AuthnStatementBuilder()
             if let instant = attributeDict["AuthnInstant"] {
                 currentAuthnStatement?.authnInstant = parseDate(instant)
@@ -242,10 +254,12 @@ extension SAMLParser: XMLParserDelegate {
                 currentAuthnStatement?.sessionNotOnOrAfter = parseDate(sessionNotOnOrAfter)
             }
 
-        case "AttributeStatement", "saml:AttributeStatement":
+        case "AttributeStatement",
+             "saml:AttributeStatement":
             currentAttributeStatement = []
 
-        case "Attribute", "saml:Attribute":
+        case "Attribute",
+             "saml:Attribute":
             currentAttribute = AttributeBuilder()
             currentAttribute?.name = attributeDict["Name"] ?? ""
             currentAttribute?.friendlyName = attributeDict["FriendlyName"]
@@ -253,7 +267,8 @@ extension SAMLParser: XMLParserDelegate {
                 currentAttribute?.nameFormat = SAMLAttributeNameFormat(rawValue: format)
             }
 
-        case "StatusCode", "samlp:StatusCode":
+        case "StatusCode",
+             "samlp:StatusCode":
             let code = SAMLStatusCode(rawValue: attributeDict["Value"] ?? "")
             if statusCode == .unknown {
                 statusCode = code
@@ -279,58 +294,70 @@ extension SAMLParser: XMLParserDelegate {
         let trimmedText = currentText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         switch elementName {
-        case "Issuer", "saml:Issuer":
+        case "Issuer",
+             "saml:Issuer":
             if currentAssertion != nil {
                 currentAssertion?.issuer = trimmedText
             } else {
                 responseIssuer = trimmedText
             }
 
-        case "NameID", "saml:NameID":
+        case "NameID",
+             "saml:NameID":
             currentSubject?.nameID = trimmedText
 
-        case "Audience", "saml:Audience":
+        case "Audience",
+             "saml:Audience":
             currentConditions?.audiences.append(trimmedText)
 
-        case "AuthnContextClassRef", "saml:AuthnContextClassRef":
+        case "AuthnContextClassRef",
+             "saml:AuthnContextClassRef":
             currentAuthnStatement?.authnContextClassRef = SAMLAuthnContextClass(rawValue: trimmedText)
 
-        case "AttributeValue", "saml:AttributeValue":
+        case "AttributeValue",
+             "saml:AttributeValue":
             currentAttribute?.values.append(trimmedText)
 
-        case "StatusMessage", "samlp:StatusMessage":
+        case "StatusMessage",
+             "samlp:StatusMessage":
             statusMessage = trimmedText
 
-        case "Attribute", "saml:Attribute":
+        case "Attribute",
+             "saml:Attribute":
             if let attr = currentAttribute?.build() {
                 currentAttributeStatement.append(attr)
             }
             currentAttribute = nil
 
-        case "AttributeStatement", "saml:AttributeStatement":
+        case "AttributeStatement",
+             "saml:AttributeStatement":
             let statement = SAMLAttributeStatement(attributes: currentAttributeStatement)
             currentAssertion?.attributeStatements.append(statement)
             currentAttributeStatement = []
 
-        case "Subject", "saml:Subject":
+        case "Subject",
+             "saml:Subject":
             if let subject = currentSubject?.build() {
                 currentAssertion?.subject = subject
             }
             currentSubject = nil
 
-        case "Conditions", "saml:Conditions":
+        case "Conditions",
+             "saml:Conditions":
             if let conditions = currentConditions?.build() {
                 currentAssertion?.conditions = conditions
             }
             currentConditions = nil
 
-        case "AuthnStatement", "saml:AuthnStatement":
+        case "AuthnStatement",
+             "saml:AuthnStatement":
             if let authnStatement = currentAuthnStatement?.build() {
                 currentAssertion?.authnStatement = authnStatement
             }
             currentAuthnStatement = nil
 
-        case "Assertion", "saml:Assertion":
+        case "Assertion",
+             "saml:Assertion":
             if let assertion = currentAssertion?.build() {
                 assertions.append(assertion)
             }
@@ -346,7 +373,7 @@ extension SAMLParser: XMLParserDelegate {
     }
 }
 
-// MARK: - Builder Classes
+// MARK: - AssertionBuilder
 
 private class AssertionBuilder {
     var id = ""
@@ -381,6 +408,8 @@ private class AssertionBuilder {
     }
 }
 
+// MARK: - SubjectBuilder
+
 private class SubjectBuilder {
     var nameID = ""
     var nameIDFormat: SAMLNameIDFormat = .unspecified
@@ -391,7 +420,9 @@ private class SubjectBuilder {
     var confirmationInResponseTo: String?
 
     func build() -> SAMLSubject? {
-        guard !nameID.isEmpty else { return nil }
+        guard !nameID.isEmpty else {
+            return nil
+        }
 
         let confirmationData = SAMLSubjectConfirmationData(
             recipient: confirmationRecipient,
@@ -413,13 +444,17 @@ private class SubjectBuilder {
     }
 }
 
+// MARK: - ConditionsBuilder
+
 private class ConditionsBuilder {
     var notBefore: Date?
     var notOnOrAfter: Date?
     var audiences: [String] = []
 
     func build() -> SAMLConditions? {
-        guard let notBefore, let notOnOrAfter else { return nil }
+        guard let notBefore, let notOnOrAfter else {
+            return nil
+        }
 
         let audienceRestriction = SAMLAudienceRestriction(audiences: audiences)
         return SAMLConditions(
@@ -430,6 +465,8 @@ private class ConditionsBuilder {
     }
 }
 
+// MARK: - AuthnStatementBuilder
+
 private class AuthnStatementBuilder {
     var authnInstant: Date?
     var sessionIndex: String?
@@ -437,7 +474,9 @@ private class AuthnStatementBuilder {
     var authnContextClassRef: SAMLAuthnContextClass = .unspecified
 
     func build() -> SAMLAuthnStatement? {
-        guard let authnInstant else { return nil }
+        guard let authnInstant else {
+            return nil
+        }
 
         return SAMLAuthnStatement(
             authnInstant: authnInstant,
@@ -448,6 +487,8 @@ private class AuthnStatementBuilder {
     }
 }
 
+// MARK: - AttributeBuilder
+
 private class AttributeBuilder {
     var name = ""
     var friendlyName: String?
@@ -455,7 +496,9 @@ private class AttributeBuilder {
     var values: [String] = []
 
     func build() -> SAMLAttribute? {
-        guard !name.isEmpty else { return nil }
+        guard !name.isEmpty else {
+            return nil
+        }
 
         return SAMLAttribute(
             name: name,

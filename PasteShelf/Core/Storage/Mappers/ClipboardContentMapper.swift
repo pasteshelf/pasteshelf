@@ -33,7 +33,11 @@ enum ClipboardContentMapper {
         item.sourceAppBundleId = sourceApp?.bundleId
         item.sourceAppName = sourceApp?.name
         item.isSensitive = content.isSensitive
-        item.sensitiveTypesJSON = content.sensitiveTypes.isEmpty ? nil : (try? JSONEncoder().encode(content.sensitiveTypes)).flatMap { String(data: $0, encoding: .utf8) }
+        item.sensitiveTypesJSON = content.sensitiveTypes
+            .isEmpty ? nil : (try? JSONEncoder().encode(content.sensitiveTypes)).flatMap { String(
+                data: $0,
+                encoding: .utf8
+            ) }
         item.isFavorite = false
         item.accessCount = 0
 
@@ -154,7 +158,11 @@ enum ClipboardContentMapper {
         item.contentHash = content.contentHash
         item.plainTextPreview = content.previewText
         item.isSensitive = content.isSensitive
-        item.sensitiveTypesJSON = content.sensitiveTypes.isEmpty ? nil : (try? JSONEncoder().encode(content.sensitiveTypes)).flatMap { String(data: $0, encoding: .utf8) }
+        item.sensitiveTypesJSON = content.sensitiveTypes
+            .isEmpty ? nil : (try? JSONEncoder().encode(content.sensitiveTypes)).flatMap { String(
+                data: $0,
+                encoding: .utf8
+            ) }
 
         // Update or create content data
         if let contentData = item.content {

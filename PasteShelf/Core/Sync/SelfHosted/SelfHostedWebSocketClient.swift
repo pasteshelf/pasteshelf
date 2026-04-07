@@ -17,28 +17,21 @@ import os.log
 /// receives lightweight notification signals. Does NOT transfer
 /// clipboard data — only signals like `changes_available`.
 final class SelfHostedWebSocketClient: @unchecked Sendable {
-
-    // MARK: - Properties
-
-    private let configuration: SelfHostedSyncConfiguration
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-ws")
-
-    private var webSocketTask: URLSessionWebSocketTask?
-    private var pingTimer: Timer?
-    private var reconnectAttempt = 0
-    private var isConnected = false
-
-    /// Handler called when a sync notification is received.
-    var onNotification: ((WebSocketNotification) -> Void)?
-
-    /// Handler called when the connection state changes.
-    var onConnectionStateChanged: ((Bool) -> Void)?
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     init(configuration: SelfHostedSyncConfiguration) {
         self.configuration = configuration
     }
+
+    // MARK: Internal
+
+    /// Handler called when a sync notification is received.
+    var onNotification: ((WebSocketNotification) -> Void)?
+
+    /// Handler called when the connection state changes.
+    var onConnectionStateChanged: ((Bool) -> Void)?
 
     // MARK: - Connection
 
@@ -49,7 +42,10 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
             return
         }
 
-        var components = URLComponents(url: serverURL.appendingPathComponent("/api/v1/ws"), resolvingAgainstBaseURL: false)
+        var components = URLComponents(
+            url: serverURL.appendingPathComponent("/api/v1/ws"),
+            resolvingAgainstBaseURL: false
+        )
         components?.queryItems = [
             URLQueryItem(name: "token", value: token),
             URLQueryItem(name: "deviceId", value: deviceID),
@@ -90,20 +86,32 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
         logger.info("WebSocket disconnected")
     }
 
+    // MARK: Private
+
+    private let configuration: SelfHostedSyncConfiguration
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "self-hosted-ws")
+
+    private var webSocketTask: URLSessionWebSocketTask?
+    private var pingTimer: Timer?
+    private var reconnectAttempt = 0
+    private var isConnected = false
+
     // MARK: - Receiving
 
     private func startReceiving() {
         webSocketTask?.receive { [weak self] result in
-            guard let self else { return }
+            guard let self else {
+                return
+            }
 
             switch result {
             case let .success(message):
-                self.handleMessage(message)
-                self.startReceiving() // Continue listening
+                handleMessage(message)
+                startReceiving() // Continue listening
 
             case let .failure(error):
-                self.logger.error("WebSocket receive error: \(error.localizedDescription)")
-                self.handleDisconnect()
+                logger.error("WebSocket receive error: \(error.localizedDescription)")
+                handleDisconnect()
             }
         }
     }
@@ -149,7 +157,9 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
         let ping = WebSocketNotification(type: "ping")
         guard let data = try? JSONEncoder().encode(ping),
               let jsonString = String(data: data, encoding: .utf8)
-        else { return }
+        else {
+            return
+        }
 
         webSocketTask?.send(.string(jsonString)) { [weak self] error in
             if let error {
@@ -171,7 +181,7 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
         let delay = delays[min(reconnectAttempt, delays.count - 1)]
         reconnectAttempt += 1
 
-        logger.info("WebSocket reconnecting in \(delay)s (attempt \(self.reconnectAttempt))")
+        logger.info("WebSocket reconnecting in \(delay)s (attempt \(reconnectAttempt))")
 
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             // Reconnection requires a new token — the caller must handle this
@@ -180,7 +190,7 @@ final class SelfHostedWebSocketClient: @unchecked Sendable {
     }
 }
 
-// MARK: - Notification Model
+// MARK: - WebSocketNotification
 
 struct WebSocketNotification: Codable {
     let type: String

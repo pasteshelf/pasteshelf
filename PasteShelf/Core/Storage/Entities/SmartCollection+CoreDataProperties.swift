@@ -8,60 +8,62 @@
 import CoreData
 import Foundation
 
-extension SmartCollection {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<SmartCollection> {
+public extension SmartCollection {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<SmartCollection> {
         NSFetchRequest<SmartCollection>(entityName: "SmartCollection")
     }
 
     // MARK: - Attributes
 
     /// Unique identifier
-    @NSManaged public var id: UUID?
+    @NSManaged var id: UUID?
 
     /// Collection display name
-    @NSManaged public var name: String?
+    @NSManaged var name: String?
 
     /// SF Symbol icon name (e.g., "folder.fill")
-    @NSManaged public var icon: String?
+    @NSManaged var icon: String?
 
     /// Color as hex string (e.g., "#FF5733"), optional
-    @NSManaged public var colorHex: String?
+    @NSManaged var colorHex: String?
 
     /// JSON-serialized CollectionRules for automatic collections
-    @NSManaged public var rulesJSON: String?
+    @NSManaged var rulesJSON: String?
 
     /// Whether this collection uses automatic rule-based filtering (true) or manual item assignment (false)
-    @NSManaged public var isAutomatic: Bool
+    @NSManaged var isAutomatic: Bool
 
     /// Sort order for display
-    @NSManaged public var sortOrder: Int32
+    @NSManaged var sortOrder: Int32
 
     /// Timestamp when the collection was created
-    @NSManaged public var createdAt: Date?
+    @NSManaged var createdAt: Date?
 
     /// Timestamp when the collection was last modified
-    @NSManaged public var modifiedAt: Date?
+    @NSManaged var modifiedAt: Date?
 
     // MARK: - Relationships
 
     /// Clipboard items in this collection (many-to-many, used for manual collections)
-    @NSManaged public var items: NSSet?
+    @NSManaged var items: NSSet?
 }
 
 // MARK: - Generated accessors for items
 
-extension SmartCollection {
+public extension SmartCollection {
     @objc(addItemsObject:)
-    @NSManaged public func addToItems(_ value: ClipboardItem)
+    @NSManaged func addToItems(_ value: ClipboardItem)
 
     @objc(removeItemsObject:)
-    @NSManaged public func removeFromItems(_ value: ClipboardItem)
+    @NSManaged func removeFromItems(_ value: ClipboardItem)
 
     @objc(addItems:)
-    @NSManaged public func addToItems(_ values: NSSet)
+    @NSManaged func addToItems(_ values: NSSet)
 
     @objc(removeItems:)
-    @NSManaged public func removeFromItems(_ values: NSSet)
+    @NSManaged func removeFromItems(_ values: NSSet)
 }
+
+// MARK: - SmartCollection + Identifiable
 
 extension SmartCollection: Identifiable {}

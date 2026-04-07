@@ -17,7 +17,6 @@ import SwiftUI
 /// using a `TabView`. This view is displayed when the user selects the "Enterprise" item
 /// in the preferences sidebar.
 struct EnterpriseTabView: View {
-
     // MARK: - Body
 
     var body: some View {

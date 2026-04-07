@@ -7,19 +7,20 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
 // MARK: - MockAuditLogStorage
 
 /// A mock `AuditLogStoring` implementation that records calls and returns pre-configured results.
 final class MockAuditLogStorage: AuditLogStoring, @unchecked Sendable {
-
     var savedEvents: [AuditEvent] = []
     var shouldFail = false
 
     func save(_ event: AuditEvent) async throws {
-        if shouldFail { throw AuditError.storageFailure("Mock failure") }
+        if shouldFail {
+            throw AuditError.storageFailure("Mock failure")
+        }
         savedEvents.append(event)
     }
 
@@ -50,7 +51,6 @@ final class MockAuditLogStorage: AuditLogStoring, @unchecked Sendable {
 // MARK: - AuditLoggerTests
 
 struct AuditLoggerTests {
-
     // MARK: - Event Persistence
 
     @Test("log persists event to storage")
@@ -81,7 +81,7 @@ struct AuditLoggerTests {
         let events = [
             AuditEvent(category: .clipboard, action: .copyCaptured),
             AuditEvent(category: .authentication, action: .ssoLogin),
-            AuditEvent(category: .policy, action: .policyViolation)
+            AuditEvent(category: .policy, action: .policyViolation),
         ]
         await logger.logBatch(events)
 
@@ -99,7 +99,11 @@ struct AuditLoggerTests {
             userIdProvider: { "user-abc" }
         )
 
-        await logger.logClipboardEvent(action: .copyCaptured, resourceId: "item-123", detail: ["contentType": "text/plain"])
+        await logger.logClipboardEvent(
+            action: .copyCaptured,
+            resourceId: "item-123",
+            detail: ["contentType": "text/plain"]
+        )
 
         #expect(storage.savedEvents.count == 1)
         #expect(storage.savedEvents.first?.category == .clipboard)
@@ -209,7 +213,7 @@ struct AuditLoggerTests {
     // MARK: - Event Structure Verification
 
     @Test("logClipboardEvent sets category to .clipboard")
-    func logClipboardEventCategoryIsClipboard() async {
+    func logClipboardEventCategoryIsClipboard() {
         let userId = "user-test"
         let deviceId = "dev-test"
         let resourceId = "item-001"
@@ -305,7 +309,7 @@ struct AuditLoggerTests {
 
     @Test("Multiple AuditEvent values in a batch all have unique ids")
     func batchEventsHaveUniqueIds() {
-        let events = (0..<5).map { _ in
+        let events = (0 ..< 5).map { _ in
             AuditEvent(category: .clipboard, action: .copyCaptured)
         }
         let ids = Set(events.map(\.id))

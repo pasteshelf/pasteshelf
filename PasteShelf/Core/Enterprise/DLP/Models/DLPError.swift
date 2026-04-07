@@ -15,7 +15,6 @@ import Foundation
 /// in `AuditProtocols.swift`, providing human-readable descriptions, failure reasons,
 /// and recovery suggestions for each error case.
 enum DLPError: Error, LocalizedError, Sendable {
-
     /// The DLP feature is not currently enabled.
     case featureUnavailable
 
@@ -39,21 +38,23 @@ enum DLPError: Error, LocalizedError, Sendable {
     /// The associated `String` provides the reason for the failure.
     case evaluationFailed(String)
 
+    // MARK: Internal
+
     // MARK: - LocalizedError
 
     /// A short, user-visible description of the error.
     var errorDescription: String? {
         switch self {
         case .featureUnavailable:
-            return "Data Loss Prevention is not enabled."
-        case .invalidPattern(let pattern):
-            return "The DLP rule pattern could not be compiled: \"\(pattern)\"."
-        case .storageFailure(let reason):
-            return "A storage error occurred in the DLP subsystem: \(reason)"
-        case .ruleNotFound(let id):
-            return "No DLP rule was found with identifier \(id.uuidString)."
-        case .evaluationFailed(let reason):
-            return "DLP content evaluation failed: \(reason)"
+            "Data Loss Prevention is not enabled."
+        case let .invalidPattern(pattern):
+            "The DLP rule pattern could not be compiled: \"\(pattern)\"."
+        case let .storageFailure(reason):
+            "A storage error occurred in the DLP subsystem: \(reason)"
+        case let .ruleNotFound(id):
+            "No DLP rule was found with identifier \(id.uuidString)."
+        case let .evaluationFailed(reason):
+            "DLP content evaluation failed: \(reason)"
         }
     }
 
@@ -61,15 +62,15 @@ enum DLPError: Error, LocalizedError, Sendable {
     var failureReason: String? {
         switch self {
         case .featureUnavailable:
-            return "The DLP feature is not currently available."
-        case .invalidPattern(let pattern):
-            return "The regular expression \"\(pattern)\" is syntactically invalid and cannot be compiled by NSRegularExpression."
-        case .storageFailure(let reason):
-            return reason
-        case .ruleNotFound(let id):
-            return "The DLP rule store does not contain a record with id \(id.uuidString)."
-        case .evaluationFailed(let reason):
-            return reason
+            "The DLP feature is not currently available."
+        case let .invalidPattern(pattern):
+            "The regular expression \"\(pattern)\" is syntactically invalid and cannot be compiled by NSRegularExpression."
+        case let .storageFailure(reason):
+            reason
+        case let .ruleNotFound(id):
+            "The DLP rule store does not contain a record with id \(id.uuidString)."
+        case let .evaluationFailed(reason):
+            reason
         }
     }
 
@@ -77,15 +78,15 @@ enum DLPError: Error, LocalizedError, Sendable {
     var recoverySuggestion: String? {
         switch self {
         case .featureUnavailable:
-            return "Enable Data Loss Prevention in Enterprise settings."
+            "Enable Data Loss Prevention in Enterprise settings."
         case .invalidPattern:
-            return "Review the regular expression syntax and correct the pattern in the DLP rule editor."
+            "Review the regular expression syntax and correct the pattern in the DLP rule editor."
         case .storageFailure:
-            return "Restart the application. If the problem continues, check available disk space or re-enroll the device."
+            "Restart the application. If the problem continues, check available disk space or re-enroll the device."
         case .ruleNotFound:
-            return "Refresh the DLP rule list from the admin console. The rule may have been deleted."
+            "Refresh the DLP rule list from the admin console. The rule may have been deleted."
         case .evaluationFailed:
-            return "Try again. If the issue persists, review the DLP rule patterns for errors and contact your IT administrator."
+            "Try again. If the issue persists, review the DLP rule patterns for errors and contact your IT administrator."
         }
     }
 }

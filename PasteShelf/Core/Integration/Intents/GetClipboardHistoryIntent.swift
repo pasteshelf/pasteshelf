@@ -49,14 +49,12 @@ struct GetClipboardHistoryIntent: AppIntent {
         let limitedCount = max(1, min(count, 100))
 
         // Fetch items
-        let results: [ClipboardItemEntity]
-        if favoritesOnly {
-            results = await ClipboardItemEntity.fetchFavorites(limit: limitedCount)
+        let results: [ClipboardItemEntity] = if favoritesOnly {
+            await ClipboardItemEntity.fetchFavorites(limit: limitedCount)
         } else {
-            results = await ClipboardItemEntity.fetchRecent(limit: limitedCount)
+            await ClipboardItemEntity.fetchRecent(limit: limitedCount)
         }
 
         return .result(value: results)
     }
-
 }

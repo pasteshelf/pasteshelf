@@ -20,8 +20,7 @@ import os.log
 /// The caller is responsible for presenting the resulting directory URL to the user (e.g. via
 /// `NSSavePanel`) and cleaning up the temporary files afterwards.
 struct GDPRDataExportService: Sendable {
-
-    private static let logger = Logger.compliance
+    // MARK: Internal
 
     // MARK: - Export
 
@@ -95,7 +94,7 @@ struct GDPRDataExportService: Sendable {
                     "collections.json",
                     "audit_logs.json",
                     "settings.json",
-                    "consent_records.json"
+                    "consent_records.json",
                 ],
                 clipboardItemCount: clipboardData.count,
                 tagCount: tagsData.count,
@@ -118,7 +117,7 @@ struct GDPRDataExportService: Sendable {
                     "folders": "\(foldersData.count)",
                     "collections": "\(collectionsData.count)",
                     "auditLogs": "\(auditData.count)",
-                    "consentRecords": "\(consentData.count)"
+                    "consentRecords": "\(consentData.count)",
                 ]
             )
 
@@ -130,6 +129,10 @@ struct GDPRDataExportService: Sendable {
             throw ComplianceError.exportFailed(underlying: error)
         }
     }
+
+    // MARK: Private
+
+    private static let logger = Logger.compliance
 
     // MARK: - Individual Exporters
 
@@ -148,7 +151,7 @@ struct GDPRDataExportService: Sendable {
                 "isSensitive": item.isSensitive ? "true" : "false",
                 "isFavorite": item.isFavorite ? "true" : "false",
                 "accessCount": "\(item.accessCount)",
-                "modifiedAt": item.modifiedAt?.ISO8601Format()
+                "modifiedAt": item.modifiedAt?.ISO8601Format(),
             ]
         }
     }
@@ -161,7 +164,7 @@ struct GDPRDataExportService: Sendable {
             [
                 "id": tag.id?.uuidString,
                 "name": tag.name,
-                "color": tag.color
+                "color": tag.color,
             ]
         }
     }
@@ -174,7 +177,7 @@ struct GDPRDataExportService: Sendable {
             [
                 "id": folder.id?.uuidString,
                 "name": folder.name,
-                "icon": folder.icon
+                "icon": folder.icon,
             ]
         }
     }
@@ -188,7 +191,7 @@ struct GDPRDataExportService: Sendable {
                 "id": collection.id?.uuidString,
                 "name": collection.name,
                 "icon": collection.icon,
-                "isAutomatic": collection.isAutomatic ? "true" : "false"
+                "isAutomatic": collection.isAutomatic ? "true" : "false",
             ]
         }
     }
@@ -208,11 +211,10 @@ struct GDPRDataExportService: Sendable {
         )
 
         return entries.map { entry in
-            let detail: String?
-            if let detailDict = try? storage.decryptDetail(for: entry) {
-                detail = detailDict.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: "; ")
+            let detail: String? = if let detailDict = try? storage.decryptDetail(for: entry) {
+                detailDict.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: "; ")
             } else {
-                detail = nil
+                nil
             }
 
             return [
@@ -225,7 +227,7 @@ struct GDPRDataExportService: Sendable {
                 "deviceId": entry.deviceId,
                 "resourceType": entry.resourceType,
                 "resourceId": entry.resourceId,
-                "detail": detail
+                "detail": detail,
             ]
         }
     }
@@ -243,7 +245,7 @@ struct GDPRDataExportService: Sendable {
             "maxHistoryCount",
             "autoDeleteAfterDays",
             "excludeSensitiveData",
-            "monitoringEnabled"
+            "monitoringEnabled",
         ]
 
         for key in keys {
@@ -263,7 +265,7 @@ struct GDPRDataExportService: Sendable {
             [
                 "category": record.category.rawValue,
                 "isGranted": record.isGranted ? "true" : "false",
-                "updatedAt": record.updatedAt?.ISO8601Format()
+                "updatedAt": record.updatedAt?.ISO8601Format(),
             ]
         }
     }
@@ -271,7 +273,7 @@ struct GDPRDataExportService: Sendable {
     // MARK: - Helpers
 
     /// Writes an Encodable value as JSON to the given file URL.
-    private static func writeJSON<T: Encodable>(_ value: T, to url: URL, encoder: JSONEncoder) throws {
+    private static func writeJSON(_ value: some Encodable, to url: URL, encoder: JSONEncoder) throws {
         let data = try encoder.encode(value)
         try data.write(to: url)
     }

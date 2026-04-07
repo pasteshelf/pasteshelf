@@ -8,6 +8,8 @@
 
 import Foundation
 
+// MARK: - SensitivePatterns
+
 /// Collection of regex patterns for detecting sensitive data
 enum SensitivePatterns {
     // MARK: - Category Definition
@@ -22,17 +24,21 @@ enum SensitivePatterns {
         case health = "Health Information"
         case contact = "Contact Information"
 
-        var displayName: String { rawValue }
+        // MARK: Internal
+
+        var displayName: String {
+            rawValue
+        }
 
         var iconName: String {
             switch self {
-            case .apiKeys: return "key"
-            case .passwords: return "lock"
-            case .sshCerts: return "lock.shield"
-            case .financial: return "creditcard"
-            case .personalId: return "person.text.rectangle"
-            case .health: return "heart.text.square"
-            case .contact: return "person.crop.circle"
+            case .apiKeys: "key"
+            case .passwords: "lock"
+            case .sshCerts: "lock.shield"
+            case .financial: "creditcard"
+            case .personalId: "person.text.rectangle"
+            case .health: "heart.text.square"
+            case .contact: "person.crop.circle"
             }
         }
     }
@@ -41,11 +47,7 @@ enum SensitivePatterns {
 
     /// A sensitive data pattern with its metadata
     struct Pattern: Sendable {
-        let name: String
-        let regex: NSRegularExpression
-        let severity: SensitiveSeverity
-        let category: SensitiveCategory
-        let validator: (@Sendable (String) -> Bool)?
+        // MARK: Lifecycle
 
         init(
             name: String,
@@ -57,11 +59,19 @@ enum SensitivePatterns {
         ) {
             self.name = name
             // swiftlint:disable:next force_try
-            self.regex = try! NSRegularExpression(pattern: pattern, options: options)
+            regex = try! NSRegularExpression(pattern: pattern, options: options)
             self.severity = severity
             self.category = category
             self.validator = validator
         }
+
+        // MARK: Internal
+
+        let name: String
+        let regex: NSRegularExpression
+        let severity: SensitiveSeverity
+        let category: SensitiveCategory
+        let validator: (@Sendable (String) -> Bool)?
     }
 
     // MARK: - API Keys & Tokens (High Severity)
@@ -360,7 +370,7 @@ enum SensitivePatterns {
         // Contact (low severity - optional)
         email,
         phoneUS,
-        phoneInternational
+        phoneInternational,
     ]
 
     /// High-priority patterns only (for performance-sensitive contexts)
@@ -382,8 +392,10 @@ enum Validators {
     /// - Parameter number: The card number to validate (digits only)
     /// - Returns: True if the number passes Luhn check
     static func isValidLuhn(_ number: String) -> Bool {
-        let digits = number.compactMap { $0.wholeNumberValue }
-        guard digits.count >= 13 && digits.count <= 19 else { return false }
+        let digits = number.compactMap(\.wholeNumberValue)
+        guard digits.count >= 13, digits.count <= 19 else {
+            return false
+        }
 
         var sum = 0
         let reversedDigits = digits.reversed().enumerated()
@@ -412,7 +424,7 @@ enum Validators {
             "example",
             "placeholder",
             "insert",
-            "replace"
+            "replace",
         ]
         let lowercased = key.lowercased()
         return !placeholders.contains { lowercased.contains($0) }

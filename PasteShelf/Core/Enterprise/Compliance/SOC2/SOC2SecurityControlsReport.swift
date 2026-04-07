@@ -13,17 +13,13 @@ import os.log
 /// The report queries existing manager singletons to determine the current state of each
 /// control category: encryption, access control, monitoring, and data protection.
 struct SOC2SecurityControlsReport: Sendable {
-
-    private static let logger = Logger.compliance
+    // MARK: Internal
 
     // MARK: - Report Model
 
     /// A category of security controls in the SOC 2 report.
     struct ControlCategory: Codable, Sendable, Identifiable {
-        let id: UUID
-        let name: String
-        let description: String
-        let controls: [SecurityControl]
+        // MARK: Lifecycle
 
         init(id: UUID = UUID(), name: String, description: String, controls: [SecurityControl]) {
             self.id = id
@@ -31,16 +27,18 @@ struct SOC2SecurityControlsReport: Sendable {
             self.description = description
             self.controls = controls
         }
+
+        // MARK: Internal
+
+        let id: UUID
+        let name: String
+        let description: String
+        let controls: [SecurityControl]
     }
 
     /// An individual security control within a category.
     struct SecurityControl: Codable, Sendable, Identifiable {
-        let id: UUID
-        let name: String
-        let description: String
-        let status: ComplianceFindingStatus
-        let evidence: String
-        let recommendation: String?
+        // MARK: Lifecycle
 
         init(
             id: UUID = UUID(),
@@ -57,16 +55,20 @@ struct SOC2SecurityControlsReport: Sendable {
             self.evidence = evidence
             self.recommendation = recommendation
         }
+
+        // MARK: Internal
+
+        let id: UUID
+        let name: String
+        let description: String
+        let status: ComplianceFindingStatus
+        let evidence: String
+        let recommendation: String?
     }
 
     /// The complete SOC 2 security controls report.
     struct Report: Codable, Sendable, Identifiable {
-        let id: UUID
-        let generatedAt: Date
-        let applicationVersion: String
-        let categories: [ControlCategory]
-        let overallScore: Int
-        let summary: String
+        // MARK: Lifecycle
 
         init(
             id: UUID = UUID(),
@@ -83,6 +85,15 @@ struct SOC2SecurityControlsReport: Sendable {
             self.overallScore = overallScore
             self.summary = summary
         }
+
+        // MARK: Internal
+
+        let id: UUID
+        let generatedAt: Date
+        let applicationVersion: String
+        let categories: [ControlCategory]
+        let overallScore: Int
+        let summary: String
     }
 
     // MARK: - Report Generation
@@ -102,10 +113,10 @@ struct SOC2SecurityControlsReport: Sendable {
             accessControls(),
             monitoringControls(),
             dataProtectionControls(),
-            networkSecurityControls()
+            networkSecurityControls(),
         ]
 
-        let allControls = categories.flatMap { $0.controls }
+        let allControls = categories.flatMap(\.controls)
         let passCount = allControls.filter { $0.status == .pass }.count
         let totalCount = allControls.count
         let score = totalCount > 0 ? (passCount * 100) / totalCount : 0
@@ -113,13 +124,12 @@ struct SOC2SecurityControlsReport: Sendable {
         let failCount = allControls.filter { $0.status == .fail }.count
         let warnCount = allControls.filter { $0.status == .warning }.count
 
-        let summary: String
-        if failCount == 0 && warnCount == 0 {
-            summary = "All \(totalCount) security controls are passing."
+        let summary = if failCount == 0, warnCount == 0 {
+            "All \(totalCount) security controls are passing."
         } else if failCount == 0 {
-            summary = "\(passCount)/\(totalCount) controls passing, \(warnCount) warning(s)."
+            "\(passCount)/\(totalCount) controls passing, \(warnCount) warning(s)."
         } else {
-            summary = "\(passCount)/\(totalCount) controls passing, \(failCount) failure(s), \(warnCount) warning(s)."
+            "\(passCount)/\(totalCount) controls passing, \(failCount) failure(s), \(warnCount) warning(s)."
         }
 
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
@@ -145,6 +155,10 @@ struct SOC2SecurityControlsReport: Sendable {
         encoder.dateEncodingStrategy = .iso8601
         return try encoder.encode(report)
     }
+
+    // MARK: Private
+
+    private static let logger = Logger.compliance
 
     // MARK: - Control Categories
 

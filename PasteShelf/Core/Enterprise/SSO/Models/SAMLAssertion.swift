@@ -8,9 +8,11 @@
 
 import Foundation
 
+// MARK: - SAMLAssertion
+
 /// A parsed SAML 2.0 Assertion containing user identity information
 struct SAMLAssertion: Codable, Sendable, Equatable {
-    // MARK: - Properties
+    // MARK: Internal
 
     /// Unique identifier for this assertion
     let id: String
@@ -40,17 +42,31 @@ struct SAMLAssertion: Codable, Sendable, Equatable {
 
     /// The user's email from attribute statements
     var email: String? {
-        findAttribute(named: "email", "mail", "emailAddress", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
+        findAttribute(
+            named: "email",
+            "mail",
+            "emailAddress",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+        )
     }
 
     /// The user's first name from attribute statements
     var firstName: String? {
-        findAttribute(named: "firstName", "givenName", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname")
+        findAttribute(
+            named: "firstName",
+            "givenName",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
+        )
     }
 
     /// The user's last name from attribute statements
     var lastName: String? {
-        findAttribute(named: "lastName", "surname", "sn", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname")
+        findAttribute(
+            named: "lastName",
+            "surname",
+            "sn",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
+        )
     }
 
     /// The user's display name
@@ -84,6 +100,8 @@ struct SAMLAssertion: Codable, Sendable, Equatable {
         conditions.audienceRestrictions.contains { $0.audiences.contains(audience) }
     }
 
+    // MARK: Private
+
     // MARK: - Private Helpers
 
     private func findAttribute(named names: String...) -> String? {
@@ -110,7 +128,7 @@ struct SAMLAssertion: Codable, Sendable, Equatable {
     }
 }
 
-// MARK: - Subject
+// MARK: - SAMLSubject
 
 /// The subject (authenticated user) of a SAML assertion
 struct SAMLSubject: Codable, Sendable, Equatable {
@@ -127,6 +145,8 @@ struct SAMLSubject: Codable, Sendable, Equatable {
     let confirmations: [SAMLSubjectConfirmation]
 }
 
+// MARK: - SAMLSubjectConfirmation
+
 /// Confirmation method for the subject
 struct SAMLSubjectConfirmation: Codable, Sendable, Equatable {
     /// Confirmation method URI (e.g., bearer)
@@ -135,6 +155,8 @@ struct SAMLSubjectConfirmation: Codable, Sendable, Equatable {
     /// Additional confirmation data
     let confirmationData: SAMLSubjectConfirmationData?
 }
+
+// MARK: - SAMLSubjectConfirmationData
 
 /// Data confirming the subject
 struct SAMLSubjectConfirmationData: Codable, Sendable, Equatable {
@@ -148,7 +170,7 @@ struct SAMLSubjectConfirmationData: Codable, Sendable, Equatable {
     let inResponseTo: String?
 }
 
-// MARK: - Conditions
+// MARK: - SAMLConditions
 
 /// Time and audience conditions for assertion validity
 struct SAMLConditions: Codable, Sendable, Equatable {
@@ -162,13 +184,15 @@ struct SAMLConditions: Codable, Sendable, Equatable {
     let audienceRestrictions: [SAMLAudienceRestriction]
 }
 
+// MARK: - SAMLAudienceRestriction
+
 /// Audience restriction for the assertion
 struct SAMLAudienceRestriction: Codable, Sendable, Equatable {
     /// Entity IDs of allowed audiences
     let audiences: [String]
 }
 
-// MARK: - Authentication Statement
+// MARK: - SAMLAuthnStatement
 
 /// Statement about how the user authenticated
 struct SAMLAuthnStatement: Codable, Sendable, Equatable {
@@ -185,19 +209,23 @@ struct SAMLAuthnStatement: Codable, Sendable, Equatable {
     let authnContext: SAMLAuthnContext
 }
 
+// MARK: - SAMLAuthnContext
+
 /// Context about the authentication method
 struct SAMLAuthnContext: Codable, Sendable, Equatable {
     /// Authentication context class reference (method used)
     let classRef: SAMLAuthnContextClass
 }
 
-// MARK: - Attribute Statement
+// MARK: - SAMLAttributeStatement
 
 /// Statement containing user attributes
 struct SAMLAttributeStatement: Codable, Sendable, Equatable {
     /// Attributes in this statement
     let attributes: [SAMLAttribute]
 }
+
+// MARK: - SAMLAttribute
 
 /// A single SAML attribute (name-value pair)
 struct SAMLAttribute: Codable, Sendable, Equatable {
@@ -214,7 +242,7 @@ struct SAMLAttribute: Codable, Sendable, Equatable {
     let values: [String]
 }
 
-// MARK: - Enums
+// MARK: - SAMLNameIDFormat
 
 /// SAML NameID format types
 enum SAMLNameIDFormat: String, Codable, Sendable {
@@ -226,6 +254,8 @@ enum SAMLNameIDFormat: String, Codable, Sendable {
     case kerberos = "urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos"
     case windowsDomainQualifiedName = "urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName"
     case x509SubjectName = "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName"
+
+    // MARK: Lifecycle
 
     /// Creates a NameIDFormat from any string, defaulting to unspecified
     init(rawValue: String) {
@@ -250,11 +280,15 @@ enum SAMLNameIDFormat: String, Codable, Sendable {
     }
 }
 
+// MARK: - SAMLConfirmationMethod
+
 /// SAML subject confirmation methods
 enum SAMLConfirmationMethod: String, Codable, Sendable {
     case bearer = "urn:oasis:names:tc:SAML:2.0:cm:bearer"
     case holderOfKey = "urn:oasis:names:tc:SAML:2.0:cm:holder-of-key"
     case senderVouches = "urn:oasis:names:tc:SAML:2.0:cm:sender-vouches"
+
+    // MARK: Lifecycle
 
     init(rawValue: String) {
         switch rawValue {
@@ -270,6 +304,8 @@ enum SAMLConfirmationMethod: String, Codable, Sendable {
     }
 }
 
+// MARK: - SAMLAuthnContextClass
+
 /// SAML authentication context classes (how the user authenticated)
 enum SAMLAuthnContextClass: String, Codable, Sendable {
     case password = "urn:oasis:names:tc:SAML:2.0:ac:classes:Password"
@@ -281,6 +317,8 @@ enum SAMLAuthnContextClass: String, Codable, Sendable {
     case smartcardPKI = "urn:oasis:names:tc:SAML:2.0:ac:classes:SmartcardPKI"
     case mobileTwoFactorContract = "urn:oasis:names:tc:SAML:2.0:ac:classes:MobileTwoFactorContract"
     case unspecified = "urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified"
+
+    // MARK: Lifecycle
 
     init(rawValue: String) {
         switch rawValue {
@@ -306,11 +344,15 @@ enum SAMLAuthnContextClass: String, Codable, Sendable {
     }
 }
 
+// MARK: - SAMLAttributeNameFormat
+
 /// SAML attribute name format
 enum SAMLAttributeNameFormat: String, Codable, Sendable {
     case unspecified = "urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified"
     case uri = "urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
     case basic = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
+
+    // MARK: Lifecycle
 
     init(rawValue: String) {
         switch rawValue {

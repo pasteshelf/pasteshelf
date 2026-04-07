@@ -12,35 +12,52 @@ import os.log
 
 /// Manages NLEmbedding instances and generates embeddings for text content
 final class EmbeddingManager: @unchecked Sendable {
-    // MARK: - Singleton
-
-    static let shared = EmbeddingManager()
-
-    // MARK: - Properties
-
-    /// Logger for embedding operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "embedding"
-    )
-
-    /// Cached NLEmbedding instance for sentence embeddings
-    private var cachedEmbedding: NLEmbedding?
-
-    /// Lock for thread-safe embedding access
-    private let lock = NSLock()
-
-    /// Minimum text length for meaningful embeddings
-    private let minimumTextLength = 3
-
-    /// Current embedding version (increment to invalidate cache)
-    static let embeddingVersion: Int16 = 1
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     private init() {
         // Pre-load embedding instance on init
         _ = getEmbedding()
+    }
+
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    static let shared = EmbeddingManager()
+
+    /// Current embedding version (increment to invalidate cache)
+    static let embeddingVersion: Int16 = 1
+
+    /// Returns the embedding dimension (vector size)
+    var embeddingDimension: Int {
+        getEmbedding()?.dimension ?? 0
+    }
+
+    /// Checks if embeddings are available on this system
+    var isAvailable: Bool {
+        getEmbedding() != nil
+    }
+
+    // MARK: - Serialization
+
+    /// Converts an embedding vector to binary data for storage
+    /// - Parameter vector: The embedding vector
+    /// - Returns: Binary data representation
+    static func serializeEmbedding(_ vector: [Double]) -> Data {
+        var mutableVector = vector
+        return Data(bytes: &mutableVector, count: vector.count * MemoryLayout<Double>.size)
+    }
+
+    /// Converts binary data back to an embedding vector
+    /// - Parameter data: The binary data
+    /// - Returns: The embedding vector
+    static func deserializeEmbedding(_ data: Data) -> [Double] {
+        let count = data.count / MemoryLayout<Double>.size
+        var vector = [Double](repeating: 0, count: count)
+        _ = vector.withUnsafeMutableBytes { data.copyBytes(to: $0) }
+        return vector
     }
 
     // MARK: - Embedding Generation
@@ -94,6 +111,23 @@ final class EmbeddingManager: @unchecked Sendable {
         return trimmedText.count >= minimumTextLength
     }
 
+    // MARK: Private
+
+    /// Logger for embedding operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "embedding"
+    )
+
+    /// Cached NLEmbedding instance for sentence embeddings
+    private var cachedEmbedding: NLEmbedding?
+
+    /// Lock for thread-safe embedding access
+    private let lock = NSLock()
+
+    /// Minimum text length for meaningful embeddings
+    private let minimumTextLength = 3
+
     // MARK: - Embedding Instance Management
 
     /// Gets or creates the NLEmbedding instance
@@ -122,35 +156,5 @@ final class EmbeddingManager: @unchecked Sendable {
 
         logger.error("No NLEmbedding available for English")
         return nil
-    }
-
-    /// Returns the embedding dimension (vector size)
-    var embeddingDimension: Int {
-        getEmbedding()?.dimension ?? 0
-    }
-
-    /// Checks if embeddings are available on this system
-    var isAvailable: Bool {
-        getEmbedding() != nil
-    }
-
-    // MARK: - Serialization
-
-    /// Converts an embedding vector to binary data for storage
-    /// - Parameter vector: The embedding vector
-    /// - Returns: Binary data representation
-    static func serializeEmbedding(_ vector: [Double]) -> Data {
-        var mutableVector = vector
-        return Data(bytes: &mutableVector, count: vector.count * MemoryLayout<Double>.size)
-    }
-
-    /// Converts binary data back to an embedding vector
-    /// - Parameter data: The binary data
-    /// - Returns: The embedding vector
-    static func deserializeEmbedding(_ data: Data) -> [Double] {
-        let count = data.count / MemoryLayout<Double>.size
-        var vector = [Double](repeating: 0, count: count)
-        _ = vector.withUnsafeMutableBytes { data.copyBytes(to: $0) }
-        return vector
     }
 }

@@ -134,10 +134,18 @@ extension StorageManager {
                     throw NSError(domain: "StorageManager", code: 404, userInfo: nil)
                 }
 
-                if let name { collection.name = name }
-                if let icon { collection.icon = icon }
-                if let colorHex { collection.colorHex = colorHex }
-                if let rules { collection.rulesJSON = rules.toJSON() }
+                if let name {
+                    collection.name = name
+                }
+                if let icon {
+                    collection.icon = icon
+                }
+                if let colorHex {
+                    collection.colorHex = colorHex
+                }
+                if let rules {
+                    collection.rulesJSON = rules.toJSON()
+                }
                 collection.modifiedAt = Date()
             }
             return true
@@ -233,7 +241,9 @@ extension StorageManager {
         _ collection: SmartCollection,
         limit: Int
     ) async -> [ClipboardItem] {
-        guard let collectionId = collection.id else { return [] }
+        guard let collectionId = collection.id else {
+            return []
+        }
 
         return await viewContext.perform {
             let request = ClipboardItem.fetchRequest()
@@ -269,7 +279,9 @@ extension StorageManager {
                 return (try? self.viewContext.count(for: request)) ?? 0
             }
         } else {
-            guard let collectionId = collection.id else { return 0 }
+            guard let collectionId = collection.id else {
+                return 0
+            }
 
             return await viewContext.perform {
                 let request = ClipboardItem.fetchRequest()
@@ -361,7 +373,9 @@ extension StorageManager {
     ///   - collection: The smart collection
     /// - Returns: True if item is in the collection
     func isItemInCollection(_ item: ClipboardItem, collection: SmartCollection) async -> Bool {
-        guard let itemId = item.id, let collectionId = collection.id else { return false }
+        guard let itemId = item.id, let collectionId = collection.id else {
+            return false
+        }
 
         if collection.isAutomatic {
             // Check using rules

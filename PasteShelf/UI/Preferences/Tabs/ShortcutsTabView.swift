@@ -7,12 +7,13 @@
 
 import SwiftUI
 
+// MARK: - ShortcutsTabView
+
 /// Shortcuts settings tab view
 struct ShortcutsTabView: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     @ObservedObject var viewModel: PreferencesViewModel
-    @State private var isRecording = false
 
     // MARK: - Body
 
@@ -73,9 +74,13 @@ struct ShortcutsTabView: View {
         .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+
+    // MARK: Private
+
+    @State private var isRecording = false
 }
 
-// MARK: - Shortcut Row
+// MARK: - ShortcutRow
 
 struct ShortcutRow: View {
     let shortcut: String

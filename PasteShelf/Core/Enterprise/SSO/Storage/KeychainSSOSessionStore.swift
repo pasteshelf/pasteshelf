@@ -18,11 +18,7 @@ import Security
 /// This ensures session tokens (access tokens, refresh tokens) are protected by the
 /// system's secure enclave and are not exposed in plain-text storage.
 final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
-
-    // MARK: - Properties
-
-    private let service = "com.pasteshelf.sso.sessions"
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "sso-session-store")
+    // MARK: Internal
 
     // MARK: - SSOSessionStore
 
@@ -34,7 +30,7 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: account
+            kSecAttrAccount as String: account,
         ]
         SecItemDelete(deleteQuery as CFDictionary)
 
@@ -44,7 +40,7 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
             kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
         ]
 
         let status = SecItemAdd(addQuery as CFDictionary, nil)
@@ -60,14 +56,16 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
             kSecAttrService as String: service,
             kSecAttrAccount as String: providerId.uuidString,
             kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
         ]
 
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
 
         guard status == errSecSuccess, let data = result as? Data else {
-            if status == errSecItemNotFound { return nil }
+            if status == errSecItemNotFound {
+                return nil
+            }
             logger.error("Failed to load SSO session from Keychain: \(status)")
             throw KeychainError.loadFailed(status)
         }
@@ -79,7 +77,7 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: providerId.uuidString
+            kSecAttrAccount as String: providerId.uuidString,
         ]
 
         let status = SecItemDelete(query as CFDictionary)
@@ -92,7 +90,7 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
     func deleteAll() async throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service
+            kSecAttrService as String: service,
         ]
 
         let status = SecItemDelete(query as CFDictionary)
@@ -101,6 +99,11 @@ final class KeychainSSOSessionStore: SSOSessionStore, @unchecked Sendable {
             throw KeychainError.deleteFailed(status)
         }
     }
+
+    // MARK: Private
+
+    private let service = "com.pasteshelf.sso.sessions"
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "sso-session-store")
 }
 
 // MARK: - KeychainError
@@ -111,14 +114,16 @@ enum KeychainError: LocalizedError {
     case loadFailed(OSStatus)
     case deleteFailed(OSStatus)
 
+    // MARK: Internal
+
     var errorDescription: String? {
         switch self {
-        case .saveFailed(let status):
-            return "Failed to save to Keychain (status: \(status))"
-        case .loadFailed(let status):
-            return "Failed to load from Keychain (status: \(status))"
-        case .deleteFailed(let status):
-            return "Failed to delete from Keychain (status: \(status))"
+        case let .saveFailed(status):
+            "Failed to save to Keychain (status: \(status))"
+        case let .loadFailed(status):
+            "Failed to load from Keychain (status: \(status))"
+        case let .deleteFailed(status):
+            "Failed to delete from Keychain (status: \(status))"
         }
     }
 }

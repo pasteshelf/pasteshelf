@@ -5,8 +5,8 @@
 //  Unit tests for String+Search extension methods.
 //
 
-import XCTest
 @testable import PasteShelf
+import XCTest
 
 final class StringSearchTests: XCTestCase {
     // MARK: - Normalization Tests
@@ -181,14 +181,14 @@ final class StringSearchTests: XCTestCase {
 
     // MARK: - MatchRange Tests
 
-    func testMatchRange_rangeInString() {
+    func testMatchRange_rangeInString() throws {
         let text = "Hello World"
         let matchRange = MatchRange(start: 6, length: 5, matchedText: "World")
 
         let range = matchRange.range(in: text)
 
         XCTAssertNotNil(range)
-        XCTAssertEqual(String(text[range!]), "World")
+        XCTAssertEqual(try String(text[XCTUnwrap(range)]), "World")
     }
 
     func testMatchRange_invalidRange() {

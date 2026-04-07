@@ -23,6 +23,17 @@ import UniformTypeIdentifiers
 /// user can choose a destination before saving.
 @MainActor
 final class AuditLogViewModel: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    /// Creates the view model and wires up Combine publishers for filter auto-reload.
+    init() {
+        setupFilterObservation()
+        Task { await loadEvents() }
+    }
+
+    // MARK: Internal
 
     // MARK: - Published Filter State
 
@@ -51,23 +62,6 @@ final class AuditLogViewModel: ObservableObject {
 
     /// Number of events that failed to decrypt in the last load.
     @Published private(set) var decryptionFailureCount: Int = 0
-
-    // MARK: - Private Properties
-
-    private let logger = Logger.audit
-    private var cancellables = Set<AnyCancellable>()
-    private var loadTask: Task<Void, Never>?
-
-    /// Maximum number of events returned from storage in a single fetch.
-    private let fetchLimit = 500
-
-    // MARK: - Initialization
-
-    /// Creates the view model and wires up Combine publishers for filter auto-reload.
-    init() {
-        setupFilterObservation()
-        Task { await loadEvents() }
-    }
 
     // MARK: - Public Actions
 
@@ -101,7 +95,10 @@ final class AuditLogViewModel: ObservableObject {
                 do {
                     detail = try storage.decryptDetail(for: entry)
                 } catch {
-                    logger.warning("Could not decrypt detail for entry \(String(describing: entry.id)): \(error.localizedDescription)")
+                    logger
+                        .warning(
+                            "Could not decrypt detail for entry \(String(describing: entry.id)): \(error.localizedDescription)"
+                        )
                     detail = [:]
                     failures += 1
                 }
@@ -181,6 +178,24 @@ final class AuditLogViewModel: ObservableObject {
         presentSavePanel(sourceURL: tempURL, suggestedFilename: "audit_log.json", fileExtension: "json")
     }
 
+    // MARK: Private
+
+    // MARK: - CSV Helpers
+
+    private static let csvColumns = [
+        "Timestamp", "Category", "Action", "Severity",
+        "User ID", "Device ID", "Resource Type", "Resource ID", "Detail",
+    ]
+
+    // MARK: - Private Properties
+
+    private let logger = Logger.audit
+    private var cancellables = Set<AnyCancellable>()
+    private var loadTask: Task<Void, Never>?
+
+    /// Maximum number of events returned from storage in a single fetch.
+    private let fetchLimit = 500
+
     // MARK: - Private Helpers
 
     /// Wires Combine publishers on the three filter properties so that any change
@@ -194,9 +209,11 @@ final class AuditLogViewModel: ObservableObject {
             .dropFirst()
             .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
             .sink { [weak self] in
-                guard let self else { return }
-                self.loadTask?.cancel()
-                self.loadTask = Task { await self.loadEvents() }
+                guard let self else {
+                    return
+                }
+                loadTask?.cancel()
+                loadTask = Task { await self.loadEvents() }
             }
             .store(in: &cancellables)
     }
@@ -220,7 +237,9 @@ final class AuditLogViewModel: ObservableObject {
             defer {
                 try? FileManager.default.removeItem(at: sourceURL)
             }
-            guard response == .OK, let destinationURL = panel.url else { return }
+            guard response == .OK, let destinationURL = panel.url else {
+                return
+            }
             do {
                 if FileManager.default.fileExists(atPath: destinationURL.path) {
                     try FileManager.default.removeItem(at: destinationURL)
@@ -237,24 +256,20 @@ final class AuditLogViewModel: ObservableObject {
         }
     }
 
-    // MARK: - CSV Helpers
-
-    private static let csvColumns = [
-        "Timestamp", "Category", "Action", "Severity",
-        "User ID", "Device ID", "Resource Type", "Resource ID", "Detail"
-    ]
-
     private func buildCSV() -> String {
         let isoFormatter = ISO8601DateFormatter()
         var lines: [String] = [Self.csvColumns.map(csvEscape).joined(separator: ",")]
 
         for item in events {
-            let detailJSON: String
-            if let data = try? JSONSerialization.data(withJSONObject: item.detail, options: .sortedKeys),
-               let string = String(data: data, encoding: .utf8) {
-                detailJSON = string
+            let detailJSON: String = if let data = try? JSONSerialization.data(
+                withJSONObject: item.detail,
+                options: .sortedKeys
+            ),
+                let string = String(data: data, encoding: .utf8)
+            {
+                string
             } else {
-                detailJSON = "{}"
+                "{}"
             }
 
             let row = [
@@ -266,7 +281,7 @@ final class AuditLogViewModel: ObservableObject {
                 item.deviceId ?? "",
                 item.resourceType ?? "",
                 item.resourceId ?? "",
-                detailJSON
+                detailJSON,
             ].map(csvEscape).joined(separator: ",")
 
             lines.append(row)
@@ -293,12 +308,20 @@ final class AuditLogViewModel: ObservableObject {
             "category": item.categoryDisplayName,
             "action": item.actionDisplayName,
             "severity": item.severity.rawValue,
-            "detail": item.detail
+            "detail": item.detail,
         ]
-        if let userId = item.userId { obj["userId"] = userId }
-        if let deviceId = item.deviceId { obj["deviceId"] = deviceId }
-        if let resourceType = item.resourceType { obj["resourceType"] = resourceType }
-        if let resourceId = item.resourceId { obj["resourceId"] = resourceId }
+        if let userId = item.userId {
+            obj["userId"] = userId
+        }
+        if let deviceId = item.deviceId {
+            obj["deviceId"] = deviceId
+        }
+        if let resourceType = item.resourceType {
+            obj["resourceType"] = resourceType
+        }
+        if let resourceId = item.resourceId {
+            obj["resourceId"] = resourceId
+        }
         return obj
     }
 }

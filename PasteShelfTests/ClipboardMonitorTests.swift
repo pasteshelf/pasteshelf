@@ -6,8 +6,10 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
+
+// MARK: - ClipboardMonitorTests
 
 @MainActor
 struct ClipboardMonitorTests {
@@ -107,8 +109,8 @@ struct ClipboardMonitorTests {
     func averageCaptureTimeIsCalculated() {
         var metrics = ClipboardMonitorMetrics()
 
-        metrics.updateAverageCaptureTime(0.010)  // 10ms
-        metrics.updateAverageCaptureTime(0.020)  // 20ms
+        metrics.updateAverageCaptureTime(0.010) // 10ms
+        metrics.updateAverageCaptureTime(0.020) // 20ms
 
         // Running average should be ~15ms
         #expect(metrics.averageCaptureTimeMs > 10)
@@ -130,7 +132,7 @@ struct ClipboardMonitorTests {
     }
 }
 
-// MARK: - Mock Delegate Tests
+// MARK: - MockClipboardMonitorDelegate
 
 @MainActor
 final class MockClipboardMonitorDelegate: ClipboardMonitorDelegate {
@@ -163,6 +165,8 @@ final class MockClipboardMonitorDelegate: ClipboardMonitorDelegate {
     }
 }
 
+// MARK: - ClipboardMonitorDelegateTests
+
 @MainActor
 struct ClipboardMonitorDelegateTests {
     @Test("Delegate receives capture events")
@@ -193,7 +197,7 @@ struct ClipboardMonitorDelegateTests {
     }
 }
 
-// MARK: - Mock Storage Tests
+// MARK: - MockClipboardItemStoreTests
 
 @MainActor
 struct MockClipboardItemStoreTests {
@@ -232,7 +236,7 @@ struct MockClipboardItemStoreTests {
     func mockStorageRespectsMaxItems() async {
         let store = MockClipboardItemStore(maxItems: 2)
 
-        for i in 0..<5 {
+        for i in 0 ..< 5 {
             var content = ClipboardContent(primaryType: .plainText)
             content.contentHash = "hash\(i)"
             _ = await store.save(content: content, from: nil)

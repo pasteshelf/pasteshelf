@@ -13,12 +13,11 @@ import Foundation
 /// Users can grant or revoke consent for each category independently, and the application
 /// must respect these preferences by enabling or disabling the corresponding functionality.
 enum GDPRConsentCategory: String, Codable, Sendable, CaseIterable {
-
     /// Monitoring the system clipboard for new content.
     case clipboardMonitoring = "clipboard_monitoring"
 
     /// Collecting anonymous usage analytics and crash reports.
-    case analytics = "analytics"
+    case analytics
 
     /// Syncing clipboard data to iCloud or a self-hosted server.
     case cloudSync = "cloud_sync"
@@ -29,19 +28,21 @@ enum GDPRConsentCategory: String, Codable, Sendable, CaseIterable {
     /// Enabling third-party plugin access to clipboard data.
     case thirdPartyPlugins = "third_party_plugins"
 
+    // MARK: Internal
+
     /// Human-readable display name for this category.
     var displayName: String {
         switch self {
         case .clipboardMonitoring:
-            return String(localized: "Clipboard Monitoring")
+            String(localized: "Clipboard Monitoring")
         case .analytics:
-            return String(localized: "Usage Analytics")
+            String(localized: "Usage Analytics")
         case .cloudSync:
-            return String(localized: "Cloud Sync")
+            String(localized: "Cloud Sync")
         case .auditLogging:
-            return String(localized: "Audit Logging")
+            String(localized: "Audit Logging")
         case .thirdPartyPlugins:
-            return String(localized: "Third-Party Plugins")
+            String(localized: "Third-Party Plugins")
         }
     }
 
@@ -49,15 +50,15 @@ enum GDPRConsentCategory: String, Codable, Sendable, CaseIterable {
     var purposeDescription: String {
         switch self {
         case .clipboardMonitoring:
-            return String(localized: "Monitor your clipboard to capture and store copied items for quick access.")
+            String(localized: "Monitor your clipboard to capture and store copied items for quick access.")
         case .analytics:
-            return String(localized: "Collect anonymous usage statistics to improve the application.")
+            String(localized: "Collect anonymous usage statistics to improve the application.")
         case .cloudSync:
-            return String(localized: "Sync your clipboard history across devices via iCloud or self-hosted server.")
+            String(localized: "Sync your clipboard history across devices via iCloud or self-hosted server.")
         case .auditLogging:
-            return String(localized: "Record activity logs for enterprise compliance and security auditing.")
+            String(localized: "Record activity logs for enterprise compliance and security auditing.")
         case .thirdPartyPlugins:
-            return String(localized: "Allow installed plugins to access and transform clipboard content.")
+            String(localized: "Allow installed plugins to access and transform clipboard content.")
         }
     }
 
@@ -65,15 +66,15 @@ enum GDPRConsentCategory: String, Codable, Sendable, CaseIterable {
     var iconName: String {
         switch self {
         case .clipboardMonitoring:
-            return "doc.on.clipboard"
+            "doc.on.clipboard"
         case .analytics:
-            return "chart.bar.fill"
+            "chart.bar.fill"
         case .cloudSync:
-            return "icloud.fill"
+            "icloud.fill"
         case .auditLogging:
-            return "list.clipboard.fill"
+            "list.clipboard.fill"
         case .thirdPartyPlugins:
-            return "puzzlepiece.extension.fill"
+            "puzzlepiece.extension.fill"
         }
     }
 }

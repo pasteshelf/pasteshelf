@@ -13,6 +13,20 @@ import os.log
 /// Manages background generation of text embeddings for semantic search
 @MainActor
 final class EmbeddingGenerator: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    private init(
+        storageManager: StorageManager = .shared,
+        embeddingManager: EmbeddingManager = .shared
+    ) {
+        self.storageManager = storageManager
+        self.embeddingManager = embeddingManager
+    }
+
+    // MARK: Internal
+
     // MARK: - Singleton
 
     static let shared = EmbeddingGenerator()
@@ -30,55 +44,20 @@ final class EmbeddingGenerator: ObservableObject {
 
     /// Progress percentage (0.0 to 1.0)
     var progress: Double {
-        guard totalToIndex > 0 else { return 0.0 }
+        guard totalToIndex > 0 else {
+            return 0.0
+        }
         return Double(indexedCount) / Double(totalToIndex)
     }
 
-    // MARK: - Configuration
-
-    /// Number of items to process in each batch
-    private let batchSize: Int = 50
-
-    /// Delay between batches in milliseconds
-    private let batchDelayMs: Int = 100
-
-    /// Maximum items to index in a single session
-    private let maxItemsPerSession: Int = 500
-
-    // MARK: - Properties
-
-    /// Storage manager for item and embedding access
-    private let storageManager: StorageManager
-
-    /// Embedding manager for generating embeddings
-    private let embeddingManager: EmbeddingManager
-
-    /// Logger for indexing operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "embedding-gen"
-    )
-
-    /// Current indexing task
-    private var indexingTask: Task<Int, Never>?
-
-    /// Cancellables for Combine subscriptions
-    private var cancellables = Set<AnyCancellable>()
-
-    // MARK: - Initialization
-
-    private init(
-        storageManager: StorageManager = .shared,
-        embeddingManager: EmbeddingManager = .shared
-    ) {
-        self.storageManager = storageManager
-        self.embeddingManager = embeddingManager
+    /// Whether semantic search is available
+    var isAvailable: Bool {
+        embeddingManager.isAvailable
     }
 
     /// Creates an EmbeddingGenerator for testing
     static func forTesting(storageManager: StorageManager) -> EmbeddingGenerator {
-        let generator = EmbeddingGenerator()
-        return generator
+        EmbeddingGenerator()
     }
 
     // MARK: - Single Item Indexing
@@ -104,7 +83,8 @@ final class EmbeddingGenerator: ObservableObject {
         // For image items without text, try OCR-extracted text
         if text == nil || !embeddingManager.canEmbed(text!) {
             if let ocrText = await storageManager.fetchOCRText(for: itemId),
-               embeddingManager.canEmbed(ocrText) {
+               embeddingManager.canEmbed(ocrText)
+            {
                 text = ocrText
             }
         }
@@ -176,7 +156,9 @@ final class EmbeddingGenerator: ObservableObject {
         totalToIndex = 0
 
         let task = Task<Int, Never>(priority: .background) { [weak self] in
-            guard let self else { return 0 }
+            guard let self else {
+                return 0
+            }
 
             var totalIndexed = 0
 
@@ -251,48 +233,6 @@ final class EmbeddingGenerator: ObservableObject {
         return await task.value
     }
 
-    /// Processes a single item for embedding
-    private func processItem(itemId: UUID) async -> Bool {
-        // Fetch the item
-        guard let item = await storageManager.fetchItem(byId: itemId) else {
-            return false
-        }
-
-        // Use plain text preview, or fall back to OCR text for images
-        var text = item.plainTextPreview
-        if text == nil || !embeddingManager.canEmbed(text!) {
-            if let ocrText = await storageManager.fetchOCRText(for: itemId),
-               embeddingManager.canEmbed(ocrText) {
-                text = ocrText
-            }
-        }
-
-        guard let text, embeddingManager.canEmbed(text) else {
-            return false
-        }
-
-        // Check for duplicate text (reuse existing embedding)
-        if let existingEmbedding = await storageManager.findEmbeddingByTextHash(text) {
-            return await storageManager.saveEmbedding(
-                for: itemId,
-                text: text,
-                embedding: existingEmbedding
-            )
-        }
-
-        // Generate new embedding
-        guard let embedding = embeddingManager.generateEmbedding(for: text) else {
-            return false
-        }
-
-        // Save embedding
-        return await storageManager.saveEmbedding(
-            for: itemId,
-            text: text,
-            embedding: embedding
-        )
-    }
-
     // MARK: - Control
 
     /// Cancels the current indexing operation
@@ -326,8 +266,77 @@ final class EmbeddingGenerator: ObservableObject {
         await storageManager.embeddingCount()
     }
 
-    /// Whether semantic search is available
-    var isAvailable: Bool {
-        embeddingManager.isAvailable
+    // MARK: Private
+
+    // MARK: - Configuration
+
+    /// Number of items to process in each batch
+    private let batchSize: Int = 50
+
+    /// Delay between batches in milliseconds
+    private let batchDelayMs: Int = 100
+
+    /// Maximum items to index in a single session
+    private let maxItemsPerSession: Int = 500
+
+    /// Storage manager for item and embedding access
+    private let storageManager: StorageManager
+
+    /// Embedding manager for generating embeddings
+    private let embeddingManager: EmbeddingManager
+
+    /// Logger for indexing operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "embedding-gen"
+    )
+
+    /// Current indexing task
+    private var indexingTask: Task<Int, Never>?
+
+    /// Cancellables for Combine subscriptions
+    private var cancellables = Set<AnyCancellable>()
+
+    /// Processes a single item for embedding
+    private func processItem(itemId: UUID) async -> Bool {
+        // Fetch the item
+        guard let item = await storageManager.fetchItem(byId: itemId) else {
+            return false
+        }
+
+        // Use plain text preview, or fall back to OCR text for images
+        var text = item.plainTextPreview
+        if text == nil || !embeddingManager.canEmbed(text!) {
+            if let ocrText = await storageManager.fetchOCRText(for: itemId),
+               embeddingManager.canEmbed(ocrText)
+            {
+                text = ocrText
+            }
+        }
+
+        guard let text, embeddingManager.canEmbed(text) else {
+            return false
+        }
+
+        // Check for duplicate text (reuse existing embedding)
+        if let existingEmbedding = await storageManager.findEmbeddingByTextHash(text) {
+            return await storageManager.saveEmbedding(
+                for: itemId,
+                text: text,
+                embedding: existingEmbedding
+            )
+        }
+
+        // Generate new embedding
+        guard let embedding = embeddingManager.generateEmbedding(for: text) else {
+            return false
+        }
+
+        // Save embedding
+        return await storageManager.saveEmbedding(
+            for: itemId,
+            text: text,
+            embedding: embedding
+        )
     }
 }

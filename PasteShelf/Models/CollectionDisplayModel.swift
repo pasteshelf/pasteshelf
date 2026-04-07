@@ -8,9 +8,35 @@
 
 import SwiftUI
 
+// MARK: - CollectionDisplayModel
+
 /// UI-friendly model for displaying smart collections
 struct CollectionDisplayModel: Identifiable, Hashable, Sendable {
-    // MARK: - Properties
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        icon: String,
+        colorHex: String? = nil,
+        isAutomatic: Bool = true,
+        itemCount: Int = 0,
+        sortOrder: Int32 = 0,
+        rules: CollectionRules? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.icon = icon
+        self.colorHex = colorHex
+        self.isAutomatic = isAutomatic
+        self.itemCount = itemCount
+        self.sortOrder = sortOrder
+        self.rules = rules
+    }
+
+    // MARK: Internal
 
     /// Unique identifier
     let id: UUID
@@ -35,8 +61,6 @@ struct CollectionDisplayModel: Identifiable, Hashable, Sendable {
 
     /// Collection rules (only for automatic collections)
     let rules: CollectionRules?
-
-    // MARK: - Computed Properties
 
     /// SwiftUI Color from hex string, or default color
     var color: Color {
@@ -63,7 +87,9 @@ struct CollectionDisplayModel: Identifiable, Hashable, Sendable {
 
     /// Summary of rules (for automatic collections)
     var rulesSummary: String? {
-        guard isAutomatic, let rules, !rules.isEmpty else { return nil }
+        guard isAutomatic, let rules, !rules.isEmpty else {
+            return nil
+        }
 
         let conditionCount = rules.conditions.count
         let operatorText = rules.logicalOperator == .and ? "all" : "any"
@@ -75,36 +101,14 @@ struct CollectionDisplayModel: Identifiable, Hashable, Sendable {
         }
     }
 
-    // MARK: - Initialization
-
-    init(
-        id: UUID = UUID(),
-        name: String,
-        icon: String,
-        colorHex: String? = nil,
-        isAutomatic: Bool = true,
-        itemCount: Int = 0,
-        sortOrder: Int32 = 0,
-        rules: CollectionRules? = nil
-    ) {
-        self.id = id
-        self.name = name
-        self.icon = icon
-        self.colorHex = colorHex
-        self.isAutomatic = isAutomatic
-        self.itemCount = itemCount
-        self.sortOrder = sortOrder
-        self.rules = rules
+    static func == (lhs: CollectionDisplayModel, rhs: CollectionDisplayModel) -> Bool {
+        lhs.id == rhs.id
     }
 
     // MARK: - Hashable
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-    }
-
-    static func == (lhs: CollectionDisplayModel, rhs: CollectionDisplayModel) -> Bool {
-        lhs.id == rhs.id
     }
 }
 
@@ -123,11 +127,10 @@ extension CollectionDisplayModel {
             return nil
         }
 
-        let rules: CollectionRules?
-        if collection.isAutomatic, let rulesJSON = collection.rulesJSON {
-            rules = CollectionRules.fromJSON(rulesJSON)
+        let rules: CollectionRules? = if collection.isAutomatic, let rulesJSON = collection.rulesJSON {
+            CollectionRules.fromJSON(rulesJSON)
         } else {
-            rules = nil
+            nil
         }
 
         return CollectionDisplayModel(
@@ -160,7 +163,7 @@ extension CollectionDisplayModel {
         rules: CollectionRules? = nil
     ) -> CollectionDisplayModel {
         CollectionDisplayModel(
-            id: self.id,
+            id: id,
             name: name ?? self.name,
             icon: icon ?? self.icon,
             colorHex: colorHex ?? self.colorHex,

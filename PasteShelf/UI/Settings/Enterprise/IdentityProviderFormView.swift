@@ -17,6 +17,8 @@ import SwiftUI
 /// When `provider` is nil, the form creates a new provider. When non-nil, it pre-fills with
 /// the existing configuration and updates on save.
 struct IdentityProviderFormView: View {
+    // MARK: Internal
+
     // MARK: - Inputs
 
     /// Existing provider to edit; nil when creating a new one
@@ -24,8 +26,48 @@ struct IdentityProviderFormView: View {
     let onSave: (IdentityProvider) -> Void
     let onCancel: () -> Void
     let onTestConnection: (IdentityProvider) -> Void
+
     @Binding var testResult: SSOSettingsViewModel.TestConnectionResult?
     @Binding var isTestingConnection: Bool
+
+    // MARK: - Body
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Title bar
+            HStack {
+                Text(provider == nil ? "Add Identity Provider" : "Edit Identity Provider")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                Spacer()
+            }
+            .padding([.horizontal, .top], 20)
+            .padding(.bottom, 12)
+
+            Divider()
+
+            // Scrollable form body
+            ScrollView {
+                Form {
+                    generalSection
+                    typeSpecificSection
+                    testConnectionSection
+                }
+                .formStyle(.grouped)
+                .padding(.bottom, 8)
+            }
+
+            Divider()
+
+            // Footer buttons
+            footerButtons
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+        }
+        .onAppear { populateFromProvider() }
+    }
+
+    // MARK: Private
 
     // MARK: - Shared fields
 
@@ -72,41 +114,28 @@ struct IdentityProviderFormView: View {
 
     @State private var validationErrors: [String] = []
 
-    // MARK: - Body
+    // MARK: - Validation
 
-    var body: some View {
-        VStack(spacing: 0) {
-            // Title bar
-            HStack {
-                Text(provider == nil ? "Add Identity Provider" : "Edit Identity Provider")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                Spacer()
-            }
-            .padding([.horizontal, .top], 20)
-            .padding(.bottom, 12)
-
-            Divider()
-
-            // Scrollable form body
-            ScrollView {
-                Form {
-                    generalSection
-                    typeSpecificSection
-                    testConnectionSection
-                }
-                .formStyle(.grouped)
-                .padding(.bottom, 8)
-            }
-
-            Divider()
-
-            // Footer buttons
-            footerButtons
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
+    private var isFormValid: Bool {
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+            return false
         }
-        .onAppear { populateFromProvider() }
+        switch providerType {
+        case .saml:
+            return !samlSSOURL.isEmpty && !samlCertificate.isEmpty && !samlACSURL.isEmpty
+        case .oidc:
+            let hasEndpoints = oidcUseDiscovery
+                ? !oidcAuthorizationEndpoint.isEmpty // populated after discovery
+                : !oidcAuthorizationEndpoint.isEmpty && !oidcTokenEndpoint.isEmpty && !oidcJWKSURL.isEmpty
+            return !oidcIssuerURL.isEmpty && !oidcClientId.isEmpty && !oidcRedirectURI.isEmpty && hasEndpoints
+        }
+    }
+
+    private var canTest: Bool {
+        switch providerType {
+        case .saml: !samlSSOURL.isEmpty
+        case .oidc: !oidcIssuerURL.isEmpty
+        }
     }
 
     // MARK: - General Section
@@ -347,9 +376,11 @@ struct IdentityProviderFormView: View {
             } header: {
                 Text("Provider Discovery")
             } footer: {
-                Text("Enable discovery to auto-populate authorization, token, and JWKS endpoints from the issuer's well-known document.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Text(
+                    "Enable discovery to auto-populate authorization, token, and JWKS endpoints from the issuer's well-known document."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
 
             // Manual endpoints (shown when discovery is off, or populated after discovery)
@@ -478,7 +509,9 @@ struct IdentityProviderFormView: View {
                     }
 
                     Button("Test Connection") {
-                        guard let built = buildProvider() else { return }
+                        guard let built = buildProvider() else {
+                            return
+                        }
                         onTestConnection(built)
                     }
                     .buttonStyle(.borderedProminent)
@@ -549,28 +582,6 @@ struct IdentityProviderFormView: View {
         }
     }
 
-    // MARK: - Validation
-
-    private var isFormValid: Bool {
-        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
-        switch providerType {
-        case .saml:
-            return !samlSSOURL.isEmpty && !samlCertificate.isEmpty && !samlACSURL.isEmpty
-        case .oidc:
-            let hasEndpoints = oidcUseDiscovery
-                ? !oidcAuthorizationEndpoint.isEmpty  // populated after discovery
-                : !oidcAuthorizationEndpoint.isEmpty && !oidcTokenEndpoint.isEmpty && !oidcJWKSURL.isEmpty
-            return !oidcIssuerURL.isEmpty && !oidcClientId.isEmpty && !oidcRedirectURI.isEmpty && hasEndpoints
-        }
-    }
-
-    private var canTest: Bool {
-        switch providerType {
-        case .saml: return !samlSSOURL.isEmpty
-        case .oidc: return !oidcIssuerURL.isEmpty
-        }
-    }
-
     // MARK: - Save
 
     private func saveProvider() {
@@ -581,7 +592,9 @@ struct IdentityProviderFormView: View {
             return
         }
 
-        guard let built = buildProvider() else { return }
+        guard let built = buildProvider() else {
+            return
+        }
         onSave(built)
     }
 
@@ -671,7 +684,9 @@ struct IdentityProviderFormView: View {
     // MARK: - Populate from Existing Provider
 
     private func populateFromProvider() {
-        guard let p = provider else { return }
+        guard let p = provider else {
+            return
+        }
 
         name = p.name
         entityId = p.entityId
@@ -740,7 +755,9 @@ struct IdentityProviderFormView: View {
                 }
 
                 // Auto-set entity ID from issuer if empty
-                if entityId.isEmpty { entityId = doc.issuer }
+                if entityId.isEmpty {
+                    entityId = doc.issuer
+                }
 
                 discoveryError = nil
             } catch {
@@ -785,15 +802,17 @@ struct IdentityProviderFormView: View {
                    let locationStart = xml[ssoRange.upperBound...].range(of: "Location=\""),
                    let locationEnd = xml[locationStart.upperBound...].range(of: "\"")
                 {
-                    let extracted = String(xml[locationStart.upperBound..<locationEnd.lowerBound])
-                    if !extracted.isEmpty { samlSSOURL = extracted }
+                    let extracted = String(xml[locationStart.upperBound ..< locationEnd.lowerBound])
+                    if !extracted.isEmpty {
+                        samlSSOURL = extracted
+                    }
                 }
 
                 // Extract entityID from EntityDescriptor
                 if let entityRange = xml.range(of: "entityID=\""),
                    let entityEnd = xml[entityRange.upperBound...].range(of: "\"")
                 {
-                    let extracted = String(xml[entityRange.upperBound..<entityEnd.lowerBound])
+                    let extracted = String(xml[entityRange.upperBound ..< entityEnd.lowerBound])
                     if !extracted.isEmpty {
                         entityId = extracted
                     }
@@ -801,10 +820,11 @@ struct IdentityProviderFormView: View {
 
                 // Extract X509Certificate
                 if let certStart = xml.range(of: "<ds:X509Certificate>") ?? xml.range(of: "<X509Certificate>"),
-                   let certTag = xml.range(of: certStart.lowerBound == xml.startIndex ? "<ds:X509Certificate>" : "<X509Certificate>"),
+                   let certTag = xml
+                   .range(of: certStart.lowerBound == xml.startIndex ? "<ds:X509Certificate>" : "<X509Certificate>"),
                    let certEnd = xml[certTag.upperBound...].range(of: "</")
                 {
-                    let rawCert = String(xml[certTag.upperBound..<certEnd.lowerBound])
+                    let rawCert = String(xml[certTag.upperBound ..< certEnd.lowerBound])
                         .trimmingCharacters(in: .whitespacesAndNewlines)
                     if !rawCert.isEmpty {
                         samlCertificate = "-----BEGIN CERTIFICATE-----\n\(rawCert)\n-----END CERTIFICATE-----"
@@ -819,7 +839,7 @@ struct IdentityProviderFormView: View {
     }
 }
 
-// MARK: - SAMLNameIDFormat + CaseIterable convenience
+// MARK: - SAMLNameIDFormat + CaseIterable
 
 extension SAMLNameIDFormat: CaseIterable {
     static var allCases: [SAMLNameIDFormat] {

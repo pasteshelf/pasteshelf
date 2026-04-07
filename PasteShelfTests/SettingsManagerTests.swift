@@ -6,8 +6,10 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
+
+// MARK: - SettingsManagerTests
 
 struct SettingsManagerTests {
     // MARK: - GeneralSettings Tests
@@ -175,7 +177,7 @@ struct SettingsManagerTests {
     @Test("Settings can decode from minimal JSON")
     func settingsCanDecodeFromMinimalJSON() throws {
         let json = "{}"
-        let data = json.data(using: .utf8)!
+        let data = try #require(json.data(using: .utf8))
 
         // Should not throw - should use defaults for missing fields
         do {
@@ -187,7 +189,7 @@ struct SettingsManagerTests {
     }
 }
 
-// MARK: - Hotkey Configuration Tests
+// MARK: - HotkeyConfigurationTests
 
 struct HotkeyConfigurationTests {
     @Test("HotkeyConfiguration default is Cmd+Shift+V")

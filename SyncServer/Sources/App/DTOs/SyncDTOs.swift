@@ -1,20 +1,24 @@
 import Vapor
 
-// MARK: - Push
+// MARK: - SyncPushRequest
 
 struct SyncPushRequest: Content {
     let changes: [SyncChangeDTO]
     let deviceID: String
 }
 
+// MARK: - SyncChangeDTO
+
 struct SyncChangeDTO: Content {
     let entityID: UUID
     let entityType: String
-    let encryptedData: String?  // Base64-encoded
+    let encryptedData: String? // Base64-encoded
     let contentHash: String?
     let isDeleted: Bool
     let clientVersion: Int64?
 }
+
+// MARK: - SyncPushResponse
 
 struct SyncPushResponse: Content {
     let accepted: Int
@@ -22,20 +26,24 @@ struct SyncPushResponse: Content {
     let serverTimestamp: Date
 }
 
+// MARK: - SyncConflictDTO
+
 struct SyncConflictDTO: Content {
     let entityID: UUID
     let entityType: String
     let serverVersion: Int64
-    let serverEncryptedData: String?  // Base64-encoded
+    let serverEncryptedData: String? // Base64-encoded
     let serverContentHash: String?
 }
 
-// MARK: - Pull
+// MARK: - SyncPullRequest
 
 struct SyncPullRequest: Content {
     let since: String?
     let limit: Int?
 }
+
+// MARK: - SyncPullResponse
 
 struct SyncPullResponse: Content {
     let changes: [SyncPullChangeDTO]
@@ -43,11 +51,13 @@ struct SyncPullResponse: Content {
     let hasMore: Bool
 }
 
+// MARK: - SyncPullChangeDTO
+
 struct SyncPullChangeDTO: Content {
     let entityID: UUID
     let entityType: String
     let changeType: String
-    let encryptedData: String?  // Base64-encoded
+    let encryptedData: String? // Base64-encoded
     let contentHash: String?
     let isDeleted: Bool
     let version: Int64
@@ -55,7 +65,7 @@ struct SyncPullChangeDTO: Content {
     let timestamp: Date
 }
 
-// MARK: - Status
+// MARK: - SyncStatusResponse
 
 struct SyncStatusResponse: Content {
     let deviceID: String
@@ -64,7 +74,7 @@ struct SyncStatusResponse: Content {
     let serverTimestamp: Date
 }
 
-// MARK: - Reset
+// MARK: - SyncResetResponse
 
 struct SyncResetResponse: Content {
     let deletedRecords: Int

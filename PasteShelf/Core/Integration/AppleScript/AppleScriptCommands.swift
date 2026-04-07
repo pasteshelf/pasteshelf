@@ -10,7 +10,7 @@ import AppKit
 import CoreData
 import Foundation
 
-// MARK: - Get Clipboard History Command
+// MARK: - GetClipboardHistoryCommand
 
 /// Handles the "get clipboard history" AppleScript command
 @MainActor @objc(GetClipboardHistoryCommand)
@@ -50,7 +50,7 @@ class GetClipboardHistoryCommand: NSScriptCommand {
     }
 }
 
-// MARK: - Search Clipboard Command
+// MARK: - SearchClipboardCommand
 
 /// Handles the "search clipboard" AppleScript command
 @MainActor @objc(SearchClipboardCommand)
@@ -93,11 +93,13 @@ class SearchClipboardCommand: NSScriptCommand {
     }
 }
 
-// MARK: - Copy Item Command
+// MARK: - CopyItemCommand
 
 /// Handles the "copy item" AppleScript command
 @MainActor @objc(CopyItemCommand)
 class CopyItemCommand: NSScriptCommand {
+    // MARK: Internal
+
     override func performDefaultImplementation() -> Any? {
         // Get the item from direct parameter
         guard let scriptable = directParameter as? ClipboardItemScriptable else {
@@ -133,6 +135,8 @@ class CopyItemCommand: NSScriptCommand {
 
         return success
     }
+
+    // MARK: Private
 
     private func copyItemToClipboard(_ item: ClipboardItem) -> Bool {
         let pasteboard = NSPasteboard.general
@@ -183,7 +187,7 @@ class CopyItemCommand: NSScriptCommand {
     }
 }
 
-// MARK: - Copy Text Command
+// MARK: - CopyTextCommand
 
 /// Handles the "copy text" AppleScript command
 @objc(CopyTextCommand)
@@ -204,11 +208,13 @@ class CopyTextCommand: NSScriptCommand {
     }
 }
 
-// MARK: - Transform Text Command
+// MARK: - TransformTextCommand
 
 /// Handles the "transform text" AppleScript command
 @objc(TransformTextCommand)
 class TransformTextCommand: NSScriptCommand {
+    // MARK: Internal
+
     override func performDefaultImplementation() -> Any? {
         // Get text from direct parameter
         guard let text = directParameter as? String else {
@@ -229,36 +235,59 @@ class TransformTextCommand: NSScriptCommand {
         return preset.transform(text)
     }
 
+    // MARK: Private
+
     private func transformationCodeToPreset(_ code: String) -> TransformPreset? {
         // Map AppleScript four-char codes to TransformPreset
         switch code {
-        case "uppr", "uppercase": return .uppercase
-        case "lowr", "lowercase": return .lowercase
-        case "titl", "title case": return .titleCase
-        case "sent", "sentence case": return .sentenceCase
-        case "trim", "trim whitespace": return .trimWhitespace
-        case "rmnl", "remove newlines": return .removeNewlines
-        case "clsp", "collapse spaces": return .collapseSpaces
-        case "srtl", "sort lines": return .sortLines
-        case "unql", "unique lines": return .uniqueLines
-        case "rvsl", "reverse lines": return .reverseLines
-        case "b64e", "base64 encode": return .base64Encode
-        case "b64d", "base64 decode": return .base64Decode
-        case "urle", "url encode": return .urlEncode
-        case "urld", "url decode": return .urlDecode
-        case "fmtj", "format json": return .formatJSON
-        case "minj", "minify json": return .minifyJSON
-        case "esch", "escape html": return .escapeHTML
-        case "unsh", "unescape html": return .unescapeHTML
-        case "stph", "strip html": return .stripHTMLTags
-        case "md5h", "md5 hash": return .md5Hash
-        case "s256", "sha256 hash": return .sha256Hash
-        default: return nil
+        case "uppr",
+             "uppercase": .uppercase
+        case "lowr",
+             "lowercase": .lowercase
+        case "titl",
+             "title case": .titleCase
+        case "sent",
+             "sentence case": .sentenceCase
+        case "trim",
+             "trim whitespace": .trimWhitespace
+        case "rmnl",
+             "remove newlines": .removeNewlines
+        case "clsp",
+             "collapse spaces": .collapseSpaces
+        case "srtl",
+             "sort lines": .sortLines
+        case "unql",
+             "unique lines": .uniqueLines
+        case "rvsl",
+             "reverse lines": .reverseLines
+        case "b64e",
+             "base64 encode": .base64Encode
+        case "b64d",
+             "base64 decode": .base64Decode
+        case "urle",
+             "url encode": .urlEncode
+        case "urld",
+             "url decode": .urlDecode
+        case "fmtj",
+             "format json": .formatJSON
+        case "minj",
+             "minify json": .minifyJSON
+        case "esch",
+             "escape html": .escapeHTML
+        case "unsh",
+             "unescape html": .unescapeHTML
+        case "stph",
+             "strip html": .stripHTMLTags
+        case "md5h",
+             "md5 hash": .md5Hash
+        case "s256",
+             "sha256 hash": .sha256Hash
+        default: nil
         }
     }
 }
 
-// MARK: - Delete Item Command
+// MARK: - DeleteItemCommand
 
 /// Handles the "delete item" AppleScript command
 @MainActor @objc(DeleteItemCommand)
@@ -304,7 +333,7 @@ class DeleteItemCommand: NSScriptCommand {
     }
 }
 
-// MARK: - Clear History Command
+// MARK: - ClearHistoryCommand
 
 /// Handles the "clear history" AppleScript command
 @MainActor @objc(ClearHistoryCommand)
@@ -342,7 +371,7 @@ class ClearHistoryCommand: NSScriptCommand {
     }
 }
 
-// MARK: - Show Window Command
+// MARK: - ShowWindowCommand
 
 /// Handles the "show window" AppleScript command
 @objc(ShowWindowCommand)
@@ -367,7 +396,7 @@ class ShowWindowCommand: NSScriptCommand {
     }
 }
 
-// MARK: - Hide Window Command
+// MARK: - HideWindowCommand
 
 /// Handles the "hide window" AppleScript command
 @objc(HideWindowCommand)

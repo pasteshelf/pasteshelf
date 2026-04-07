@@ -20,14 +20,10 @@ extension String {
     }
 }
 
-// MARK: - Localization Keys
+// MARK: - LocalizedString
 
 /// Centralized localization keys for type-safe access
 enum LocalizedString {
-    // MARK: - App
-
-    static let appName = "PasteShelf"
-
     // MARK: - Onboarding
 
     enum Onboarding {
@@ -179,8 +175,6 @@ enum LocalizedString {
         static let noRecentItems = "No Recent Items"
     }
 
-    // MARK: - Actions
-
     enum Actions {
         static let paste = "Paste"
         static let copy = "Copy"
@@ -255,4 +249,8 @@ enum LocalizedString {
         static let menuBarDescription = "Click the menu bar icon to quickly access recent items or open preferences."
         static let keyShortcuts = "Key Shortcuts"
     }
+
+    // MARK: - App
+
+    static let appName = "PasteShelf"
 }

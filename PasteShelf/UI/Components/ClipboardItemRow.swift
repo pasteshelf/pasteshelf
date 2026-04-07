@@ -7,9 +7,11 @@
 
 import SwiftUI
 
+// MARK: - ClipboardItemRow
+
 /// List row container for a clipboard item with selection handling
 struct ClipboardItemRow: View {
-    // MARK: - Properties
+    // MARK: Internal
 
     let item: ClipboardItemDisplayModel
     let index: Int
@@ -21,18 +23,15 @@ struct ClipboardItemRow: View {
     var onCopyOCRText: (() -> Void)?
     var onDelete: (() -> Void)?
     var onToggleFavorite: (() -> Void)?
-    #if !APP_STORE
-    var onPluginAction: ((PluginMenuItem, String) -> Void)?
-    #endif
 
     // MARK: - State
 
     /// Observe settings for reactive updates
     @EnvironmentObject var settingsManager: SettingsManager
 
-    @State private var isHovered = false
-    @State private var availableTags: [TagDisplayModel] = []
-    @State private var assignedTagIds: Set<UUID> = []
+    #if !APP_STORE
+        var onPluginAction: ((PluginMenuItem, String) -> Void)?
+    #endif
 
     // MARK: - Body
 
@@ -42,33 +41,58 @@ struct ClipboardItemRow: View {
             searchHighlights: searchHighlights,
             searchQuery: searchQuery
         )
-            .background(backgroundView)
-            .contentShape(Rectangle())
-            .onTapGesture(count: 2) {
-                onPaste()
-            }
-            .onTapGesture(count: 1) {
-                onSelect()
-            }
-            .onHover { hovering in
-                isHovered = hovering
-            }
-            .overlay(alignment: .topTrailing) {
-                quickActionOverlay
-                    .padding(.top, settingsManager.appearance.compactMode ? 25 : 30)
-            }
-            .contextMenu {
-                contextMenuContent
-            }
-            .task {
-                let tags = await StorageManager.shared.fetchTags()
-                availableTags = TagDisplayModel.from(tags)
-                assignedTagIds = await StorageManager.shared.fetchTagIds(forItemId: item.id)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(accessibilityLabel)
-            .accessibilityHint("Double-click to paste")
-            .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .background(backgroundView)
+        .contentShape(Rectangle())
+        .onTapGesture(count: 2) {
+            onPaste()
+        }
+        .onTapGesture(count: 1) {
+            onSelect()
+        }
+        .onHover { hovering in
+            isHovered = hovering
+        }
+        .overlay(alignment: .topTrailing) {
+            quickActionOverlay
+                .padding(.top, settingsManager.appearance.compactMode ? 25 : 30)
+        }
+        .contextMenu {
+            contextMenuContent
+        }
+        .task {
+            let tags = await StorageManager.shared.fetchTags()
+            availableTags = TagDisplayModel.from(tags)
+            assignedTagIds = await StorageManager.shared.fetchTagIds(forItemId: item.id)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint("Double-click to paste")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    // MARK: Private
+
+    @State private var isHovered = false
+    @State private var availableTags: [TagDisplayModel] = []
+    @State private var assignedTagIds: Set<UUID> = []
+
+    // MARK: - Accessibility
+
+    private var accessibilityLabel: String {
+        var label = item.displayText
+
+        if item.isSensitive {
+            label += ", sensitive content"
+        }
+
+        if item.isFavorite {
+            label += ", favorite"
+        }
+
+        label += ", from \(item.sourceAppName ?? "unknown app")"
+        label += ", \(item.relativeTimestamp)"
+
+        return label
     }
 
     // MARK: - Context Menu
@@ -132,39 +156,39 @@ struct ClipboardItemRow: View {
         }
 
         #if !APP_STORE
-        // Plugin actions — grouped under a single "Plugins" submenu
-        let pluginMenuItems = PluginManager.shared.allMenuItems
-            .sorted(by: { ($0.pluginId) < ($1.pluginId) })
-            .filter { pluginId, _ in
-                let types = PluginManager.shared.plugins[pluginId]?.bundle.manifest.supportedContentTypes ?? []
-                return types.isEmpty || types.contains(item.contentType.rawValue)
-            }
-        if !pluginMenuItems.isEmpty {
-            Divider()
+            // Plugin actions — grouped under a single "Plugins" submenu
+            let pluginMenuItems = PluginManager.shared.allMenuItems
+                .sorted(by: { ($0.pluginId) < ($1.pluginId) })
+                .filter { pluginId, _ in
+                    let types = PluginManager.shared.plugins[pluginId]?.bundle.manifest.supportedContentTypes ?? []
+                    return types.isEmpty || types.contains(item.contentType.rawValue)
+                }
+            if !pluginMenuItems.isEmpty {
+                Divider()
 
-            Menu {
-                ForEach(pluginMenuItems, id: \.pluginId) { pluginId, items in
-                    let pluginName = PluginManager.shared.plugins[pluginId]?.bundle.manifest.name ?? pluginId
+                Menu {
+                    ForEach(pluginMenuItems, id: \.pluginId) { pluginId, items in
+                        let pluginName = PluginManager.shared.plugins[pluginId]?.bundle.manifest.name ?? pluginId
 
-                    Section(pluginName) {
-                        ForEach(items, id: \.actionId) { menuItem in
-                            Button {
-                                onPluginAction?(menuItem, pluginId)
-                            } label: {
-                                if let icon = menuItem.iconName {
-                                    Label(menuItem.title, systemImage: icon)
-                                } else {
-                                    Text(menuItem.title)
+                        Section(pluginName) {
+                            ForEach(items, id: \.actionId) { menuItem in
+                                Button {
+                                    onPluginAction?(menuItem, pluginId)
+                                } label: {
+                                    if let icon = menuItem.iconName {
+                                        Label(menuItem.title, systemImage: icon)
+                                    } else {
+                                        Text(menuItem.title)
+                                    }
                                 }
+                                .disabled(!menuItem.isEnabled)
                             }
-                            .disabled(!menuItem.isEnabled)
                         }
                     }
+                } label: {
+                    Label("Plugins", systemImage: "puzzlepiece.extension")
                 }
-            } label: {
-                Label("Plugins", systemImage: "puzzlepiece.extension")
             }
-        }
         #endif
 
         // Delete
@@ -228,25 +252,6 @@ struct ClipboardItemRow: View {
             .padding(.trailing, 12)
             .transition(.opacity)
         }
-    }
-
-    // MARK: - Accessibility
-
-    private var accessibilityLabel: String {
-        var label = item.displayText
-
-        if item.isSensitive {
-            label += ", sensitive content"
-        }
-
-        if item.isFavorite {
-            label += ", favorite"
-        }
-
-        label += ", from \(item.sourceAppName ?? "unknown app")"
-        label += ", \(item.relativeTimestamp)"
-
-        return label
     }
 }
 

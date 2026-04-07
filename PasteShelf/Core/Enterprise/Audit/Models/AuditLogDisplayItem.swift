@@ -20,7 +20,6 @@ import Foundation
 /// Equality and hashing are based solely on `id`, allowing SwiftUI lists to efficiently
 /// diff and update rows without re-evaluating computed properties.
 struct AuditLogDisplayItem: Identifiable, Hashable {
-
     // MARK: - Identity
 
     /// The unique identifier of the underlying audit log entry.
@@ -70,15 +69,15 @@ struct AuditLogDisplayItem: Identifiable, Hashable {
     var categoryDisplayName: String {
         switch category {
         case .clipboard:
-            return "Clipboard"
+            "Clipboard"
         case .userAction:
-            return "User Action"
+            "User Action"
         case .policy:
-            return "Policy"
+            "Policy"
         case .authentication:
-            return "Authentication"
+            "Authentication"
         case .compliance:
-            return "Compliance"
+            "Compliance"
         }
     }
 
@@ -99,11 +98,11 @@ struct AuditLogDisplayItem: Identifiable, Hashable {
     var severityIconName: String {
         switch severity {
         case .info:
-            return "info.circle"
+            "info.circle"
         case .warning:
-            return "exclamationmark.triangle"
+            "exclamationmark.triangle"
         case .critical:
-            return "xmark.octagon"
+            "xmark.octagon"
         }
     }
 

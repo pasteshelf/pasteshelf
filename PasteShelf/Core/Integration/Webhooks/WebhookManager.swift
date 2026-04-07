@@ -11,38 +11,12 @@ import CryptoKit
 import Foundation
 import os.log
 
-// MARK: - Webhook Manager
+// MARK: - WebhookManager
 
 /// Manages webhook endpoint configuration and delivery
-@MainActor final class WebhookManager {
-    // MARK: - Singleton
-
-    static let shared = WebhookManager()
-
-    // MARK: - Private Properties
-
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "webhooks"
-    )
-
-    /// URLSession for webhook requests
-    private let session: URLSession
-
-    /// Serial queue for webhook delivery
-    private let deliveryQueue = DispatchQueue(
-        label: "com.pasteshelf.webhooks.delivery",
-        qos: .utility
-    )
-
-    /// Maximum number of retry attempts
-    private let maxRetries = 3
-
-    /// Base delay between retries (exponential backoff)
-    private let baseRetryDelay: TimeInterval = 1.0
-
-    /// Request timeout in seconds
-    private let requestTimeout: TimeInterval = 30.0
+@MainActor
+final class WebhookManager {
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -53,6 +27,12 @@ import os.log
         configuration.waitsForConnectivity = true
         session = URLSession(configuration: configuration)
     }
+
+    // MARK: Internal
+
+    // MARK: - Singleton
+
+    static let shared = WebhookManager()
 
     // MARK: - Public API
 
@@ -126,24 +106,6 @@ import os.log
             durationMs: durationMs
         )
         await send(event: .ruleExecuted, payload: payload)
-    }
-
-    // MARK: - Endpoint Management
-
-    /// Fetch all enabled endpoints for an event
-    private func fetchEnabledEndpoints(for event: WebhookEventType) async -> [WebhookConfiguration] {
-        let context = StorageManager.shared.viewContext
-
-        return await context.perform {
-            let request = WebhookEndpoint.endpointsForEventFetchRequest(event: event.rawValue)
-
-            do {
-                let endpoints = try context.fetch(request)
-                return endpoints.map { $0.toConfiguration() }
-            } catch {
-                return []
-            }
-        }
     }
 
     /// Create a new webhook endpoint
@@ -245,6 +207,51 @@ import os.log
         }
     }
 
+    // MARK: Private
+
+    // MARK: - Private Properties
+
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "webhooks"
+    )
+
+    /// URLSession for webhook requests
+    private let session: URLSession
+
+    /// Serial queue for webhook delivery
+    private let deliveryQueue = DispatchQueue(
+        label: "com.pasteshelf.webhooks.delivery",
+        qos: .utility
+    )
+
+    /// Maximum number of retry attempts
+    private let maxRetries = 3
+
+    /// Base delay between retries (exponential backoff)
+    private let baseRetryDelay: TimeInterval = 1.0
+
+    /// Request timeout in seconds
+    private let requestTimeout: TimeInterval = 30.0
+
+    // MARK: - Endpoint Management
+
+    /// Fetch all enabled endpoints for an event
+    private func fetchEnabledEndpoints(for event: WebhookEventType) async -> [WebhookConfiguration] {
+        let context = StorageManager.shared.viewContext
+
+        return await context.perform {
+            let request = WebhookEndpoint.endpointsForEventFetchRequest(event: event.rawValue)
+
+            do {
+                let endpoints = try context.fetch(request)
+                return endpoints.map { $0.toConfiguration() }
+            } catch {
+                return []
+            }
+        }
+    }
+
     // MARK: - Delivery
 
     /// Deliver payload to an endpoint with retries
@@ -279,7 +286,7 @@ import os.log
 
         // All retries exhausted
         let errorMessage = lastError?.localizedDescription ?? "Unknown error"
-        logger.error("Webhook delivery to \(endpoint.name) failed after \(self.maxRetries) attempts: \(errorMessage)")
+        logger.error("Webhook delivery to \(endpoint.name) failed after \(maxRetries) attempts: \(errorMessage)")
         await recordFailure(for: endpoint.id, message: errorMessage)
     }
 
@@ -295,7 +302,10 @@ import os.log
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("PasteShelf/\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")", forHTTPHeaderField: "User-Agent")
+        request.setValue(
+            "PasteShelf/\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")",
+            forHTTPHeaderField: "User-Agent"
+        )
 
         // Add custom headers
         for (key, value) in endpoint.customHeaders {
@@ -390,7 +400,7 @@ import os.log
     }
 }
 
-// MARK: - Supporting Types
+// MARK: - DeliveryResult
 
 /// Result of a single delivery attempt
 private struct DeliveryResult {
@@ -399,6 +409,8 @@ private struct DeliveryResult {
     let responseTime: TimeInterval?
     let errorMessage: String?
 }
+
+// MARK: - WebhookTestResult
 
 /// Result of testing a webhook endpoint
 struct WebhookTestResult {
@@ -409,19 +421,23 @@ struct WebhookTestResult {
 
     var statusDescription: String {
         if success {
-            return "Success (\(statusCode ?? 200))"
+            "Success (\(statusCode ?? 200))"
         } else if let code = statusCode {
-            return "Failed (HTTP \(code))"
+            "Failed (HTTP \(code))"
         } else {
-            return errorMessage ?? "Failed"
+            errorMessage ?? "Failed"
         }
     }
 
     var responseTimeDescription: String? {
-        guard let time = responseTime else { return nil }
+        guard let time = responseTime else {
+            return nil
+        }
         return String(format: "%.0f ms", time * 1000)
     }
 }
+
+// MARK: - WebhookError
 
 /// Webhook-related errors
 enum WebhookError: LocalizedError {
@@ -430,16 +446,18 @@ enum WebhookError: LocalizedError {
     case httpError(statusCode: Int, message: String?)
     case endpointNotFound
 
+    // MARK: Internal
+
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "Invalid webhook URL"
+            "Invalid webhook URL"
         case .invalidResponse:
-            return "Invalid response from webhook endpoint"
+            "Invalid response from webhook endpoint"
         case let .httpError(statusCode, message):
-            return "HTTP error \(statusCode): \(message ?? "Unknown error")"
+            "HTTP error \(statusCode): \(message ?? "Unknown error")"
         case .endpointNotFound:
-            return "Webhook endpoint not found"
+            "Webhook endpoint not found"
         }
     }
 }

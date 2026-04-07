@@ -8,6 +8,8 @@
 import Fluent
 import Vapor
 
+// MARK: - DeviceController
+
 struct DeviceController: RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
         let devices = routes.grouped("api", "v1", "devices")

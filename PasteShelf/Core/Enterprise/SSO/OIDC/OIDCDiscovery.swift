@@ -13,16 +13,15 @@ import os.log
 
 /// Discovers OIDC provider configuration from .well-known/openid-configuration
 final class OIDCDiscovery: Sendable {
-    // MARK: - Properties
-
-    private let logger = Logger(subsystem: "com.pasteshelf", category: "oidc-discovery")
-    private let urlSession: URLSession
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
     init(urlSession: URLSession = .shared) {
         self.urlSession = urlSession
     }
+
+    // MARK: Internal
 
     // MARK: - Discovery
 
@@ -150,12 +149,10 @@ final class OIDCDiscovery: Sendable {
         // preserving order ["openid", "profile", "email"]. Fall back to full default if the
         // document provides no scope list.
         let defaultScopes = ["openid", "profile", "email"]
-        let scopes: [String]
-
-        if let supported = document.scopesSupported {
-            scopes = defaultScopes.filter { supported.contains($0) }
+        let scopes: [String] = if let supported = document.scopesSupported {
+            defaultScopes.filter { supported.contains($0) }
         } else {
-            scopes = defaultScopes
+            defaultScopes
         }
 
         // Determine whether to honour PKCE: use the caller's preference, but only enable
@@ -188,6 +185,11 @@ final class OIDCDiscovery: Sendable {
             redirectURI: redirectURI
         )
     }
+
+    // MARK: Private
+
+    private let logger = Logger(subsystem: "com.pasteshelf", category: "oidc-discovery")
+    private let urlSession: URLSession
 }
 
 // MARK: - OIDCDiscoveryDocument
@@ -196,6 +198,25 @@ final class OIDCDiscovery: Sendable {
 ///
 /// See: https://openid.net/specs/openid-connect-discovery-1_0.html
 struct OIDCDiscoveryDocument: Codable, Sendable {
+    // MARK: - Coding Keys
+
+    enum CodingKeys: String, CodingKey {
+        case issuer
+        case authorizationEndpoint = "authorization_endpoint"
+        case tokenEndpoint = "token_endpoint"
+        case userinfoEndpoint = "userinfo_endpoint"
+        case jwksUri = "jwks_uri"
+        case endSessionEndpoint = "end_session_endpoint"
+        case registrationEndpoint = "registration_endpoint"
+        case scopesSupported = "scopes_supported"
+        case responseTypesSupported = "response_types_supported"
+        case grantTypesSupported = "grant_types_supported"
+        case subjectTypesSupported = "subject_types_supported"
+        case idTokenSigningAlgValuesSupported = "id_token_signing_alg_values_supported"
+        case tokenEndpointAuthMethodsSupported = "token_endpoint_auth_methods_supported"
+        case codeChallengeMethodsSupported = "code_challenge_methods_supported"
+    }
+
     // MARK: - Required Fields
 
     /// The issuer identifier of the OpenID Provider
@@ -241,27 +262,6 @@ struct OIDCDiscoveryDocument: Codable, Sendable {
 
     /// JSON array of PKCE code challenge methods supported by the OP
     let codeChallengeMethodsSupported: [String]?
-
-    // MARK: - Coding Keys
-
-    enum CodingKeys: String, CodingKey {
-        case issuer
-        case authorizationEndpoint = "authorization_endpoint"
-        case tokenEndpoint = "token_endpoint"
-        case userinfoEndpoint = "userinfo_endpoint"
-        case jwksUri = "jwks_uri"
-        case endSessionEndpoint = "end_session_endpoint"
-        case registrationEndpoint = "registration_endpoint"
-        case scopesSupported = "scopes_supported"
-        case responseTypesSupported = "response_types_supported"
-        case grantTypesSupported = "grant_types_supported"
-        case subjectTypesSupported = "subject_types_supported"
-        case idTokenSigningAlgValuesSupported = "id_token_signing_alg_values_supported"
-        case tokenEndpointAuthMethodsSupported = "token_endpoint_auth_methods_supported"
-        case codeChallengeMethodsSupported = "code_challenge_methods_supported"
-    }
-
-    // MARK: - Computed Properties
 
     /// Whether this provider supports PKCE with the S256 code challenge method
     var supportsPKCE: Bool {

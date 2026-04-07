@@ -11,34 +11,9 @@ import Foundation
 import os.log
 
 /// Manages global hotkey registration and handling
-@MainActor final class HotkeyManager {
-    // MARK: - Properties
-
-    /// Current hotkey configuration
-    private(set) var configuration: HotkeyConfiguration
-
-    /// Callback invoked when hotkey is pressed
-    var onHotkeyPressed: (() -> Void)?
-
-    /// Reference to the registered hotkey
-    private var hotkeyRef: EventHotKeyRef?
-
-    /// Unique identifier for the hotkey
-    private let hotkeyID = EventHotKeyID(signature: OSType("PSHF".utf8.reduce(0) { $0 << 8 + OSType($1) }), id: 1)
-
-    /// Whether a hotkey is currently registered
-    var isRegistered: Bool {
-        hotkeyRef != nil
-    }
-
-    /// Logger for hotkey operations
-    private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
-        category: "hotkey"
-    )
-
-    /// Shared instance for event handler callback
-    private static var shared: HotkeyManager?
+@MainActor
+final class HotkeyManager {
+    // MARK: Lifecycle
 
     // MARK: - Initialization
 
@@ -54,6 +29,19 @@ import os.log
                 Self.shared = nil
             }
         }
+    }
+
+    // MARK: Internal
+
+    /// Current hotkey configuration
+    private(set) var configuration: HotkeyConfiguration
+
+    /// Callback invoked when hotkey is pressed
+    var onHotkeyPressed: (() -> Void)?
+
+    /// Whether a hotkey is currently registered
+    var isRegistered: Bool {
+        hotkeyRef != nil
     }
 
     // MARK: - Registration
@@ -100,7 +88,9 @@ import os.log
 
     /// Unregisters the current hotkey
     func unregisterHotkey() {
-        guard let hotkeyRef = hotkeyRef else { return }
+        guard let hotkeyRef else {
+            return
+        }
 
         let status = UnregisterEventHotKey(hotkeyRef)
         if status == noErr {
@@ -134,62 +124,6 @@ import os.log
         return register(configuration: .default)
     }
 
-    // MARK: - Event Handler
-
-    private var eventHandlerInstalled = false
-
-    private func installEventHandler() {
-        guard !eventHandlerInstalled else { return }
-
-        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-
-        let status = InstallEventHandler(
-            GetApplicationEventTarget(),
-            { _, event, _ -> OSStatus in
-                HotkeyManager.handleHotkeyEvent(event)
-            },
-            1,
-            &eventType,
-            nil,
-            nil
-        )
-
-        if status == noErr {
-            eventHandlerInstalled = true
-            logger.debug("Event handler installed")
-        } else {
-            logger.error("Failed to install event handler: \(status)")
-        }
-    }
-
-    /// Handles hotkey events (called from C callback)
-    private static func handleHotkeyEvent(_ event: EventRef?) -> OSStatus {
-        guard let event = event else { return OSStatus(eventNotHandledErr) }
-
-        var hotkeyID = EventHotKeyID()
-        let status = GetEventParameter(
-            event,
-            EventParamName(kEventParamDirectObject),
-            EventParamType(typeEventHotKeyID),
-            nil,
-            MemoryLayout<EventHotKeyID>.size,
-            nil,
-            &hotkeyID
-        )
-
-        guard status == noErr else { return status }
-
-        // Check if this is our hotkey
-        if hotkeyID.signature == shared?.hotkeyID.signature, hotkeyID.id == shared?.hotkeyID.id {
-            DispatchQueue.main.async {
-                shared?.onHotkeyPressed?()
-            }
-            return noErr
-        }
-
-        return OSStatus(eventNotHandledErr)
-    }
-
     // MARK: - Conflict Detection
 
     /// Checks if a hotkey configuration conflicts with system shortcuts
@@ -211,6 +145,85 @@ import os.log
 
         return systemShortcuts.contains { shortcut in
             shortcut.keyCode == configuration.keyCode && shortcut.modifiers == configuration.modifiers
+        }
+    }
+
+    // MARK: Private
+
+    /// Shared instance for event handler callback
+    private static var shared: HotkeyManager?
+
+    /// Reference to the registered hotkey
+    private var hotkeyRef: EventHotKeyRef?
+
+    /// Unique identifier for the hotkey
+    private let hotkeyID = EventHotKeyID(signature: OSType("PSHF".utf8.reduce(0) { $0 << 8 + OSType($1) }), id: 1)
+
+    /// Logger for hotkey operations
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.pasteshelf",
+        category: "hotkey"
+    )
+
+    // MARK: - Event Handler
+
+    private var eventHandlerInstalled = false
+
+    /// Handles hotkey events (called from C callback)
+    private static func handleHotkeyEvent(_ event: EventRef?) -> OSStatus {
+        guard let event else {
+            return OSStatus(eventNotHandledErr)
+        }
+
+        var hotkeyID = EventHotKeyID()
+        let status = GetEventParameter(
+            event,
+            EventParamName(kEventParamDirectObject),
+            EventParamType(typeEventHotKeyID),
+            nil,
+            MemoryLayout<EventHotKeyID>.size,
+            nil,
+            &hotkeyID
+        )
+
+        guard status == noErr else {
+            return status
+        }
+
+        // Check if this is our hotkey
+        if hotkeyID.signature == shared?.hotkeyID.signature, hotkeyID.id == shared?.hotkeyID.id {
+            DispatchQueue.main.async {
+                shared?.onHotkeyPressed?()
+            }
+            return noErr
+        }
+
+        return OSStatus(eventNotHandledErr)
+    }
+
+    private func installEventHandler() {
+        guard !eventHandlerInstalled else {
+            return
+        }
+
+        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+
+        let status = InstallEventHandler(
+            GetApplicationEventTarget(),
+            { _, event, _ -> OSStatus in
+                HotkeyManager.handleHotkeyEvent(event)
+            },
+            1,
+            &eventType,
+            nil,
+            nil
+        )
+
+        if status == noErr {
+            eventHandlerInstalled = true
+            logger.debug("Event handler installed")
+        } else {
+            logger.error("Failed to install event handler: \(status)")
         }
     }
 }

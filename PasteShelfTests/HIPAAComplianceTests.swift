@@ -7,13 +7,12 @@
 //
 
 import Foundation
-import Testing
 @testable import PasteShelf
+import Testing
 
-// MARK: - HIPAAComplianceMode Tests
+// MARK: - HIPAAComplianceModeTests
 
 struct HIPAAComplianceModeTests {
-
     // MARK: Default Values
 
     @Test("HIPAAComplianceMode.default has isEnabled false")
@@ -63,15 +62,30 @@ struct HIPAAComplianceModeTests {
 
     @Test("Two HIPAAComplianceModes with same values are equal")
     func equalModes() {
-        let a = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 10, requireBiometric: false, requireSSO: true)
-        let b = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 10, requireBiometric: false, requireSSO: true)
+        let a = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 10,
+            requireBiometric: false,
+            requireSSO: true
+        )
+        let b = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 10,
+            requireBiometric: false,
+            requireSSO: true
+        )
         #expect(a == b)
     }
 
     @Test("Two HIPAAComplianceModes with different values are not equal")
     func notEqualModes() {
         let a = HIPAAComplianceMode.default
-        let b = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 15, requireBiometric: false, requireSSO: false)
+        let b = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 15,
+            requireBiometric: false,
+            requireSSO: false
+        )
         #expect(a != b)
     }
 
@@ -79,16 +93,20 @@ struct HIPAAComplianceModeTests {
 
     @Test("HIPAAComplianceMode can be sent across concurrency boundaries")
     func sendableConformance() async {
-        let mode = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 5, requireBiometric: true, requireSSO: false)
+        let mode = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 5,
+            requireBiometric: true,
+            requireSSO: false
+        )
         let result: HIPAAComplianceMode = await Task.detached { mode }.value
         #expect(result == mode)
     }
 }
 
-// MARK: - HIPAARetentionPolicy Tests
+// MARK: - HIPAARetentionPolicyTests
 
 struct HIPAARetentionPolicyTests {
-
     // MARK: hipaaDefault
 
     @Test("hipaaDefault has retentionDays of 2190")
@@ -171,10 +189,9 @@ struct HIPAARetentionPolicyTests {
     }
 }
 
-// MARK: - AuditRetentionConfiguration HIPAA Extensions Tests
+// MARK: - AuditRetentionConfigurationHIPAATests
 
 struct AuditRetentionConfigurationHIPAATests {
-
     @Test("hipaaMinimumDays is 2190")
     func hipaaMinimumDays() {
         #expect(AuditRetentionConfiguration.hipaaMinimumDays == 2190)
@@ -205,10 +222,9 @@ struct AuditRetentionConfigurationHIPAATests {
     }
 }
 
-// MARK: - HIPAAEnhancedAuditLogger Tests
+// MARK: - HIPAAEnhancedAuditLoggerTests
 
 struct HIPAAEnhancedAuditLoggerTests {
-
     /// A mock AuditLogging implementation that captures logged events.
     final class MockAuditLogger: AuditLogging, @unchecked Sendable {
         var loggedEvents: [AuditEvent] = []
@@ -245,7 +261,12 @@ struct HIPAAEnhancedAuditLoggerTests {
         let event = AuditEvent(category: .clipboard, action: .copyCaptured)
 
         // Enable HIPAA mode
-        let config = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 15, requireBiometric: false, requireSSO: false)
+        let config = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 15,
+            requireBiometric: false,
+            requireSSO: false
+        )
         config.save()
 
         await logger.log(event)
@@ -265,7 +286,12 @@ struct HIPAAEnhancedAuditLoggerTests {
         let mock = MockAuditLogger()
         let logger = HIPAAEnhancedAuditLogger(delegate: mock)
 
-        let config = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 15, requireBiometric: false, requireSSO: false)
+        let config = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 15,
+            requireBiometric: false,
+            requireSSO: false
+        )
         config.save()
 
         await logger.log(AuditEvent(category: .clipboard, action: .copyCaptured))
@@ -280,7 +306,12 @@ struct HIPAAEnhancedAuditLoggerTests {
         let mock = MockAuditLogger()
         let logger = HIPAAEnhancedAuditLogger(delegate: mock)
 
-        let config = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 15, requireBiometric: false, requireSSO: false)
+        let config = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 15,
+            requireBiometric: false,
+            requireSSO: false
+        )
         config.save()
 
         await logger.log(AuditEvent(category: .clipboard, action: .pastePerformed))
@@ -295,7 +326,12 @@ struct HIPAAEnhancedAuditLoggerTests {
         let mock = MockAuditLogger()
         let logger = HIPAAEnhancedAuditLogger(delegate: mock)
 
-        let config = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 15, requireBiometric: false, requireSSO: false)
+        let config = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 15,
+            requireBiometric: false,
+            requireSSO: false
+        )
         config.save()
 
         await logger.log(AuditEvent(category: .clipboard, action: .copyCaptured))
@@ -310,7 +346,12 @@ struct HIPAAEnhancedAuditLoggerTests {
         let mock = MockAuditLogger()
         let logger = HIPAAEnhancedAuditLogger(delegate: mock)
 
-        let config = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 15, requireBiometric: false, requireSSO: false)
+        let config = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 15,
+            requireBiometric: false,
+            requireSSO: false
+        )
         config.save()
 
         let event = AuditEvent(
@@ -330,12 +371,17 @@ struct HIPAAEnhancedAuditLoggerTests {
         let mock = MockAuditLogger()
         let logger = HIPAAEnhancedAuditLogger(delegate: mock)
 
-        let config = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 15, requireBiometric: false, requireSSO: false)
+        let config = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 15,
+            requireBiometric: false,
+            requireSSO: false
+        )
         config.save()
 
         let events = [
             AuditEvent(category: .clipboard, action: .copyCaptured),
-            AuditEvent(category: .clipboard, action: .pastePerformed)
+            AuditEvent(category: .clipboard, action: .pastePerformed),
         ]
         await logger.logBatch(events)
 
@@ -352,7 +398,12 @@ struct HIPAAEnhancedAuditLoggerTests {
         let mock = MockAuditLogger()
         let logger = HIPAAEnhancedAuditLogger(delegate: mock)
 
-        let config = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 15, requireBiometric: false, requireSSO: false)
+        let config = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 15,
+            requireBiometric: false,
+            requireSSO: false
+        )
         config.save()
 
         let event = AuditEvent(
@@ -372,7 +423,12 @@ struct HIPAAEnhancedAuditLoggerTests {
         let mock = MockAuditLogger()
         let logger = HIPAAEnhancedAuditLogger(delegate: mock)
 
-        let config = HIPAAComplianceMode(isEnabled: true, sessionTimeoutMinutes: 15, requireBiometric: false, requireSSO: false)
+        let config = HIPAAComplianceMode(
+            isEnabled: true,
+            sessionTimeoutMinutes: 15,
+            requireBiometric: false,
+            requireSSO: false
+        )
         config.save()
 
         let id = UUID()
@@ -399,10 +455,9 @@ struct HIPAAEnhancedAuditLoggerTests {
     }
 }
 
-// MARK: - ComplianceFinding Tests
+// MARK: - ComplianceFindingTests
 
 struct ComplianceFindingTests {
-
     @Test("ComplianceFinding default id is a unique UUID")
     func defaultIdIsUnique() {
         let a = ComplianceFinding(category: "test", status: .pass, description: "ok")
@@ -458,10 +513,9 @@ struct ComplianceFindingTests {
     }
 }
 
-// MARK: - ComplianceFindingStatus Tests
+// MARK: - ComplianceFindingStatusTests
 
 struct ComplianceFindingStatusTests {
-
     @Test("ComplianceFindingStatus.pass raw value is 'pass'")
     func passRawValue() {
         #expect(ComplianceFindingStatus.pass.rawValue == "pass")
@@ -487,15 +541,14 @@ struct ComplianceFindingStatusTests {
     }
 }
 
-// MARK: - ComplianceReport Tests
+// MARK: - ComplianceReportTests
 
 struct ComplianceReportTests {
-
     @Test("ComplianceReport overallStatus is .pass when all findings pass")
     func overallStatusAllPass() {
         let findings = [
             ComplianceFinding(category: "A", status: .pass, description: "ok"),
-            ComplianceFinding(category: "B", status: .pass, description: "ok")
+            ComplianceFinding(category: "B", status: .pass, description: "ok"),
         ]
         let report = ComplianceReport(reportType: "Test", findings: findings, summary: "All good")
         #expect(report.overallStatus == .pass)
@@ -505,7 +558,7 @@ struct ComplianceReportTests {
     func overallStatusWarning() {
         let findings = [
             ComplianceFinding(category: "A", status: .pass, description: "ok"),
-            ComplianceFinding(category: "B", status: .warning, description: "watch out")
+            ComplianceFinding(category: "B", status: .warning, description: "watch out"),
         ]
         let report = ComplianceReport(reportType: "Test", findings: findings, summary: "Mostly good")
         #expect(report.overallStatus == .warning)
@@ -516,7 +569,7 @@ struct ComplianceReportTests {
         let findings = [
             ComplianceFinding(category: "A", status: .pass, description: "ok"),
             ComplianceFinding(category: "B", status: .fail, description: "bad"),
-            ComplianceFinding(category: "C", status: .warning, description: "meh")
+            ComplianceFinding(category: "C", status: .warning, description: "meh"),
         ]
         let report = ComplianceReport(reportType: "Test", findings: findings, summary: "Issues found")
         #expect(report.overallStatus == .fail)
@@ -531,7 +584,7 @@ struct ComplianceReportTests {
     @Test("ComplianceReport survives Codable round-trip")
     func codableRoundTrip() throws {
         let findings = [
-            ComplianceFinding(category: "A", status: .pass, description: "ok")
+            ComplianceFinding(category: "A", status: .pass, description: "ok"),
         ]
         let original = ComplianceReport(reportType: "SOC2", findings: findings, summary: "Test")
         let encoder = JSONEncoder()
@@ -546,10 +599,9 @@ struct ComplianceReportTests {
     }
 }
 
-// MARK: - HIPAAEncryptionReport Tests
+// MARK: - HIPAAEncryptionReportTests
 
 struct HIPAAEncryptionReportTests {
-
     @Test("HIPAAEncryptionReport default id is unique")
     func defaultIdIsUnique() {
         let a = HIPAAEncryptionReport(

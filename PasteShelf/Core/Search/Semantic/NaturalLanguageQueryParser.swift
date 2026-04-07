@@ -9,6 +9,8 @@
 
 import Foundation
 
+// MARK: - ParsedQuery
+
 /// Parsed query containing extracted filters and the semantic search text
 struct ParsedQuery: Sendable, Equatable {
     /// Date range extracted from time references
@@ -32,94 +34,11 @@ struct ParsedQuery: Sendable, Equatable {
     }
 }
 
+// MARK: - NaturalLanguageQueryParser
+
 /// Parses natural language queries to extract search filters
-struct NaturalLanguageQueryParser {
-    // MARK: - Time Reference Patterns
-
-    /// Pattern matches for time references
-    private static let timePatterns: [(pattern: String, dateRange: () -> DateRange)] = [
-        // Today/yesterday
-        ("\\btoday\\b", { .today }),
-        ("\\byesterday\\b", { yesterday() }),
-
-        // Relative days
-        ("\\b(last|past)\\s+(\\d+)\\s+days?\\b", { lastNDays(7) }), // Default handled in regex
-        ("\\bthis\\s+week\\b", { thisWeek() }),
-        ("\\blast\\s+week\\b", { .lastWeek }),
-        ("\\bpast\\s+week\\b", { .lastWeek }),
-
-        // Relative months
-        ("\\bthis\\s+month\\b", { thisMonth() }),
-        ("\\blast\\s+month\\b", { .lastMonth }),
-        ("\\bpast\\s+month\\b", { .lastMonth }),
-
-        // Hour-based
-        ("\\b(last|past)\\s+hour\\b", { lastNHours(1) }),
-        ("\\b(last|past)\\s+(\\d+)\\s+hours?\\b", { lastNHours(1) }), // Default handled in regex
-    ]
-
-    // MARK: - Content Type Patterns
-
-    /// Keywords that indicate content types
-    private static let contentTypeKeywords: [String: Set<ContentType>] = [
-        // Text types
-        "text": [.plainText],
-        "code": [.plainText],
-        "snippet": [.plainText],
-        "script": [.plainText],
-        "function": [.plainText],
-
-        // Rich text
-        "email": [.richText, .html, .plainText],
-        "document": [.richText, .html, .plainText],
-        "formatted": [.richText],
-
-        // Images
-        "image": [.png, .jpeg, .tiff],
-        "photo": [.png, .jpeg, .tiff],
-        "picture": [.png, .jpeg, .tiff],
-        "screenshot": [.png, .jpeg, .tiff],
-
-        // URLs
-        "link": [.url],
-        "url": [.url],
-        "website": [.url],
-
-        // Files
-        "file": [.fileURL],
-        "folder": [.fileURL],
-        "path": [.fileURL],
-
-        // PDF
-        "pdf": [.pdf],
-    ]
-
-    // MARK: - App Reference Patterns
-
-    /// Pattern for "from [App]" references
-    private static let appPatterns: [String] = [
-        "\\bfrom\\s+(\\w+)\\b",
-        "\\bin\\s+(\\w+)\\b",
-        "\\bcopied\\s+from\\s+(\\w+)\\b",
-    ]
-
-    /// Common app name mappings
-    private static let appNameMappings: [String: [String]] = [
-        "safari": ["Safari", "com.apple.Safari"],
-        "chrome": ["Google Chrome", "com.google.Chrome"],
-        "firefox": ["Firefox", "org.mozilla.firefox"],
-        "vscode": ["Visual Studio Code", "com.microsoft.VSCode"],
-        "code": ["Visual Studio Code", "com.microsoft.VSCode"],
-        "xcode": ["Xcode", "com.apple.dt.Xcode"],
-        "slack": ["Slack", "com.tinyspeck.slackmacgap"],
-        "notes": ["Notes", "com.apple.Notes"],
-        "mail": ["Mail", "com.apple.mail"],
-        "terminal": ["Terminal", "com.apple.Terminal"],
-        "finder": ["Finder", "com.apple.finder"],
-        "notion": ["Notion", "notion.id"],
-        "teams": ["Microsoft Teams", "com.microsoft.teams"],
-        "discord": ["Discord", "com.hnc.Discord"],
-    ]
+enum NaturalLanguageQueryParser {
+    // MARK: Internal
 
     // MARK: - Parsing
 
@@ -217,6 +136,95 @@ struct NaturalLanguageQueryParser {
             originalQuery: query
         )
     }
+
+    // MARK: Private
+
+    // MARK: - Time Reference Patterns
+
+    /// Pattern matches for time references
+    private static let timePatterns: [(pattern: String, dateRange: () -> DateRange)] = [
+        // Today/yesterday
+        ("\\btoday\\b", { .today }),
+        ("\\byesterday\\b", { yesterday() }),
+
+        // Relative days
+        ("\\b(last|past)\\s+(\\d+)\\s+days?\\b", { lastNDays(7) }), // Default handled in regex
+        ("\\bthis\\s+week\\b", { thisWeek() }),
+        ("\\blast\\s+week\\b", { .lastWeek }),
+        ("\\bpast\\s+week\\b", { .lastWeek }),
+
+        // Relative months
+        ("\\bthis\\s+month\\b", { thisMonth() }),
+        ("\\blast\\s+month\\b", { .lastMonth }),
+        ("\\bpast\\s+month\\b", { .lastMonth }),
+
+        // Hour-based
+        ("\\b(last|past)\\s+hour\\b", { lastNHours(1) }),
+        ("\\b(last|past)\\s+(\\d+)\\s+hours?\\b", { lastNHours(1) }), // Default handled in regex
+    ]
+
+    // MARK: - Content Type Patterns
+
+    /// Keywords that indicate content types
+    private static let contentTypeKeywords: [String: Set<ContentType>] = [
+        // Text types
+        "text": [.plainText],
+        "code": [.plainText],
+        "snippet": [.plainText],
+        "script": [.plainText],
+        "function": [.plainText],
+
+        // Rich text
+        "email": [.richText, .html, .plainText],
+        "document": [.richText, .html, .plainText],
+        "formatted": [.richText],
+
+        // Images
+        "image": [.png, .jpeg, .tiff],
+        "photo": [.png, .jpeg, .tiff],
+        "picture": [.png, .jpeg, .tiff],
+        "screenshot": [.png, .jpeg, .tiff],
+
+        // URLs
+        "link": [.url],
+        "url": [.url],
+        "website": [.url],
+
+        // Files
+        "file": [.fileURL],
+        "folder": [.fileURL],
+        "path": [.fileURL],
+
+        // PDF
+        "pdf": [.pdf],
+    ]
+
+    // MARK: - App Reference Patterns
+
+    /// Pattern for "from [App]" references
+    private static let appPatterns: [String] = [
+        "\\bfrom\\s+(\\w+)\\b",
+        "\\bin\\s+(\\w+)\\b",
+        "\\bcopied\\s+from\\s+(\\w+)\\b",
+    ]
+
+    /// Common app name mappings
+    private static let appNameMappings: [String: [String]] = [
+        "safari": ["Safari", "com.apple.Safari"],
+        "chrome": ["Google Chrome", "com.google.Chrome"],
+        "firefox": ["Firefox", "org.mozilla.firefox"],
+        "vscode": ["Visual Studio Code", "com.microsoft.VSCode"],
+        "code": ["Visual Studio Code", "com.microsoft.VSCode"],
+        "xcode": ["Xcode", "com.apple.dt.Xcode"],
+        "slack": ["Slack", "com.tinyspeck.slackmacgap"],
+        "notes": ["Notes", "com.apple.Notes"],
+        "mail": ["Mail", "com.apple.mail"],
+        "terminal": ["Terminal", "com.apple.Terminal"],
+        "finder": ["Finder", "com.apple.finder"],
+        "notion": ["Notion", "notion.id"],
+        "teams": ["Microsoft Teams", "com.microsoft.teams"],
+        "discord": ["Discord", "com.hnc.Discord"],
+    ]
 
     // MARK: - Date Range Helpers
 

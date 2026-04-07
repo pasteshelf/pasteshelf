@@ -26,6 +26,24 @@ import os.log
 /// Access attempts are logged via `AuditManager.logComplianceEvent()`.
 @MainActor
 final class HIPAAAccessControlService: ObservableObject {
+    // MARK: Lifecycle
+
+    // MARK: - Initialization
+
+    private init() {}
+
+    /// Designated initializer for dependency injection in tests.
+    init(initialLockState: Bool) {
+        isLocked = initialLockState
+    }
+
+    // MARK: - Cleanup
+
+    deinit {
+        timeoutTimer?.invalidate()
+    }
+
+    // MARK: Internal
 
     // MARK: - Singleton
 
@@ -41,28 +59,6 @@ final class HIPAAAccessControlService: ObservableObject {
 
     /// The most recent access control error, if any.
     @Published var lastError: ComplianceError?
-
-    // MARK: - Private State
-
-    /// Timestamp of the last user activity (used for inactivity timeout).
-    private var lastActivityTimestamp: Date = Date()
-
-    /// Timer that periodically checks for session inactivity.
-    private var timeoutTimer: Timer?
-
-    /// The interval at which the timeout timer checks for inactivity.
-    private static let timeoutCheckInterval: TimeInterval = 30
-
-    private let logger = Logger.compliance
-
-    // MARK: - Initialization
-
-    private init() {}
-
-    /// Designated initializer for dependency injection in tests.
-    init(initialLockState: Bool) {
-        self.isLocked = initialLockState
-    }
 
     // MARK: - Configuration
 
@@ -153,6 +149,21 @@ final class HIPAAAccessControlService: ObservableObject {
         lastActivityTimestamp = Date()
     }
 
+    // MARK: Private
+
+    /// The interval at which the timeout timer checks for inactivity.
+    private static let timeoutCheckInterval: TimeInterval = 30
+
+    // MARK: - Private State
+
+    /// Timestamp of the last user activity (used for inactivity timeout).
+    private var lastActivityTimestamp: Date = .init()
+
+    /// Timer that periodically checks for session inactivity.
+    private var timeoutTimer: Timer?
+
+    private let logger = Logger.compliance
+
     // MARK: - Timeout Timer
 
     /// Starts the session inactivity timer.
@@ -168,12 +179,14 @@ final class HIPAAAccessControlService: ObservableObject {
             repeats: true
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                guard let self, !self.isLocked else { return }
+                guard let self, !self.isLocked else {
+                    return
+                }
 
-                let elapsed = Date().timeIntervalSince(self.lastActivityTimestamp)
+                let elapsed = Date().timeIntervalSince(lastActivityTimestamp)
                 if elapsed >= timeoutInterval {
-                    self.lock()
-                    self.logger.info(
+                    lock()
+                    logger.info(
                         "HIPAA session timeout after \(Int(elapsed / 60)) minutes of inactivity"
                     )
                 }
@@ -215,11 +228,10 @@ final class HIPAAAccessControlService: ObservableObject {
         }
 
         do {
-            let success = try await context.evaluatePolicy(
+            return try await context.evaluatePolicy(
                 .deviceOwnerAuthenticationWithBiometrics,
                 localizedReason: "Authenticate to access HIPAA-protected clipboard data"
             )
-            return success
         } catch {
             logger.warning("Biometric auth failed: \(error.localizedDescription)")
             lastError = .invalidConfiguration("Biometric authentication failed: \(error.localizedDescription)")
@@ -234,7 +246,7 @@ final class HIPAAAccessControlService: ObservableObject {
         var detail: [String: String] = [
             "success": success ? "true" : "false",
             "method": method,
-            "hipaa.accessReason": "hipaa_access_control"
+            "hipaa.accessReason": "hipaa_access_control",
         ]
         if let reason {
             detail["failureReason"] = reason
@@ -252,14 +264,12 @@ final class HIPAAAccessControlService: ObservableObject {
     /// Returns a description of the authentication method used.
     private func authMethod(for config: HIPAAComplianceMode) -> String {
         var methods: [String] = []
-        if config.requireSSO { methods.append("sso") }
-        if config.requireBiometric { methods.append("biometric") }
+        if config.requireSSO {
+            methods.append("sso")
+        }
+        if config.requireBiometric {
+            methods.append("biometric")
+        }
         return methods.isEmpty ? "none" : methods.joined(separator: "+")
-    }
-
-    // MARK: - Cleanup
-
-    deinit {
-        timeoutTimer?.invalidate()
     }
 }
