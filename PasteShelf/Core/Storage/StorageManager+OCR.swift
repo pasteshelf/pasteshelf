@@ -19,10 +19,10 @@ struct OCRCacheEntry {
     let language: String?
 }
 
-// MARK: - OCRResult
+// MARK: - StorageOCRResult
 
 /// Represents an OCR result with its associated clipboard item
-struct OCRResult {
+struct StorageOCRResult {
     let itemId: UUID
     let text: String
     let confidence: Double
@@ -78,7 +78,7 @@ extension StorageManager {
     /// Saves multiple OCR results in batch
     /// - Parameter ocrResults: Array of OCRSaveItem structs
     /// - Returns: Number of OCR results saved
-    func saveOCRResults(_ ocrResults: [OCRSaveItem]) async -> Int {
+    func saveStorageOCRResults(_ ocrResults: [OCRSaveItem]) async -> Int {
         let result = await performBackgroundTaskSafe { context -> Int in
             var savedCount = 0
 
@@ -196,7 +196,7 @@ extension StorageManager {
     /// Fetches all OCR results with their clipboard item IDs
     /// - Parameter limit: Maximum number of results to fetch
     /// - Returns: Array of (itemId, text, confidence) tuples
-    func fetchAllOCRResults(limit: Int = 1000) async -> [OCRResult] {
+    func fetchAllStorageOCRResults(limit: Int = 1000) async -> [StorageOCRResult] {
         let context = newBackgroundContext()
 
         return await context.perform {
@@ -213,7 +213,7 @@ extension StorageManager {
                 guard let itemId = cache.clipboardItemId, let text = cache.extractedText else {
                     return nil
                 }
-                return OCRResult(itemId: itemId, text: text, confidence: cache.confidence)
+                return StorageOCRResult(itemId: itemId, text: text, confidence: cache.confidence)
             }
         }
     }
