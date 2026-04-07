@@ -67,7 +67,7 @@ struct AboutTabView: View {
                 }
                 .accessibilityLabel("View source code on GitHub")
 
-                Link(destination: URL(string: "https://pasteshelf.app/privacy")!) {
+                Link(destination: URL(string: "https://pasteshelf.app/legal/privacy-policy/")!) {
                     HStack {
                         Image(systemName: "hand.raised")
                         Text("Privacy Policy")
@@ -85,7 +85,7 @@ struct AboutTabView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
 
-                Text("\u{00A9} 2024 PasteShelf. All rights reserved.")
+                Text("\u{00A9} 2026 PasteShelf. All rights reserved.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
