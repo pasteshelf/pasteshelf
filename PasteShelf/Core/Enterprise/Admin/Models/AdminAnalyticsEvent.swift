@@ -14,7 +14,7 @@ import Foundation
 /// Each case corresponds to a meaningful lifecycle moment in the application or
 /// device management workflow.  The raw `String` value is used as the event-type
 /// discriminator when serializing events to the admin console API.
-enum AdminAnalyticsEventType: String, Codable, Sendable {
+enum AdminAnalyticsEventType: String, Codable {
     /// A device successfully completed enrollment with the admin console.
     case deviceEnrolled
 
@@ -53,7 +53,7 @@ enum AdminAnalyticsEventType: String, Codable, Sendable {
 ///
 /// The `metadata` dictionary carries event-specific key/value pairs (e.g. policy ID,
 /// error codes, or SSO provider identifiers) without requiring a rigid per-event schema.
-struct AdminAnalyticsEvent: Codable, Sendable, Identifiable {
+struct AdminAnalyticsEvent: Codable, Identifiable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

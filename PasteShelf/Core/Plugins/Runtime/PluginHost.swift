@@ -189,7 +189,7 @@
     // MARK: - Host Errors
 
     /// Errors from plugin host operations
-    enum PluginHostError: Error, LocalizedError, Sendable {
+    enum PluginHostError: Error, LocalizedError {
         case pluginNotLoaded(String)
         case actionFailed(String, String)
         case transformFailed(String, String)

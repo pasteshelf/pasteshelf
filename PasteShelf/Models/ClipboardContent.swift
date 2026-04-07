@@ -12,7 +12,7 @@ import Foundation
 // MARK: - ClipboardContent
 
 /// Represents clipboard content with all available data representations
-struct ClipboardContent: Sendable {
+struct ClipboardContent {
     // MARK: Lifecycle
 
     // MARK: - Initialization

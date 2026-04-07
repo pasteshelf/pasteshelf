@@ -14,7 +14,7 @@ import Foundation
 /// Administrators can configure the retention window in the Enterprise settings panel.
 /// Events older than `retentionDays` are eligible for removal during the next scheduled
 /// pruning pass performed by the `AuditLogStoring` implementation.
-struct AuditRetentionConfiguration: Codable, Sendable, Equatable {
+struct AuditRetentionConfiguration: Codable, Equatable {
     /// The default retention configuration used when no explicit policy has been set.
     ///
     /// Defaults to a 90-day retention window, which balances compliance requirements

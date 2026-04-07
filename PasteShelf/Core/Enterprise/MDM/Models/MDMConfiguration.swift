@@ -22,7 +22,7 @@ import Foundation
 ///
 /// Use `effectiveValue(for:)` to retrieve the right value for any key without
 /// having to check both dictionaries manually.
-struct MDMConfiguration: Equatable, Sendable {
+struct MDMConfiguration: Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

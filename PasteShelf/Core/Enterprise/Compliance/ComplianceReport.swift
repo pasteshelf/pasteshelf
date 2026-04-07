@@ -10,7 +10,7 @@ import Foundation
 // MARK: - ComplianceFindingStatus
 
 /// Status of an individual compliance finding.
-enum ComplianceFindingStatus: String, Codable, Sendable {
+enum ComplianceFindingStatus: String, Codable {
     case pass
     case fail
     case warning
@@ -19,7 +19,7 @@ enum ComplianceFindingStatus: String, Codable, Sendable {
 // MARK: - ComplianceFinding
 
 /// An individual finding in a compliance report.
-struct ComplianceFinding: Codable, Sendable, Identifiable {
+struct ComplianceFinding: Codable, Identifiable {
     // MARK: Lifecycle
 
     init(
@@ -51,7 +51,7 @@ struct ComplianceFinding: Codable, Sendable, Identifiable {
 // MARK: - ComplianceReport
 
 /// A compliance report containing findings and an overall status.
-struct ComplianceReport: Codable, Sendable, Identifiable {
+struct ComplianceReport: Codable, Identifiable {
     // MARK: Lifecycle
 
     init(

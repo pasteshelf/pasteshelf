@@ -9,7 +9,7 @@ import AppKit
 import Foundation
 
 /// Represents metadata about the application that provided clipboard content
-struct SourceApp: Sendable, Equatable {
+struct SourceApp: Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

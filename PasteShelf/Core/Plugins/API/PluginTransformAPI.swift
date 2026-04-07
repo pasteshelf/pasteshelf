@@ -11,7 +11,7 @@
     import os.log
 
     /// Result of a content transformation
-    struct PluginTransformResult: Sendable {
+    struct PluginTransformResult {
         /// Original content before transformation
         let original: PluginClipboardContent
 
@@ -30,7 +30,7 @@
     }
 
     /// Registered content transformer
-    struct PluginTransformer: Identifiable, Sendable {
+    struct PluginTransformer: Identifiable {
         let id: UUID
         let pluginId: String
         let name: String
@@ -227,7 +227,7 @@
     // MARK: - Transform Errors
 
     /// Errors from transform operations
-    enum PluginTransformError: Error, LocalizedError, Sendable {
+    enum PluginTransformError: Error, LocalizedError {
         case transformerNotFound(UUID)
         case noTransformFunction
         case unsupportedContentType(ContentType)

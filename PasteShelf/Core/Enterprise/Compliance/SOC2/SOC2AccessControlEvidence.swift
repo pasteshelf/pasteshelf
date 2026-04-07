@@ -27,7 +27,7 @@ import os.log
 /// The method returns the URL of the temporary directory that contains those four
 /// files. The caller is responsible for compressing the directory into a ZIP
 /// archive if required (e.g. via `Process` + `zip`).
-struct SOC2AccessControlEvidence: Sendable {
+enum SOC2AccessControlEvidence {
     // MARK: Internal
 
     // MARK: - Evidence Package Errors

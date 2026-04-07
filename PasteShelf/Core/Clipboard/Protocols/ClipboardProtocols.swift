@@ -65,7 +65,7 @@ protocol ClipboardMonitorDelegate: AnyObject {
 // MARK: - ExclusionReason
 
 /// Reasons why clipboard content may be excluded
-enum ExclusionReason: Sendable {
+enum ExclusionReason {
     case excludedApp(bundleId: String)
     case ownPasteOperation
     case emptyContent
@@ -109,7 +109,7 @@ protocol SensitiveDataDetecting {
 // MARK: - SensitiveDataResult
 
 /// Result of sensitive data analysis
-struct SensitiveDataResult: Sendable {
+struct SensitiveDataResult {
     /// Empty result with no detections
     static let empty = SensitiveDataResult(
         isSensitive: false,
@@ -130,7 +130,7 @@ struct SensitiveDataResult: Sendable {
 // MARK: - SensitiveDetection
 
 /// Individual sensitive data detection
-struct SensitiveDetection: Sendable {
+struct SensitiveDetection {
     /// The type of sensitive data detected
     let type: String
 
@@ -147,7 +147,7 @@ struct SensitiveDetection: Sendable {
 // MARK: - SensitiveSeverity
 
 /// Severity levels for sensitive data
-enum SensitiveSeverity: Int, Codable, Comparable, Sendable {
+enum SensitiveSeverity: Int, Codable, Comparable {
     case none = 0
     case low = 1
     case medium = 2
@@ -212,7 +212,7 @@ protocol ImageProcessing {
 // MARK: - ProcessedImage
 
 /// Result of image processing
-struct ProcessedImage: Sendable {
+struct ProcessedImage {
     /// Processed image data (may be compressed)
     var data: Data?
 

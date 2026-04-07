@@ -19,7 +19,7 @@ import Foundation
 /// Use `isConfigured` to determine whether all required fields are present before
 /// attempting a connection.  Use `.empty` as a safe default value when no
 /// configuration has been provided.
-struct AdminConsoleConfiguration: Codable, Equatable, Sendable {
+struct AdminConsoleConfiguration: Codable, Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

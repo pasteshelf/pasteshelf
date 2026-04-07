@@ -12,13 +12,13 @@ import os.log
 ///
 /// The report queries existing manager singletons to determine the current state of each
 /// control category: encryption, access control, monitoring, and data protection.
-struct SOC2SecurityControlsReport: Sendable {
+enum SOC2SecurityControlsReport {
     // MARK: Internal
 
     // MARK: - Report Model
 
     /// A category of security controls in the SOC 2 report.
-    struct ControlCategory: Codable, Sendable, Identifiable {
+    struct ControlCategory: Codable, Identifiable {
         // MARK: Lifecycle
 
         init(id: UUID = UUID(), name: String, description: String, controls: [SecurityControl]) {
@@ -37,7 +37,7 @@ struct SOC2SecurityControlsReport: Sendable {
     }
 
     /// An individual security control within a category.
-    struct SecurityControl: Codable, Sendable, Identifiable {
+    struct SecurityControl: Codable, Identifiable {
         // MARK: Lifecycle
 
         init(
@@ -67,7 +67,7 @@ struct SOC2SecurityControlsReport: Sendable {
     }
 
     /// The complete SOC 2 security controls report.
-    struct Report: Codable, Sendable, Identifiable {
+    struct Report: Codable, Identifiable {
         // MARK: Lifecycle
 
         init(

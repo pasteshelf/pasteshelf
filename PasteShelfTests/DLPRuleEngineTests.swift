@@ -12,7 +12,6 @@ import Testing
 
 // MARK: - DLPRuleEngineTests
 
-@Suite("DLP Rule Engine Tests")
 struct DLPRuleEngineTests {
     // MARK: Internal
 

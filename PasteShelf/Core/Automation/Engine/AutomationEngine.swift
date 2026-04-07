@@ -15,7 +15,7 @@ import os.log
 // MARK: - AutomationResult
 
 /// Result of automation rule evaluation and execution
-struct AutomationResult: Sendable {
+struct AutomationResult {
     /// The original content (before any transformations)
     let originalContent: ClipboardContent
 
@@ -41,7 +41,7 @@ struct AutomationResult: Sendable {
 // MARK: - AutomationError
 
 /// Errors that can occur during automation execution
-enum AutomationError: Error, Sendable {
+enum AutomationError: Error {
     case ruleEvaluationFailed(ruleName: String, reason: String)
     case actionExecutionFailed(actionType: String, reason: String)
     case webhookFailed(url: String, statusCode: Int?)

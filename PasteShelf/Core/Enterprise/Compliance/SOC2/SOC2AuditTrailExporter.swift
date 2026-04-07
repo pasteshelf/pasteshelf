@@ -23,7 +23,7 @@ import os.log
 /// - `audit_trail.json` — events with their `integrityHash`
 /// - `chain_verification.json` — summary of the hash chain
 /// - `verification_instructions.md` — instructions for independent verification
-struct SOC2AuditTrailExporter: Sendable {
+enum SOC2AuditTrailExporter {
     // MARK: Internal
 
     // MARK: - Export
@@ -265,7 +265,7 @@ struct SOC2AuditTrailExporter: Sendable {
 // MARK: - ChainedAuditEvent
 
 /// An audit event with its integrity hash for the hash chain.
-private struct ChainedAuditEvent: Codable, Sendable {
+private struct ChainedAuditEvent: Codable {
     let id: String
     let timestamp: String
     let category: String
@@ -283,7 +283,7 @@ private struct ChainedAuditEvent: Codable, Sendable {
 // MARK: - ChainVerification
 
 /// Summary of the hash chain for independent verification.
-private struct ChainVerification: Codable, Sendable {
+private struct ChainVerification: Codable {
     let chainLength: Int
     let firstEventHash: String
     let lastEventHash: String

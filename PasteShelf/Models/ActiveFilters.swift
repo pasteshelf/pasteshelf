@@ -11,7 +11,7 @@ import Foundation
 // MARK: - ActiveFilters
 
 /// Represents the current active filters in the floating panel
-struct ActiveFilters: Equatable, Sendable {
+struct ActiveFilters: Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization
@@ -163,7 +163,7 @@ struct ActiveFilters: Equatable, Sendable {
 // MARK: - ContentTypeFilter
 
 /// Grouped content type filter for simpler UI
-enum ContentTypeFilter: String, CaseIterable, Identifiable, Sendable {
+enum ContentTypeFilter: String, CaseIterable, Identifiable {
     case text
     case images
     case files

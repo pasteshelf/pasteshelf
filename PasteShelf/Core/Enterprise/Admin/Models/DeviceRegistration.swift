@@ -10,7 +10,7 @@ import Foundation
 // MARK: - DeviceEnrollmentStatus
 
 /// The lifecycle state of a device's enrollment with the admin console.
-enum DeviceEnrollmentStatus: String, Codable, Sendable {
+enum DeviceEnrollmentStatus: String, Codable {
     /// The device has not been enrolled and has no record on the admin console.
     case notEnrolled
 
@@ -40,7 +40,7 @@ enum DeviceEnrollmentStatus: String, Codable, Sendable {
 /// and device metadata that the admin console uses to identify and manage a device.
 /// It also surfaces the current `enrollmentStatus` so the application can adapt its
 /// behaviour accordingly (e.g., blocking features when `suspended` or `revoked`).
-struct DeviceRegistration: Codable, Sendable, Identifiable, Equatable {
+struct DeviceRegistration: Codable, Identifiable, Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

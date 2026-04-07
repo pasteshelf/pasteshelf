@@ -228,7 +228,7 @@ protocol DeviceRegistrationStore: Sendable {
 // MARK: - AdminError
 
 /// Errors that may be thrown during admin console operations.
-enum AdminError: Error, LocalizedError, Sendable {
+enum AdminError: Error, LocalizedError {
     /// The admin console has not been configured with a server URL and organization ID.
     case notConfigured
 

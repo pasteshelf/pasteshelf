@@ -10,7 +10,7 @@ import Foundation
 // MARK: - ComplianceStatus
 
 /// The overall compliance state of a device relative to its assigned admin policy.
-enum ComplianceStatus: String, Codable, Sendable {
+enum ComplianceStatus: String, Codable {
     /// The device satisfies all requirements imposed by its assigned policy.
     case compliant
 
@@ -33,7 +33,7 @@ enum ComplianceStatus: String, Codable, Sendable {
 /// Health reports allow administrators to monitor the state of enrolled devices from
 /// the admin console dashboard.  A new report is generated and uploaded whenever the
 /// device checks in with the server.
-struct DeviceHealthReport: Codable, Sendable {
+struct DeviceHealthReport: Codable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

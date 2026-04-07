@@ -209,7 +209,7 @@ final class OIDCDiscovery: Sendable {
 /// Represents the OpenID Connect Discovery document
 ///
 /// See: https://openid.net/specs/openid-connect-discovery-1_0.html
-struct OIDCDiscoveryDocument: Codable, Sendable {
+struct OIDCDiscoveryDocument: Codable {
     // MARK: - Coding Keys
 
     enum CodingKeys: String, CodingKey {

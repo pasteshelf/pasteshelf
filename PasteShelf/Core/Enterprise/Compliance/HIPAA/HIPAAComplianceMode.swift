@@ -14,7 +14,7 @@ import Foundation
 /// and biometric/SSO authentication before accessing clipboard data.
 ///
 /// Persisted to `UserDefaults` under `com.pasteshelf.hipaa.config`.
-struct HIPAAComplianceMode: Codable, Sendable, Equatable {
+struct HIPAAComplianceMode: Codable, Equatable {
     // MARK: Internal
 
     /// Default configuration with HIPAA mode disabled.

@@ -108,7 +108,7 @@ protocol IdentityProviderStore: Sendable {
 // MARK: - SSOError
 
 /// Errors that may be thrown during SSO operations
-enum SSOError: Error, LocalizedError, Sendable {
+enum SSOError: Error, LocalizedError {
     /// No identity provider has been configured for the requested operation
     case notConfigured
 

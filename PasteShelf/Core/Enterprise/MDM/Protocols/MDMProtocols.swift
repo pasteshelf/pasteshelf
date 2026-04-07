@@ -71,7 +71,7 @@ protocol MDMConfigurationObserving {
 // MARK: - MDMError
 
 /// Errors that may be thrown during MDM managed-preferences operations.
-enum MDMError: Error, LocalizedError, Sendable {
+enum MDMError: Error, LocalizedError {
     /// The device is not enrolled in or managed by an MDM server.
     case notManaged
 

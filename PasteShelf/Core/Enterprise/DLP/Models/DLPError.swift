@@ -14,7 +14,7 @@ import Foundation
 /// `DLPError` follows the same `LocalizedError` pattern established by `AuditError`
 /// in `AuditProtocols.swift`, providing human-readable descriptions, failure reasons,
 /// and recovery suggestions for each error case.
-enum DLPError: Error, LocalizedError, Sendable {
+enum DLPError: Error, LocalizedError {
     /// The DLP feature is not currently enabled.
     case featureUnavailable
 

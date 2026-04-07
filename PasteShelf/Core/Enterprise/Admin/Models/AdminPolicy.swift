@@ -14,7 +14,7 @@ import Foundation
 /// An administrator can cap the maximum number of stored items, the maximum age of
 /// stored items, or both.  When `enforced` is `true` the application must apply
 /// whichever limits are set and must not allow the user to exceed them.
-struct HistoryLimitPolicy: Codable, Sendable, Equatable {
+struct HistoryLimitPolicy: Codable, Equatable {
     // MARK: Lifecycle
 
     /// Creates a history limit policy.
@@ -52,7 +52,7 @@ struct HistoryLimitPolicy: Codable, Sendable, Equatable {
 /// Bundle identifiers listed here will not have their clipboard content captured.
 /// When `enforced` is `true` the user cannot remove entries from this list, though
 /// they may still add their own exclusions.
-struct ExcludedAppsPolicy: Codable, Sendable, Equatable {
+struct ExcludedAppsPolicy: Codable, Equatable {
     // MARK: Lifecycle
 
     /// Creates an excluded apps policy.
@@ -81,7 +81,7 @@ struct ExcludedAppsPolicy: Codable, Sendable, Equatable {
 /// An administrator can mandate that sync is disabled (local storage only) or
 /// conversely require it to be enabled.  When `enforced` is `true` the user cannot
 /// change the sync-related settings covered by this policy.
-struct SyncSettingsPolicy: Codable, Sendable, Equatable {
+struct SyncSettingsPolicy: Codable, Equatable {
     // MARK: Lifecycle
 
     /// Creates a sync settings policy.
@@ -115,7 +115,7 @@ struct SyncSettingsPolicy: Codable, Sendable, Equatable {
 /// Administrators can mandate that all locally stored clipboard data must be encrypted,
 /// specify a minimum encryption key length, and optionally require biometric
 /// authentication before decrypting data.
-struct EncryptionPolicy: Codable, Sendable, Equatable {
+struct EncryptionPolicy: Codable, Equatable {
     // MARK: Lifecycle
 
     /// Creates an encryption policy.
@@ -168,7 +168,7 @@ struct EncryptionPolicy: Codable, Sendable, Equatable {
 /// should apply its own defaults.
 ///
 /// Use `.empty` as a safe default before any policy has been received from the server.
-struct AdminPolicy: Codable, Sendable, Identifiable, Equatable {
+struct AdminPolicy: Codable, Identifiable, Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

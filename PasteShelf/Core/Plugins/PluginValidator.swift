@@ -236,7 +236,7 @@
     // MARK: - Validation Result
 
     /// Result of plugin validation
-    enum PluginValidationResult: Sendable {
+    enum PluginValidationResult {
         case success
         case failure(PluginValidationError)
 
@@ -258,7 +258,7 @@
     }
 
     /// Errors that can occur during plugin validation
-    enum PluginValidationError: Error, LocalizedError, Sendable {
+    enum PluginValidationError: Error, LocalizedError {
         case pluginBlocked(String)
         case incompatibleVersion(pluginVersion: String, requiredHostVersion: String, currentHostVersion: String)
         case notSigned

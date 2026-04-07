@@ -11,7 +11,7 @@ import Foundation
 // MARK: - SAMLAssertion
 
 /// A parsed SAML 2.0 Assertion containing user identity information
-struct SAMLAssertion: Codable, Sendable, Equatable {
+struct SAMLAssertion: Codable, Equatable {
     // MARK: Internal
 
     /// Unique identifier for this assertion
@@ -131,7 +131,7 @@ struct SAMLAssertion: Codable, Sendable, Equatable {
 // MARK: - SAMLSubject
 
 /// The subject (authenticated user) of a SAML assertion
-struct SAMLSubject: Codable, Sendable, Equatable {
+struct SAMLSubject: Codable, Equatable {
     /// The unique identifier for the subject (usually email or UPN)
     let nameID: String
 
@@ -148,7 +148,7 @@ struct SAMLSubject: Codable, Sendable, Equatable {
 // MARK: - SAMLSubjectConfirmation
 
 /// Confirmation method for the subject
-struct SAMLSubjectConfirmation: Codable, Sendable, Equatable {
+struct SAMLSubjectConfirmation: Codable, Equatable {
     /// Confirmation method URI (e.g., bearer)
     let method: SAMLConfirmationMethod
 
@@ -159,7 +159,7 @@ struct SAMLSubjectConfirmation: Codable, Sendable, Equatable {
 // MARK: - SAMLSubjectConfirmationData
 
 /// Data confirming the subject
-struct SAMLSubjectConfirmationData: Codable, Sendable, Equatable {
+struct SAMLSubjectConfirmationData: Codable, Equatable {
     /// Response must be delivered to this URL
     let recipient: String?
 
@@ -173,7 +173,7 @@ struct SAMLSubjectConfirmationData: Codable, Sendable, Equatable {
 // MARK: - SAMLConditions
 
 /// Time and audience conditions for assertion validity
-struct SAMLConditions: Codable, Sendable, Equatable {
+struct SAMLConditions: Codable, Equatable {
     /// Assertion must not be used before this time
     let notBefore: Date
 
@@ -187,7 +187,7 @@ struct SAMLConditions: Codable, Sendable, Equatable {
 // MARK: - SAMLAudienceRestriction
 
 /// Audience restriction for the assertion
-struct SAMLAudienceRestriction: Codable, Sendable, Equatable {
+struct SAMLAudienceRestriction: Codable, Equatable {
     /// Entity IDs of allowed audiences
     let audiences: [String]
 }
@@ -195,7 +195,7 @@ struct SAMLAudienceRestriction: Codable, Sendable, Equatable {
 // MARK: - SAMLAuthnStatement
 
 /// Statement about how the user authenticated
-struct SAMLAuthnStatement: Codable, Sendable, Equatable {
+struct SAMLAuthnStatement: Codable, Equatable {
     /// When the authentication occurred
     let authnInstant: Date
 
@@ -212,7 +212,7 @@ struct SAMLAuthnStatement: Codable, Sendable, Equatable {
 // MARK: - SAMLAuthnContext
 
 /// Context about the authentication method
-struct SAMLAuthnContext: Codable, Sendable, Equatable {
+struct SAMLAuthnContext: Codable, Equatable {
     /// Authentication context class reference (method used)
     let classRef: SAMLAuthnContextClass
 }
@@ -220,7 +220,7 @@ struct SAMLAuthnContext: Codable, Sendable, Equatable {
 // MARK: - SAMLAttributeStatement
 
 /// Statement containing user attributes
-struct SAMLAttributeStatement: Codable, Sendable, Equatable {
+struct SAMLAttributeStatement: Codable, Equatable {
     /// Attributes in this statement
     let attributes: [SAMLAttribute]
 }
@@ -228,7 +228,7 @@ struct SAMLAttributeStatement: Codable, Sendable, Equatable {
 // MARK: - SAMLAttribute
 
 /// A single SAML attribute (name-value pair)
-struct SAMLAttribute: Codable, Sendable, Equatable {
+struct SAMLAttribute: Codable, Equatable {
     /// Attribute name (URI or simple name)
     let name: String
 
@@ -245,7 +245,7 @@ struct SAMLAttribute: Codable, Sendable, Equatable {
 // MARK: - SAMLNameIDFormat
 
 /// SAML NameID format types
-enum SAMLNameIDFormat: String, Codable, Sendable {
+enum SAMLNameIDFormat: String, Codable {
     case unspecified = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
     case emailAddress = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
     case persistent = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"
@@ -283,7 +283,7 @@ enum SAMLNameIDFormat: String, Codable, Sendable {
 // MARK: - SAMLConfirmationMethod
 
 /// SAML subject confirmation methods
-enum SAMLConfirmationMethod: String, Codable, Sendable {
+enum SAMLConfirmationMethod: String, Codable {
     case bearer = "urn:oasis:names:tc:SAML:2.0:cm:bearer"
     case holderOfKey = "urn:oasis:names:tc:SAML:2.0:cm:holder-of-key"
     case senderVouches = "urn:oasis:names:tc:SAML:2.0:cm:sender-vouches"
@@ -307,7 +307,7 @@ enum SAMLConfirmationMethod: String, Codable, Sendable {
 // MARK: - SAMLAuthnContextClass
 
 /// SAML authentication context classes (how the user authenticated)
-enum SAMLAuthnContextClass: String, Codable, Sendable {
+enum SAMLAuthnContextClass: String, Codable {
     case password = "urn:oasis:names:tc:SAML:2.0:ac:classes:Password"
     case passwordProtectedTransport = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
     case tlsClient = "urn:oasis:names:tc:SAML:2.0:ac:classes:TLSClient"
@@ -347,7 +347,7 @@ enum SAMLAuthnContextClass: String, Codable, Sendable {
 // MARK: - SAMLAttributeNameFormat
 
 /// SAML attribute name format
-enum SAMLAttributeNameFormat: String, Codable, Sendable {
+enum SAMLAttributeNameFormat: String, Codable {
     case unspecified = "urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified"
     case uri = "urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
     case basic = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"

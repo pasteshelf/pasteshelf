@@ -137,7 +137,7 @@ struct DeduplicatorTests {
 // MARK: - DeduplicationOptions
 
 /// Options for customizing deduplication behavior
-struct DeduplicationOptions: Sendable {
+struct DeduplicationOptions {
     /// Default options - semantic comparison only
     static let `default` = DeduplicationOptions()
 

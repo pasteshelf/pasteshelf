@@ -13,7 +13,7 @@ import os.log
 /// HIPAA requires that audit logs be retained for a minimum of 6 years (2190 days)
 /// and that logs cannot be deleted during the retention window. This struct provides
 /// validation that ensures any given `AuditRetentionConfiguration` meets these requirements.
-struct HIPAARetentionPolicy: Sendable {
+enum HIPAARetentionPolicy {
     // MARK: Internal
 
     /// Returns a default HIPAA-compliant retention configuration.

@@ -12,7 +12,7 @@ import SwiftUI
 // MARK: - TagDisplayModel
 
 /// UI-friendly model for displaying tags
-struct TagDisplayModel: Identifiable, Hashable, Sendable {
+struct TagDisplayModel: Identifiable, Hashable {
     /// Unique identifier
     let id: UUID
 

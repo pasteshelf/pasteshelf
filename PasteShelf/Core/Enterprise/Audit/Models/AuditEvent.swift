@@ -15,7 +15,7 @@ import Foundation
 /// such as clipboard activity, user-initiated operations, policy enforcement,
 /// or authentication events. The raw `String` value is persisted in CoreData
 /// and transmitted when syncing to the admin console.
-enum AuditEventCategory: String, Codable, Sendable, CaseIterable {
+enum AuditEventCategory: String, Codable, CaseIterable {
     /// Events related to clipboard content capture, paste, and item management.
     case clipboard
 
@@ -39,7 +39,7 @@ enum AuditEventCategory: String, Codable, Sendable, CaseIterable {
 /// Severity indicates the operational significance of an event. `info` covers
 /// routine activity, `warning` flags anomalies or near-violations, and `critical`
 /// marks events that require immediate administrator attention.
-enum AuditEventSeverity: String, Codable, Sendable {
+enum AuditEventSeverity: String, Codable {
     /// Routine operational events logged for observability.
     case info
 
@@ -57,7 +57,7 @@ enum AuditEventSeverity: String, Codable, Sendable {
 /// Each case corresponds to a meaningful user or system action within PasteShelf.
 /// The raw `String` value is used as the action discriminator when persisting and
 /// transmitting audit events, and is displayed in human-readable form in the UI.
-enum AuditAction: String, Codable, Sendable {
+enum AuditAction: String, Codable {
     // MARK: Clipboard Actions
 
     /// A new clipboard item was captured from the system clipboard.
@@ -135,7 +135,7 @@ enum AuditAction: String, Codable, Sendable {
 ///
 /// The `detail` dictionary carries action-specific key/value pairs (e.g. item IDs,
 /// search queries, policy identifiers) without requiring a per-action schema.
-struct AuditEvent: Codable, Sendable, Identifiable {
+struct AuditEvent: Codable, Identifiable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

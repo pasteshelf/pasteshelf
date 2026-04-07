@@ -26,7 +26,7 @@ protocol SearchEngine: Sendable {
 // MARK: - SearchOptions
 
 /// Configuration options for search operations
-struct SearchOptions: Sendable, Equatable {
+struct SearchOptions: Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization
@@ -129,7 +129,7 @@ struct SearchOptions: Sendable, Equatable {
 // MARK: - DateRange
 
 /// Represents a date range for filtering
-struct DateRange: Sendable, Equatable {
+struct DateRange: Equatable {
     // MARK: Lifecycle
 
     /// Creates a date range
@@ -174,7 +174,7 @@ struct DateRange: Sendable, Equatable {
 // MARK: - SearchResult
 
 /// Represents a single search result with match information
-struct SearchResult: Identifiable, Sendable, Equatable {
+struct SearchResult: Identifiable, Equatable {
     /// Unique identifier for the result (same as item ID)
     let id: UUID
 
@@ -213,7 +213,7 @@ struct SearchResult: Identifiable, Sendable, Equatable {
 // MARK: - MatchRange
 
 /// Represents a range in text where a search match was found
-struct MatchRange: Sendable, Equatable, Hashable {
+struct MatchRange: Equatable, Hashable {
     /// Start index in the string
     let start: Int
 
@@ -243,7 +243,7 @@ struct MatchRange: Sendable, Equatable, Hashable {
 // MARK: - MatchType
 
 /// Type of match found during search
-enum MatchType: String, Sendable, Equatable {
+enum MatchType: String, Equatable {
     /// Exact match of the query
     case exact
 
@@ -288,7 +288,7 @@ enum MatchType: String, Sendable, Equatable {
 // MARK: - SearchState
 
 /// Represents the current state of a search operation
-enum SearchState: Sendable, Equatable {
+enum SearchState: Equatable {
     /// No search in progress
     case idle
 
@@ -315,7 +315,7 @@ enum SearchState: Sendable, Equatable {
 // MARK: - SearchError
 
 /// Errors that can occur during search operations
-enum SearchError: Error, Sendable {
+enum SearchError: Error {
     /// The search was cancelled
     case cancelled
 

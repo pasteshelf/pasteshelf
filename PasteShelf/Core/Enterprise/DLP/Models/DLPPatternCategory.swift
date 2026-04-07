@@ -16,7 +16,7 @@ import Foundation
 /// the scope of their data protection policies at a glance.
 ///
 /// The raw `String` value is persisted in CoreData and displayed in the admin UI.
-enum DLPPatternCategory: String, Codable, Sendable, CaseIterable {
+enum DLPPatternCategory: String, Codable, CaseIterable {
     /// Payment card numbers matching common credit and debit card formats.
     case creditCard = "credit_card"
 

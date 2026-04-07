@@ -106,30 +106,29 @@ final class PreferencesWindowController: NSObject {
     }
 
     private func makeHostingController(for tab: PreferencesTab, viewModel: PreferencesViewModel) -> NSViewController {
-        let view: AnyView
-        switch tab {
+        let view = switch tab {
         case .general:
-            view = AnyView(GeneralTabView(viewModel: viewModel))
+            AnyView(GeneralTabView(viewModel: viewModel))
         case .privacy:
-            view = AnyView(PrivacyTabView(viewModel: viewModel))
+            AnyView(PrivacyTabView(viewModel: viewModel))
         case .appearance:
-            view = AnyView(AppearanceTabView(viewModel: viewModel))
+            AnyView(AppearanceTabView(viewModel: viewModel))
         case .shortcuts:
-            view = AnyView(ShortcutsTabView(viewModel: viewModel))
+            AnyView(ShortcutsTabView(viewModel: viewModel))
         case .search:
-            view = AnyView(SearchTabView())
+            AnyView(SearchTabView())
         case .sync:
-            view = AnyView(SyncTabView())
+            AnyView(SyncTabView())
         case .automation:
-            view = AnyView(AutomationTabView())
+            AnyView(AutomationTabView())
         #if !APP_STORE
             case .plugins:
-                view = AnyView(PluginSettingsView())
+                AnyView(PluginSettingsView())
             case .enterprise:
-                view = AnyView(EnterpriseTabView())
+                AnyView(EnterpriseTabView())
         #endif
         case .about:
-            view = AnyView(AboutTabView())
+            AnyView(AboutTabView())
         }
 
         let wrapped = view

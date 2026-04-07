@@ -17,7 +17,7 @@ import Foundation
 /// whether to store, redact, or discard the incoming content.
 ///
 /// Use the `clean` static sentinel when content passes all checks without any violations.
-struct DLPEvaluationResult: Sendable {
+struct DLPEvaluationResult {
     /// A result representing content that passed all DLP checks without any violations.
     ///
     /// Use this as the result value when no active rules matched the content, or
@@ -111,7 +111,7 @@ struct DLPEvaluationResult: Sendable {
 /// Each non-nil field contains the redacted version of the corresponding
 /// `ClipboardContent` property. Fields that had no sensitive matches retain
 /// their original value.
-struct DLPRedactedFields: Sendable {
+struct DLPRedactedFields {
     let plainText: String?
     let html: String?
     let url: String?

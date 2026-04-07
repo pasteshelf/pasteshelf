@@ -18,7 +18,7 @@ import Security
 /// audit log encryption, sync transport encryption, local disk encryption (FileVault),
 /// and key rotation status. The results are compiled into an `HIPAAEncryptionReport`
 /// with individual `ComplianceFinding` entries for each check.
-struct HIPAAEncryptionVerifier: Sendable {
+enum HIPAAEncryptionVerifier {
     // MARK: Internal
 
     // MARK: - Public API
@@ -192,7 +192,7 @@ struct HIPAAEncryptionVerifier: Sendable {
 // MARK: - HIPAAEncryptionReport
 
 /// Report produced by `HIPAAEncryptionVerifier` summarizing the encryption compliance status.
-struct HIPAAEncryptionReport: Codable, Sendable, Identifiable {
+struct HIPAAEncryptionReport: Codable, Identifiable {
     // MARK: Lifecycle
 
     init(

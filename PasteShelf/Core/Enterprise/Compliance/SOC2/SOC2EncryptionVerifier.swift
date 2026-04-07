@@ -20,7 +20,7 @@ import Security
 /// audit log encryption, sync transport encryption, at-rest disk encryption
 /// (FileVault), and key management practices. The results are compiled into a
 /// `SOC2EncryptionReport` with individual `ComplianceFinding` entries for each check.
-struct SOC2EncryptionVerifier: Sendable {
+enum SOC2EncryptionVerifier {
     // MARK: Internal
 
     // MARK: - Public API
@@ -293,7 +293,7 @@ struct SOC2EncryptionVerifier: Sendable {
 
 /// Report produced by `SOC2EncryptionVerifier` summarising the SOC 2 encryption
 /// compliance status across all data-protection layers.
-struct SOC2EncryptionReport: Codable, Sendable, Identifiable {
+struct SOC2EncryptionReport: Codable, Identifiable {
     // MARK: Lifecycle
 
     init(

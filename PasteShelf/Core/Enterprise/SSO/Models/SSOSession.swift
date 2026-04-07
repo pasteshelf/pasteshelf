@@ -11,7 +11,7 @@ import Foundation
 // MARK: - SSOSession
 
 /// An active SSO authentication session for an enterprise user
-struct SSOSession: Codable, Sendable, Identifiable, Equatable {
+struct SSOSession: Codable, Identifiable, Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

@@ -380,7 +380,7 @@ extension StorageManager {
 // MARK: - OCRSaveItem
 
 /// Data structure for batch saving OCR results
-struct OCRSaveItem: Sendable {
+struct OCRSaveItem {
     // MARK: Lifecycle
 
     init(itemId: UUID, text: String, confidence: Double, language: String? = nil) {

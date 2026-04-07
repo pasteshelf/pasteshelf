@@ -11,7 +11,7 @@ import Foundation
 // MARK: - AutomationRule
 
 /// An automation rule that executes actions when conditions are met
-struct AutomationRule: Codable, Equatable, Identifiable, Sendable {
+struct AutomationRule: Codable, Equatable, Identifiable {
     // MARK: Lifecycle
 
     // MARK: - Initialization
@@ -253,7 +253,7 @@ extension AutomationRule {
 // MARK: - AutomationRuleDisplayModel
 
 /// A display-friendly representation of an AutomationRule
-struct AutomationRuleDisplayModel: Identifiable, Sendable {
+struct AutomationRuleDisplayModel: Identifiable {
     // MARK: Lifecycle
 
     init(from rule: AutomationRule) {

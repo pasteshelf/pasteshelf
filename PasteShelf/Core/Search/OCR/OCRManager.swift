@@ -15,7 +15,7 @@ import Vision
 // MARK: - OCRResult
 
 /// Result of OCR text recognition
-struct OCRResult: Sendable {
+struct OCRResult {
     /// Extracted text from the image
     let text: String
 
@@ -37,7 +37,7 @@ struct OCRResult: Sendable {
 // MARK: - TextRegion
 
 /// Represents a recognized text region in an image
-struct TextRegion: Sendable {
+struct TextRegion {
     /// The recognized text
     let text: String
 

@@ -310,7 +310,7 @@
     // MARK: - Plugin Install Errors
 
     /// Errors that can occur during plugin installation
-    enum PluginInstallError: Error, LocalizedError, Sendable {
+    enum PluginInstallError: Error, LocalizedError {
         case invalidBundle
         case directoryCreationFailed
         case copyFailed(Error)

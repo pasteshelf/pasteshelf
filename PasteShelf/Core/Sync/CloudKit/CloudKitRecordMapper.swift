@@ -224,7 +224,7 @@ final class CloudKitRecordMapper: Sendable {
 // MARK: - ClipboardItemPayload
 
 /// Serializable payload for ClipboardItem
-struct ClipboardItemPayload: Codable, Sendable {
+struct ClipboardItemPayload: Codable {
     let id: UUID
     let timestamp: Date
     let contentType: String
@@ -246,7 +246,7 @@ struct ClipboardItemPayload: Codable, Sendable {
 // MARK: - ClipboardContentPayload
 
 /// Serializable payload for ClipboardContentData
-struct ClipboardContentPayload: Codable, Sendable {
+struct ClipboardContentPayload: Codable {
     // MARK: Lifecycle
 
     init(from content: ClipboardContentData) {

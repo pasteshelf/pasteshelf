@@ -18,7 +18,7 @@ import Foundation
 /// Rules may be pushed from the admin console (via `DLPPolicy`) or created locally by
 /// an administrator on an enrolled device. The `isEnabled` flag allows rules to be
 /// temporarily disabled without deleting them.
-struct DLPRule: Codable, Sendable, Identifiable, Equatable {
+struct DLPRule: Codable, Identifiable, Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

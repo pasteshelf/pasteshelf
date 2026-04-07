@@ -224,7 +224,7 @@ final class SyncEncryptionManager: SyncEncrypting, Sendable {
 // MARK: - EncryptedPayload
 
 /// Wrapper for encrypted sync data with metadata
-struct EncryptedPayload: Codable, Sendable {
+struct EncryptedPayload: Codable {
     // MARK: Lifecycle
 
     init(

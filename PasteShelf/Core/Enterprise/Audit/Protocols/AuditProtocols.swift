@@ -145,7 +145,7 @@ protocol AuditLogSyncing: Sendable {
 // MARK: - AuditError
 
 /// Errors that may be thrown during audit log operations.
-enum AuditError: Error, LocalizedError, Sendable {
+enum AuditError: Error, LocalizedError {
     /// The audit logging system has not been configured with the required credentials.
     case notConfigured
 

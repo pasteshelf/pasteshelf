@@ -114,7 +114,7 @@
     }
 
     /// Risk level for permission display
-    enum PermissionRiskLevel: String, Codable, Sendable, Comparable {
+    enum PermissionRiskLevel: String, Codable, Comparable {
         case low
         case medium
         case high
@@ -159,7 +159,7 @@
     }
 
     /// Tracks granted permissions for a plugin
-    struct PluginPermissionGrant: Codable, Equatable, Sendable {
+    struct PluginPermissionGrant: Codable, Equatable {
         // MARK: Lifecycle
 
         init(pluginId: String, permission: PluginPermission, isPermanent: Bool = true) {

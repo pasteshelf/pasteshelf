@@ -11,7 +11,7 @@ import Foundation
 // MARK: - SAMLResponse
 
 /// A complete SAML 2.0 Response message
-struct SAMLResponse: Codable, Sendable, Equatable {
+struct SAMLResponse: Codable, Equatable {
     /// Unique identifier for this response
     let id: String
 
@@ -106,7 +106,7 @@ struct SAMLResponse: Codable, Sendable, Equatable {
 // MARK: - SAMLStatus
 
 /// Status of a SAML response
-struct SAMLStatus: Codable, Sendable, Equatable {
+struct SAMLStatus: Codable, Equatable {
     /// Top-level status code
     let code: SAMLStatusCode
 
@@ -120,7 +120,7 @@ struct SAMLStatus: Codable, Sendable, Equatable {
 // MARK: - SAMLStatusCode
 
 /// SAML status codes
-enum SAMLStatusCode: String, Codable, Sendable {
+enum SAMLStatusCode: String, Codable {
     /// Success
     case success = "urn:oasis:names:tc:SAML:2.0:status:Success"
 
@@ -239,7 +239,7 @@ enum SAMLStatusCode: String, Codable, Sendable {
 // MARK: - SAMLValidationResult
 
 /// Result of SAML response validation
-enum SAMLValidationResult: Equatable, Sendable {
+enum SAMLValidationResult: Equatable {
     case success
     case failure(SAMLValidationError)
 
@@ -263,7 +263,7 @@ enum SAMLValidationResult: Equatable, Sendable {
 // MARK: - SAMLValidationError
 
 /// Errors that can occur during SAML validation
-enum SAMLValidationError: Error, LocalizedError, Equatable, Sendable {
+enum SAMLValidationError: Error, LocalizedError, Equatable {
     case authenticationFailed(String)
     case invalidDestination(expected: String, actual: String)
     case invalidInResponseTo(expected: String, actual: String?)

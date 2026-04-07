@@ -13,7 +13,7 @@ import Foundation
 // MARK: - TransformPreset
 
 /// Built-in text transformation presets
-enum TransformPreset: String, Codable, CaseIterable, Sendable { // swiftlint:disable:this type_body_length
+enum TransformPreset: String, Codable, CaseIterable { // swiftlint:disable:this type_body_length
     // MARK: - Case Transformations
 
     /// Convert to UPPERCASE
@@ -462,7 +462,7 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable { // swiftlint:dis
 // MARK: - TransformCategory
 
 /// Categories for grouping transform presets in UI
-enum TransformCategory: String, CaseIterable, Sendable {
+enum TransformCategory: String, CaseIterable {
     case caseConversion = "Case Conversion"
     case whitespace = "Whitespace"
     case lines = "Lines"

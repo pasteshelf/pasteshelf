@@ -20,7 +20,7 @@ import Security
 ///
 /// A `GDPRDeletionReport` is returned describing the outcome of each category.
 /// The deletion event itself is logged to the audit trail *before* audit logs are erased.
-struct GDPRDataDeletionService: Sendable {
+enum GDPRDataDeletionService {
     // MARK: Internal
 
     // MARK: - Deletion
@@ -207,7 +207,7 @@ struct GDPRDataDeletionService: Sendable {
 // MARK: - GDPRDeletionReport
 
 /// Report detailing the outcome of a GDPR Article 17 data deletion.
-struct GDPRDeletionReport: Codable, Sendable, Identifiable {
+struct GDPRDeletionReport: Codable, Identifiable {
     // MARK: Lifecycle
 
     init(id: UUID = UUID(), categories: [CategoryResult], completedAt: Date = Date()) {
@@ -219,7 +219,7 @@ struct GDPRDeletionReport: Codable, Sendable, Identifiable {
     // MARK: Internal
 
     /// Result for a single data category in the deletion process.
-    struct CategoryResult: Codable, Sendable, Identifiable {
+    struct CategoryResult: Codable, Identifiable {
         // MARK: Lifecycle
 
         init(id: UUID = UUID(), name: String, deletedCount: Int, success: Bool) {

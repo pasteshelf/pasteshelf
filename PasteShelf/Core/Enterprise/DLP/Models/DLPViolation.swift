@@ -19,7 +19,7 @@ import Foundation
 /// Sensitive content is never stored verbatim. The `contentPreview` field holds
 /// a redacted representation that is safe to display without exposing the original
 /// sensitive value.
-struct DLPViolation: Codable, Sendable, Identifiable, Equatable {
+struct DLPViolation: Codable, Identifiable, Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

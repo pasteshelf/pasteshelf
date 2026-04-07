@@ -10,7 +10,7 @@ import Foundation
 // MARK: - ComplianceError
 
 /// Errors that can arise from compliance operations across HIPAA, GDPR, and SOC 2 subsystems.
-enum ComplianceError: Error, LocalizedError, Sendable {
+enum ComplianceError: Error, LocalizedError {
     case notConfigured
     case featureUnavailable
     case exportFailed(underlying: Error)

@@ -11,7 +11,7 @@ import Foundation
 // MARK: - AutomationAction
 
 /// Actions that can be executed when an automation rule matches
-enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
+enum AutomationAction: Codable, Equatable, Identifiable {
     // MARK: - Action Cases
 
     /// Apply a text transformation preset
@@ -270,7 +270,7 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
 // MARK: - ActionType
 
 /// Types of automation actions
-enum ActionType: String, Codable, CaseIterable, Sendable {
+enum ActionType: String, Codable, CaseIterable {
     case transform
     case addTag
     case removeTag

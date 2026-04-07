@@ -489,7 +489,7 @@
     // MARK: - Plugin State
 
     /// Represents the current state of a plugin
-    enum PluginState: String, Codable, Sendable {
+    enum PluginState: String, Codable {
         /// Plugin is discovered but not loaded
         case discovered
 
@@ -520,7 +520,7 @@
     }
 
     /// Information about a loaded plugin
-    struct LoadedPlugin: Identifiable, Sendable {
+    struct LoadedPlugin: Identifiable {
         // MARK: Lifecycle
 
         init(bundle: PluginBundle, instance: (any PasteShelfPlugin)? = nil, state: PluginState = .discovered) {

@@ -35,7 +35,7 @@ final class GDPRConsentManager: ObservableObject {
     // MARK: Internal
 
     /// A single consent record entry with category, grant status, and last updated date.
-    struct ConsentRecordEntry: Sendable {
+    struct ConsentRecordEntry {
         let category: GDPRConsentCategory
         let isGranted: Bool
         let updatedAt: Date?

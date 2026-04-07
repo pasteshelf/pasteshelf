@@ -11,7 +11,7 @@ import Foundation
 // MARK: - DateGroup
 
 /// Represents a date-based grouping category
-enum DateGroup: String, CaseIterable, Identifiable, Comparable, Sendable {
+enum DateGroup: String, CaseIterable, Identifiable, Comparable {
     case today
     case yesterday
     case thisWeek

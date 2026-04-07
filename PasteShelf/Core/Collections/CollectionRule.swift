@@ -11,7 +11,7 @@ import Foundation
 // MARK: - CollectionRules
 
 /// Container for collection filtering rules
-struct CollectionRules: Codable, Equatable, Sendable {
+struct CollectionRules: Codable, Equatable {
     // MARK: Lifecycle
 
     /// Creates default empty rules
@@ -40,7 +40,7 @@ struct CollectionRules: Codable, Equatable, Sendable {
 // MARK: - RuleCondition
 
 /// A single rule condition for filtering clipboard items
-struct RuleCondition: Codable, Equatable, Identifiable, Sendable {
+struct RuleCondition: Codable, Equatable, Identifiable {
     // MARK: Lifecycle
 
     init(
@@ -73,7 +73,7 @@ struct RuleCondition: Codable, Equatable, Identifiable, Sendable {
 // MARK: - RuleField
 
 /// Fields that can be used in rule conditions
-enum RuleField: String, Codable, CaseIterable, Sendable {
+enum RuleField: String, Codable, CaseIterable {
     /// Content type (text, image, file, etc.)
     case contentType
 
@@ -151,7 +151,7 @@ enum RuleField: String, Codable, CaseIterable, Sendable {
 // MARK: - RuleOperator
 
 /// Comparison operators for rule conditions
-enum RuleOperator: String, Codable, CaseIterable, Sendable {
+enum RuleOperator: String, Codable, CaseIterable {
     /// Exact match (for strings: case-insensitive)
     case equals
 
@@ -196,7 +196,7 @@ enum RuleOperator: String, Codable, CaseIterable, Sendable {
 // MARK: - LogicalOperator
 
 /// Logical operators to combine multiple conditions
-enum LogicalOperator: String, Codable, CaseIterable, Sendable {
+enum LogicalOperator: String, Codable, CaseIterable {
     /// All conditions must match
     case and
 
@@ -225,7 +225,7 @@ enum LogicalOperator: String, Codable, CaseIterable, Sendable {
 // MARK: - ContentTypeValue
 
 /// Predefined content type values for rule conditions
-enum ContentTypeValue: String, CaseIterable, Sendable {
+enum ContentTypeValue: String, CaseIterable {
     case text
     case images
     case files
@@ -277,7 +277,7 @@ enum ContentTypeValue: String, CaseIterable, Sendable {
 // MARK: - DateRangeValue
 
 /// Predefined date range values for rule conditions
-enum DateRangeValue: String, CaseIterable, Sendable {
+enum DateRangeValue: String, CaseIterable {
     case lastHour = "1h"
     case last24Hours = "24h"
     case last7Days = "7d"

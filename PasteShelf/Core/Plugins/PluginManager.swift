@@ -527,7 +527,7 @@
     // MARK: - Loading Status
 
     /// Status of plugin loading operations
-    enum PluginLoadingStatus: Sendable {
+    enum PluginLoadingStatus {
         case idle
         case discovering
         case validating
@@ -558,7 +558,7 @@
     // MARK: - Manager Errors
 
     /// Errors from PluginManager operations
-    enum PluginManagerError: Error, LocalizedError, Sendable {
+    enum PluginManagerError: Error, LocalizedError {
         case notInitialized
         case pluginNotFound(String)
         case invalidState(current: PluginState, expected: PluginState)

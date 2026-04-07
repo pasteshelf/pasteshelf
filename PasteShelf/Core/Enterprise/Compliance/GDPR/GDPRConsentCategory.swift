@@ -12,7 +12,7 @@ import Foundation
 /// Each category represents a distinct purpose for which PasteShelf processes user data.
 /// Users can grant or revoke consent for each category independently, and the application
 /// must respect these preferences by enabling or disabling the corresponding functionality.
-enum GDPRConsentCategory: String, Codable, Sendable, CaseIterable {
+enum GDPRConsentCategory: String, Codable, CaseIterable {
     /// Monitoring the system clipboard for new content.
     case clipboardMonitoring = "clipboard_monitoring"
 

@@ -11,7 +11,7 @@
     import os.log
 
     /// Registered plugin action for automation
-    struct PluginAction: Identifiable, Sendable {
+    struct PluginAction: Identifiable {
         let id: UUID
         let pluginId: String
         let name: String
@@ -166,7 +166,7 @@
     // MARK: - Action Errors
 
     /// Errors from action operations
-    enum PluginActionError: Error, LocalizedError, Sendable {
+    enum PluginActionError: Error, LocalizedError {
         case actionNotFound(UUID)
         case noExecuteFunction
         case unsupportedContentType(ContentType)

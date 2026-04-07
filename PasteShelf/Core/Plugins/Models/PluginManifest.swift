@@ -10,7 +10,7 @@
     import Foundation
 
     /// Plugin manifest parsed from Info.plist
-    struct PluginManifest: Equatable, Sendable, Identifiable {
+    struct PluginManifest: Equatable, Identifiable {
         // MARK: Lifecycle
 
         // MARK: - Initialization
@@ -209,7 +209,7 @@
     }
 
     /// Plugin categories for organization and discovery
-    enum PluginCategory: String, Codable, CaseIterable, Sendable {
+    enum PluginCategory: String, Codable, CaseIterable {
         case transformation
         case integration
         case formatting

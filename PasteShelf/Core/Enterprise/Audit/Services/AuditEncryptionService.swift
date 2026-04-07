@@ -22,7 +22,7 @@ import Security
 /// The AES-256 symmetric key is generated on first use and persisted in the system
 /// Keychain under the `com.pasteshelf.audit.detail.key` service so that it survives
 /// application restarts without requiring re-encryption of existing records.
-struct AuditEncryptionService: Sendable {
+struct AuditEncryptionService {
     // MARK: Internal
 
     // MARK: - Encryption

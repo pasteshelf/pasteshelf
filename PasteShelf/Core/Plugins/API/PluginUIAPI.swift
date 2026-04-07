@@ -170,7 +170,7 @@
     // MARK: - Context Menu Item
 
     /// Context menu item registered by a plugin
-    struct PluginContextMenuItem: Identifiable, Sendable {
+    struct PluginContextMenuItem: Identifiable {
         // MARK: Lifecycle
 
         init(

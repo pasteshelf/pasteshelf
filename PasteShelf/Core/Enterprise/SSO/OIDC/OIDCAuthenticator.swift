@@ -319,7 +319,7 @@ extension OIDCAuthenticator: ASWebAuthenticationPresentationContextProviding {
 // MARK: - PKCEParameters
 
 /// PKCE (Proof Key for Code Exchange) parameters for OAuth 2.0
-struct PKCEParameters: Sendable {
+struct PKCEParameters {
     // MARK: Lifecycle
 
     init() {
@@ -356,7 +356,7 @@ struct PKCEParameters: Sendable {
 // MARK: - OIDCTokenResponse
 
 /// Response from the OIDC token endpoint
-struct OIDCTokenResponse: Codable, Sendable {
+struct OIDCTokenResponse: Codable {
     enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
         case tokenType = "token_type"
@@ -385,7 +385,7 @@ struct OIDCTokenResponse: Codable, Sendable {
 // MARK: - IDTokenClaims
 
 /// Standard OIDC ID token claims
-struct IDTokenClaims: Codable, Sendable {
+struct IDTokenClaims: Codable {
     // MARK: Lifecycle
 
     init(from decoder: Decoder) throws {
@@ -461,7 +461,7 @@ struct IDTokenClaims: Codable, Sendable {
 // MARK: - IDTokenAudience
 
 /// Audience claim that can be a single string or array of strings
-enum IDTokenAudience: Codable, Sendable {
+enum IDTokenAudience: Codable {
     case single(String)
     case multiple([String])
 

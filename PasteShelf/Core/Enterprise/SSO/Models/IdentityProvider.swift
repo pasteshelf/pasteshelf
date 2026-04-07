@@ -11,7 +11,7 @@ import Foundation
 // MARK: - IdentityProviderType
 
 /// The protocol type used by an identity provider
-enum IdentityProviderType: String, Codable, Sendable, CaseIterable {
+enum IdentityProviderType: String, Codable, CaseIterable {
     case saml
     case oidc
 
@@ -44,7 +44,7 @@ enum IdentityProviderType: String, Codable, Sendable, CaseIterable {
 // MARK: - IdentityProvider
 
 /// Configuration for an enterprise identity provider
-struct IdentityProvider: Codable, Sendable, Identifiable, Equatable {
+struct IdentityProvider: Codable, Identifiable, Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization
@@ -116,7 +116,7 @@ struct IdentityProvider: Codable, Sendable, Identifiable, Equatable {
 // MARK: - SAMLBinding
 
 /// HTTP binding type for SAML protocol messages
-enum SAMLBinding: String, Codable, Sendable, CaseIterable {
+enum SAMLBinding: String, Codable, CaseIterable {
     case httpPost = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
     case httpRedirect = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 
@@ -149,7 +149,7 @@ enum SAMLBinding: String, Codable, Sendable, CaseIterable {
 // MARK: - SAMLProviderConfig
 
 /// SAML 2.0 identity provider configuration
-struct SAMLProviderConfig: Codable, Sendable, Equatable {
+struct SAMLProviderConfig: Codable, Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization
@@ -212,7 +212,7 @@ struct SAMLProviderConfig: Codable, Sendable, Equatable {
 // MARK: - OIDCProviderConfig
 
 /// OpenID Connect identity provider configuration
-struct OIDCProviderConfig: Codable, Sendable, Equatable {
+struct OIDCProviderConfig: Codable, Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

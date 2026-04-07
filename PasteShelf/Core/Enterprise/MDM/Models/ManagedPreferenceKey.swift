@@ -16,7 +16,7 @@ import Foundation
 /// Raw values match the plist keys documented in the Enterprise Deployment Guide
 /// so that `UserDefaults(suiteName: "com.apple.configuration.managed")` look-ups
 /// work without any transformation.
-enum ManagedPreferenceKey: String, CaseIterable, Sendable {
+enum ManagedPreferenceKey: String, CaseIterable {
     // MARK: Enterprise
 
     /// Unique identifier for the managing organization
@@ -100,7 +100,7 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
     // MARK: - SettingsGroup
 
     /// Logical grouping used to organize keys in the settings UI
-    enum SettingsGroup: String, Sendable {
+    enum SettingsGroup: String {
         case general
         case privacy
         case appearance
@@ -191,7 +191,7 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
 ///
 /// MDM payloads carry values as plain plist types; this enum wraps the three
 /// primitive types used by PasteShelf's managed keys.
-enum PreferenceValue: Equatable, Sendable {
+enum PreferenceValue: Equatable {
     /// A boolean preference (maps to plist `<true/>` / `<false/>`)
     case bool(Bool)
 

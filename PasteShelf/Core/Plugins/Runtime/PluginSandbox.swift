@@ -11,7 +11,7 @@
     import os.log
 
     /// Configuration for plugin sandbox restrictions
-    struct PluginSandboxConfig: Sendable {
+    struct PluginSandboxConfig {
         /// Default configuration with reasonable limits
         static let `default` = PluginSandboxConfig(
             maxExecutionTime: 30.0,
@@ -209,7 +209,7 @@
     // MARK: - Resource Usage
 
     /// Current resource usage for a plugin
-    struct PluginResourceUsage: Sendable {
+    struct PluginResourceUsage {
         let activeOperations: Int
         let oldestOperation: Date?
         let config: PluginSandboxConfig
@@ -222,7 +222,7 @@
     // MARK: - Sandbox Errors
 
     /// Errors from sandbox policy violations
-    enum PluginSandboxError: Error, LocalizedError, Sendable {
+    enum PluginSandboxError: Error, LocalizedError {
         case timeout(seconds: TimeInterval)
         case executionFailed(String)
         case networkNotAllowed

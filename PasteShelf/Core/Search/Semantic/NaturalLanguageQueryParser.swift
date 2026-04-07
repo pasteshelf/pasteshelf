@@ -12,7 +12,7 @@ import Foundation
 // MARK: - ParsedQuery
 
 /// Parsed query containing extracted filters and the semantic search text
-struct ParsedQuery: Sendable, Equatable {
+struct ParsedQuery: Equatable {
     /// Date range extracted from time references
     let dateRange: DateRange?
 

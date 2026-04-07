@@ -19,7 +19,7 @@ import os.log
 ///
 /// The caller is responsible for presenting the resulting directory URL to the user (e.g. via
 /// `NSSavePanel`) and cleaning up the temporary files afterwards.
-struct GDPRDataExportService: Sendable {
+enum GDPRDataExportService {
     // MARK: Internal
 
     // MARK: - Export
@@ -318,7 +318,7 @@ private struct ExportCounts {
 // MARK: - ExportManifest
 
 /// Metadata describing a GDPR data export.
-private struct ExportManifest: Codable, Sendable {
+private struct ExportManifest: Codable {
     let exportDate: Date
     let applicationVersion: String
     let format: String = "PasteShelf GDPR Export v1"

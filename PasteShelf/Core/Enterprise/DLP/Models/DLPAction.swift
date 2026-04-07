@@ -17,7 +17,7 @@ import Foundation
 ///
 /// The raw `String` value is persisted in CoreData and transmitted to the admin console
 /// for reporting purposes.
-enum DLPAction: String, Codable, Sendable, CaseIterable {
+enum DLPAction: String, Codable, CaseIterable {
     /// Prevents the clipboard item from being stored in the local history.
     ///
     /// When a `block` action is applied, the content is discarded immediately after

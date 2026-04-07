@@ -11,7 +11,7 @@ import SwiftUI
 // MARK: - CollectionDisplayModel
 
 /// UI-friendly model for displaying smart collections
-struct CollectionDisplayModel: Identifiable, Hashable, Sendable {
+struct CollectionDisplayModel: Identifiable, Hashable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

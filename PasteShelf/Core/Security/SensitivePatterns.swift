@@ -15,7 +15,7 @@ enum SensitivePatterns {
     // MARK: - Category Definition
 
     /// Categories of sensitive data patterns
-    enum SensitiveCategory: String, CaseIterable, Codable, Sendable {
+    enum SensitiveCategory: String, CaseIterable, Codable {
         case apiKeys = "API Keys & Tokens"
         case passwords = "Passwords"
         case sshCerts = "SSH & Certificates"
@@ -46,7 +46,7 @@ enum SensitivePatterns {
     // MARK: - Pattern Definition
 
     /// A sensitive data pattern with its metadata
-    struct Pattern: Sendable {
+    struct Pattern {
         // MARK: Lifecycle
 
         init(

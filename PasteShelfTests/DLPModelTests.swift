@@ -12,7 +12,6 @@ import Testing
 
 // MARK: - DLPModelTests
 
-@Suite("DLP Model Tests")
 struct DLPModelTests {
     // MARK: - DLPRule
 

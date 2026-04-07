@@ -11,7 +11,7 @@ import Foundation
 // MARK: - FuzzyMatcher
 
 /// Provides fuzzy string matching capabilities using Levenshtein distance
-struct FuzzyMatcher: Sendable {
+struct FuzzyMatcher {
     // MARK: Lifecycle
 
     // MARK: - Initialization
@@ -308,7 +308,7 @@ struct FuzzyMatcher: Sendable {
 // MARK: - FuzzyMatch
 
 /// Represents a fuzzy match result
-struct FuzzyMatch: Sendable {
+struct FuzzyMatch {
     /// The text that was matched
     let matchedText: String
 

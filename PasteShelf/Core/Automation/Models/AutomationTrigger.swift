@@ -11,7 +11,7 @@ import Foundation
 // MARK: - AutomationTrigger
 
 /// Trigger types that initiate automation rule evaluation
-enum AutomationTrigger: Codable, Equatable, Hashable, Sendable {
+enum AutomationTrigger: Codable, Equatable, Hashable {
     /// Triggered when a new clipboard item is captured
     case onCapture
 
@@ -125,7 +125,7 @@ enum AutomationTrigger: Codable, Equatable, Hashable, Sendable {
 // MARK: - CronExpression
 
 /// A simplified cron expression for scheduling automation rules
-struct CronExpression: Codable, Equatable, Hashable, Sendable {
+struct CronExpression: Codable, Equatable, Hashable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

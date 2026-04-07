@@ -21,7 +21,7 @@ import Foundation
 ///
 /// Use the `empty` sentinel when no DLP policy has been received from the server,
 /// or initialise with `DLPPolicy()` to create a policy with no rules and no enforcement.
-struct DLPPolicy: Codable, Sendable, Equatable {
+struct DLPPolicy: Codable, Equatable {
     // MARK: Lifecycle
 
     // MARK: - Initialization

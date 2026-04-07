@@ -221,7 +221,7 @@
     // MARK: - Plugin Load Errors
 
     /// Errors that can occur when loading a plugin bundle
-    enum PluginLoadError: Error, LocalizedError, Sendable {
+    enum PluginLoadError: Error, LocalizedError {
         case invalidBundleExtension(String)
         case bundleNotFound(String)
         case invalidInfoPlist(String)
