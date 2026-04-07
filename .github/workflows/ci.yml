@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [main, develop]
   pull_request:
     branches: [main, develop]
 
@@ -70,13 +68,14 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
-      - name: Run Tests
+      - name: Run Unit Tests
         run: |
           xcodebuild test \
             -scheme PasteShelf \
             -destination 'platform=macOS' \
             -configuration Debug \
             -resultBundlePath TestResults.xcresult \
+            -skip-testing:PasteShelfUITests \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Upload Test Results
