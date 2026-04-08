@@ -2,8 +2,39 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <channel>
         <title>PasteShelf</title>
-        <link>https://pasteshelf.github.io/PasteShelf/appcast.xml</link>
+        <link>https://pasteshelf.github.io/pasteshelf/appcast.xml</link>
         <description>PasteShelf update feed</description>
         <language>en</language>
+        <item>
+            <title>Version 1.0.2</title>
+            <pubDate>Tue, 08 Apr 2026 18:37:00 +0000</pubDate>
+            <sparkle:version>1.0.2</sparkle:version>
+            <sparkle:shortVersionString>1.0.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <ul>
+                    <li>Fix Sparkle update feed URL</li>
+                </ul>
+            ]]></description>
+            <enclosure
+                url="https://github.com/pasteshelf/PasteShelf/releases/download/v1.0.2/PasteShelf-1.0.2.zip"
+                sparkle:edSignature="DL2EtQ5Uf84w6ZXxEwJibnOPh8TcBhG88r6UCyNw9moGETEWDcMPAbbs1N7S8TiEyQawjHuk/w/uM78UhRWBDg=="
+                length="5815978"
+                type="application/octet-stream"
+            />
+        </item>
+        <item>
+            <title>Version 1.0.1</title>
+            <pubDate>Tue, 07 Apr 2026 18:51:14 +0000</pubDate>
+            <sparkle:version>1.0.1</sparkle:version>
+            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/pasteshelf/PasteShelf/releases/download/v1.0.1/PasteShelf-1.0.1.dmg"
+                length="6065271"
+                type="application/octet-stream"
+                sparkle:edSignature="YIjhfwlvLyp+MKAMZ8NEnK73As8BbSWeHnXeu+9QjbS+eTcCjYH7Im52n/+MIcQpEwygVwpp3eZ8OyaGPMBABQ=="
+            />
+        </item>
     </channel>
 </rss>
