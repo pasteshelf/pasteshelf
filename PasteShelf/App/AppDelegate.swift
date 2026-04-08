@@ -15,6 +15,11 @@ import os.log
 final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Controllers
 
+    #if !APP_STORE
+    /// Sparkle auto-update controller
+    private var sparkleUpdater = SparkleUpdaterController()
+    #endif
+
     /// Menu bar status item controller
     var menuBarController: MenuBarController?
 
