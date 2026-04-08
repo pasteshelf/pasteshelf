@@ -18,5 +18,18 @@
                 sparkle:edSignature="YqxfkjJBi+MV9VnsMngA3vEEGWrKzfyM+uWNht8hm9Gdo0+Qma+MQMdhhkfaeATGCgoqhEVKNjGSqsWVZOhACw=="
             />
         </item>
+        <item>
+            <title>Version 1.0.7</title>
+            <pubDate>Wed, 08 Apr 2026 20:44:57 +0000</pubDate>
+            <sparkle:version>17</sparkle:version>
+            <sparkle:shortVersionString>1.0.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/pasteshelf/PasteShelf/releases/download/v1.0.7/PasteShelf.dmg"
+                length="6067157"
+                type="application/octet-stream"
+                sparkle:edSignature="LOlzZxMzjyvWmMwJZB9mssGEXuz1zdv1GFyaN3Y/yqEkY2E5TVwkrhCIV3vNepZojM8kKtzM+D22Ip5HmOVPDA=="
+            />
+        </item>
     </channel>
 </rss>
