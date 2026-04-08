@@ -190,7 +190,7 @@ jobs:
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          DMG_PATH="build/${APP_NAME}-${RELEASE_VERSION}.dmg"
+          DMG_PATH="build/${APP_NAME}.dmg"
 
           echo "Submitting DMG for notarization..."
           xcrun notarytool submit "$DMG_PATH" \
@@ -212,7 +212,7 @@ jobs:
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          DMG_PATH="build/${APP_NAME}-${RELEASE_VERSION}.dmg"
+          DMG_PATH="build/${APP_NAME}.dmg"
 
           # SHA256
           SHA256=$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')
@@ -262,12 +262,12 @@ jobs:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
           SHA256: ${{ steps.signatures.outputs.sha256 }}
         run: |
-          DMG_PATH="build/${APP_NAME}-${RELEASE_VERSION}.dmg"
+          DMG_PATH="build/${APP_NAME}.dmg"
 
           gh release create "v${RELEASE_VERSION}" \
             --title "PasteShelf v${RELEASE_VERSION}" \
             --generate-notes \
-            "$DMG_PATH#PasteShelf-${RELEASE_VERSION}.dmg"
+            "$DMG_PATH#PasteShelf.dmg"
 
           echo ""
           echo "Release created: v${RELEASE_VERSION}"
@@ -292,7 +292,7 @@ jobs:
             version "VERSION_PLACEHOLDER"
             sha256 "SHA256_PLACEHOLDER"
 
-            url "https://github.com/pasteshelf/PasteShelf/releases/download/v#{version}/PasteShelf-#{version}.dmg"
+            url "https://github.com/pasteshelf/PasteShelf/releases/download/v#{version}/PasteShelf.dmg"
             name "PasteShelf"
             desc "Privacy-first clipboard manager for macOS"
             homepage "https://github.com/pasteshelf/PasteShelf"
@@ -341,7 +341,7 @@ jobs:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
           ED_SIGNATURE: ${{ steps.signatures.outputs.ed_signature }}
         run: |
-          DMG_PATH="build/${APP_NAME}-${RELEASE_VERSION}.dmg"
+          DMG_PATH="build/${APP_NAME}.dmg"
           ./scripts/update-appcast.sh "$RELEASE_VERSION" "$DMG_PATH" "$ED_SIGNATURE"
 
       - name: Prepare appcast for deployment
@@ -375,6 +375,6 @@ jobs:
         with:
           name: release-${{ steps.version.outputs.version }}
           path: |
-            build/${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.dmg
+            build/${{ env.APP_NAME }}.dmg
           if-no-files-found: warn
           retention-days: 30

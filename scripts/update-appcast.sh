@@ -84,7 +84,7 @@ fi
 # Compute file size and publication date
 DMG_SIZE=$(stat -f%z "$DMG_PATH")
 PUB_DATE=$(date -R)
-DOWNLOAD_URL="https://github.com/$GITHUB_REPO/releases/download/v${VERSION}/PasteShelf-${VERSION}.dmg"
+DOWNLOAD_URL="https://github.com/$GITHUB_REPO/releases/download/v${VERSION}/PasteShelf.dmg"
 MIN_SYSTEM_VERSION="14.0"
 
 echo "=== PasteShelf: Appcast Update ==="
