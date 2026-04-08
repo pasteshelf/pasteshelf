@@ -83,7 +83,8 @@ final class PreferencesWindowController: NSObject {
 
         let window = NSWindow(contentViewController: tabViewController)
         window.title = "Preferences"
-        window.styleMask = [.titled, .closable, .miniaturizable]
+        window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
+        window.collectionBehavior.insert(.fullScreenPrimary)
         window.isReleasedWhenClosed = false
         window.delegate = self
 
