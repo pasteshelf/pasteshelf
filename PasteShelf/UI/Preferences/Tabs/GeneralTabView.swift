@@ -51,6 +51,8 @@ struct GeneralTabView: View {
                 Text("Items beyond this limit will be automatically removed (oldest first). Favorites are always preserved.")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             Section {
