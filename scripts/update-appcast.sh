@@ -48,16 +48,17 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     exit 0
 fi
 
-if [[ $# -lt 3 ]]; then
-    echo "error: requires 3 arguments: version, dmg-path, ed-signature"
+if [[ $# -lt 4 ]]; then
+    echo "error: requires 4 arguments: version, build-number, dmg-path, ed-signature"
     echo ""
     usage
     exit 1
 fi
 
 VERSION="$1"
-DMG_PATH="$2"
-ED_SIGNATURE_RAW="$3"
+BUILD_NUMBER="$2"
+DMG_PATH="$3"
+ED_SIGNATURE_RAW="$4"
 
 # sign_update may output full attribute string like:
 #   sparkle:edSignature="BASE64..." length="12345"
@@ -102,7 +103,7 @@ NEW_ITEM=$(cat <<ITEM_EOF
         <item>
             <title>Version ${VERSION}</title>
             <pubDate>${PUB_DATE}</pubDate>
-            <sparkle:version>${VERSION}</sparkle:version>
+            <sparkle:version>${BUILD_NUMBER}</sparkle:version>
             <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>${MIN_SYSTEM_VERSION}</sparkle:minimumSystemVersion>
             <enclosure
