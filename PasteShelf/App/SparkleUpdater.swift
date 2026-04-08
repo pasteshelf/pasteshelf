@@ -3,6 +3,8 @@ import Combine
 import Sparkle
 
 final class SparkleUpdaterController: ObservableObject {
+    static let shared = SparkleUpdaterController()
+
     private let updater: SPUUpdater
 
     init() {
