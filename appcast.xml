@@ -37,4 +37,17 @@
             />
         </item>
     </channel>
+        <item>
+            <title>Version 1.0.2</title>
+            <pubDate>Wed, 08 Apr 2026 18:53:02 +0000</pubDate>
+            <sparkle:version>1.0.2</sparkle:version>
+            <sparkle:shortVersionString>1.0.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/pasteshelf/PasteShelf/releases/download/v1.0.2/PasteShelf-1.0.2.dmg"
+                length="6065223"
+                type="application/octet-stream"
+                sparkle:edSignature="GbG/0YhMyF/IidWsFZvuzrzbgMvw3ZEuNtenPUTG4z2RRhhLt2fUT63LQ34su6wMPBVmwBA1ikKslyfEr24vDQ=="
+            />
+        </item>
 </rss>
