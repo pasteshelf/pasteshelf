@@ -129,7 +129,7 @@ final class PreferencesWindowController: NSObject {
         let wrapped = view
             .formStyle(.grouped)
             .environmentObject(SettingsManager.shared)
-            .frame(minWidth: 500, minHeight: 500)
+            .frame(minWidth: 900, minHeight: 500)
 
         return NSHostingController(rootView: wrapped)
     }
