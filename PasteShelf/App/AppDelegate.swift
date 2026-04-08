@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     #if !APP_STORE
     /// Sparkle auto-update controller
-    private var sparkleUpdater = SparkleUpdaterController()
+    private var sparkleUpdater = SparkleUpdaterController.shared
     #endif
 
     /// Menu bar status item controller

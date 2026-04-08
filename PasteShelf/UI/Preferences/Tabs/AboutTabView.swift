@@ -49,6 +49,15 @@ struct AboutTabView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
 
+            // Check for Updates
+            #if !APP_STORE
+            Button {
+                SparkleUpdaterController.shared.checkForUpdates()
+            } label: {
+                Text("Check for Updates")
+            }
+            #endif
+
             // Links
             VStack(spacing: 12) {
                 Link(destination: URL(string: "https://pasteshelf.app")!) {
