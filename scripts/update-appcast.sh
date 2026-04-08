@@ -123,10 +123,13 @@ TEMP_FILE=$(mktemp)
 ITEM_FILE=$(mktemp)
 echo "$NEW_ITEM" > "$ITEM_FILE"
 
-# Insert new item before </channel> using sed with a file read
-sed "/<\/channel>/{
-r $ITEM_FILE
-}" "$APPCAST" > "$TEMP_FILE"
+# Insert new item before </channel>
+while IFS= read -r line; do
+    if [[ "$line" == *"</channel>"* ]]; then
+        cat "$ITEM_FILE"
+    fi
+    printf '%s\n' "$line"
+done < "$APPCAST" > "$TEMP_FILE"
 
 mv "$TEMP_FILE" "$APPCAST"
 rm -f "$ITEM_FILE"
