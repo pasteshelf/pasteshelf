@@ -1,0 +1,28 @@
+[extend]
+# Use the default gitleaks config as a base
+# https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+
+[allowlist]
+description = "Known false positives"
+paths = [
+    '''PasteShelfTests/SensitiveDataDetectorTests\.swift''',
+    '''docs/enterprise/SYNC_SERVER_API\.md''',
+]
+commits = [
+    "0277eb6bd2a27e6e461e501c5218b21500caed33",
+    "84fb240be723c52da5d1a1a6b157f857776c4815",
+    "8ae4e5aac8d1d0467d76b79b208537c00e4e6465",
+    "635fc5adff89a72b947070b769854cbcc01bccbc",
+    "c0a161f653e404b2a7e2cb1238a7d97e2573b97b",
+    "cc6f45494ada435c206dd486d1e7e63acad3296b",
+]
+
+# HKDF info parameter (not a secret — used for key derivation context)
+[[rules]]
+id = "encryption-key-info-allowlist"
+description = "Allow HKDF info parameter in SyncKeyManager"
+regex = '''encryption-key-v\d+'''
+[rules.allowlist]
+paths = [
+    '''SyncKeyManager\.swift''',
+]
