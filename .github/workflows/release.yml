@@ -130,6 +130,38 @@ jobs:
             -exportOptionsPlist ExportOptions.plist \
             -exportPath build/export
 
+      - name: Re-sign Sparkle XPC services for sandbox
+        run: |
+          APP_PATH="build/export/${APP_NAME}.app"
+          SPARKLE_FW="$APP_PATH/Contents/Frameworks/Sparkle.framework"
+
+          echo "Re-signing Sparkle Downloader XPC service..."
+          codesign --force --options runtime --sign "Developer ID Application" \
+            --entitlements PasteShelf/Sparkle-Downloader.entitlements \
+            "$SPARKLE_FW/Versions/B/XPCServices/Downloader.xpc"
+
+          echo "Re-signing Sparkle Installer XPC service..."
+          codesign --force --options runtime --sign "Developer ID Application" \
+            --entitlements PasteShelf/Sparkle-Installer.entitlements \
+            "$SPARKLE_FW/Versions/B/XPCServices/Installer.xpc"
+
+          echo "Re-signing Sparkle Autoupdate..."
+          codesign --force --options runtime --sign "Developer ID Application" \
+            "$SPARKLE_FW/Versions/B/Autoupdate"
+
+          echo "Re-signing Sparkle Updater.app..."
+          codesign --force --options runtime --sign "Developer ID Application" \
+            "$SPARKLE_FW/Versions/B/Updater.app"
+
+          echo "Re-signing Sparkle framework..."
+          codesign --force --options runtime --sign "Developer ID Application" \
+            "$SPARKLE_FW"
+
+          echo "Re-signing main app..."
+          codesign --force --options runtime --sign "Developer ID Application" \
+            --entitlements PasteShelf/PasteShelf.entitlements \
+            "$APP_PATH"
+
       - name: Verify code signature
         run: |
           APP_PATH="build/export/${APP_NAME}.app"
