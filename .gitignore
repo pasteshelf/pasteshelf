@@ -53,6 +53,8 @@ Configuration/Local.xcconfig
 *.p12
 *.p8
 *.cer
+*.pem
+*.key
 *.mobileprovision
 *.provisionprofile
 authkey*.json
