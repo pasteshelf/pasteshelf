@@ -15,6 +15,8 @@
 	<string>y8EmCLgANDXNmgrjUNNVlmKo0hH3X/g6OBaf3Pa/N/g=</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>14400</integer>
 
 	<!-- URL Scheme Support -->
 	<key>CFBundleURLTypes</key>
