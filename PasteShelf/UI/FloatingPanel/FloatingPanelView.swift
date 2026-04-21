@@ -73,7 +73,6 @@ struct FloatingPanelView: View {
                     }
                 }
                 .animation(.easeInOut(duration: 0.2), value: viewModel.isLoading)
-                .animation(.easeInOut(duration: 0.2), value: viewModel.items.count)
             }
         }
         .sheet(isPresented: $viewModel.showCollectionEditor) {
@@ -203,24 +202,12 @@ struct FloatingPanelView: View {
 
             Spacer()
 
-            // Show search state or item count
-            if case let .searching(query) = viewModel.searchState {
-                HStack(spacing: 4) {
-                    ProgressView()
-                        .scaleEffect(0.6)
-                    Text("Searching \"\(query)\"...")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            } else if viewModel.isSearchActive {
-                Text("\(viewModel.items.count) results")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            } else {
-                Text("\(viewModel.items.count) items")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+            // No transient "Searching..." indicator — its growing query text re-measured the HStack per keystroke and caused header jitter.
+            Text(viewModel.isSearchActive
+                 ? "\(viewModel.items.count) results"
+                 : "\(viewModel.items.count) items")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
