@@ -38,8 +38,26 @@ enum DLPPatternCategory: String, Codable, Sendable, CaseIterable {
 
     // MARK: - Display
 
-    /// A human-readable label suitable for display in the admin UI and violation reports.
+    /// A human-readable label (English; used for logs and tests).
     var displayName: String {
+        switch self {
+        case .creditCard:
+            return "Credit Card"
+        case .ssn:
+            return "Social Security Number"
+        case .apiKey:
+            return "API Key / Credential"
+        case .pii:
+            return "Personally Identifiable Information"
+        case .healthData:
+            return "Health Data"
+        case .custom:
+            return "Custom"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .creditCard:
             return "Credit Card"

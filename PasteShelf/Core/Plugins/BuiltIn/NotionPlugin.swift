@@ -65,8 +65,8 @@ public final class NotionPlugin: NSObject, PasteShelfPlugin, PasteShelfPluginWit
     private func registerActions() {
         PluginActionRegistry.shared.registerAction(
             pluginId: Self.identifier,
-            name: "Send to Notion",
-            description: "Add content to a Notion page",
+            name: String(localized: "Send to Notion"),
+            description: String(localized: "Add content to a Notion page"),
             iconName: "doc.text.fill",
             supportedTypes: [.plainText, .url]
         ) { [weak self] content in
@@ -79,7 +79,7 @@ public final class NotionPlugin: NSObject, PasteShelfPlugin, PasteShelfPluginWit
     public func menuItems() -> [PluginMenuItem] {
         [
             PluginMenuItem(
-                title: "Send to Notion",
+                title: String(localized: "Send to Notion"),
                 iconName: "doc.text.fill",
                 shortcutKey: "N+command+shift"
             ) { [weak self] content in
@@ -259,15 +259,15 @@ enum NotionError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noApiKey:
-            return "Notion API key not configured. Add your integration token in plugin settings."
+            return String(localized: "Notion API key not configured. Add your integration token in plugin settings.")
         case .noPageId:
-            return "Default page ID not configured. Add a page ID in plugin settings."
+            return String(localized: "Default page ID not configured. Add a page ID in plugin settings.")
         case .networkPermissionRequired:
-            return "Network permission is required"
+            return String(localized: "Network permission is required")
         case .invalidResponse:
-            return "Invalid response from Notion API"
+            return String(localized: "Invalid response from Notion API")
         case .apiError(let message):
-            return "Notion API error: \(message)"
+            return String(localized: "Notion API error: \(message)")
         }
     }
 }

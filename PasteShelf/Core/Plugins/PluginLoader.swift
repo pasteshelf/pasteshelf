@@ -315,19 +315,19 @@ enum PluginInstallError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .invalidBundle:
-            return "The file is not a valid PasteShelf plugin"
+            return String(localized: "The file is not a valid PasteShelf plugin")
         case .directoryCreationFailed:
-            return "Failed to create plugins directory"
+            return String(localized: "Failed to create plugins directory")
         case .copyFailed(let error):
-            return "Failed to copy plugin: \(error.localizedDescription)"
+            return String(localized: "Failed to copy plugin: \(error.localizedDescription)")
         case .loadFailed:
-            return "Failed to load installed plugin"
+            return String(localized: "Failed to load installed plugin")
         case .pluginNotFound:
-            return "Plugin not found"
+            return String(localized: "Plugin not found")
         case .cannotUninstallBundled:
-            return "Cannot uninstall bundled plugins"
+            return String(localized: "Cannot uninstall bundled plugins")
         case .deleteFailed(let error):
-            return "Failed to delete plugin: \(error.localizedDescription)"
+            return String(localized: "Failed to delete plugin: \(error.localizedDescription)")
         }
     }
 }

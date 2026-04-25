@@ -16,7 +16,7 @@ struct SearchFieldView: View {
     @Binding var text: String
 
     /// Placeholder text
-    var placeholder: String = "Search clipboard..."
+    var placeholder: String = String(localized: "Search clipboard...")
 
     /// Called when search is submitted (Enter pressed)
     var onSubmit: (() -> Void)?

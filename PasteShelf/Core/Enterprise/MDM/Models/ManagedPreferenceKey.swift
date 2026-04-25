@@ -98,8 +98,34 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
 
     // MARK: - Display Metadata
 
-    /// Human-readable label used in admin UIs and audit logs
+    /// Human-readable label used in audit logs and non-UI contexts (English).
     var displayName: String {
+        switch self {
+        case .organizationID:       return "Organization ID"
+        case .adminConsoleURL:      return "Admin Console URL"
+        case .ssoEnabled:           return "SSO Enabled"
+        case .ssoProvider:          return "SSO Provider"
+        case .ssoDomain:            return "SSO Domain"
+        case .cloudSyncEnabled:     return "Cloud Sync Enabled"
+        case .localStorageOnly:     return "Local Storage Only"
+        case .pluginsEnabled:       return "Plugins Enabled"
+        case .requireBiometricAuth: return "Require Biometric Auth"
+        case .autoLockTimeout:      return "Auto-Lock Timeout"
+        case .clearOnQuit:          return "Clear on Quit"
+        case .maxHistoryDays:       return "Max History Days"
+        case .maxHistoryItems:      return "Max History Items"
+        case .dlpEnabled:           return "DLP Enabled"
+        case .blockCreditCards:     return "Block Credit Cards"
+        case .blockAPIKeys:         return "Block API Keys"
+        case .gdprEnabled:          return "GDPR Enabled"
+        case .soc2Enabled:          return "SOC 2 Enabled"
+        case .hipaaEnabled:         return "HIPAA Enabled"
+        case .theme:                return "Theme"
+        }
+    }
+
+    /// Localized display name for use in SwiftUI views.
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .organizationID:       return "Organization ID"
         case .adminConsoleURL:      return "Admin Console URL"
@@ -158,8 +184,19 @@ enum ManagedPreferenceKey: String, CaseIterable, Sendable {
         case security
         case enterprise
 
-        /// Human-readable section heading
+        /// English section heading for audit logs and non-UI contexts.
         var displayName: String {
+            switch self {
+            case .general:    return "General"
+            case .privacy:    return "Privacy"
+            case .appearance: return "Appearance"
+            case .security:   return "Security"
+            case .enterprise: return "Enterprise"
+            }
+        }
+
+        /// Localized section heading for use in SwiftUI views.
+        var displayNameKey: LocalizedStringResource {
             switch self {
             case .general:    return "General"
             case .privacy:    return "Privacy"

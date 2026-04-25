@@ -256,7 +256,7 @@ struct ClipboardItemView: View {
                 .foregroundColor(.secondary)
 
             // Content type badge
-            Text(item.contentTypeName)
+            Text(item.contentTypeNameKey)
                 .font(.caption2)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)

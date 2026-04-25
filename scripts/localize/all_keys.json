@@ -1,0 +1,4983 @@
+[
+  {
+    "key": "%lld action%@",
+    "en": "%1$lld action%2$@",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "%lld active",
+    "en": "%lld active",
+    "existing": {},
+    "comment": "A count of the number of active and disabled automation rules."
+  },
+  {
+    "key": "%lld clipboard items",
+    "en": "%lld clipboard items",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "%lld disabled",
+    "en": "%lld disabled",
+    "existing": {},
+    "comment": "A text label displaying the number of disabled automation rules. The argument is the count of disabled rules."
+  },
+  {
+    "key": "%lld event%@ could not be decrypted",
+    "en": "%1$lld event%2$@ could not be decrypted",
+    "existing": {},
+    "comment": "A warning label that indicates that some audit events could not be decrypted."
+  },
+  {
+    "key": "%lld images processed",
+    "en": "%lld images processed",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "%lld items",
+    "en": "%lld items",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "%lld items indexed",
+    "en": "%lld items indexed",
+    "existing": {},
+    "comment": "A caption below the \"Ready\" text in the indexing status section, showing the number of items that have been indexed."
+  },
+  {
+    "key": "%lld lines",
+    "en": "%lld lines",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "%lld match%@ found",
+    "en": "%1$lld match%2$@ found",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "%lld of %lld active",
+    "en": "%1$lld of %2$lld active",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "%lld of %lld enabled",
+    "en": "%1$lld of %2$lld enabled",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "%lld results",
+    "en": "%lld results",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "1,000 items",
+    "en": "1,000 items",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "10 minutes",
+    "en": "10 minutes",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "100 items",
+    "en": "100 items",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "15 minutes",
+    "en": "15 minutes",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "2 spaces",
+    "en": "2 spaces",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "30 minutes",
+    "en": "30 minutes",
+    "existing": {},
+    "comment": "A time duration option in the HIPAA Settings view."
+  },
+  {
+    "key": "4 spaces",
+    "en": "4 spaces",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "5 minutes",
+    "en": "5 minutes",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "500 items",
+    "en": "500 items",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "A privacy-first clipboard manager for macOS",
+    "en": "A privacy-first clipboard manager for macOS",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "ACS URL",
+    "en": "ACS URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "AI",
+    "en": "AI",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "API Configuration",
+    "en": "API Configuration",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "API Key",
+    "en": "API Key",
+    "existing": {},
+    "comment": "A label for the API key field in the self-hosted sync settings view."
+  },
+  {
+    "key": "Access clipboard history and read item content",
+    "en": "Access clipboard history and read item content",
+    "existing": {},
+    "comment": "Description of clipboard read permission."
+  },
+  {
+    "key": "Accessibility Permission",
+    "en": "Accessibility Permission",
+    "existing": {
+      "de": "Bedienungshilfen-Berechtigung",
+      "es": "Permiso de accesibilidad",
+      "fr": "Autorisation d'accessibilité",
+      "ja": "アクセシビリティ権限",
+      "ko": "손쉬운 사용 권한",
+      "pt": "Permissão de acessibilidade",
+      "ru": "Разрешение универсального доступа",
+      "tr": "Erişilebilirlik İzni",
+      "zh-Hans": "辅助功能权限",
+      "zh-Hant": "輔助使用權限"
+    },
+    "comment": "Onboarding permission step title"
+  },
+  {
+    "key": "Actions",
+    "en": "Actions",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Active",
+    "en": "Active",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Active Policy",
+    "en": "Active Policy",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Add",
+    "en": "Add",
+    "existing": {},
+    "comment": "A button that adds a new tag when pressed."
+  },
+  {
+    "key": "Add Action",
+    "en": "Add Action",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Add Condition",
+    "en": "Add Condition",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Add Identity Provider",
+    "en": "Add Identity Provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Add Provider",
+    "en": "Add Provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Add Rule",
+    "en": "Add Rule",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Add Tag",
+    "en": "Add Tag",
+    "existing": {},
+    "comment": "Display name for an automation action that adds a tag to a clipboard item."
+  },
+  {
+    "key": "Add a condition to filter items",
+    "en": "Add a condition to filter items",
+    "existing": {},
+    "comment": "A description below the \"Add Condition\" button, explaining its purpose."
+  },
+  {
+    "key": "Add a tag to the clipboard item",
+    "en": "Add a tag to the clipboard item",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Add excluded application",
+    "en": "Add excluded application",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Add provider",
+    "en": "Add provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Add to Favorites",
+    "en": "Add to Favorites",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Admin",
+    "en": "Admin",
+    "existing": {},
+    "comment": "A label for the \"Admin\" tab in the Enterprise preferences tab."
+  },
+  {
+    "key": "All Categories",
+    "en": "All Categories",
+    "existing": {},
+    "comment": "A placeholder text for the \"All Categories\" option in the category picker."
+  },
+  {
+    "key": "All Checks Passed",
+    "en": "All Checks Passed",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "All Items",
+    "en": "All Items",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "All data is end-to-end encrypted before being uploaded.",
+    "en": "All data is end-to-end encrypted before being uploaded.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Allow installed plugins to access and transform clipboard content.",
+    "en": "Allow installed plugins to access and transform clipboard content.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "App name or bundle ID",
+    "en": "App name or bundle ID",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Apply",
+    "en": "Apply",
+    "existing": {},
+    "comment": "A button that applies a change to the retention period."
+  },
+  {
+    "key": "Apply a text transformation to the content",
+    "en": "Apply a text transformation to the content",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Are you sure you want to delete this rule? This action cannot be undone.",
+    "en": "Are you sure you want to delete this rule? This action cannot be undone.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Assertion Consumer Service URL",
+    "en": "Assertion Consumer Service URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Audience Restriction",
+    "en": "Audience Restriction",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Audit Log",
+    "en": "Audit Log",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Audit Logging",
+    "en": "Audit Logging",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Audit Trail",
+    "en": "Audit Trail",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Authorization",
+    "en": "Authorization",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Authorization Endpoint",
+    "en": "Authorization Endpoint",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Auto Cleanup",
+    "en": "Auto Cleanup",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Auto-delete old items",
+    "en": "Auto-delete old items",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Auto-delete period",
+    "en": "Auto-delete period",
+    "existing": {},
+    "comment": "A picker that allows the user to select how many days old clipboard items must be before they are automatically deleted."
+  },
+  {
+    "key": "Auto-populate endpoints from well-known discovery document",
+    "en": "Auto-populate endpoints from well-known discovery document",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Automation",
+    "en": "Automation",
+    "existing": {},
+    "comment": "Permission that allows plugins to register automation actions."
+  },
+  {
+    "key": "Automation Rules",
+    "en": "Automation Rules",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Back",
+    "en": "Back",
+    "existing": {
+      "de": "Zurück",
+      "es": "Atrás",
+      "fr": "Retour",
+      "ja": "戻る",
+      "ko": "뒤로",
+      "pt": "Voltar",
+      "ru": "Назад",
+      "tr": "Geri",
+      "zh-Hans": "返回",
+      "zh-Hant": "返回"
+    },
+    "comment": "Button label"
+  },
+  {
+    "key": "Base64 Decode",
+    "en": "Base64 Decode",
+    "existing": {},
+    "comment": "Description of a transformation type when decoding from Base64."
+  },
+  {
+    "key": "Base64 Encode",
+    "en": "Base64 Encode",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Basic Info",
+    "en": "Basic Info",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Before Paste",
+    "en": "Before Paste",
+    "existing": {},
+    "comment": "Description of a trigger that occurs before a paste action is executed."
+  },
+  {
+    "key": "Binding",
+    "en": "Binding",
+    "existing": {},
+    "comment": "A label describing the binding type used by an identity provider."
+  },
+  {
+    "key": "Browse...",
+    "en": "Browse...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Cancel",
+    "en": "Cancel",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Capitalize each word",
+    "en": "Capitalize each word",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Capitalize first letter",
+    "en": "Capitalize first letter",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Capitalize the first letter of each sentence",
+    "en": "Capitalize the first letter of each sentence",
+    "existing": {},
+    "comment": "Description of a text transformation preset that capitalizes the first letter of each sentence in the text."
+  },
+  {
+    "key": "Capitalize the first letter of each word",
+    "en": "Capitalize the first letter of each word",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Capture",
+    "en": "Capture",
+    "existing": {},
+    "comment": "A label displayed above the toggle options for capturing different types of content from the device."
+  },
+  {
+    "key": "Captured",
+    "en": "Captured",
+    "existing": {},
+    "comment": "A trigger option in the rule editor."
+  },
+  {
+    "key": "Categories",
+    "en": "Categories",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Category",
+    "en": "Category",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Certificate Pinning",
+    "en": "Certificate Pinning",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Change Retention Period?",
+    "en": "Change Retention Period?",
+    "existing": {},
+    "comment": "A confirmation dialog that lets the user change the audit log retention period."
+  },
+  {
+    "key": "Check for Updates",
+    "en": "Check for Updates",
+    "existing": {},
+    "comment": "A button that checks for updates to PasteShelf."
+  },
+  {
+    "key": "Check the server URL and ensure the sync server is running.",
+    "en": "Check the server URL and ensure the sync server is running.",
+    "existing": {},
+    "comment": "Suggestion to check the server URL and ensure the sync server is running."
+  },
+  {
+    "key": "Check your internet connection.",
+    "en": "Check your internet connection.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Choose a keyboard shortcut to quickly open PasteShelf from anywhere.",
+    "en": "Choose a keyboard shortcut to quickly open PasteShelf from anywhere.",
+    "existing": {},
+    "comment": "A description under the title of the view, explaining its purpose."
+  },
+  {
+    "key": "Choose between system, light, or dark theme",
+    "en": "Choose between system, light, or dark theme",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Clear",
+    "en": "Clear",
+    "existing": {},
+    "comment": "The text on a button that clears clipboard history."
+  },
+  {
+    "key": "Clear All History",
+    "en": "Clear All History",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Clear Cache",
+    "en": "Clear Cache",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Clear Filters",
+    "en": "Clear Filters",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Clear History?",
+    "en": "Clear History?",
+    "existing": {},
+    "comment": "An alert title that asks the user to confirm clearing all clipboard history."
+  },
+  {
+    "key": "Clear Index",
+    "en": "Clear Index",
+    "existing": {},
+    "comment": "A button label that triggers the confirmation sheet for clearing the index."
+  },
+  {
+    "key": "Clear OCR Cache",
+    "en": "Clear OCR Cache",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Clear Search Index",
+    "en": "Clear Search Index",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Clear all history",
+    "en": "Clear all history",
+    "existing": {},
+    "comment": "A button that clears all clipboard history."
+  },
+  {
+    "key": "Click \"Open Accessibility Settings\", then enable PasteShelf in the list.",
+    "en": "Click \"Open Accessibility Settings\", then enable PasteShelf in the list.",
+    "existing": {},
+    "comment": "A description of what to do to grant accessibility permission."
+  },
+  {
+    "key": "Click to record a new hotkey",
+    "en": "Click to record a new hotkey",
+    "existing": {},
+    "comment": "A hint text that appears when a user clicks the hotkey recorder view to record a new hotkey."
+  },
+  {
+    "key": "Click to record a new shortcut",
+    "en": "Click to record a new shortcut",
+    "existing": {},
+    "comment": "A description displayed below the hotkey recorder section, instructing the user to click to record a new shortcut."
+  },
+  {
+    "key": "Client Credentials",
+    "en": "Client Credentials",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Client ID",
+    "en": "Client ID",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Client Secret",
+    "en": "Client Secret",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Clipboard History",
+    "en": "Clipboard History",
+    "existing": {
+      "de": "Zwischenablage-Verlauf",
+      "es": "Historial del portapapeles",
+      "fr": "Historique du presse-papiers",
+      "ja": "クリップボード履歴",
+      "ko": "클립보드 기록",
+      "pt": "Histórico da área de transferência",
+      "ru": "История буфера обмена",
+      "tr": "Pano Geçmişi",
+      "zh-Hans": "剪贴板历史",
+      "zh-Hant": "剪貼簿歷史"
+    },
+    "comment": "Feature name and panel title"
+  },
+  {
+    "key": "Clipboard Item",
+    "en": "Clipboard Item",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Clipboard Monitoring",
+    "en": "Clipboard Monitoring",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Clipboard content from these applications will not be captured.",
+    "en": "Clipboard content from these applications will not be captured.",
+    "existing": {},
+    "comment": "A footer in the Privacy settings tab, explaining that clipboard content from excluded apps will not be captured."
+  },
+  {
+    "key": "Cloud Sync",
+    "en": "Cloud Sync",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Collapse Spaces",
+    "en": "Collapse Spaces",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Collect anonymous usage statistics to improve the application.",
+    "en": "Collect anonymous usage statistics to improve the application.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Collection Type",
+    "en": "Collection Type",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Collection name",
+    "en": "Collection name",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Collections",
+    "en": "Collections",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Color",
+    "en": "Color",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Compact JSON",
+    "en": "Compact JSON",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Compact mode",
+    "en": "Compact mode",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Completes setup and opens PasteShelf",
+    "en": "Completes setup and opens PasteShelf",
+    "existing": {},
+    "comment": "A button that completes the onboarding process and opens the main app."
+  },
+  {
+    "key": "Compliance",
+    "en": "Compliance",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Compliant",
+    "en": "Compliant",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Confidence Threshold",
+    "en": "Confidence Threshold",
+    "existing": {},
+    "comment": "A label for the confidence threshold setting in the OCR search section of the search settings tab."
+  },
+  {
+    "key": "Configuration",
+    "en": "Configuration",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Configure your self-hosted sync server in the Enterprise tab under Self-Hosted Sync.",
+    "en": "Configure your self-hosted sync server in the Enterprise tab under Self-Hosted Sync.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Conflict",
+    "en": "Conflict",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Connected",
+    "en": "Connected",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Connected Services",
+    "en": "Connected Services",
+    "existing": {},
+    "comment": "A section header that indicates which services are currently connected to the user's account."
+  },
+  {
+    "key": "Connection Status",
+    "en": "Connection Status",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Connection Test",
+    "en": "Connection Test",
+    "existing": {},
+    "comment": "A section header that indicates a test related to the connection to a self-hosted sync server."
+  },
+  {
+    "key": "Consent Management",
+    "en": "Consent Management",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Consent Status",
+    "en": "Consent Status",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Contains extracted text from image",
+    "en": "Contains extracted text from image",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Content Preview",
+    "en": "Content Preview",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Continue",
+    "en": "Continue",
+    "existing": {
+      "de": "Weiter",
+      "es": "Continuar",
+      "fr": "Continuer",
+      "ja": "続ける",
+      "ko": "계속",
+      "pt": "Continuar",
+      "ru": "Продолжить",
+      "tr": "Devam",
+      "zh-Hans": "继续",
+      "zh-Hant": "繼續"
+    },
+    "comment": "Button label"
+  },
+  {
+    "key": "Convert HTML entities to characters",
+    "en": "Convert HTML entities to characters",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Convert HTML special characters to entities",
+    "en": "Convert HTML special characters to entities",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Convert all letters to lowercase",
+    "en": "Convert all letters to lowercase",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Convert all letters to uppercase",
+    "en": "Convert all letters to uppercase",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Convert from entities",
+    "en": "Convert from entities",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Convert to entities",
+    "en": "Convert to entities",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Convert to lowercase",
+    "en": "Convert to lowercase",
+    "existing": {},
+    "comment": "Subtitle for the \"lowercase\" transformation type in the app's UI."
+  },
+  {
+    "key": "Convert to uppercase",
+    "en": "Convert to uppercase",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Copy ${item} to clipboard",
+    "en": "Copy ${item} to clipboard",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Copy ${text} to clipboard",
+    "en": "Copy ${text} to clipboard",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Copy Extracted Text",
+    "en": "Copy Extracted Text",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Copy Text to Clipboard",
+    "en": "Copy Text to Clipboard",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Copy a clipboard item from your history to the system clipboard.",
+    "en": "Copy a clipboard item from your history to the system clipboard.",
+    "existing": {},
+    "comment": "Description of the \"Copy to Clipboard\" intent."
+  },
+  {
+    "key": "Copy the modified content back to the clipboard",
+    "en": "Copy the modified content back to the clipboard",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Copy the specified text to the system clipboard.",
+    "en": "Copy the specified text to the system clipboard.",
+    "existing": {},
+    "comment": "Description of an intent that allows copying text directly to the system clipboard."
+  },
+  {
+    "key": "Copy to Clipboard",
+    "en": "Copy to Clipboard",
+    "existing": {},
+    "comment": "Display name for an action that copies clipboard content to the item."
+  },
+  {
+    "key": "Copy transformed content to the system clipboard",
+    "en": "Copy transformed content to the system clipboard",
+    "existing": {},
+    "comment": "Description of a plugin permission that allows the user to copy transformed content to the system clipboard."
+  },
+  {
+    "key": "Create",
+    "en": "Create",
+    "existing": {},
+    "comment": "The text for a button that creates a new automation rule."
+  },
+  {
+    "key": "Create \"%@\"",
+    "en": "Create \"%@\"",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Create Rule",
+    "en": "Create Rule",
+    "existing": {},
+    "comment": "A label for a button that triggers the creation of a new automation rule."
+  },
+  {
+    "key": "Create Tag",
+    "en": "Create Tag",
+    "existing": {},
+    "comment": "A button label that says \"Create Tag\"."
+  },
+  {
+    "key": "Create a token with 'gist' scope",
+    "en": "Create a token with 'gist' scope",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Create an integration at notion.so/my-integrations",
+    "en": "Create an integration at notion.so/my-integrations",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Create public gists by default",
+    "en": "Create public gists by default",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Create rules to automatically process clipboard items when they are captured or pasted.",
+    "en": "Create rules to automatically process clipboard items when they are captured or pasted.",
+    "existing": {},
+    "comment": "A description under the \"Automation Rules\" header, explaining the purpose of the tab."
+  },
+  {
+    "key": "Create your first automation rule to get started.",
+    "en": "Create your first automation rule to get started.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Created",
+    "en": "Created",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Critical",
+    "en": "Critical",
+    "existing": {},
+    "comment": "A severity level for sensitive data."
+  },
+  {
+    "key": "Current Hotkey",
+    "en": "Current Hotkey",
+    "existing": {
+      "de": "Aktuelle Tastenkombination",
+      "es": "Atajo actual",
+      "fr": "Raccourci actuel",
+      "ja": "現在のホットキー",
+      "ko": "현재 단축키",
+      "pt": "Atalho atual",
+      "ru": "Текущая горячая клавиша",
+      "tr": "Mevcut Kısayol",
+      "zh-Hans": "当前快捷键",
+      "zh-Hant": "目前快捷鍵"
+    },
+    "comment": "Label for current hotkey"
+  },
+  {
+    "key": "DLP",
+    "en": "DLP",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "DLP Rules (%lld)",
+    "en": "DLP Rules (%lld)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Daily",
+    "en": "Daily",
+    "existing": {},
+    "comment": "A label for a daily schedule option in the trigger picker."
+  },
+  {
+    "key": "Dark",
+    "en": "Dark",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Data",
+    "en": "Data",
+    "existing": {},
+    "comment": "A section header in the privacy settings tab, indicating that the section pertains to data management."
+  },
+  {
+    "key": "Data Collected",
+    "en": "Data Collected",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Data Retention",
+    "en": "Data Retention",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Data Rights",
+    "en": "Data Rights",
+    "existing": {},
+    "comment": "A section header in the GDPR settings view that links to data rights information."
+  },
+  {
+    "key": "Date",
+    "en": "Date",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Decode URL-encoded characters",
+    "en": "Decode URL-encoded characters",
+    "existing": {},
+    "comment": "Description of a transformation that decodes URL-encoded characters."
+  },
+  {
+    "key": "Decode from Base64",
+    "en": "Decode from Base64",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Decode percent encoding",
+    "en": "Decode percent encoding",
+    "existing": {},
+    "comment": "Description of a transformation type when decoding URL-encoded strings."
+  },
+  {
+    "key": "Decode text from Base64 format",
+    "en": "Decode text from Base64 format",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Default Page",
+    "en": "Default Page",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Default Settings",
+    "en": "Default Settings",
+    "existing": {},
+    "comment": "A section header that lists the default settings configured by the MDM profile."
+  },
+  {
+    "key": "Delete",
+    "en": "Delete",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Delete \"%@\"",
+    "en": "Delete \"%@\"",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Delete All",
+    "en": "Delete All",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Delete All Data?",
+    "en": "Delete All Data?",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Delete Collection",
+    "en": "Delete Collection",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Delete Everything",
+    "en": "Delete Everything",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Delete Identity Provider",
+    "en": "Delete Identity Provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Delete Item",
+    "en": "Delete Item",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Delete My Data",
+    "en": "Delete My Data",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Delete Rule",
+    "en": "Delete Rule",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Delete iCloud Data",
+    "en": "Delete iCloud Data",
+    "existing": {},
+    "comment": "A button that deletes all iCloud clipboard data."
+  },
+  {
+    "key": "Delete iCloud Data...",
+    "en": "Delete iCloud Data...",
+    "existing": {},
+    "comment": "A button that deletes all PasteShelf data from iCloud."
+  },
+  {
+    "key": "Delete items older than",
+    "en": "Delete items older than",
+    "existing": {},
+    "comment": "A label for the picker that lets the user select how many days of clipboard history to keep."
+  },
+  {
+    "key": "Delete the item and prevent storage",
+    "en": "Delete the item and prevent storage",
+    "existing": {},
+    "comment": "Description of the action type \"Delete the item and prevent storage\"."
+  },
+  {
+    "key": "Deleted",
+    "en": "Deleted",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Deletes all remote sync data and re-uploads your local clipboard history. Your local data is not affected.",
+    "en": "Deletes all remote sync data and re-uploads your local clipboard history. Your local data is not affected.",
+    "existing": {},
+    "comment": "A description of the \"Reset Sync\" button."
+  },
+  {
+    "key": "Details",
+    "en": "Details",
+    "existing": {},
+    "comment": "A label for the details section of an audit log event."
+  },
+  {
+    "key": "Detect sensitive data",
+    "en": "Detect sensitive data",
+    "existing": {},
+    "comment": "A toggle that enables or disables the detection of sensitive data in the clipboard."
+  },
+  {
+    "key": "Detect sensitive data in clipboard",
+    "en": "Detect sensitive data in clipboard",
+    "existing": {},
+    "comment": "A toggle that enables or disables the detection of sensitive data in the clipboard."
+  },
+  {
+    "key": "Detected items are labeled as sensitive but still captured. This helps you identify and manage sensitive content in your clipboard history.",
+    "en": "Detected items are labeled as sensitive but still captured. This helps you identify and manage sensitive content in your clipboard history.",
+    "existing": {},
+    "comment": "A footer in the Privacy settings tab that explains how sensitive data is handled."
+  },
+  {
+    "key": "Detection Categories",
+    "en": "Detection Categories",
+    "existing": {},
+    "comment": "A section header that lists the categories of sensitive data that can be detected in the clipboard."
+  },
+  {
+    "key": "Developer Tools",
+    "en": "Developer Tools",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Device Enrollment",
+    "en": "Device Enrollment",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Disable this provider",
+    "en": "Disable this provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Disabled",
+    "en": "Disabled",
+    "existing": {},
+    "comment": "A label indicating whether or not PKCE is enabled for a provider."
+  },
+  {
+    "key": "Disconnected",
+    "en": "Disconnected",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Discover",
+    "en": "Discover",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Discovered Endpoints",
+    "en": "Discovered Endpoints",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Display a system notification",
+    "en": "Display a system notification",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Display system notifications",
+    "en": "Display system notifications",
+    "existing": {},
+    "comment": "Description of a permission that allows the app to display system notifications."
+  },
+  {
+    "key": "Done",
+    "en": "Done",
+    "existing": {},
+    "comment": "The label of a button that dismisses the current view."
+  },
+  {
+    "key": "Double-click to paste",
+    "en": "Double-click to paste",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Download all your data in a portable format (Article 20).",
+    "en": "Download all your data in a portable format (Article 20).",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Drag and drop a .pasteshelfplugin file here, or click to browse.",
+    "en": "Drag and drop a .pasteshelfplugin file here, or click to browse.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Duplicate",
+    "en": "Duplicate",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Edit",
+    "en": "Edit",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Edit Collection",
+    "en": "Edit Collection",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Edit Collection...",
+    "en": "Edit Collection...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Edit DLP Rule",
+    "en": "Edit DLP Rule",
+    "existing": {},
+    "comment": "A label for the header of the view when editing an existing DLP rule."
+  },
+  {
+    "key": "Edit Identity Provider",
+    "en": "Edit Identity Provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Edit Rule",
+    "en": "Edit Rule",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Email Address",
+    "en": "Email Address",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable",
+    "en": "Enable",
+    "existing": {},
+    "comment": "A button that enables sync."
+  },
+  {
+    "key": "Enable Fuzzy Matching",
+    "en": "Enable Fuzzy Matching",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable HIPAA Compliance Mode",
+    "en": "Enable HIPAA Compliance Mode",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable Notifications",
+    "en": "Enable Notifications",
+    "existing": {},
+    "comment": "A button that enables notifications."
+  },
+  {
+    "key": "Enable OCR Search",
+    "en": "Enable OCR Search",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable Plugin System",
+    "en": "Enable Plugin System",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable Self-Hosted Sync",
+    "en": "Enable Self-Hosted Sync",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable Semantic Search",
+    "en": "Enable Semantic Search",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable Sync",
+    "en": "Enable Sync",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable discovery to auto-populate authorization, token, and JWKS endpoints from the issuer's well-known document.",
+    "en": "Enable discovery to auto-populate authorization, token, and JWKS endpoints from the issuer's well-known document.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable provider",
+    "en": "Enable provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable quick paste",
+    "en": "Enable quick paste",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable quick paste (⌘1-9)",
+    "en": "Enable quick paste (⌘1-9)",
+    "existing": {},
+    "comment": "A toggle that enables or disables the quick paste feature."
+  },
+  {
+    "key": "Enable the toggle above to use plugins.",
+    "en": "Enable the toggle above to use plugins.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enable this provider",
+    "en": "Enable this provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enabled",
+    "en": "Enabled",
+    "existing": {},
+    "comment": "A toggle switch label."
+  },
+  {
+    "key": "Encode text to Base64 format",
+    "en": "Encode text to Base64 format",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Encode to Base64",
+    "en": "Encode to Base64",
+    "existing": {},
+    "comment": "Title of a transformation type that encodes text to Base64."
+  },
+  {
+    "key": "Encryption Verification",
+    "en": "Encryption Verification",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Encryption key mismatch. Please re-authenticate on this device.",
+    "en": "Encryption key mismatch. Please re-authenticate on this device.",
+    "existing": {},
+    "comment": "Error message displayed when the encryption key on the device does not match the one in the cloud."
+  },
+  {
+    "key": "Encryption key not found. Please set up sync on this device.",
+    "en": "Encryption key not found. Please set up sync on this device.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "End-Session Endpoint",
+    "en": "End-Session Endpoint",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Endpoints",
+    "en": "Endpoints",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enroll Device",
+    "en": "Enroll Device",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enrolled",
+    "en": "Enrolled",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enrolling...",
+    "en": "Enrolling...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enrollment",
+    "en": "Enrollment",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Enter a pattern and tap \"Test Pattern\" to see results.",
+    "en": "Enter a pattern and tap \"Test Pattern\" to see results.",
+    "existing": {},
+    "comment": "A message displayed when there is no regex pattern or text to test."
+  },
+  {
+    "key": "Enterprise",
+    "en": "Enterprise",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Entity",
+    "en": "Entity",
+    "existing": {},
+    "comment": "A SAML NameID format option."
+  },
+  {
+    "key": "Entity ID",
+    "en": "Entity ID",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Entity ID / Issuer URI",
+    "en": "Entity ID / Issuer URI",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Error",
+    "en": "Error",
+    "existing": {},
+    "comment": "A title for an alert that shows an error message."
+  },
+  {
+    "key": "Escape HTML",
+    "en": "Escape HTML",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Events (%lld)",
+    "en": "Events (%lld)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Events older than the retention window are automatically deleted during the next scheduled pruning pass.",
+    "en": "Events older than the retention window are automatically deleted during the next scheduled pruning pass.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Excluded Applications",
+    "en": "Excluded Applications",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Excluded Apps",
+    "en": "Excluded Apps",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Execute an AppleScript file",
+    "en": "Execute an AppleScript file",
+    "existing": {},
+    "comment": "Action type that executes an AppleScript file."
+  },
+  {
+    "key": "Export",
+    "en": "Export",
+    "existing": {},
+    "comment": "A section header for export-related actions in the audit log view."
+  },
+  {
+    "key": "Export My Data",
+    "en": "Export My Data",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Export Verified Audit Trail",
+    "en": "Export Verified Audit Trail",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Export Violations as CSV",
+    "en": "Export Violations as CSV",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Export Violations as JSON",
+    "en": "Export Violations as JSON",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Export as CSV",
+    "en": "Export as CSV",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Export as JSON",
+    "en": "Export as JSON",
+    "existing": {},
+    "comment": "A button that exports audit log data as a JSON file."
+  },
+  {
+    "key": "Exports a cryptographically chained audit trail with SHA-256 integrity verification.",
+    "en": "Exports a cryptographically chained audit trail with SHA-256 integrity verification.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Extracted Text",
+    "en": "Extracted Text",
+    "existing": {},
+    "comment": "A header for the extracted text from an image."
+  },
+  {
+    "key": "Failed to connect to sync server: %@",
+    "en": "Failed to connect to sync server: %@",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Failed to decrypt data. The encryption key may have changed.",
+    "en": "Failed to decrypt data. The encryption key may have changed.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Favorites Only",
+    "en": "Favorites Only",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Favorites are never automatically deleted.",
+    "en": "Favorites are never automatically deleted.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Fetch",
+    "en": "Fetch",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Fetch and parse the IdP metadata document",
+    "en": "Fetch and parse the IdP metadata document",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Fetch endpoints from %@/.well-known/openid-configuration",
+    "en": "Fetch endpoints from %@/.well-known/openid-configuration",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Field",
+    "en": "Field",
+    "existing": {},
+    "comment": "A label for the field picker in a rule condition row."
+  },
+  {
+    "key": "Files & Documents",
+    "en": "Files & Documents",
+    "existing": {},
+    "comment": "A type of content that can be captured and added to a paste."
+  },
+  {
+    "key": "Filters",
+    "en": "Filters",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Find images containing specific text like \"error message\" or \"phone number\".",
+    "en": "Find images containing specific text like \"error message\" or \"phone number\".",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Find items with natural language like \"that email from last week\" or \"code snippet with function\".",
+    "en": "Find items with natural language like \"that email from last week\" or \"code snippet with function\".",
+    "existing": {},
+    "comment": "A description of how semantic search works."
+  },
+  {
+    "key": "Find the page ID in the URL after opening a page (the 32-character string).",
+    "en": "Find the page ID in the URL after opening a page (the 32-character string).",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Flow Configuration",
+    "en": "Flow Configuration",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Format JSON",
+    "en": "Format JSON",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Format JSON with proper indentation",
+    "en": "Format JSON with proper indentation",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Formatting",
+    "en": "Formatting",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "From",
+    "en": "From",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "From:",
+    "en": "From:",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Fuzzy matching finds approximate matches even with typos or partial words.",
+    "en": "Fuzzy matching finds approximate matches even with typos or partial words.",
+    "existing": {},
+    "comment": "A description of the fuzzy matching feature, explaining its functionality."
+  },
+  {
+    "key": "GDPR",
+    "en": "GDPR",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "General",
+    "en": "General",
+    "existing": {
+      "de": "Allgemein",
+      "es": "General",
+      "fr": "Général",
+      "ja": "一般",
+      "ko": "일반",
+      "pt": "Geral",
+      "ru": "Основные",
+      "tr": "Genel",
+      "zh-Hans": "通用",
+      "zh-Hant": "一般"
+    },
+    "comment": "Preferences tab"
+  },
+  {
+    "key": "Generate MD5 hash",
+    "en": "Generate MD5 hash",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Generate MD5 hash of the text",
+    "en": "Generate MD5 hash of the text",
+    "existing": {},
+    "comment": "Description of a text transformation preset that generates an MD5 hash of the input text."
+  },
+  {
+    "key": "Generate Report",
+    "en": "Generate Report",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Generate SHA-256 hash",
+    "en": "Generate SHA-256 hash",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Generate SHA-256 hash of the text",
+    "en": "Generate SHA-256 hash of the text",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Get ${count} recent clipboard items",
+    "en": "Get ${count} recent clipboard items",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Get Clipboard History",
+    "en": "Get Clipboard History",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Get Started",
+    "en": "Get Started",
+    "existing": {
+      "de": "Los geht's",
+      "es": "Comenzar",
+      "fr": "Commencer",
+      "ja": "始める",
+      "ko": "시작하기",
+      "pt": "Começar",
+      "ru": "Начать",
+      "tr": "Başla",
+      "zh-Hans": "开始使用",
+      "zh-Hant": "開始使用"
+    },
+    "comment": "Button label"
+  },
+  {
+    "key": "Get the most recent items from your clipboard history.",
+    "en": "Get the most recent items from your clipboard history.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Global Hotkey",
+    "en": "Global Hotkey",
+    "existing": {},
+    "comment": "A section header for the global hotkey settings in the preferences window."
+  },
+  {
+    "key": "Global hotkey",
+    "en": "Global hotkey",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Go to Preferences > Sync > Reset Sync to reconfigure.",
+    "en": "Go to Preferences > Sync > Reset Sync to reconfigure.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Goes to the previous setup step",
+    "en": "Goes to the previous setup step",
+    "existing": {},
+    "comment": "A hint that describes the \"Back\" button in the onboarding flow."
+  },
+  {
+    "key": "Granted",
+    "en": "Granted",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "HIPAA",
+    "en": "HIPAA",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "HIPAA Compliance Mode",
+    "en": "HIPAA Compliance Mode",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "HIPAA requires a minimum 6-year (2190 day) retention period with immutability.",
+    "en": "HIPAA requires a minimum 6-year (2190 day) retention period with immutability.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "HTTP Binding",
+    "en": "HTTP Binding",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "High",
+    "en": "High",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "High Risk",
+    "en": "High Risk",
+    "existing": {},
+    "comment": "Display name for a high-risk permission."
+  },
+  {
+    "key": "Higher values require more accurate text recognition. Lower values may include misread text.",
+    "en": "Higher values require more accurate text recognition. Lower values may include misread text.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Higher values show only more relevant matches. Lower values show more results.",
+    "en": "Higher values show only more relevant matches. Lower values show more results.",
+    "existing": {},
+    "comment": "A description of the effect of changing the similarity threshold in semantic search."
+  },
+  {
+    "key": "History",
+    "en": "History",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "History limit",
+    "en": "History limit",
+    "existing": {},
+    "comment": "A picker that lets the user select how many clipboard items to keep in history."
+  },
+  {
+    "key": "Hourly",
+    "en": "Hourly",
+    "existing": {},
+    "comment": "A label for an hourly schedule preset."
+  },
+  {
+    "key": "How It Works",
+    "en": "How It Works",
+    "existing": {},
+    "comment": "A title for a view that demonstrates how a feature works."
+  },
+  {
+    "key": "How many items to return",
+    "en": "How many items to return",
+    "existing": {},
+    "comment": "Title of the parameter that allows the user to specify how many clipboard items to return."
+  },
+  {
+    "key": "Icon",
+    "en": "Icon",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "IdP metadata URL",
+    "en": "IdP metadata URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "IdP signing certificate (PEM)",
+    "en": "IdP signing certificate (PEM)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Identity Provider Endpoints",
+    "en": "Identity Provider Endpoints",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Identity Providers",
+    "en": "Identity Providers",
+    "existing": {},
+    "comment": "The title of the section that lists configured identity providers in the Enterprise SSO settings view."
+  },
+  {
+    "key": "If System Settings opens, enable \"Allow Notifications\" for PasteShelf.",
+    "en": "If System Settings opens, enable \"Allow Notifications\" for PasteShelf.",
+    "existing": {},
+    "comment": "A text instruction that appears below a button to enable notifications. It instructs the user to open System Settings and enable the necessary permissions."
+  },
+  {
+    "key": "Image Text Extraction",
+    "en": "Image Text Extraction",
+    "existing": {},
+    "comment": "A section header for the status of image text extraction."
+  },
+  {
+    "key": "Images",
+    "en": "Images",
+    "existing": {
+      "de": "Bilder",
+      "es": "Imágenes",
+      "fr": "Images",
+      "ja": "画像",
+      "ko": "이미지",
+      "pt": "Imagens",
+      "ru": "Изображения",
+      "tr": "Görüntüler",
+      "zh-Hans": "图片",
+      "zh-Hant": "圖片"
+    },
+    "comment": "Filter label"
+  },
+  {
+    "key": "Inactive",
+    "en": "Inactive",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Indent Size",
+    "en": "Indent Size",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Indexing...",
+    "en": "Indexing...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Information",
+    "en": "Information",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Install Default Rules",
+    "en": "Install Default Rules",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Install Plugin",
+    "en": "Install Plugin",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Install Plugin...",
+    "en": "Install Plugin...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Integration",
+    "en": "Integration",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Integration Token",
+    "en": "Integration Token",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Invalid URL",
+    "en": "Invalid URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Invalid data: %@",
+    "en": "Invalid data: %@",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Issuer URL",
+    "en": "Issuer URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Issues Found",
+    "en": "Issues Found",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Item is too large to sync. Maximum size is 1 MB.",
+    "en": "Item is too large to sync. Maximum size is 1 MB.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Items are automatically added based on rules",
+    "en": "Items are automatically added based on rules",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Items beyond this limit will be automatically removed (oldest first). Favorites are always preserved.",
+    "en": "Items beyond this limit will be automatically removed (oldest first). Favorites are always preserved.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Items matching",
+    "en": "Items matching",
+    "existing": {},
+    "comment": "A label describing the purpose of the section in the view."
+  },
+  {
+    "key": "JWKS",
+    "en": "JWKS",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "JWKS URL",
+    "en": "JWKS URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Keep events for",
+    "en": "Keep events for",
+    "existing": {},
+    "comment": "A label describing the retention policy setting."
+  },
+  {
+    "key": "Kerberos",
+    "en": "Kerberos",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Key Shortcuts",
+    "en": "Key Shortcuts",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Keyboard Navigation",
+    "en": "Keyboard Navigation",
+    "existing": {},
+    "comment": "A section header that lists keyboard navigation shortcuts."
+  },
+  {
+    "key": "Last Updated",
+    "en": "Last Updated",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Last synced",
+    "en": "Last synced",
+    "existing": {},
+    "comment": "A label describing the last time the user synced their clipboard data with iCloud."
+  },
+  {
+    "key": "Last synced %@",
+    "en": "Last synced %@",
+    "existing": {},
+    "comment": "A description of the last time the app successfully synced with the server. The date is formatted to show how long ago it was."
+  },
+  {
+    "key": "Launch PasteShelf at login",
+    "en": "Launch PasteShelf at login",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Launch at login",
+    "en": "Launch at login",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Leave blank for public clients",
+    "en": "Leave blank for public clients",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Light",
+    "en": "Light",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Links",
+    "en": "Links",
+    "existing": {
+      "de": "Links",
+      "es": "Enlaces",
+      "fr": "Liens",
+      "ja": "リンク",
+      "ko": "링크",
+      "pt": "Links",
+      "ru": "Ссылки",
+      "tr": "Bağlantılar",
+      "zh-Hans": "链接",
+      "zh-Hant": "連結"
+    },
+    "comment": "Filter label"
+  },
+  {
+    "key": "Loading clipboard items",
+    "en": "Loading clipboard items",
+    "existing": {},
+    "comment": "An accessibility label for the placeholder rows in the skeleton view."
+  },
+  {
+    "key": "Loading privacy data...",
+    "en": "Loading privacy data...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Locked Settings",
+    "en": "Locked Settings",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Low",
+    "en": "Low",
+    "existing": {},
+    "comment": "A label for a sensitive data severity level."
+  },
+  {
+    "key": "Low Risk",
+    "en": "Low Risk",
+    "existing": {},
+    "comment": "Display name for a low-risk permission."
+  },
+  {
+    "key": "MD5 Hash",
+    "en": "MD5 Hash",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "MDM",
+    "en": "MDM",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Make HTTP requests to external services",
+    "en": "Make HTTP requests to external services",
+    "existing": {},
+    "comment": "Description of a plugin permission that allows making HTTP requests to external services."
+  },
+  {
+    "key": "Make sure to share the page with your integration in Notion.",
+    "en": "Make sure to share the page with your integration in Notion.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Manage your iCloud storage in System Settings.",
+    "en": "Manage your iCloud storage in System Settings.",
+    "existing": {},
+    "comment": "Suggestion to manage iCloud storage in System Settings."
+  },
+  {
+    "key": "Managed",
+    "en": "Managed",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Managed by your organization",
+    "en": "Managed by your organization",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Management Status",
+    "en": "Management Status",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Manual",
+    "en": "Manual",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Manual Collection",
+    "en": "Manual Collection",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Manually drag items to add them to this collection",
+    "en": "Manually drag items to add them to this collection",
+    "existing": {},
+    "comment": "A description of how to add items to a manual collection."
+  },
+  {
+    "key": "Mark Sensitive",
+    "en": "Mark Sensitive",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Mark or unmark the item as a favorite",
+    "en": "Mark or unmark the item as a favorite",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Mark or unmark the item as sensitive",
+    "en": "Mark or unmark the item as sensitive",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Maximum Results",
+    "en": "Maximum Results",
+    "existing": {},
+    "comment": "Description of the \"Maximum Results\" parameter in the Search Clipboard History intent."
+  },
+  {
+    "key": "Maximum number of clipboard items to keep",
+    "en": "Maximum number of clipboard items to keep",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Maximum number of results to return",
+    "en": "Maximum number of results to return",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Medium",
+    "en": "Medium",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Medium Risk",
+    "en": "Medium Risk",
+    "existing": {},
+    "comment": "Display name for a medium-risk permission."
+  },
+  {
+    "key": "Metadata URL",
+    "en": "Metadata URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Minify JSON",
+    "en": "Minify JSON",
+    "existing": {},
+    "comment": "Description of a transformation type when the action is to minify JSON."
+  },
+  {
+    "key": "Monitor your clipboard to capture and store copied items for quick access.",
+    "en": "Monitor your clipboard to capture and store copied items for quick access.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Monitoring",
+    "en": "Monitoring",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Monthly",
+    "en": "Monthly",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Move the item to a specific folder",
+    "en": "Move the item to a specific folder",
+    "existing": {},
+    "comment": "Description of the action type that moves a clipboard item to a specific folder."
+  },
+  {
+    "key": "Move to Folder",
+    "en": "Move to Folder",
+    "existing": {},
+    "comment": "Display name for the \"Move to Folder\" automation action."
+  },
+  {
+    "key": "Multiple spaces to single",
+    "en": "Multiple spaces to single",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Name",
+    "en": "Name",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "NameID Format",
+    "en": "NameID Format",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Narrow",
+    "en": "Narrow",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Network Access",
+    "en": "Network Access",
+    "existing": {},
+    "comment": "Display name for the network access permission."
+  },
+  {
+    "key": "New Collection",
+    "en": "New Collection",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "New DLP Rule",
+    "en": "New DLP Rule",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "New Tag",
+    "en": "New Tag",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No",
+    "en": "No",
+    "existing": {},
+    "comment": "A label for a \"No\" option in a boolean picker."
+  },
+  {
+    "key": "No DLP rules configured",
+    "en": "No DLP rules configured",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No Matching Rules",
+    "en": "No Matching Rules",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No Plugin Selected",
+    "en": "No Plugin Selected",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No Provider Selected",
+    "en": "No Provider Selected",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No Rules Yet",
+    "en": "No Rules Yet",
+    "existing": {},
+    "comment": "A message displayed when there are no automation rules created yet."
+  },
+  {
+    "key": "No actions configured",
+    "en": "No actions configured",
+    "existing": {},
+    "comment": "A message displayed when a rule has no actions configured."
+  },
+  {
+    "key": "No applications excluded",
+    "en": "No applications excluded",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No audit events found",
+    "en": "No audit events found",
+    "existing": {},
+    "comment": "A message displayed when there are no audit events to display."
+  },
+  {
+    "key": "No conditions",
+    "en": "No conditions",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No iCloud account configured. Please sign in to iCloud in System Settings.",
+    "en": "No iCloud account configured. Please sign in to iCloud in System Settings.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No matches found",
+    "en": "No matches found",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No network connection. Changes will sync when you're back online.",
+    "en": "No network connection. Changes will sync when you're back online.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No providers configured",
+    "en": "No providers configured",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No recent items",
+    "en": "No recent items",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No rules match your search.",
+    "en": "No rules match your search.",
+    "existing": {},
+    "comment": "A message displayed when no rules match a user's search query in the automation preferences tab."
+  },
+  {
+    "key": "No special permissions required",
+    "en": "No special permissions required",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "No violations recorded",
+    "en": "No violations recorded",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Non-Compliant",
+    "en": "Non-Compliant",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "None",
+    "en": "None",
+    "existing": {},
+    "comment": "A text label for a picker option that disables sync."
+  },
+  {
+    "key": "Normal",
+    "en": "Normal",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Not Configured",
+    "en": "Not Configured",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Not Enrolled",
+    "en": "Not Enrolled",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Not Granted",
+    "en": "Not Granted",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Not Managed",
+    "en": "Not Managed",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Notifications",
+    "en": "Notifications",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Notifications enabled",
+    "en": "Notifications enabled",
+    "existing": {},
+    "comment": "A label indicating that notifications are enabled."
+  },
+  {
+    "key": "Number of Items",
+    "en": "Number of Items",
+    "existing": {},
+    "comment": "Title of the parameter that allows the user to specify how many clipboard items to return."
+  },
+  {
+    "key": "Number of lines to show in text previews",
+    "en": "Number of lines to show in text previews",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "OAuth redirect URI",
+    "en": "OAuth redirect URI",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "OAuth scopes (space-separated)",
+    "en": "OAuth scopes (space-separated)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "OCR Search",
+    "en": "OCR Search",
+    "existing": {},
+    "comment": "Human-readable display name for the \"OCR Search\" feature."
+  },
+  {
+    "key": "OCR search extracts text from images so you can search for content within screenshots and photos.",
+    "en": "OCR search extracts text from images so you can search for content within screenshots and photos.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "OIDC client identifier",
+    "en": "OIDC client identifier",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "OIDC client secret",
+    "en": "OIDC client secret",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "OIDC issuer URL",
+    "en": "OIDC issuer URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "OK",
+    "en": "OK",
+    "existing": {},
+    "comment": "A button that dismisses an alert."
+  },
+  {
+    "key": "Offline - changes queued",
+    "en": "Offline - changes queued",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Only return favorite items",
+    "en": "Only return favorite items",
+    "existing": {},
+    "comment": "Option to filter clipboard history to only include favorite items."
+  },
+  {
+    "key": "Open Accessibility Settings",
+    "en": "Open Accessibility Settings",
+    "existing": {},
+    "comment": "A button label that opens the user's accessibility settings to enable a specific app."
+  },
+  {
+    "key": "Open Privacy Dashboard",
+    "en": "Open Privacy Dashboard",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Open Source (AGPL-3.0)",
+    "en": "Open Source (AGPL-3.0)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Open System Settings > Apple ID > iCloud to sign in.",
+    "en": "Open System Settings > Apple ID > iCloud to sign in.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Open URL",
+    "en": "Open URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Open a URL in the default browser",
+    "en": "Open a URL in the default browser",
+    "existing": {},
+    "comment": "Description of the action type to open a URL in the default browser."
+  },
+  {
+    "key": "Operator",
+    "en": "Operator",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Optional: auto-populate settings from your IdP's metadata document.",
+    "en": "Optional: auto-populate settings from your IdP's metadata document.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Organization",
+    "en": "Organization",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Organization ID",
+    "en": "Organization ID",
+    "existing": {},
+    "comment": "A label for the organization ID field in the self-hosted sync settings view."
+  },
+  {
+    "key": "Overall:",
+    "en": "Overall:",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Overview of your data in PasteShelf",
+    "en": "Overview of your data in PasteShelf",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "PKCE",
+    "en": "PKCE",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "PKCE is recommended for desktop clients and does not require a client secret.",
+    "en": "PKCE is recommended for desktop clients and does not require a client secret.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Page ID",
+    "en": "Page ID",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Panel",
+    "en": "Panel",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Panel width",
+    "en": "Panel width",
+    "existing": {},
+    "comment": "A label displayed above the options related to the clipboard history panel."
+  },
+  {
+    "key": "Paste",
+    "en": "Paste",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Paste (Enter)",
+    "en": "Paste (Enter)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Paste or type sample clipboard content here…",
+    "en": "Paste or type sample clipboard content here…",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Paste the IdP metadata URL below and click Fetch to auto-populate the SAML configuration.",
+    "en": "Paste the IdP metadata URL below and click Fetch to auto-populate the SAML configuration.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Paste the PEM-encoded X.509 certificate used to verify IdP-signed assertions.",
+    "en": "Paste the PEM-encoded X.509 certificate used to verify IdP-signed assertions.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "PasteShelf",
+    "en": "PasteShelf",
+    "existing": {
+      "de": "PasteShelf",
+      "es": "PasteShelf",
+      "fr": "PasteShelf",
+      "ja": "PasteShelf",
+      "ko": "PasteShelf",
+      "pt": "PasteShelf",
+      "ru": "PasteShelf",
+      "tr": "PasteShelf",
+      "zh-Hans": "PasteShelf",
+      "zh-Hant": "PasteShelf"
+    },
+    "comment": "App name"
+  },
+  {
+    "key": "PasteShelf can notify you when sensitive content is copied or when automation rules trigger. Allow notifications to stay informed.",
+    "en": "PasteShelf can notify you when sensitive content is copied or when automation rules trigger. Allow notifications to stay informed.",
+    "existing": {},
+    "comment": "A description of the benefits of enabling notifications in the onboarding flow."
+  },
+  {
+    "key": "PasteShelf needs accessibility permission to paste items into other apps. Your data stays private and is never shared.",
+    "en": "PasteShelf needs accessibility permission to paste items into other apps. Your data stays private and is never shared.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "PasteShelf runs in the background and saves everything you copy. Use the hotkey to open the clipboard panel anytime.",
+    "en": "PasteShelf runs in the background and saves everything you copy. Use the hotkey to open the clipboard panel anytime.",
+    "existing": {},
+    "comment": "A description of how PasteShelf works and how to use the hotkey."
+  },
+  {
+    "key": "Pasted",
+    "en": "Pasted",
+    "existing": {},
+    "comment": "A label for a trigger option that triggers an action when a user pastes text."
+  },
+  {
+    "key": "Pattern",
+    "en": "Pattern",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Pause Monitoring",
+    "en": "Pause Monitoring",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Pause clipboard monitoring",
+    "en": "Pause clipboard monitoring",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Pending sync",
+    "en": "Pending sync",
+    "existing": {},
+    "comment": "Description of an item's sync state when it is pending sync."
+  },
+  {
+    "key": "Percent encoding",
+    "en": "Percent encoding",
+    "existing": {},
+    "comment": "Description of a transformation type when encoding text for use in a URL."
+  },
+  {
+    "key": "Permanently deletes all clipboard items except favorites",
+    "en": "Permanently deletes all clipboard items except favorites",
+    "existing": {},
+    "comment": "A message displayed when the user confirms clearing all history."
+  },
+  {
+    "key": "Permanently erase all data from PasteShelf (Article 17).",
+    "en": "Permanently erase all data from PasteShelf (Article 17).",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Permanently removes all PasteShelf data from iCloud and disables sync. Your local clipboard history is preserved.",
+    "en": "Permanently removes all PasteShelf data from iCloud and disables sync. Your local clipboard history is preserved.",
+    "existing": {},
+    "comment": "A message explaining that deleting iCloud data permanently removes all PasteShelf data and disables sync, while preserving local clipboard history."
+  },
+  {
+    "key": "Permission granted",
+    "en": "Permission granted",
+    "existing": {
+      "de": "Berechtigung erteilt",
+      "es": "Permiso concedido",
+      "fr": "Autorisation accordée",
+      "ja": "権限が許可されました",
+      "ko": "권한 허용됨",
+      "pt": "Permissão concedida",
+      "ru": "Разрешение получено",
+      "tr": "İzin verildi",
+      "zh-Hans": "已授权",
+      "zh-Hant": "已授權"
+    },
+    "comment": "Permission status"
+  },
+  {
+    "key": "Permissions",
+    "en": "Permissions",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Persistent",
+    "en": "Persistent",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Personal Access Token",
+    "en": "Personal Access Token",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Please provide a valid search query.",
+    "en": "Please provide a valid search query.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Plugin system is disabled",
+    "en": "Plugin system is disabled",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Plugins",
+    "en": "Plugins",
+    "existing": {},
+    "comment": "A contextual action that opens a list of available plugins."
+  },
+  {
+    "key": "Policy",
+    "en": "Policy",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Populated automatically from the discovery document.",
+    "en": "Populated automatically from the discovery document.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Preferences...",
+    "en": "Preferences...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Preset",
+    "en": "Preset",
+    "existing": {},
+    "comment": "A label for selecting a preset schedule."
+  },
+  {
+    "key": "Press %lld to paste",
+    "en": "Press %lld to paste",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Press Enter to paste, Delete to remove",
+    "en": "Press Enter to paste, Delete to remove",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Press the key combination to set a new hotkey. The default is ⌘⇧V.",
+    "en": "Press the key combination to set a new hotkey. The default is ⌘⇧V.",
+    "existing": {},
+    "comment": "A footer explaining the purpose of the global hotkey setting."
+  },
+  {
+    "key": "Press your desired key combination...",
+    "en": "Press your desired key combination...",
+    "existing": {},
+    "comment": "A text that appears when the user is recording a new hotkey."
+  },
+  {
+    "key": "Pretty print JSON",
+    "en": "Pretty print JSON",
+    "existing": {},
+    "comment": "Description of a JSON transformation when the user selects to format JSON."
+  },
+  {
+    "key": "Preview lines",
+    "en": "Preview lines",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Preview lines affects how much text is shown for each clipboard item.",
+    "en": "Preview lines affects how much text is shown for each clipboard item.",
+    "existing": {},
+    "comment": "A footer for the \"Content Preview\" section, explaining how the number of preview lines affects the visibility of text in clipboard items."
+  },
+  {
+    "key": "Privacy Dashboard",
+    "en": "Privacy Dashboard",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Privacy Policy",
+    "en": "Privacy Policy",
+    "existing": {},
+    "comment": "A link to the privacy policy."
+  },
+  {
+    "key": "Proceeds to the next setup step",
+    "en": "Proceeds to the next setup step",
+    "existing": {},
+    "comment": "A button that, when pressed, moves to the next step in the onboarding flow."
+  },
+  {
+    "key": "Process Images",
+    "en": "Process Images",
+    "existing": {},
+    "comment": "A button label that initiates the processing of images for semantic search."
+  },
+  {
+    "key": "Processing Images...",
+    "en": "Processing Images...",
+    "existing": {},
+    "comment": "A message displayed while the OCR generator is processing images."
+  },
+  {
+    "key": "Productivity",
+    "en": "Productivity",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Progress",
+    "en": "Progress",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Proof Key for Code Exchange",
+    "en": "Proof Key for Code Exchange",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Protocol",
+    "en": "Protocol",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Protocol Settings",
+    "en": "Protocol Settings",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Provider",
+    "en": "Provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Provider Discovery",
+    "en": "Provider Discovery",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Provider ID",
+    "en": "Provider ID",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Provider is not fully configured. Tap Edit to complete setup.",
+    "en": "Provider is not fully configured. Tap Edit to complete setup.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Provider name",
+    "en": "Provider name",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Quick Actions",
+    "en": "Quick Actions",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Quick Paste",
+    "en": "Quick Paste",
+    "existing": {},
+    "comment": "A section header for enabling quick pasting of items."
+  },
+  {
+    "key": "Quick Presets",
+    "en": "Quick Presets",
+    "existing": {
+      "de": "Schnellvorlagen",
+      "es": "Preajustes rápidos",
+      "fr": "Préréglages rapides",
+      "ja": "クイックプリセット",
+      "ko": "빠른 사전 설정",
+      "pt": "Predefinições rápidas",
+      "ru": "Быстрые предустановки",
+      "tr": "Hızlı Ön Ayarlar",
+      "zh-Hans": "快速预设",
+      "zh-Hant": "快速預設"
+    },
+    "comment": "Label for preset hotkeys"
+  },
+  {
+    "key": "Randomize the order of lines",
+    "en": "Randomize the order of lines",
+    "existing": {},
+    "comment": "Description of a text transformation preset that shuffles the order of lines in a block of text."
+  },
+  {
+    "key": "Read Clipboard",
+    "en": "Read Clipboard",
+    "existing": {},
+    "comment": "Display name for clipboard read permission."
+  },
+  {
+    "key": "Read privacy policy",
+    "en": "Read privacy policy",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Ready",
+    "en": "Ready",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Ready to sync",
+    "en": "Ready to sync",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Rebuild Index",
+    "en": "Rebuild Index",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Recent Violations (%lld)",
+    "en": "Recent Violations (%lld)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Recommended for public clients; requires the provider to support S256",
+    "en": "Recommended for public clients; requires the provider to support S256",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Record activity logs for enterprise compliance and security auditing.",
+    "en": "Record activity logs for enterprise compliance and security auditing.",
+    "existing": {},
+    "comment": "Description of what data the \"Audit Logging\" category processes and why."
+  },
+  {
+    "key": "Record not found in iCloud.",
+    "en": "Record not found in iCloud.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Record was modified on another device. Resolving conflict...",
+    "en": "Record was modified on another device. Resolving conflict...",
+    "existing": {},
+    "comment": "Text displayed in an alert when a record is modified on another device and the user is prompted to resolve the conflict."
+  },
+  {
+    "key": "Redirect URI",
+    "en": "Redirect URI",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Register custom automation actions",
+    "en": "Register custom automation actions",
+    "existing": {},
+    "comment": "Description of a plugin permission that allows the registration of custom automation actions."
+  },
+  {
+    "key": "Register these values with your identity provider.",
+    "en": "Register these values with your identity provider.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Regular expression pattern",
+    "en": "Regular expression pattern",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove %@ from exclusion list",
+    "en": "Remove %@ from exclusion list",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove HTML markup",
+    "en": "Remove HTML markup",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove Newlines",
+    "en": "Remove Newlines",
+    "existing": {},
+    "comment": "Subtitle for the transformation type \"Remove Newlines\"."
+  },
+  {
+    "key": "Remove Tag",
+    "en": "Remove Tag",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove a tag from the clipboard item",
+    "en": "Remove a tag from the clipboard item",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove all HTML tags from text",
+    "en": "Remove all HTML tags from text",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove all whitespace characters",
+    "en": "Remove all whitespace characters",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove condition",
+    "en": "Remove condition",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove duplicate lines",
+    "en": "Remove duplicate lines",
+    "existing": {},
+    "comment": "Description of a transformation that removes duplicate lines from text."
+  },
+  {
+    "key": "Remove duplicates",
+    "en": "Remove duplicates",
+    "existing": {},
+    "comment": "Description of a transformation type when the action is to remove duplicate lines from text."
+  },
+  {
+    "key": "Remove from Favorites",
+    "en": "Remove from Favorites",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove leading and trailing whitespace",
+    "en": "Remove leading and trailing whitespace",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove leading/trailing whitespace",
+    "en": "Remove leading/trailing whitespace",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Remove selected provider",
+    "en": "Remove selected provider",
+    "existing": {},
+    "comment": "A button that, when tapped, deletes the currently selected identity provider."
+  },
+  {
+    "key": "Remove whitespace from JSON",
+    "en": "Remove whitespace from JSON",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Replace all newlines with spaces",
+    "en": "Replace all newlines with spaces",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Replace multiple spaces with a single space",
+    "en": "Replace multiple spaces with a single space",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Replace newlines with spaces",
+    "en": "Replace newlines with spaces",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Require Biometric Authentication",
+    "en": "Require Biometric Authentication",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Require SSO Authentication",
+    "en": "Require SSO Authentication",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Reset",
+    "en": "Reset",
+    "existing": {},
+    "comment": "The text of a button that resets sync data."
+  },
+  {
+    "key": "Reset Sync",
+    "en": "Reset Sync",
+    "existing": {},
+    "comment": "A button label that initiates the reset of sync data."
+  },
+  {
+    "key": "Reset Sync...",
+    "en": "Reset Sync...",
+    "existing": {},
+    "comment": "A button label that triggers a confirmation prompt to reset the sync settings."
+  },
+  {
+    "key": "Results",
+    "en": "Results",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Results powered by semantic search",
+    "en": "Results powered by semantic search",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Resume Monitoring",
+    "en": "Resume Monitoring",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Retention",
+    "en": "Retention",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Retention Compliance:",
+    "en": "Retention Compliance:",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Retention Period:",
+    "en": "Retention Period:",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Retention Policy",
+    "en": "Retention Policy",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Reveal",
+    "en": "Reveal",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Reverse Lines",
+    "en": "Reverse Lines",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Reverse line order",
+    "en": "Reverse line order",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Reverse the order of lines",
+    "en": "Reverse the order of lines",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Revoked",
+    "en": "Revoked",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Rule Details",
+    "en": "Rule Details",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Rule name",
+    "en": "Rule name",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Rules",
+    "en": "Rules",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Run %lldx",
+    "en": "Run %lldx",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Run Script",
+    "en": "Run Script",
+    "existing": {},
+    "comment": "Human-readable display name for the \"Run Script\" automation action."
+  },
+  {
+    "key": "Run before pasting to the target application",
+    "en": "Run before pasting to the target application",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Run on schedule: %@",
+    "en": "Run on schedule: %@",
+    "existing": {},
+    "comment": "A description of a trigger that fires on a schedule based on a cron expression. The argument is the human-readable description of the cron expression."
+  },
+  {
+    "key": "Run only when manually triggered",
+    "en": "Run only when manually triggered",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Run when a new clipboard item is captured",
+    "en": "Run when a new clipboard item is captured",
+    "existing": {},
+    "comment": "Description of when the \"When Captured\" trigger fires."
+  },
+  {
+    "key": "SHA-256 Hash",
+    "en": "SHA-256 Hash",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "SLO URL",
+    "en": "SLO URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "SOC 2",
+    "en": "SOC 2",
+    "existing": {},
+    "comment": "A label for the \"SOC 2\" tab in the Compliance settings view."
+  },
+  {
+    "key": "SP entity ID / audience restriction",
+    "en": "SP entity ID / audience restriction",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "SSO",
+    "en": "SSO",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "SSO URL",
+    "en": "SSO URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Save",
+    "en": "Save",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Save Configuration",
+    "en": "Save Configuration",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Schedule",
+    "en": "Schedule",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Scheduled",
+    "en": "Scheduled",
+    "existing": {},
+    "comment": "Human-readable display name for an automation trigger of type `.schedule`."
+  },
+  {
+    "key": "Scopes",
+    "en": "Scopes",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Score: %lld/100",
+    "en": "Score: %lld/100",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Search",
+    "en": "Search",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Search Clipboard History",
+    "en": "Search Clipboard History",
+    "existing": {},
+    "comment": "Title of the app intent for searching clipboard history."
+  },
+  {
+    "key": "Search Index",
+    "en": "Search Index",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Search Query",
+    "en": "Search Query",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Search Settings",
+    "en": "Search Settings",
+    "existing": {},
+    "comment": "The title of the section that contains search settings."
+  },
+  {
+    "key": "Search applications...",
+    "en": "Search applications...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Search clipboard for ${query}",
+    "en": "Search clipboard for ${query}",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Search or create tag...",
+    "en": "Search or create tag...",
+    "existing": {},
+    "comment": "A placeholder text for a text field in the tag picker view, used to prompt the user to search for or create a tag."
+  },
+  {
+    "key": "Search rules...",
+    "en": "Search rules...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Search your clipboard history for items matching a query.",
+    "en": "Search your clipboard history for items matching a query.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Security",
+    "en": "Security",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Security Controls Report",
+    "en": "Security Controls Report",
+    "existing": {},
+    "comment": "A section header in the SOC 2 settings view."
+  },
+  {
+    "key": "Select Application",
+    "en": "Select Application",
+    "existing": {},
+    "comment": "A label displayed above the search bar in the app picker sheet."
+  },
+  {
+    "key": "Select a plugin from the list to view its details, or install a new plugin.",
+    "en": "Select a plugin from the list to view its details, or install a new plugin.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Select an identity provider from the list, or add a new one to get started.",
+    "en": "Select an identity provider from the list, or add a new one to get started.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Self-Hosted Server",
+    "en": "Self-Hosted Server",
+    "existing": {},
+    "comment": "A label displayed above the self-hosted server settings."
+  },
+  {
+    "key": "Self-Hosted Sync",
+    "en": "Self-Hosted Sync",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Self-hosted sync connects to your organization's private sync server for data sovereignty.",
+    "en": "Self-hosted sync connects to your organization's private sync server for data sovereignty.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Semantic Search",
+    "en": "Semantic Search",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Semantic search uses AI to understand the meaning of your queries, not just keywords.",
+    "en": "Semantic search uses AI to understand the meaning of your queries, not just keywords.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Send Webhook",
+    "en": "Send Webhook",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Send a connectivity check to the identity provider",
+    "en": "Send a connectivity check to the identity provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Send an HTTP request to a webhook endpoint",
+    "en": "Send an HTTP request to a webhook endpoint",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sensitive Data Detection",
+    "en": "Sensitive Data Detection",
+    "existing": {},
+    "comment": "A section header for the sensitive data detection settings."
+  },
+  {
+    "key": "Sensitive content",
+    "en": "Sensitive content",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sentence case",
+    "en": "Sentence case",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Server",
+    "en": "Server",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Server Configuration",
+    "en": "Server Configuration",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Server URL",
+    "en": "Server URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Server certificate validation failed. The server's identity could not be verified.",
+    "en": "Server certificate validation failed. The server's identity could not be verified.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Server configured",
+    "en": "Server configured",
+    "existing": {},
+    "comment": "A label indicating that the self-hosted sync server is configured."
+  },
+  {
+    "key": "Server error (code %lld). Please try again later.",
+    "en": "Server error (code %lld). Please try again later.",
+    "existing": {},
+    "comment": "A description of an error that might occur when syncing. The argument is a server error code."
+  },
+  {
+    "key": "Server not configured",
+    "en": "Server not configured",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Service Provider",
+    "en": "Service Provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Session Timeout",
+    "en": "Session Timeout",
+    "existing": {},
+    "comment": "A label for the session timeout setting in the HIPAA settings view."
+  },
+  {
+    "key": "Set End Date",
+    "en": "Set End Date",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Set Favorite",
+    "en": "Set Favorite",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Set Start Date",
+    "en": "Set Start Date",
+    "existing": {},
+    "comment": "A button that sets the start date for the date range filter."
+  },
+  {
+    "key": "Set Your Hotkey",
+    "en": "Set Your Hotkey",
+    "existing": {
+      "de": "Tastenkombination festlegen",
+      "es": "Configura tu atajo",
+      "fr": "Définir votre raccourci",
+      "ja": "ホットキーを設定",
+      "ko": "단축키 설정",
+      "pt": "Defina seu atalho",
+      "ru": "Настройте горячую клавишу",
+      "tr": "Kısayol Tuşunuzu Ayarlayın",
+      "zh-Hans": "设置快捷键",
+      "zh-Hant": "設定快捷鍵"
+    },
+    "comment": "Hotkey setup step title"
+  },
+  {
+    "key": "Setting retention to %lld day%@ will permanently delete older events during the next pruning pass. This cannot be undone.",
+    "en": "Setting retention to %1$lld day%2$@ will permanently delete older events during the next pruning pass. This cannot be undone.",
+    "existing": {},
+    "comment": "A confirmation alert message that warns the user that setting the retention period will delete older audit events."
+  },
+  {
+    "key": "Settings",
+    "en": "Settings",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Setup progress: step %lld of %lld",
+    "en": "Setup progress: step %1$lld of %2$lld",
+    "existing": {},
+    "comment": "A label describing the current step of the onboarding process, including the step number and total number of steps."
+  },
+  {
+    "key": "Severity",
+    "en": "Severity",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Shortcut Conflict",
+    "en": "Shortcut Conflict",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Shortener Service",
+    "en": "Shortener Service",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Show Notification",
+    "en": "Show Notification",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Show PasteShelf",
+    "en": "Show PasteShelf",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Show image thumbnails",
+    "en": "Show image thumbnails",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Show in Dock",
+    "en": "Show in Dock",
+    "existing": {},
+    "comment": "A toggle that lets users decide whether PasteShelf should be visible in the Dock."
+  },
+  {
+    "key": "Show tag filters",
+    "en": "Show tag filters",
+    "existing": {},
+    "comment": "A toggle that shows or hides the tag filters below the content type filters."
+  },
+  {
+    "key": "Show/Hide Panel",
+    "en": "Show/Hide Panel",
+    "existing": {},
+    "comment": "A label for the button that toggles the visibility of the clipboard panel."
+  },
+  {
+    "key": "Sign AuthnRequests",
+    "en": "Sign AuthnRequests",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sign in again via Preferences > Sync > Self-Hosted.",
+    "en": "Sign in again via Preferences > Sync > Self-Hosted.",
+    "existing": {},
+    "comment": "Suggestion to sign in again if a self-hosted sync error is due to an expired authentication token."
+  },
+  {
+    "key": "Sign outgoing AuthnRequest messages",
+    "en": "Sign outgoing AuthnRequest messages",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Signing Certificate",
+    "en": "Signing Certificate",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Similarity Threshold",
+    "en": "Similarity Threshold",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Single Logout URL",
+    "en": "Single Logout URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Single Sign-On URL",
+    "en": "Single Sign-On URL",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Skip",
+    "en": "Skip",
+    "existing": {
+      "de": "Überspringen",
+      "es": "Omitir",
+      "fr": "Ignorer",
+      "ja": "スキップ",
+      "ko": "건너뛰기",
+      "pt": "Pular",
+      "ru": "Пропустить",
+      "tr": "Atla",
+      "zh-Hans": "跳过",
+      "zh-Hant": "跳過"
+    },
+    "comment": "Button label"
+  },
+  {
+    "key": "Smart Collection",
+    "en": "Smart Collection",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Smart Collection - items are added automatically",
+    "en": "Smart Collection - items are added automatically",
+    "existing": {},
+    "comment": "A description of a collection that is automatically updated with new items."
+  },
+  {
+    "key": "Some items failed to sync: %@",
+    "en": "Some items failed to sync: %@",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sort Keys Alphabetically",
+    "en": "Sort Keys Alphabetically",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sort Lines",
+    "en": "Sort Lines",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sort all lines alphabetically",
+    "en": "Sort all lines alphabetically",
+    "existing": {},
+    "comment": "Description of a text transformation preset that sorts all lines alphabetically."
+  },
+  {
+    "key": "Sort alphabetically",
+    "en": "Sort alphabetically",
+    "existing": {},
+    "comment": "Description of a transformation type when sorting lines alphabetically."
+  },
+  {
+    "key": "Source Code",
+    "en": "Source Code",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Start date is after end date",
+    "en": "Start date is after end date",
+    "existing": {},
+    "comment": "A warning message displayed when the start date is after the end date."
+  },
+  {
+    "key": "Startup",
+    "en": "Startup",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Status",
+    "en": "Status",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Storage",
+    "en": "Storage",
+    "existing": {},
+    "comment": "Permission type for accessing persistent storage."
+  },
+  {
+    "key": "Storage Duration",
+    "en": "Storage Duration",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Store persistent data between sessions",
+    "en": "Store persistent data between sessions",
+    "existing": {},
+    "comment": "Description of a plugin permission that allows access to persistent storage."
+  },
+  {
+    "key": "Strip HTML Tags",
+    "en": "Strip HTML Tags",
+    "existing": {},
+    "comment": "Title of a transformation type that strips HTML tags from text."
+  },
+  {
+    "key": "Suspended",
+    "en": "Suspended",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sync",
+    "en": "Sync",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sync Now",
+    "en": "Sync Now",
+    "existing": {},
+    "comment": "A button label that triggers a sync action."
+  },
+  {
+    "key": "Sync Provider",
+    "en": "Sync Provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sync Status",
+    "en": "Sync Status",
+    "existing": {},
+    "comment": "The header text for the section that displays the current status of the sync process."
+  },
+  {
+    "key": "Sync data will be sent to your self-hosted server instead of iCloud.",
+    "en": "Sync data will be sent to your self-hosted server instead of iCloud.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sync disabled",
+    "en": "Sync disabled",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sync error",
+    "en": "Sync error",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sync error: %@",
+    "en": "Sync error: %@",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Sync is disabled by default. Your clipboard history is stored locally on this device only.",
+    "en": "Sync is disabled by default. Your clipboard history is stored locally on this device only.",
+    "existing": {},
+    "comment": "A description of how the default state of the sync feature works."
+  },
+  {
+    "key": "Sync server error (%lld): %@",
+    "en": "Sync server error (%1$lld): %2$@",
+    "existing": {},
+    "comment": "An error from a self-hosted sync server. The first argument is the error code. The second argument is a human-readable message describing the error."
+  },
+  {
+    "key": "Sync state expired. Performing full sync...",
+    "en": "Sync state expired. Performing full sync...",
+    "existing": {},
+    "comment": "Text displayed in a notification when the sync state expires, prompting a full sync."
+  },
+  {
+    "key": "Sync your clipboard history across devices via iCloud or self-hosted server.",
+    "en": "Sync your clipboard history across devices via iCloud or self-hosted server.",
+    "existing": {},
+    "comment": "Description of what data the \"Cloud Sync\" category processes and why."
+  },
+  {
+    "key": "Sync zone not found. Setting up sync...",
+    "en": "Sync zone not found. Setting up sync...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Synced",
+    "en": "Synced",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Syncing...",
+    "en": "Syncing...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Syncing... %lld%%",
+    "en": "Syncing... %lld%%",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "System",
+    "en": "System",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "System follows your macOS appearance setting.",
+    "en": "System follows your macOS appearance setting.",
+    "existing": {},
+    "comment": "A footer label explaining that the theme setting follows the user's macOS appearance."
+  },
+  {
+    "key": "Tab",
+    "en": "Tab",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Tag name",
+    "en": "Tag name",
+    "existing": {},
+    "comment": "A label for the text field where a user can enter a name for a tag."
+  },
+  {
+    "key": "Tags",
+    "en": "Tags",
+    "existing": {},
+    "comment": "A label displayed above the list of tags."
+  },
+  {
+    "key": "Tags can be assigned to clipboard items for organization.",
+    "en": "Tags can be assigned to clipboard items for organization.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Test Connection",
+    "en": "Test Connection",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Test Input",
+    "en": "Test Input",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Test Pattern",
+    "en": "Test Pattern",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Testing...",
+    "en": "Testing...",
+    "existing": {},
+    "comment": "A label indicating that a connection test is in progress."
+  },
+  {
+    "key": "Text",
+    "en": "Text",
+    "existing": {
+      "de": "Text",
+      "es": "Texto",
+      "fr": "Texte",
+      "ja": "テキスト",
+      "ko": "텍스트",
+      "pt": "Texto",
+      "ru": "Текст",
+      "tr": "Metin",
+      "zh-Hans": "文本",
+      "zh-Hant": "文字"
+    },
+    "comment": "Filter/content type label"
+  },
+  {
+    "key": "Text to match",
+    "en": "Text to match",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "The URL '%@' is not a valid PasteShelf URL.",
+    "en": "The URL '%@' is not a valid PasteShelf URL.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "The admin console server has not been configured.\nContact your IT administrator for enrollment.",
+    "en": "The admin console server has not been configured.\nContact your IT administrator for enrollment.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "The clipboard item was not found.",
+    "en": "The clipboard item was not found.",
+    "existing": {},
+    "comment": "Error message when a requested clipboard item is not found."
+  },
+  {
+    "key": "The item to copy to the clipboard",
+    "en": "The item to copy to the clipboard",
+    "existing": {},
+    "comment": "Title of the parameter for the clipboard item to copy to the clipboard."
+  },
+  {
+    "key": "The sync request timed out. Please try again.",
+    "en": "The sync request timed out. Please try again.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "The text to copy to the clipboard",
+    "en": "The text to copy to the clipboard",
+    "existing": {},
+    "comment": "Prompt for the text to be copied to the clipboard."
+  },
+  {
+    "key": "The text to search for in clipboard history",
+    "en": "The text to search for in clipboard history",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "The text to transform",
+    "en": "The text to transform",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "The transformation to apply",
+    "en": "The transformation to apply",
+    "existing": {},
+    "comment": "Title of the parameter for selecting a transformation."
+  },
+  {
+    "key": "Theme",
+    "en": "Theme",
+    "existing": {},
+    "comment": "A label displayed above the theme picker."
+  },
+  {
+    "key": "These shortcuts work when the clipboard panel is open.",
+    "en": "These shortcuts work when the clipboard panel is open.",
+    "existing": {},
+    "comment": "A footer in the Shortcuts tab that describes the functionality of the keyboard navigation shortcuts."
+  },
+  {
+    "key": "Third-Party Plugins",
+    "en": "Third-Party Plugins",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "This action cannot be undone.",
+    "en": "This action cannot be undone.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "This device is not enrolled in an MDM program.",
+    "en": "This device is not enrolled in an MDM program.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "This shortcut is reserved by the system. Please choose a different combination.",
+    "en": "This shortcut is reserved by the system. Please choose a different combination.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "This will delete all cached embeddings. The index will be rebuilt automatically in the background.",
+    "en": "This will delete all cached embeddings. The index will be rebuilt automatically in the background.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "This will delete all extracted text from images. The cache will be rebuilt when you process images again.",
+    "en": "This will delete all extracted text from images. The cache will be rebuilt when you process images again.",
+    "existing": {},
+    "comment": "An alert message displayed when the user confirms clearing the OCR cache."
+  },
+  {
+    "key": "This will delete all sync data and re-upload your local clipboard history. This action cannot be undone.",
+    "en": "This will delete all sync data and re-upload your local clipboard history. This action cannot be undone.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "This will permanently delete all clipboard data stored in iCloud. Your local clipboard history will not be affected. Sync will be disabled.",
+    "en": "This will permanently delete all clipboard data stored in iCloud. Your local clipboard history will not be affected. Sync will be disabled.",
+    "existing": {},
+    "comment": "An alert message explaining that deleting iCloud data will permanently remove clipboard data and disable sync."
+  },
+  {
+    "key": "This will permanently delete all clipboard items, tags, folders, collections, audit logs, and encryption keys. This action cannot be undone.",
+    "en": "This will permanently delete all clipboard items, tags, folders, collections, audit logs, and encryption keys. This action cannot be undone.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "This will permanently delete all clipboard items. Favorites will be preserved. This action cannot be undone.",
+    "en": "This will permanently delete all clipboard items. Favorites will be preserved. This action cannot be undone.",
+    "existing": {},
+    "comment": "An alert message displayed when the user confirms they want to clear all history."
+  },
+  {
+    "key": "Title Case",
+    "en": "Title Case",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "To",
+    "en": "To",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "To:",
+    "en": "To:",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Token",
+    "en": "Token",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Token Endpoint",
+    "en": "Token Endpoint",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Too many requests. Please try again later.",
+    "en": "Too many requests. Please try again later.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Too many requests. Please wait %lld seconds.",
+    "en": "Too many requests. Please wait %lld seconds.",
+    "existing": {},
+    "comment": "A localized string that instructs the user to wait for a specified number of seconds before retrying an action. The argument is a whole number of seconds."
+  },
+  {
+    "key": "Transform ${text} using ${transformation}",
+    "en": "Transform ${text} using ${transformation}",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Transform Content",
+    "en": "Transform Content",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Transform Text",
+    "en": "Transform Text",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Transform text using one of the built-in transformation presets.",
+    "en": "Transform text using one of the built-in transformation presets.",
+    "existing": {},
+    "comment": "Description of the intent that allows transforming text using one of the built-in transformation presets."
+  },
+  {
+    "key": "Transformation",
+    "en": "Transformation",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Transient",
+    "en": "Transient",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Trigger",
+    "en": "Trigger",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Trim Whitespace",
+    "en": "Trim Whitespace",
+    "existing": {},
+    "comment": "Title and subtitle for the \"Trim Whitespace\" transformation type."
+  },
+  {
+    "key": "Type",
+    "en": "Type",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "UPPERCASE",
+    "en": "UPPERCASE",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "URL Decode",
+    "en": "URL Decode",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "URL Encode",
+    "en": "URL Encode",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "URL-encode special characters",
+    "en": "URL-encode special characters",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "URLs are shortened using free public services.",
+    "en": "URLs are shortened using free public services.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Unchecked types will be ignored when copied to clipboard.",
+    "en": "Unchecked types will be ignored when copied to clipboard.",
+    "existing": {},
+    "comment": "A footer label under the \"Capture\" section of the general settings tab, explaining that unchecked capture types will be ignored when copying to the clipboard."
+  },
+  {
+    "key": "Unenroll Device",
+    "en": "Unenroll Device",
+    "existing": {},
+    "comment": "A button that unenrolls a device from the enterprise."
+  },
+  {
+    "key": "Unescape HTML",
+    "en": "Unescape HTML",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Unique Lines",
+    "en": "Unique Lines",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Unlimited",
+    "en": "Unlimited",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Unspecified",
+    "en": "Unspecified",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Usage Analytics",
+    "en": "Usage Analytics",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Use Discovery Document",
+    "en": "Use Discovery Document",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Use PKCE",
+    "en": "Use PKCE",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "UserInfo Endpoint",
+    "en": "UserInfo Endpoint",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Utility",
+    "en": "Utility",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Value",
+    "en": "Value",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Verify Encryption",
+    "en": "Verify Encryption",
+    "existing": {},
+    "comment": "A button that triggers encryption verification."
+  },
+  {
+    "key": "Verify connectivity to this identity provider",
+    "en": "Verify connectivity to this identity provider",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Verify that PasteShelf can reach the identity provider using the current configuration.",
+    "en": "Verify that PasteShelf can reach the identity provider using the current configuration.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Verify the server certificate in Preferences > Sync > Self-Hosted.",
+    "en": "Verify the server certificate in Preferences > Sync > Self-Hosted.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Version",
+    "en": "Version",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Version %@ (%@)",
+    "en": "Version %1$@ (%2$@)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "View source code on GitHub",
+    "en": "View source code on GitHub",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Visit PasteShelf website",
+    "en": "Visit PasteShelf website",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Waiting for iCloud account",
+    "en": "Waiting for iCloud account",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Website",
+    "en": "Website",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Weekly",
+    "en": "Weekly",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Welcome to PasteShelf",
+    "en": "Welcome to PasteShelf",
+    "existing": {
+      "de": "Willkommen bei PasteShelf",
+      "es": "Bienvenido a PasteShelf",
+      "fr": "Bienvenue dans PasteShelf",
+      "ja": "PasteShelfへようこそ",
+      "ko": "PasteShelf에 오신 것을 환영합니다",
+      "pt": "Bem-vindo ao PasteShelf",
+      "ru": "Добро пожаловать в PasteShelf",
+      "tr": "PasteShelf'e Hoş Geldiniz",
+      "zh-Hans": "欢迎使用 PasteShelf",
+      "zh-Hant": "歡迎使用 PasteShelf"
+    },
+    "comment": "Onboarding welcome title"
+  },
+  {
+    "key": "When Captured",
+    "en": "When Captured",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "When enabled, PasteShelf will appear in the Dock",
+    "en": "When enabled, PasteShelf will appear in the Dock",
+    "existing": {},
+    "comment": "A hint for the \"Show in Dock\" toggle."
+  },
+  {
+    "key": "When enabled, PasteShelf will start automatically when you log in",
+    "en": "When enabled, PasteShelf will start automatically when you log in",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "When enabled, clipboard contents will not be captured",
+    "en": "When enabled, clipboard contents will not be captured",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "When enabled, clipboard items containing sensitive data like API keys, passwords, and credit cards are labeled as sensitive",
+    "en": "When enabled, clipboard items containing sensitive data like API keys, passwords, and credit cards are labeled as sensitive",
+    "existing": {},
+    "comment": "A hint explaining that sensitive data is labeled when enabled."
+  },
+  {
+    "key": "When enabled, image previews are shown for copied images",
+    "en": "When enabled, image previews are shown for copied images",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "When enabled, items are displayed more compactly",
+    "en": "When enabled, items are displayed more compactly",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "When enabled, items older than the specified period will be automatically deleted",
+    "en": "When enabled, items older than the specified period will be automatically deleted",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "When enabled, press Command plus a number to paste that item",
+    "en": "When enabled, press Command plus a number to paste that item",
+    "existing": {},
+    "comment": "A description of the quick paste feature."
+  },
+  {
+    "key": "When enabled, tag filter chips are shown below the content type filters",
+    "en": "When enabled, tag filter chips are shown below the content type filters",
+    "existing": {},
+    "comment": "A toggle that shows tag filters below content type filters."
+  },
+  {
+    "key": "When enabled, the client verifies the server's TLS certificate against pinned certificates.",
+    "en": "When enabled, the client verifies the server's TLS certificate against pinned certificates.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "When enabled, this provider is offered to users at sign-in",
+    "en": "When enabled, this provider is offered to users at sign-in",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "When the panel is open, press ⌘1 through ⌘9 to quickly paste items.",
+    "en": "When the panel is open, press ⌘1 through ⌘9 to quickly paste items.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Wide",
+    "en": "Wide",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Width of the clipboard history panel",
+    "en": "Width of the clipboard history panel",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Windows Domain",
+    "en": "Windows Domain",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Write Clipboard",
+    "en": "Write Clipboard",
+    "existing": {},
+    "comment": "Display name for the clipboard write permission."
+  },
+  {
+    "key": "X.509 Subject",
+    "en": "X.509 Subject",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Yes",
+    "en": "Yes",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Your authentication has expired. Please sign in again.",
+    "en": "Your authentication has expired. Please sign in again.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Your clipboard history will be uploaded to iCloud and kept in sync across all your Mac devices signed in to the same iCloud account.\n\nThis uses your personal iCloud storage quota. All data is end-to-end encrypted before leaving your device.\n\nYou can disable sync or delete your iCloud data at any time from this settings tab.",
+    "en": "Your clipboard history will be uploaded to iCloud and kept in sync across all your Mac devices signed in to the same iCloud account.\n\nThis uses your personal iCloud storage quota. All data is end-to-end encrypted before leaving your device.\n\nYou can disable sync or delete your iCloud data at any time from this settings tab.",
+    "existing": {},
+    "comment": "A message displayed in an alert within the Sync tab, explaining the functionality of enabling sync."
+  },
+  {
+    "key": "Your iCloud storage is full. Please free up space or upgrade your plan.",
+    "en": "Your iCloud storage is full. Please free up space or upgrade your plan.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "Your privacy-first clipboard manager",
+    "en": "Your privacy-first clipboard manager",
+    "existing": {
+      "de": "Ihr datenschutzfreundlicher Zwischenablage-Manager",
+      "es": "Tu gestor de portapapeles con privacidad",
+      "fr": "Votre gestionnaire de presse-papiers respectueux de la vie privée",
+      "ja": "プライバシー重視のクリップボードマネージャー",
+      "ko": "프라이버시 우선 클립보드 관리자",
+      "pt": "Seu gerenciador de área de transferência com privacidade",
+      "ru": "Менеджер буфера обмена с приоритетом конфиденциальности",
+      "tr": "Gizlilik öncelikli pano yöneticiniz",
+      "zh-Hans": "您的隐私优先剪贴板管理器",
+      "zh-Hant": "您的隱私優先剪貼簿管理器"
+    },
+    "comment": "Onboarding welcome subtitle"
+  },
+  {
+    "key": "all",
+    "en": "all",
+    "existing": {},
+    "comment": "A text label for a logical operator that means \"and\" (all)."
+  },
+  {
+    "key": "any",
+    "en": "any",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "by %@",
+    "en": "by %@",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "e.g. Credit Card Numbers",
+    "en": "e.g. Credit Card Numbers",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "e.g. Okta, Azure AD, Google Workspace",
+    "en": "e.g. Okta, Azure AD, Google Workspace",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://accounts.google.com",
+    "en": "https://accounts.google.com",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://app.pasteshelf.app",
+    "en": "https://app.pasteshelf.app",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://app.pasteshelf.app/sso/acs",
+    "en": "https://app.pasteshelf.app/sso/acs",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://example.com/.well-known/jwks.json",
+    "en": "https://example.com/.well-known/jwks.json",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://example.com/logout (optional)",
+    "en": "https://example.com/logout (optional)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://example.com/oauth/authorize",
+    "en": "https://example.com/oauth/authorize",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://example.com/oauth/token",
+    "en": "https://example.com/oauth/token",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://example.com/userinfo (optional)",
+    "en": "https://example.com/userinfo (optional)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://idp.example.com/metadata.xml",
+    "en": "https://idp.example.com/metadata.xml",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://idp.example.com/saml",
+    "en": "https://idp.example.com/saml",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://idp.example.com/slo/saml (optional)",
+    "en": "https://idp.example.com/slo/saml (optional)",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://idp.example.com/sso/saml",
+    "en": "https://idp.example.com/sso/saml",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "https://sync.company.internal",
+    "en": "https://sync.company.internal",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "iCloud",
+    "en": "iCloud",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "iCloud Sync keeps your clipboard history synchronized across all your Mac devices signed in to the same iCloud account.",
+    "en": "iCloud Sync keeps your clipboard history synchronized across all your Mac devices signed in to the same iCloud account.",
+    "existing": {},
+    "comment": "An explanation of what iCloud Sync does."
+  },
+  {
+    "key": "iCloud access is restricted. Please check your account settings.",
+    "en": "iCloud access is restricted. Please check your account settings.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "iCloud is temporarily unavailable. Please try again later.",
+    "en": "iCloud is temporarily unavailable. Please try again later.",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "lowercase",
+    "en": "lowercase",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "of the following:",
+    "en": "of the following:",
+    "existing": {},
+    "comment": "A phrase displayed below the list of conditions in a rule builder view, indicating that the conditions are \"of the following:\"."
+  },
+  {
+    "key": "openid profile email",
+    "en": "openid profile email",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "pasteshelf://auth/callback",
+    "en": "pasteshelf://auth/callback",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "ps_...",
+    "en": "ps_...",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "v%@",
+    "en": "v%@",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "your-client-id",
+    "en": "your-client-id",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "your-org-id",
+    "en": "your-org-id",
+    "existing": {},
+    "comment": ""
+  },
+  {
+    "key": "© 2026 PasteShelf. All rights reserved.",
+    "en": "© 2026 PasteShelf. All rights reserved.",
+    "existing": {},
+    "comment": "Copyright information."
+  }
+]

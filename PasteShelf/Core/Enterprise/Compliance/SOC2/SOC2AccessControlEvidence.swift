@@ -45,9 +45,9 @@ struct SOC2AccessControlEvidence: Sendable {
         var errorDescription: String? {
             switch self {
             case .storageUnavailable:
-                return "Audit storage is not available. Ensure AuditManager has been configured."
+                return String(localized: "Audit storage is not available. Ensure AuditManager has been configured.")
             case .fileWriteFailed(let reason):
-                return "Failed to write evidence file: \(reason)"
+                return String(localized: "Failed to write evidence file: \(reason)")
             }
         }
     }

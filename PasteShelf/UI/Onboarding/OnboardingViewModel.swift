@@ -96,7 +96,7 @@ final class OnboardingViewModel: ObservableObject {
     func nextStep() {
         if let next = currentStep.next {
             currentStep = next
-            logger.debug("Moved to step: \(next.title)")
+            logger.debug("Moved to step: \(String(describing: next))")
 
             #if !APP_STORE
             if next == .permissions {
@@ -115,7 +115,7 @@ final class OnboardingViewModel: ObservableObject {
     func previousStep() {
         if let previous = currentStep.previous {
             currentStep = previous
-            logger.debug("Moved back to step: \(previous.title)")
+            logger.debug("Moved back to step: \(String(describing: previous))")
         }
     }
 

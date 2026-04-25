@@ -69,7 +69,7 @@ struct RuleEditorView: View {
 
     private var headerView: some View {
         HStack {
-            Text(viewModel.isCreating ? "Create Rule" : "Edit Rule")
+            Text(viewModel.isCreating ? String(localized: "Create Rule") : String(localized: "Edit Rule"))
                 .font(.headline)
 
             Spacer()
@@ -211,7 +211,7 @@ struct RuleEditorView: View {
 
             Spacer()
 
-            Button(viewModel.isCreating ? "Create" : "Save") {
+            Button(viewModel.isCreating ? String(localized: "Create") : String(localized: "Save")) {
                 saveRule()
             }
             .keyboardShortcut(.return)
@@ -356,13 +356,15 @@ struct ActionRowView: View {
     private var actionDescription: String {
         switch action {
         case .transform(_, let preset):
-            return "Transform: \(preset.displayName)"
+            return String(localized: "Transform: \(String(localized: preset.displayNameKey))")
         case .addTag(_, let tagName):
-            return "Add tag: \(tagName)"
+            return String(localized: "Add tag: \(tagName)")
         case .notify(_, let title, _):
-            return "Notify: \(title)"
+            let shortTitle = String(title)
+            return String(localized: "Notify: \(shortTitle)")
         case .webhook(_, let endpointId):
-            return "Webhook: \(endpointId.uuidString.prefix(8))..."
+            let shortId = "\(endpointId.uuidString.prefix(8))..."
+            return String(localized: "Webhook: \(shortId)")
         default:
             return action.description
         }
@@ -424,7 +426,7 @@ struct ActionPickerView: View {
         case .copyToClipboard:
             return .copyToClipboard()
         case .notify:
-            return .notify(title: "PasteShelf", message: "Rule executed")
+            return .notify(title: "PasteShelf", message: String(localized: "Rule executed"))
         case .openURL:
             return .openURL(urlTemplate: "")
         #if !APP_STORE

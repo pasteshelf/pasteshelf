@@ -76,8 +76,8 @@ extension EmptyStateView {
     static func noClipboardItems(action: (() -> Void)? = nil) -> EmptyStateView {
         EmptyStateView(
             icon: "clipboard",
-            title: "No clipboard items",
-            message: "Copy something to see it here",
+            title: String(localized: "No clipboard items"),
+            message: String(localized: "Copy something to see it here"),
             actionTitle: nil,
             action: action
         )
@@ -87,9 +87,9 @@ extension EmptyStateView {
     static func noSearchResults(onClearSearch: @escaping () -> Void) -> EmptyStateView {
         EmptyStateView(
             icon: "magnifyingglass",
-            title: "No matching items",
-            message: "Try a different search term",
-            actionTitle: "Clear Search",
+            title: String(localized: "No matching items"),
+            message: String(localized: "Try a different search term"),
+            actionTitle: String(localized: "Clear Search"),
             action: onClearSearch
         )
     }
@@ -98,9 +98,9 @@ extension EmptyStateView {
     static func noFilteredResults(onClearFilters: @escaping () -> Void) -> EmptyStateView {
         EmptyStateView(
             icon: "line.3.horizontal.decrease.circle",
-            title: "No matching items",
-            message: "Try different filter settings",
-            actionTitle: "Clear Filters",
+            title: String(localized: "No matching items"),
+            message: String(localized: "Try different filter settings"),
+            actionTitle: String(localized: "Clear Filters"),
             action: onClearFilters
         )
     }
@@ -109,9 +109,9 @@ extension EmptyStateView {
     static func loadingError(message: String, onRetry: @escaping () -> Void) -> EmptyStateView {
         EmptyStateView(
             icon: "exclamationmark.triangle",
-            title: "Unable to load",
+            title: String(localized: "Unable to load"),
             message: message,
-            actionTitle: "Try Again",
+            actionTitle: String(localized: "Try Again"),
             action: onRetry
         )
     }

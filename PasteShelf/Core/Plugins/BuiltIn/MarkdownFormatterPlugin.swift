@@ -52,8 +52,8 @@ public final class MarkdownFormatterPlugin: NSObject, PasteShelfPlugin {
         // HTML to Markdown
         PluginTransformAPI.shared.registerTransformer(
             pluginId: Self.identifier,
-            name: "HTML to Markdown",
-            description: "Convert HTML content to Markdown",
+            name: String(localized: "HTML to Markdown"),
+            description: String(localized: "Convert HTML content to Markdown"),
             supportedTypes: [.html, .plainText],
             iconName: "doc.text"
         ) { [weak self] content in
@@ -63,8 +63,8 @@ public final class MarkdownFormatterPlugin: NSObject, PasteShelfPlugin {
         // Format Markdown Table
         PluginTransformAPI.shared.registerTransformer(
             pluginId: Self.identifier,
-            name: "Format Markdown Table",
-            description: "Align columns in Markdown tables",
+            name: String(localized: "Format Markdown Table"),
+            description: String(localized: "Align columns in Markdown tables"),
             supportedTypes: [.plainText],
             iconName: "tablecells"
         ) { [weak self] content in
@@ -74,8 +74,8 @@ public final class MarkdownFormatterPlugin: NSObject, PasteShelfPlugin {
         // Strip Markdown
         PluginTransformAPI.shared.registerTransformer(
             pluginId: Self.identifier,
-            name: "Strip Markdown",
-            description: "Remove Markdown formatting",
+            name: String(localized: "Strip Markdown"),
+            description: String(localized: "Remove Markdown formatting"),
             supportedTypes: [.plainText],
             iconName: "text.badge.minus"
         ) { [weak self] content in
@@ -88,20 +88,20 @@ public final class MarkdownFormatterPlugin: NSObject, PasteShelfPlugin {
     public func menuItems() -> [PluginMenuItem] {
         [
             PluginMenuItem(
-                title: "HTML to Markdown",
+                title: String(localized: "HTML to Markdown"),
                 iconName: "doc.text",
                 shortcutKey: "M+command+shift"
             ) { [weak self] content in
                 try await self?.htmlToMarkdown(content)
             },
             PluginMenuItem(
-                title: "Format Markdown Table",
+                title: String(localized: "Format Markdown Table"),
                 iconName: "tablecells"
             ) { [weak self] content in
                 try await self?.formatMarkdownTable(content)
             },
             PluginMenuItem(
-                title: "Strip Markdown",
+                title: String(localized: "Strip Markdown"),
                 iconName: "text.badge.minus"
             ) { [weak self] content in
                 try await self?.stripMarkdown(content)

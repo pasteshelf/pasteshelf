@@ -52,7 +52,7 @@ struct SelfHostedSyncSettingsView: View {
                             ProgressView()
                                 .controlSize(.small)
                         }
-                        Text(viewModel.isTestingConnection ? "Testing..." : "Test Connection")
+                        Text(viewModel.isTestingConnection ? String(localized: "Testing...") : String(localized: "Test Connection"))
                     }
                 }
                 .disabled(viewModel.serverURLString.isEmpty || viewModel.isTestingConnection)

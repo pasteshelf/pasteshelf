@@ -98,7 +98,7 @@ final class SSOSettingsViewModel: ObservableObject {
                 .sorted { $0.createdAt < $1.createdAt }
         } catch {
             logger.error("Failed to load identity providers: \(error.localizedDescription)")
-            errorMessage = "Failed to load providers: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load providers: \(error.localizedDescription)")
         }
     }
 
@@ -139,7 +139,7 @@ final class SSOSettingsViewModel: ObservableObject {
             logger.info("Deleted identity provider '\(provider.name)'")
         } catch {
             logger.error("Failed to delete provider '\(provider.name)': \(error.localizedDescription)")
-            errorMessage = "Failed to delete provider: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to delete provider: \(error.localizedDescription)")
         }
     }
 
@@ -161,7 +161,7 @@ final class SSOSettingsViewModel: ObservableObject {
             logger.info("Saved identity provider '\(provider.name)'")
         } catch {
             logger.error("Failed to save provider '\(provider.name)': \(error.localizedDescription)")
-            errorMessage = "Failed to save provider: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to save provider: \(error.localizedDescription)")
         }
     }
 
@@ -189,28 +189,30 @@ final class SSOSettingsViewModel: ObservableObject {
             switch provider.type {
             case .oidc:
                 guard let config = provider.oidcConfig else {
-                    testResult = .failure("OIDC configuration is incomplete.")
+                    testResult = .failure(String(localized: "OIDC configuration is incomplete."))
                     return
                 }
                 let discovery = OIDCDiscovery()
                 let document = try await discovery.discover(issuerURL: config.issuerURL)
+                let scopes = document.scopesSupported?.joined(separator: ", ")
+                    ?? String(localized: "unspecified")
                 testResult = .success(
-                    "Connected to \(document.issuer). Scopes supported: \(document.scopesSupported?.joined(separator: ", ") ?? "unspecified")."
+                    String(localized: "Connected to \(document.issuer). Scopes supported: \(scopes).")
                 )
 
             case .saml:
                 guard let config = provider.samlConfig else {
-                    testResult = .failure("SAML configuration is incomplete.")
+                    testResult = .failure(String(localized: "SAML configuration is incomplete."))
                     return
                 }
                 let request = URLRequest(url: config.ssoURL, timeoutInterval: 10)
                 let (_, response) = try await URLSession.shared.data(for: request)
                 if let http = response as? HTTPURLResponse, http.statusCode < 500 {
                     testResult = .success(
-                        "SSO endpoint is reachable (HTTP \(http.statusCode))."
+                        String(localized: "SSO endpoint is reachable (HTTP \(http.statusCode)).")
                     )
                 } else {
-                    testResult = .failure("SSO endpoint returned an unexpected response.")
+                    testResult = .failure(String(localized: "SSO endpoint returned an unexpected response."))
                 }
             }
             logger.info("Test connection succeeded for provider '\(provider.name)'")
@@ -218,7 +220,7 @@ final class SSOSettingsViewModel: ObservableObject {
             testResult = .failure(ssoError.localizedDescription)
             logger.error("Test connection failed for '\(provider.name)': \(ssoError.localizedDescription)")
         } catch {
-            testResult = .failure("Connection failed: \(error.localizedDescription)")
+            testResult = .failure(String(localized: "Connection failed: \(error.localizedDescription)"))
             logger.error("Test connection failed for '\(provider.name)': \(error.localizedDescription)")
         }
     }

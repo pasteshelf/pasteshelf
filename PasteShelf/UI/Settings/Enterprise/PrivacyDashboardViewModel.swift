@@ -22,7 +22,7 @@ final class PrivacyDashboardViewModel: ObservableObject {
 
     @Published var dataCategories: [(name: String, count: Int, icon: String)] = []
     @Published var connectedServices: [(name: String, isActive: Bool, icon: String)] = []
-    @Published var storageDuration: String = "Not configured"
+    @Published var storageDuration: String = String(localized: "Not configured")
     @Published var isLoading = false
 
     private let logger = Logger.compliance
@@ -41,27 +41,28 @@ final class PrivacyDashboardViewModel: ObservableObject {
         let collections = await StorageManager.shared.fetchCollections()
 
         dataCategories = [
-            (name: "Clipboard Items", count: clipboardItems.count, icon: "doc.on.clipboard"),
-            (name: "Tags", count: tags.count, icon: "tag"),
-            (name: "Folders", count: folders.count, icon: "folder"),
-            (name: "Collections", count: collections.count, icon: "tray.full")
+            (name: String(localized: "Clipboard Items"), count: clipboardItems.count, icon: "doc.on.clipboard"),
+            (name: String(localized: "Tags"), count: tags.count, icon: "tag"),
+            (name: String(localized: "Folders"), count: folders.count, icon: "folder"),
+            (name: String(localized: "Collections"), count: collections.count, icon: "tray.full")
         ]
 
         // Connected services
         let auditEnabled = AuditManager.shared.isEnabled
 
         connectedServices = [
-            (name: "Audit Logging", isActive: auditEnabled, icon: "list.clipboard.fill"),
-            (name: "SSO", isActive: SSOManager.shared.currentSession != nil, icon: "key.fill")
+            (name: String(localized: "Audit Logging"), isActive: auditEnabled, icon: "list.clipboard.fill"),
+            (name: String(localized: "SSO"), isActive: SSOManager.shared.currentSession != nil, icon: "key.fill")
         ]
 
         // Storage duration
         let retentionDays = AuditManager.shared.retentionConfiguration.retentionDays
         if retentionDays >= 365 {
             let years = retentionDays / 365
-            storageDuration = "\(years) year\(years > 1 ? "s" : "") (\(retentionDays) days)"
+            let yearsSuffix = years > 1 ? "s" : ""
+            storageDuration = String(localized: "\(years) year\(yearsSuffix) (\(retentionDays) days)")
         } else {
-            storageDuration = "\(retentionDays) days"
+            storageDuration = String(localized: "\(retentionDays) days")
         }
 
         logger.info("Privacy dashboard loaded: \(clipboardItems.count) items")

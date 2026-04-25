@@ -36,7 +36,7 @@ struct MDMSettingsView: View {
 
             Section("Management Status") {
                 LabeledContent("Status") {
-                    Text(viewModel.isManaged ? "Managed" : "Not Managed")
+                    Text(viewModel.isManaged ? String(localized: "Managed") : String(localized: "Not Managed"))
                         .foregroundStyle(viewModel.isManaged ? .primary : .secondary)
                 }
 
@@ -63,7 +63,7 @@ struct MDMSettingsView: View {
                                 Image(systemName: "lock.fill")
                                     .foregroundStyle(.orange)
                                     .font(.caption)
-                                Text(item.key.displayName)
+                                Text(item.key.displayNameKey)
                             }
                         }
                     }
@@ -75,9 +75,11 @@ struct MDMSettingsView: View {
             if !viewModel.defaultSettings.isEmpty {
                 Section("Default Settings") {
                     ForEach(viewModel.defaultSettings, id: \.key) { item in
-                        LabeledContent(item.key.displayName) {
+                        LabeledContent {
                             Text(item.value.displayValue)
                                 .foregroundStyle(.secondary)
+                        } label: {
+                            Text(item.key.displayNameKey)
                         }
                     }
                 }

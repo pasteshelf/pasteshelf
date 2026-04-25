@@ -41,7 +41,7 @@ struct FilterChipsView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
                     FilterChip(
-                        title: "Favorites",
+                        title: String(localized: "Favorites"),
                         icon: "star.fill",
                         isSelected: favoritesOnly,
                         selectedColor: .orange
@@ -58,7 +58,7 @@ struct FilterChipsView: View {
 
                     ForEach(ContentTypeFilter.allCases) { filter in
                         FilterChip(
-                            title: filter.displayName,
+                            title: String(localized: filter.displayNameKey),
                             icon: filter.icon,
                             isSelected: selectedContentType == filter
                         ) {
@@ -108,7 +108,8 @@ struct FilterChipsView: View {
 struct FilterChip: View {
     // MARK: - Properties
 
-    /// Title text for the chip
+    /// Title text for the chip. Callers pre-resolve localization so user-entered
+    /// text (like tag names) passes through verbatim without accidental catalog lookup.
     let title: String
 
     /// SF Symbol icon name
@@ -175,6 +176,7 @@ struct CompactFilterChipsView: View {
             // Favorites
             CompactFilterChip(
                 icon: "star.fill",
+                tooltip: "Favorites",
                 isSelected: favoritesOnly,
                 selectedColor: .orange
             ) {
@@ -186,6 +188,7 @@ struct CompactFilterChipsView: View {
             ForEach(ContentTypeFilter.allCases) { filter in
                 CompactFilterChip(
                     icon: filter.icon,
+                    tooltip: filter.displayNameKey,
                     isSelected: selectedContentType == filter
                 ) {
                     if selectedContentType == filter {
@@ -203,6 +206,7 @@ struct CompactFilterChipsView: View {
 /// Individual compact filter chip (icon only)
 struct CompactFilterChip: View {
     let icon: String
+    let tooltip: LocalizedStringResource
     let isSelected: Bool
     var selectedColor: Color = .accentColor
     let action: () -> Void
@@ -224,7 +228,7 @@ struct CompactFilterChip: View {
                 )
         }
         .buttonStyle(.plain)
-        .help(icon)
+        .help(Text(tooltip))
     }
 }
 

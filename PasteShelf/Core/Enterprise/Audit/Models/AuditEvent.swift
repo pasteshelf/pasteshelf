@@ -31,6 +31,17 @@ enum AuditEventCategory: String, Codable, Sendable, CaseIterable {
 
     /// Events related to compliance operations (HIPAA, GDPR, SOC2).
     case compliance
+
+    /// Localized display name for use in SwiftUI views.
+    var displayNameKey: LocalizedStringResource {
+        switch self {
+        case .clipboard:      return "Clipboard"
+        case .userAction:     return "User Action"
+        case .policy:         return "Policy"
+        case .authentication: return "Authentication"
+        case .compliance:     return "Compliance"
+        }
+    }
 }
 
 // MARK: - AuditEventSeverity
@@ -125,6 +136,35 @@ enum AuditAction: String, Codable, Sendable {
 
     /// Encryption status was verified for compliance.
     case encryptionVerified = "encryption_verified"
+
+    /// Localized display name for use in SwiftUI views.
+    ///
+    /// Returns a per-case translatable string. The source value is a natural
+    /// English phrase so translators can render an equivalent natural phrase in
+    /// each target language (rather than a mechanical title-case of the raw value).
+    var displayNameKey: LocalizedStringResource {
+        switch self {
+        case .copyCaptured:              return "Clipboard item captured"
+        case .copyBlocked:               return "Clipboard capture blocked"
+        case .copyRedacted:              return "Clipboard content redacted"
+        case .pastePerformed:            return "Paste performed"
+        case .favoritesToggled:          return "Favorite toggled"
+        case .itemDeleted:               return "Item deleted"
+        case .automationDeleted:         return "Item deleted by automation"
+        case .searchPerformed:           return "Search performed"
+        case .policyApplied:             return "Policy applied"
+        case .policyViolation:           return "Policy violation"
+        case .ssoLogin:                  return "SSO login"
+        case .ssoLogout:                 return "SSO logout"
+        case .loginFailure:              return "Login failure"
+        case .dataExported:              return "Data exported"
+        case .dataDeleted:               return "Data deleted"
+        case .consentChanged:            return "Consent changed"
+        case .complianceReportGenerated: return "Compliance report generated"
+        case .hipaaAccessAttempt:        return "HIPAA access attempt"
+        case .encryptionVerified:        return "Encryption verified"
+        }
+    }
 }
 
 // MARK: - AuditEvent

@@ -171,13 +171,13 @@ enum PluginActionError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .actionNotFound(let id):
-            return "Action with ID \(id) not found"
+            return String(localized: "Action with ID \(id) not found")
         case .noExecuteFunction:
-            return "Action has no execute function"
+            return String(localized: "Action has no execute function")
         case .unsupportedContentType(let type):
-            return "Content type '\(type.displayName)' is not supported by this action"
+            return String(localized: "Content type '\(type.displayName)' is not supported by this action")
         case .executionFailed(let reason):
-            return "Action execution failed: \(reason)"
+            return String(localized: "Action execution failed: \(reason)")
         }
     }
 }

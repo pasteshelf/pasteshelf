@@ -45,15 +45,15 @@ enum DLPError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .featureUnavailable:
-            return "Data Loss Prevention is not enabled."
+            return String(localized: "Data Loss Prevention is not enabled.")
         case .invalidPattern(let pattern):
-            return "The DLP rule pattern could not be compiled: \"\(pattern)\"."
+            return String(localized: "The DLP rule pattern could not be compiled: \"\(pattern)\".")
         case .storageFailure(let reason):
-            return "A storage error occurred in the DLP subsystem: \(reason)"
+            return String(localized: "A storage error occurred in the DLP subsystem: \(reason)")
         case .ruleNotFound(let id):
-            return "No DLP rule was found with identifier \(id.uuidString)."
+            return String(localized: "No DLP rule was found with identifier \(id.uuidString).")
         case .evaluationFailed(let reason):
-            return "DLP content evaluation failed: \(reason)"
+            return String(localized: "DLP content evaluation failed: \(reason)")
         }
     }
 
@@ -61,13 +61,13 @@ enum DLPError: Error, LocalizedError, Sendable {
     var failureReason: String? {
         switch self {
         case .featureUnavailable:
-            return "The DLP feature is not currently available."
+            return String(localized: "The DLP feature is not currently available.")
         case .invalidPattern(let pattern):
-            return "The regular expression \"\(pattern)\" is syntactically invalid and cannot be compiled by NSRegularExpression."
+            return String(localized: "The regular expression \"\(pattern)\" is syntactically invalid and cannot be compiled by NSRegularExpression.")
         case .storageFailure(let reason):
             return reason
         case .ruleNotFound(let id):
-            return "The DLP rule store does not contain a record with id \(id.uuidString)."
+            return String(localized: "The DLP rule store does not contain a record with id \(id.uuidString).")
         case .evaluationFailed(let reason):
             return reason
         }
@@ -77,15 +77,15 @@ enum DLPError: Error, LocalizedError, Sendable {
     var recoverySuggestion: String? {
         switch self {
         case .featureUnavailable:
-            return "Enable Data Loss Prevention in Enterprise settings."
+            return String(localized: "Enable Data Loss Prevention in Enterprise settings.")
         case .invalidPattern:
-            return "Review the regular expression syntax and correct the pattern in the DLP rule editor."
+            return String(localized: "Review the regular expression syntax and correct the pattern in the DLP rule editor.")
         case .storageFailure:
-            return "Restart the application. If the problem continues, check available disk space or re-enroll the device."
+            return String(localized: "Restart the application. If the problem continues, check available disk space or re-enroll the device.")
         case .ruleNotFound:
-            return "Refresh the DLP rule list from the admin console. The rule may have been deleted."
+            return String(localized: "Refresh the DLP rule list from the admin console. The rule may have been deleted.")
         case .evaluationFailed:
-            return "Try again. If the issue persists, review the DLP rule patterns for errors and contact your IT administrator."
+            return String(localized: "Try again. If the issue persists, review the DLP rule patterns for errors and contact your IT administrator.")
         }
     }
 }

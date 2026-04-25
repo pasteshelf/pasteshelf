@@ -232,23 +232,23 @@ enum PluginSandboxError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .timeout(let seconds):
-            return "Operation timed out after \(Int(seconds)) seconds"
+            return String(localized: "Operation timed out after \(Int(seconds)) seconds")
         case .executionFailed(let reason):
-            return "Execution failed: \(reason)"
+            return String(localized: "Execution failed: \(reason)")
         case .networkNotAllowed:
-            return "Network access is not allowed for this plugin"
+            return String(localized: "Network access is not allowed for this plugin")
         case .invalidRequest(let reason):
-            return "Invalid network request: \(reason)"
+            return String(localized: "Invalid network request: \(reason)")
         case .invalidURLScheme(let scheme):
-            return "URL scheme '\(scheme)' is not allowed"
+            return String(localized: "URL scheme '\(scheme)' is not allowed")
         case .blockedHost(let host):
-            return "Host '\(host)' is blocked"
+            return String(localized: "Host '\(host)' is blocked")
         case .fileSystemNotAllowed:
-            return "File system access is not allowed for this plugin"
+            return String(localized: "File system access is not allowed for this plugin")
         case .pathNotAllowed(let path):
-            return "Access to path '\(path)' is not allowed"
+            return String(localized: "Access to path '\(path)' is not allowed")
         case .resourceLimitExceeded(let limit):
-            return "Resource limit exceeded: \(limit)"
+            return String(localized: "Resource limit exceeded: \(limit)")
         }
     }
 }

@@ -1,0 +1,6 @@
+"""Batch 09: final cleanup — the last 2 keys with exact catalog keys (multi-line literal)."""
+
+TRANSLATIONS = {
+    "ACS URL": {"de": "ACS-URL", "es": "URL ACS", "fr": "URL ACS", "ja": "ACS URL", "ko": "ACS URL", "pt": "URL ACS", "ru": "URL ACS", "tr": "ACS URL", "zh-Hans": "ACS URL", "zh-Hant": "ACS URL"},
+    "The admin console server has not been configured.\nContact your IT administrator for enrollment.": {"de": "Der Admin-Konsolen-Server wurde nicht konfiguriert.\nWenden Sie sich zur Registrierung an Ihren IT-Administrator.", "es": "El servidor de la consola de administración no se ha configurado.\nContacte con su administrador de TI para la inscripción.", "fr": "Le serveur de la console d'administration n'a pas été configuré.\nContactez votre administrateur informatique pour l'inscription.", "ja": "管理コンソールサーバーが構成されていません。\n登録については IT 管理者にお問い合わせください。", "ko": "관리 콘솔 서버가 구성되지 않았습니다.\n등록에 대해서는 IT 관리자에게 문의하세요.", "pt": "O servidor do console de administração não foi configurado.\nEntre em contato com seu administrador de TI para inscrição.", "ru": "Сервер консоли администратора не настроен.\nОбратитесь к ИТ-администратору для регистрации.", "tr": "Yönetici konsolu sunucusu yapılandırılmamış.\nKayıt için BT yöneticinizle iletişime geçin.", "zh-Hans": "管理控制台服务器尚未配置。\n联系您的 IT 管理员进行注册。", "zh-Hant": "管理主控台伺服器尚未設定。\n聯絡您的 IT 管理員進行註冊。"},
+}

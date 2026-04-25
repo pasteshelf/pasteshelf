@@ -24,6 +24,19 @@ enum SensitivePatterns {
 
         var displayName: String { rawValue }
 
+        /// Localized display name for use in SwiftUI views.
+        var displayNameKey: LocalizedStringResource {
+            switch self {
+            case .apiKeys: return "API Keys & Tokens"
+            case .passwords: return "Passwords"
+            case .sshCerts: return "SSH & Certificates"
+            case .financial: return "Financial"
+            case .personalId: return "Personal Identification"
+            case .health: return "Health Information"
+            case .contact: return "Contact Information"
+            }
+        }
+
         var iconName: String {
             switch self {
             case .apiKeys: return "key"

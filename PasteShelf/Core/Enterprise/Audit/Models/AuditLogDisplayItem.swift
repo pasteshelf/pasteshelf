@@ -63,10 +63,11 @@ struct AuditLogDisplayItem: Identifiable, Hashable {
 
     // MARK: - Computed Display Properties
 
-    /// A human-readable display name for the event's category.
+    /// English display name for the event's category, used for non-UI contexts
+    /// like CSV export, sort keys, and log output.
     ///
-    /// Maps each `AuditEventCategory` to a localized, title-cased string suitable
-    /// for column headers and filter chips in the audit log viewer.
+    /// Maps each `AuditEventCategory` to a stable, title-cased English string.
+    /// UI code should prefer ``categoryDisplayNameKey`` so the value is localized.
     var categoryDisplayName: String {
         switch category {
         case .clipboard:
@@ -82,15 +83,27 @@ struct AuditLogDisplayItem: Identifiable, Hashable {
         }
     }
 
-    /// A human-readable display name derived from the action's raw value.
+    /// Localized display name for the event's category, for use in SwiftUI views.
+    var categoryDisplayNameKey: LocalizedStringResource {
+        category.displayNameKey
+    }
+
+    /// English display name derived from the action's raw value, for non-UI
+    /// contexts like CSV export and log output.
     ///
     /// Converts the snake_case raw value (e.g. `"copy_captured"`) to title case
-    /// (e.g. `"Copy Captured"`) for display in the event action column.
+    /// (e.g. `"Copy Captured"`). UI code should prefer ``actionDisplayNameKey``
+    /// so the value is localized.
     var actionDisplayName: String {
         action.rawValue
             .split(separator: "_")
             .map { $0.prefix(1).uppercased() + $0.dropFirst() }
             .joined(separator: " ")
+    }
+
+    /// Localized display name for the action, for use in SwiftUI views.
+    var actionDisplayNameKey: LocalizedStringResource {
+        action.displayNameKey
     }
 
     /// The SF Symbol name representing the event's severity level.

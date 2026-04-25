@@ -278,7 +278,7 @@ import os.log
         }
 
         // All retries exhausted
-        let errorMessage = lastError?.localizedDescription ?? "Unknown error"
+        let errorMessage = lastError?.localizedDescription ?? String(localized: "Unknown error")
         logger.error("Webhook delivery to \(endpoint.name) failed after \(self.maxRetries) attempts: \(errorMessage)")
         await recordFailure(for: endpoint.id, message: errorMessage)
     }
@@ -409,11 +409,11 @@ struct WebhookTestResult {
 
     var statusDescription: String {
         if success {
-            return "Success (\(statusCode ?? 200))"
+            return String(localized: "Success (\(statusCode ?? 200))")
         } else if let code = statusCode {
-            return "Failed (HTTP \(code))"
+            return String(localized: "Failed (HTTP \(code))")
         } else {
-            return errorMessage ?? "Failed"
+            return errorMessage ?? String(localized: "Failed")
         }
     }
 
@@ -433,13 +433,13 @@ enum WebhookError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "Invalid webhook URL"
+            return String(localized: "Invalid webhook URL")
         case .invalidResponse:
-            return "Invalid response from webhook endpoint"
+            return String(localized: "Invalid response from webhook endpoint")
         case let .httpError(statusCode, message):
-            return "HTTP error \(statusCode): \(message ?? "Unknown error")"
+            return String(localized: "HTTP error \(statusCode): \(message ?? String(localized: "Unknown error"))")
         case .endpointNotFound:
-            return "Webhook endpoint not found"
+            return String(localized: "Webhook endpoint not found")
         }
     }
 }

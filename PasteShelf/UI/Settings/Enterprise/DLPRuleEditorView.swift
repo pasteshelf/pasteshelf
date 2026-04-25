@@ -70,7 +70,7 @@ struct DLPRuleEditorView: View {
         VStack(spacing: 0) {
             // Title bar
             HStack {
-                Text(rule == nil ? "New DLP Rule" : "Edit DLP Rule")
+                Text(rule == nil ? String(localized: "New DLP Rule") : String(localized: "Edit DLP Rule"))
                     .font(.headline)
                 Spacer()
             }
@@ -124,7 +124,7 @@ struct DLPRuleEditorView: View {
 
             Picker("Category", selection: $patternCategory) {
                 ForEach(DLPPatternCategory.allCases, id: \.self) { category in
-                    Text(category.displayName).tag(category)
+                    Text(category.displayNameKey).tag(category)
                 }
             }
 
@@ -187,7 +187,7 @@ struct DLPRuleEditorView: View {
         do {
             _ = try NSRegularExpression(pattern: trimmedPattern)
         } catch {
-            regexError = "Invalid regex: \(error.localizedDescription)"
+            regexError = String(localized: "Invalid regex: \(error.localizedDescription)")
             return
         }
         regexError = nil
@@ -230,13 +230,13 @@ struct DLPRuleEditorView: View {
     private func actionDisplayName(_ action: DLPAction) -> String {
         switch action {
         case .block:
-            return "Block — prevent clipboard item from being stored"
+            return String(localized: "Block — prevent clipboard item from being stored")
         case .alert:
-            return "Alert — notify the user and log to audit trail"
+            return String(localized: "Alert — notify the user and log to audit trail")
         case .redact:
-            return "Redact — replace matched content with [REDACTED]"
+            return String(localized: "Redact — replace matched content with [REDACTED]")
         case .logOnly:
-            return "Log Only — record in audit log without alerting"
+            return String(localized: "Log Only — record in audit log without alerting")
         }
     }
 }

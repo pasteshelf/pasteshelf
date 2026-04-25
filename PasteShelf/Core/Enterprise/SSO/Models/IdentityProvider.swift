@@ -15,8 +15,18 @@ enum IdentityProviderType: String, Codable, Sendable, CaseIterable {
     case saml = "saml"
     case oidc = "oidc"
 
-    /// Human-readable label for display
+    /// Human-readable label (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .saml:
+            return "SAML 2.0"
+        case .oidc:
+            return "OpenID Connect"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .saml:
             return "SAML 2.0"
@@ -114,8 +124,18 @@ enum SAMLBinding: String, Codable, Sendable, CaseIterable {
     case httpPost = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
     case httpRedirect = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 
-    /// Human-readable label for display
+    /// Human-readable label (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .httpPost:
+            return "HTTP POST"
+        case .httpRedirect:
+            return "HTTP Redirect"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .httpPost:
             return "HTTP POST"

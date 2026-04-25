@@ -485,17 +485,17 @@ enum PluginLoadingStatus: Sendable {
     var description: String {
         switch self {
         case .idle:
-            return "Idle"
+            return String(localized: "Idle")
         case .discovering:
-            return "Discovering plugins..."
+            return String(localized: "Discovering plugins...")
         case .validating:
-            return "Validating plugins..."
+            return String(localized: "Validating plugins...")
         case .loading:
-            return "Loading plugins..."
+            return String(localized: "Loading plugins...")
         case .ready:
-            return "Ready"
+            return String(localized: "Ready")
         case .error(let message):
-            return "Error: \(message)"
+            return String(localized: "Error: \(message)")
         }
     }
 }
@@ -511,11 +511,11 @@ enum PluginManagerError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .notInitialized:
-            return "Plugin system is not initialized"
+            return String(localized: "Plugin system is not initialized")
         case .pluginNotFound(let id):
-            return "Plugin '\(id)' not found"
+            return String(localized: "Plugin '\(id)' not found")
         case .invalidState(let current, let expected):
-            return "Plugin is in state '\(current.rawValue)' but expected '\(expected.rawValue)'"
+            return String(localized: "Plugin is in state '\(current.rawValue)' but expected '\(expected.rawValue)'")
         }
     }
 }

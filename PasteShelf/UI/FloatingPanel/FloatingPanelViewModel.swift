@@ -506,7 +506,7 @@ final class FloatingPanelViewModel: ObservableObject {
         let success = await copyToClipboard(item: item)
         guard success else {
             clipboardMonitor?.resume()
-            errorMessage = "Failed to copy item to clipboard"
+            errorMessage = String(localized: "Failed to copy item to clipboard")
             return
         }
 
@@ -528,7 +528,7 @@ final class FloatingPanelViewModel: ObservableObject {
         let pasted = pasteSimulator.simulatePaste()
 
         if !pasted {
-            errorMessage = "Item copied to clipboard. Grant Accessibility permission in System Settings to enable auto-paste."
+            errorMessage = String(localized: "Item copied to clipboard. Grant Accessibility permission in System Settings to enable auto-paste.")
         }
 
         // Resume monitoring after paste completes

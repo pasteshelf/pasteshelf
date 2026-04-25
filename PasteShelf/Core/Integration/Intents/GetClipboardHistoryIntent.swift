@@ -17,7 +17,7 @@ struct GetClipboardHistoryIntent: AppIntent {
     static var title: LocalizedStringResource = "Get Clipboard History"
 
     static var description = IntentDescription(
-        "Get the most recent items from your clipboard history."
+        LocalizedStringResource("Get the most recent items from your clipboard history.")
     )
 
     static var parameterSummary: some ParameterSummary {

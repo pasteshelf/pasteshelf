@@ -17,7 +17,7 @@ struct TransformContentIntent: AppIntent {
     static var title: LocalizedStringResource = "Transform Text"
 
     static var description = IntentDescription(
-        "Transform text using one of the built-in transformation presets."
+        LocalizedStringResource("Transform text using one of the built-in transformation presets.")
     )
 
     static var parameterSummary: some ParameterSummary {

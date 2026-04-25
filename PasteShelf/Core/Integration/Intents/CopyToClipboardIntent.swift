@@ -19,7 +19,7 @@ struct CopyToClipboardIntent: AppIntent {
     static var title: LocalizedStringResource = "Copy to Clipboard"
 
     static var description = IntentDescription(
-        "Copy a clipboard item from your history to the system clipboard."
+        LocalizedStringResource("Copy a clipboard item from your history to the system clipboard.")
     )
 
     static var parameterSummary: some ParameterSummary {
@@ -122,7 +122,7 @@ struct CopyTextToClipboardIntent: AppIntent {
     static var title: LocalizedStringResource = "Copy Text to Clipboard"
 
     static var description = IntentDescription(
-        "Copy the specified text to the system clipboard."
+        LocalizedStringResource("Copy the specified text to the system clipboard.")
     )
 
     static var parameterSummary: some ParameterSummary {

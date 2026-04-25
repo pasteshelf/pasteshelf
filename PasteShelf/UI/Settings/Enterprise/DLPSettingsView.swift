@@ -214,7 +214,7 @@ private struct DLPRuleRowView: View {
     // MARK: Subviews
 
     private var categoryBadge: some View {
-        Text(rule.patternCategory.displayName)
+        Text(rule.patternCategory.displayNameKey)
             .font(.caption2)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -232,7 +232,7 @@ private struct DLPRuleRowView: View {
     }
 
     private var actionsBadge: some View {
-        Text(rule.actions.map(\.rawValue).joined(separator: ", "))
+        Text(rule.actions.map { String(localized: $0.displayNameKey) }.joined(separator: ", "))
             .font(.caption2)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -245,15 +245,15 @@ private struct DLPRuleRowView: View {
     private func severityDisplayName(_ severity: SensitiveSeverity) -> String {
         switch severity {
         case .none:
-            return "None"
+            return String(localized: "None")
         case .low:
-            return "Low"
+            return String(localized: "Low")
         case .medium:
-            return "Medium"
+            return String(localized: "Medium")
         case .high:
-            return "High"
+            return String(localized: "High")
         case .critical:
-            return "Critical"
+            return String(localized: "Critical")
         }
     }
 
@@ -322,7 +322,7 @@ private struct ViolationRowView: View {
     }
 
     private var actionBadge: some View {
-        Text(violation.actionTaken.rawValue)
+        Text(violation.actionTaken.displayNameKey)
             .font(.caption2)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)

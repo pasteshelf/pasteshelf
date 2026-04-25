@@ -172,7 +172,7 @@ struct DLPPatternTestView: View {
             // Match DLPRuleEngine's regex options so test results reflect production behavior
             regex = try NSRegularExpression(pattern: trimmedPattern, options: [.caseInsensitive])
         } catch {
-            errorMessage = "Invalid regular expression: \(error.localizedDescription)"
+            errorMessage = String(localized: "Invalid regular expression: \(error.localizedDescription)")
             return
         }
 

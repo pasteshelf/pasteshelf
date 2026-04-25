@@ -31,7 +31,7 @@ struct DateGroupHeaderView: View {
                 .foregroundStyle(.secondary)
 
             // Group name
-            Text(group.displayName)
+            Text(group.displayNameKey)
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.secondary)
 

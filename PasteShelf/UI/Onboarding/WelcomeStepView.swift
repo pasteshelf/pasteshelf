@@ -37,26 +37,26 @@ struct WelcomeStepView: View {
             VStack(spacing: 12) {
                 featureRow(
                     icon: "clock.arrow.circlepath",
-                    title: "Clipboard History",
-                    description: "Access everything you've copied"
+                    title: String(localized: "Clipboard History"),
+                    description: String(localized: "Access everything you've copied")
                 )
 
                 featureRow(
                     icon: "magnifyingglass",
-                    title: "Instant Search",
-                    description: "Find any item in seconds"
+                    title: String(localized: "Instant Search"),
+                    description: String(localized: "Find any item in seconds")
                 )
 
                 featureRow(
                     icon: "lock.shield",
-                    title: "Privacy First",
-                    description: "All data stays on your Mac"
+                    title: String(localized: "Privacy First"),
+                    description: String(localized: "All data stays on your Mac")
                 )
 
                 featureRow(
                     icon: "keyboard",
-                    title: "Keyboard Shortcuts",
-                    description: "Quick access with a single keystroke"
+                    title: String(localized: "Keyboard Shortcuts"),
+                    description: String(localized: "Quick access with a single keystroke")
                 )
             }
 

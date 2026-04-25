@@ -359,8 +359,26 @@ enum PreferencesTab: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    /// Display name for the tab
+    /// Display name for the tab — localized; also used for AppKit label assignment
     var displayName: String {
+        switch self {
+        case .general: return String(localized: "General")
+        case .privacy: return String(localized: "Privacy")
+        case .appearance: return String(localized: "Appearance")
+        case .shortcuts: return String(localized: "Shortcuts")
+        case .search: return String(localized: "Search")
+        case .sync: return String(localized: "Sync")
+        case .automation: return String(localized: "Automation")
+        #if !APP_STORE
+        case .plugins: return String(localized: "Plugins")
+        case .enterprise: return String(localized: "Enterprise")
+        #endif
+        case .about: return String(localized: "About")
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .general: return "General"
         case .privacy: return "Privacy"

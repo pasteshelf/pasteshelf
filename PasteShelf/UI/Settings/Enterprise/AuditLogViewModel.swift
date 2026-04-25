@@ -144,7 +144,7 @@ final class AuditLogViewModel: ObservableObject {
         do {
             try csvString.write(to: tempURL, atomically: true, encoding: .utf8)
         } catch {
-            errorMessage = "Failed to write CSV file: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to write CSV file: \(error.localizedDescription)")
             return
         }
 
@@ -164,7 +164,7 @@ final class AuditLogViewModel: ObservableObject {
         do {
             jsonData = try JSONSerialization.data(withJSONObject: jsonObjects, options: [.prettyPrinted, .sortedKeys])
         } catch {
-            errorMessage = "Failed to serialize events as JSON: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to serialize events as JSON: \(error.localizedDescription)")
             return
         }
 
@@ -174,7 +174,7 @@ final class AuditLogViewModel: ObservableObject {
         do {
             try jsonData.write(to: tempURL, options: .atomic)
         } catch {
-            errorMessage = "Failed to write JSON file: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to write JSON file: \(error.localizedDescription)")
             return
         }
 
@@ -230,7 +230,7 @@ final class AuditLogViewModel: ObservableObject {
             } catch {
                 let message = error.localizedDescription
                 Task { @MainActor [weak self] in
-                    self?.errorMessage = "Failed to save file: \(message)"
+                    self?.errorMessage = String(localized: "Failed to save file: \(message)")
                 }
                 self?.logger.error("Export save failed: \(message)")
             }

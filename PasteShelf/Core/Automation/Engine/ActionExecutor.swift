@@ -300,7 +300,7 @@ final class ActionExecutor {
                     DispatchQueue.global(qos: .userInitiated).async {
                         var errorInfo: NSDictionary?
                         guard let script = NSAppleScript(contentsOf: scriptURL, error: &errorInfo) else {
-                            let errorMessage = errorInfo?.description ?? "Unknown error"
+                            let errorMessage = errorInfo?.description ?? String(localized: "Unknown error")
                             continuation.resume(throwing: AutomationError.scriptExecutionFailed(
                                 path: expandedPath, reason: errorMessage
                             ))
@@ -473,7 +473,7 @@ final class ActionExecutor {
         )
         result = result.replacingOccurrences(
             of: "{{sourceApp}}",
-            with: content.sourceApp?.name ?? "Unknown"
+            with: content.sourceApp?.name ?? String(localized: "Unknown")
         )
         result = result.replacingOccurrences(
             of: "{{timestamp}}",

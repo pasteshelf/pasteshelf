@@ -81,7 +81,7 @@ struct AuditLogView: View {
             Picker("Category", selection: $viewModel.selectedCategory) {
                 Text("All Categories").tag(AuditEventCategory?.none)
                 ForEach(AuditEventCategory.allCases, id: \.self) { category in
-                    Text(categoryDisplayName(category)).tag(Optional(category))
+                    Text(category.displayNameKey).tag(Optional(category))
                 }
             }
 
@@ -225,32 +225,16 @@ struct AuditLogView: View {
 
     // MARK: - Helpers
 
-    /// Returns a human-readable display name for the given `AuditEventCategory`.
-    private func categoryDisplayName(_ category: AuditEventCategory) -> String {
-        switch category {
-        case .clipboard:
-            return "Clipboard"
-        case .userAction:
-            return "User Action"
-        case .policy:
-            return "Policy"
-        case .authentication:
-            return "Authentication"
-        case .compliance:
-            return "Compliance"
-        }
-    }
-
     /// Returns a human-readable label for a retention period in days.
     private func retentionLabel(days: Int) -> String {
         switch days {
-        case 1: return "1 day"
-        case 30: return "30 days"
-        case 60: return "60 days"
-        case 90: return "90 days"
-        case 180: return "180 days"
-        case 365: return "1 year"
-        default: return "\(days) days"
+        case 1: return String(localized: "1 day")
+        case 30: return String(localized: "30 days")
+        case 60: return String(localized: "60 days")
+        case 90: return String(localized: "90 days")
+        case 180: return String(localized: "180 days")
+        case 365: return String(localized: "1 year")
+        default: return String(localized: "\(days) days")
         }
     }
 }
@@ -275,7 +259,7 @@ private struct EventRowView: View {
             HStack(spacing: 8) {
                 severityIcon
 
-                Text(item.actionDisplayName)
+                Text(item.actionDisplayNameKey)
                     .font(.body)
 
                 Spacer()
@@ -320,7 +304,7 @@ private struct EventRowView: View {
     }
 
     private var categoryBadge: some View {
-        Text(item.categoryDisplayName)
+        Text(item.categoryDisplayNameKey)
             .font(.caption2)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)

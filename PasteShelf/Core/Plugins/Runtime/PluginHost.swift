@@ -195,11 +195,11 @@ enum PluginHostError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .pluginNotLoaded(let pluginId):
-            return "Plugin '\(pluginId)' is not loaded"
+            return String(localized: "Plugin '\(pluginId)' is not loaded")
         case .actionFailed(let action, let reason):
-            return "Action '\(action)' failed: \(reason)"
+            return String(localized: "Action '\(action)' failed: \(reason)")
         case .transformFailed(let pluginId, let reason):
-            return "Transform failed for '\(pluginId)': \(reason)"
+            return String(localized: "Transform failed for '\(pluginId)': \(reason)")
         }
     }
 }

@@ -333,7 +333,7 @@ enum ClipboardMonitorError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .storageFailed:
-            return "Failed to save clipboard content to storage"
+            return String(localized: "Failed to save clipboard content to storage")
         }
     }
 }

@@ -65,8 +65,8 @@ public final class GitHubGistPlugin: NSObject, PasteShelfPlugin, PasteShelfPlugi
     private func registerActions() {
         PluginActionRegistry.shared.registerAction(
             pluginId: Self.identifier,
-            name: "Create Gist",
-            description: "Create a GitHub Gist from clipboard content",
+            name: String(localized: "Create Gist"),
+            description: String(localized: "Create a GitHub Gist from clipboard content"),
             iconName: "square.and.arrow.up",
             supportedTypes: [.plainText]
         ) { [weak self] content in
@@ -79,14 +79,14 @@ public final class GitHubGistPlugin: NSObject, PasteShelfPlugin, PasteShelfPlugi
     public func menuItems() -> [PluginMenuItem] {
         [
             PluginMenuItem(
-                title: "Create Gist",
+                title: String(localized: "Create Gist"),
                 iconName: "square.and.arrow.up",
                 shortcutKey: "G+command+shift"
             ) { [weak self] content in
                 try await self?.createGist(content)
             },
             PluginMenuItem(
-                title: "Create Public Gist",
+                title: String(localized: "Create Public Gist"),
                 iconName: "globe"
             ) { [weak self] content in
                 try await self?.createGist(content, isPublic: true)
@@ -245,15 +245,15 @@ enum GitHubGistError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noContent:
-            return "No text content to create gist from"
+            return String(localized: "No text content to create gist from")
         case .noToken:
-            return "GitHub token not configured. Add your token in plugin settings."
+            return String(localized: "GitHub token not configured. Add your token in plugin settings.")
         case .networkPermissionRequired:
-            return "Network permission is required"
+            return String(localized: "Network permission is required")
         case .invalidResponse:
-            return "Invalid response from GitHub API"
+            return String(localized: "Invalid response from GitHub API")
         case .apiError(let message):
-            return "GitHub API error: \(message)"
+            return String(localized: "GitHub API error: \(message)")
         }
     }
 }

@@ -217,7 +217,7 @@ struct SSOSettingsView: View {
             ))
             .toggleStyle(.switch)
             .labelsHidden()
-            .help(provider.isEnabled ? "Disable this provider" : "Enable this provider")
+            .help(provider.isEnabled ? String(localized: "Disable this provider") : String(localized: "Enable this provider"))
         }
         .padding()
         .background(Color(nsColor: .controlBackgroundColor))
@@ -275,7 +275,7 @@ struct SSOSettingsView: View {
                             .textSelection(.enabled)
                     }
                     LabeledContent("Binding") {
-                        Text(saml.binding.displayName)
+                        Text(saml.binding.displayNameKey)
                             .foregroundStyle(.secondary)
                     }
                     LabeledContent("NameID Format") {
@@ -283,7 +283,7 @@ struct SSOSettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                     LabeledContent("Sign AuthnRequests") {
-                        Text(saml.signAuthnRequests ? "Yes" : "No")
+                        Text(saml.signAuthnRequests ? String(localized: "Yes") : String(localized: "No"))
                             .foregroundStyle(.secondary)
                     }
                 } else if provider.type == .oidc, let oidc = provider.oidcConfig {
@@ -300,7 +300,7 @@ struct SSOSettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                     LabeledContent("PKCE") {
-                        Text(oidc.usePKCE ? "Enabled" : "Disabled")
+                        Text(oidc.usePKCE ? String(localized: "Enabled") : String(localized: "Disabled"))
                             .foregroundStyle(.secondary)
                     }
                     LabeledContent("Scopes") {
@@ -451,8 +451,8 @@ private struct ProviderListRow: View {
     }
 
     private var statusHelp: String {
-        if !provider.isConfigured { return "Incomplete configuration" }
-        return provider.isEnabled ? "Active" : "Disabled"
+        if !provider.isConfigured { return String(localized: "Incomplete configuration") }
+        return provider.isEnabled ? String(localized: "Active") : String(localized: "Disabled")
     }
 }
 
@@ -462,7 +462,7 @@ private struct ProviderTypeBadge: View {
     let type: IdentityProviderType
 
     var body: some View {
-        Text(type.displayName)
+        Text(type.displayNameKey)
             .font(.caption2)
             .fontWeight(.medium)
             .padding(.horizontal, 5)
@@ -502,15 +502,15 @@ private struct ConnectionStatusBadge: View {
     }
 
     private var label: String {
-        if !isConfigured { return "Incomplete" }
-        return isEnabled ? "Active" : "Disabled"
+        if !isConfigured { return String(localized: "Incomplete") }
+        return isEnabled ? String(localized: "Active") : String(localized: "Disabled")
     }
 }
 
 // MARK: - SAMLNameIDFormat Display Helper
 
 private extension SAMLNameIDFormat {
-    var shortDisplayName: String {
+    var shortDisplayName: LocalizedStringResource {
         switch self {
         case .emailAddress: return "Email Address"
         case .persistent: return "Persistent"

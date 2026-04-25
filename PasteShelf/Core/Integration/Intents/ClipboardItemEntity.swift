@@ -49,11 +49,12 @@ struct ClipboardItemEntity: AppEntity, Identifiable {
     }
 
     var displayRepresentation: DisplayRepresentation {
+        let localizedContentType = Self.localizedContentType(contentType)
         let subtitle: String
         if let sourceApp = sourceApp {
-            subtitle = "\(contentType) from \(sourceApp)"
+            subtitle = String(localized: "\(localizedContentType) from \(sourceApp)")
         } else {
-            subtitle = contentType
+            subtitle = localizedContentType
         }
 
         return DisplayRepresentation(
@@ -61,6 +62,18 @@ struct ClipboardItemEntity: AppEntity, Identifiable {
             subtitle: LocalizedStringResource(stringLiteral: subtitle),
             image: .init(systemName: iconName)
         )
+    }
+
+    /// Resolves the stored English content-type label to the user's language.
+    ///
+    /// `contentType` is kept as raw English so programmatic consumers (iconName
+    /// switch, storage, logs) see a stable value; the localized form is only
+    /// synthesized for display. Unknown values pass through verbatim.
+    private static func localizedContentType(_ english: String) -> String {
+        if let match = ContentType.allCases.first(where: { $0.displayName == english }) {
+            return String(localized: match.displayNameKey)
+        }
+        return english
     }
 
     static var defaultQuery = ClipboardItemQuery()
@@ -115,7 +128,8 @@ struct ClipboardItemEntity: AppEntity, Identifiable {
     init(from item: ClipboardItem) {
         self.id = item.id ?? UUID()
         self.displayTitle = Self.generateTitle(from: item)
-        self.contentType = ContentType(rawValue: item.contentType ?? "")?.displayName ?? "Unknown"
+        self.contentType = ContentType(rawValue: item.contentType ?? "")?.displayName
+            ?? String(localized: "Unknown")
         self.sourceApp = item.sourceAppName
         self.timestamp = item.timestamp ?? Date()
         self.isFavorite = item.isFavorite
@@ -142,7 +156,7 @@ struct ClipboardItemEntity: AppEntity, Identifiable {
             return type.displayName
         }
 
-        return "Clipboard Item"
+        return String(localized: "Clipboard Item")
     }
 }
 

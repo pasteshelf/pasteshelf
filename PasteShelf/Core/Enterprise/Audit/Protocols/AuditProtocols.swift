@@ -181,24 +181,24 @@ enum AuditError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "Audit logging has not been configured. Admin console credentials are required."
+            return String(localized: "Audit logging has not been configured. Admin console credentials are required.")
         case .encryptionFailed(let reason):
-            return "Failed to encrypt audit event detail: \(reason)"
+            return String(localized: "Failed to encrypt audit event detail: \(reason)")
         case .decryptionFailed(let reason):
-            return "Failed to decrypt audit log entry detail: \(reason)"
+            return String(localized: "Failed to decrypt audit log entry detail: \(reason)")
         case .storageFailure(let reason):
-            return "A storage error occurred while processing the audit log: \(reason)"
+            return String(localized: "A storage error occurred while processing the audit log: \(reason)")
         case .syncFailed(let reason):
-            return "Failed to sync audit events to the admin console: \(reason)"
+            return String(localized: "Failed to sync audit events to the admin console: \(reason)")
         case .featureUnavailable:
-            return "Audit logging is not enabled."
+            return String(localized: "Audit logging is not enabled.")
         }
     }
 
     var failureReason: String? {
         switch self {
         case .notConfigured:
-            return "No admin console server URL or API credentials have been provided."
+            return String(localized: "No admin console server URL or API credentials have been provided.")
         case .encryptionFailed(let reason):
             return reason
         case .decryptionFailed(let reason):
@@ -208,24 +208,24 @@ enum AuditError: Error, LocalizedError, Sendable {
         case .syncFailed(let reason):
             return reason
         case .featureUnavailable:
-            return "The audit logging feature is not currently available."
+            return String(localized: "The audit logging feature is not currently available.")
         }
     }
 
     var recoverySuggestion: String? {
         switch self {
         case .notConfigured:
-            return "Open Settings > Enterprise > Admin Console and enter the server URL and credentials."
+            return String(localized: "Open Settings > Enterprise > Admin Console and enter the server URL and credentials.")
         case .encryptionFailed:
-            return "Verify that the encryption key is available in the Keychain and retry."
+            return String(localized: "Verify that the encryption key is available in the Keychain and retry.")
         case .decryptionFailed:
-            return "The encryption key may have changed. Contact your IT administrator if the issue persists."
+            return String(localized: "The encryption key may have changed. Contact your IT administrator if the issue persists.")
         case .storageFailure:
-            return "Restart the application. If the problem continues, check available disk space."
+            return String(localized: "Restart the application. If the problem continues, check available disk space.")
         case .syncFailed:
-            return "Check your network connection and verify the admin console server is reachable."
+            return String(localized: "Check your network connection and verify the admin console server is reachable.")
         case .featureUnavailable:
-            return "Enable audit logging in Enterprise settings."
+            return String(localized: "Enable audit logging in Enterprise settings.")
         }
     }
 }

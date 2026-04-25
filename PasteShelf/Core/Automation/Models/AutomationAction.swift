@@ -99,35 +99,39 @@ enum AutomationAction: Codable, Equatable, Identifiable, Sendable {
         actionType.displayName
     }
 
-    /// Description of what this action does
+    /// Localized description of what this action does
     var description: String {
         switch self {
         case .transform(_, let preset):
-            return "Transform: \(preset.displayName)"
+            return String(localized: "Transform: \(String(localized: preset.displayNameKey))")
         case .addTag(_, let tagName):
-            return "Add tag: \(tagName)"
+            return String(localized: "Add tag: \(tagName)")
         case .removeTag(_, let tagName):
-            return "Remove tag: \(tagName)"
+            return String(localized: "Remove tag: \(tagName)")
         case .setFavorite(_, let isFavorite):
-            return isFavorite ? "Mark as favorite" : "Remove from favorites"
+            return isFavorite
+                ? String(localized: "Mark as favorite")
+                : String(localized: "Remove from favorites")
         case .moveToFolder(_, let folderName):
-            return "Move to folder: \(folderName)"
+            return String(localized: "Move to folder: \(folderName)")
         case .copyToClipboard:
-            return "Copy to clipboard"
+            return String(localized: "Copy to clipboard")
         case .notify(_, let title, _):
-            return "Show notification: \(title)"
+            return String(localized: "Show notification: \(title)")
         case .openURL(_, let urlTemplate):
-            return "Open URL: \(urlTemplate)"
+            return String(localized: "Open URL: \(urlTemplate)")
         #if !APP_STORE
         case .runScript(_, let scriptPath):
-            return "Run script: \(scriptPath)"
+            return String(localized: "Run script: \(scriptPath)")
         #endif
         case .webhook(_, _):
-            return "Send webhook"
+            return String(localized: "Send webhook")
         case .markSensitive(_, let isSensitive):
-            return isSensitive ? "Mark as sensitive" : "Mark as not sensitive"
+            return isSensitive
+                ? String(localized: "Mark as sensitive")
+                : String(localized: "Mark as not sensitive")
         case .delete:
-            return "Delete item"
+            return String(localized: "Delete item")
         }
     }
 

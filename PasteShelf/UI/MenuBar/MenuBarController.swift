@@ -142,7 +142,7 @@ final class MenuBarController: NSObject, ObservableObject {
         let recentItems = await storageManager.fetchRecentItems(limit: maxRecentItems)
 
         if recentItems.isEmpty {
-            let emptyItem = NSMenuItem(title: "No recent items", action: nil, keyEquivalent: "")
+            let emptyItem = NSMenuItem(title: String(localized: "No recent items"), action: nil, keyEquivalent: "")
             emptyItem.isEnabled = false
             menu.addItem(emptyItem)
         } else {
@@ -156,7 +156,7 @@ final class MenuBarController: NSObject, ObservableObject {
 
         // Show Panel item
         let showPanelItem = NSMenuItem(
-            title: "Show PasteShelf",
+            title: String(localized: "Show PasteShelf"),
             action: #selector(showPanelAction),
             keyEquivalent: "v"
         )
@@ -168,8 +168,11 @@ final class MenuBarController: NSObject, ObservableObject {
 
         // Pause/Resume monitoring
         let isPaused = state == .paused
+        let pauseTitle = isPaused
+            ? String(localized: "Resume Monitoring")
+            : String(localized: "Pause Monitoring")
         let pauseItem = NSMenuItem(
-            title: isPaused ? "Resume Monitoring" : "Pause Monitoring",
+            title: pauseTitle,
             action: #selector(togglePauseAction),
             keyEquivalent: ""
         )
@@ -180,7 +183,7 @@ final class MenuBarController: NSObject, ObservableObject {
 
         // Preferences
         let prefsItem = NSMenuItem(
-            title: "Preferences...",
+            title: String(localized: "Preferences..."),
             action: #selector(showPreferencesAction),
             keyEquivalent: ","
         )
@@ -191,7 +194,7 @@ final class MenuBarController: NSObject, ObservableObject {
 
         // Quit
         let quitItem = NSMenuItem(
-            title: "Quit PasteShelf",
+            title: String(localized: "Quit PasteShelf"),
             action: #selector(quitAction),
             keyEquivalent: "q"
         )
@@ -266,10 +269,10 @@ final class MenuBarController: NSObject, ObservableObject {
         if let contentTypeRaw = item.contentType,
            let contentType = ContentType(rawValue: contentTypeRaw)
         {
-            return "[\(contentType.displayName)]"
+            return "[\(String(localized: contentType.displayNameKey))]"
         }
 
-        return "[Unknown Content]"
+        return String(localized: "[Unknown Content]")
     }
 
     // MARK: - Menu Actions

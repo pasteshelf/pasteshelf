@@ -95,7 +95,7 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
                     try await SyncManager.shared.stop()
                     try await SyncManager.shared.start()
                 } catch {
-                    self?.errorMessage = "Sync failed to restart: \(error.localizedDescription)"
+                    self?.errorMessage = String(localized: "Sync failed to restart: \(error.localizedDescription)")
                     self?.logger.error("Sync restart failed: \(error.localizedDescription)")
                 }
             }
@@ -128,7 +128,7 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
         if addStatus != errSecSuccess {
             logger.error("Keychain add failed with status \(addStatus)")
-            errorMessage = "Failed to save API key to Keychain (error \(addStatus))"
+            errorMessage = String(localized: "Failed to save API key to Keychain (error \(Int(addStatus)))")
         }
     }
 
@@ -163,9 +163,9 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         connectionStatus = .testing
 
         // Step 1: Validate URL
-        addStep(title: "Validating server URL", status: .inProgress)
+        addStep(title: String(localized: "Validating server URL"), status: .inProgress)
         guard let url = URL(string: serverURLString), url.scheme == "https" || url.scheme == "http" else {
-            updateLastStep(status: .failed, detail: "Invalid URL format")
+            updateLastStep(status: .failed, detail: String(localized: "Invalid URL format"))
             connectionStatus = .failed
             isTestingConnection = false
             return
@@ -173,9 +173,9 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         updateLastStep(status: .passed)
 
         // Step 2: DNS Resolution
-        addStep(title: "Resolving hostname", status: .inProgress)
+        addStep(title: String(localized: "Resolving hostname"), status: .inProgress)
         guard let host = url.host else {
-            updateLastStep(status: .failed, detail: "No hostname in URL")
+            updateLastStep(status: .failed, detail: String(localized: "No hostname in URL"))
             connectionStatus = .failed
             isTestingConnection = false
             return
@@ -183,7 +183,7 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         updateLastStep(status: .passed, detail: host)
 
         // Step 3: Health Check
-        addStep(title: "Checking server health", status: .inProgress)
+        addStep(title: String(localized: "Checking server health"), status: .inProgress)
         let healthURL = url.appendingPathComponent("health")
         var request = URLRequest(url: healthURL)
         request.httpMethod = "GET"
@@ -192,7 +192,7 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse else {
-                updateLastStep(status: .failed, detail: "Invalid response")
+                updateLastStep(status: .failed, detail: String(localized: "Invalid response"))
                 connectionStatus = .failed
                 isTestingConnection = false
                 return
@@ -202,12 +202,12 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
                 if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let version = json["version"] as? String
                 {
-                    updateLastStep(status: .passed, detail: "Server v\(version)")
+                    updateLastStep(status: .passed, detail: String(localized: "Server v\(version)"))
                 } else {
-                    updateLastStep(status: .passed, detail: "HTTP 200")
+                    updateLastStep(status: .passed, detail: String(localized: "HTTP 200"))
                 }
             } else {
-                updateLastStep(status: .failed, detail: "HTTP \(httpResponse.statusCode)")
+                updateLastStep(status: .failed, detail: String(localized: "HTTP \(httpResponse.statusCode)"))
                 connectionStatus = .failed
                 isTestingConnection = false
                 return
@@ -220,9 +220,9 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
         }
 
         // Step 4: Authentication
-        addStep(title: "Verifying authentication", status: .inProgress)
+        addStep(title: String(localized: "Verifying authentication"), status: .inProgress)
         if apiKey.isEmpty {
-            updateLastStep(status: .skipped, detail: "No API key configured")
+            updateLastStep(status: .skipped, detail: String(localized: "No API key configured"))
         } else {
             // Try a simple authenticated request
             let statusURL = url.appendingPathComponent("api/v1/sync/status")
@@ -234,21 +234,21 @@ final class SelfHostedSyncSettingsViewModel: ObservableObject {
             do {
                 let (_, authResponse) = try await URLSession.shared.data(for: authRequest)
                 if let httpAuth = authResponse as? HTTPURLResponse, httpAuth.statusCode == 200 {
-                    updateLastStep(status: .passed, detail: "Authenticated")
+                    updateLastStep(status: .passed, detail: String(localized: "Authenticated"))
                 } else {
-                    updateLastStep(status: .warning, detail: "Auth may be invalid")
+                    updateLastStep(status: .warning, detail: String(localized: "Auth may be invalid"))
                 }
             } catch {
-                updateLastStep(status: .warning, detail: "Could not verify auth")
+                updateLastStep(status: .warning, detail: String(localized: "Could not verify auth"))
             }
         }
 
         // Step 5: TLS Certificate
-        addStep(title: "Checking TLS certificate", status: .inProgress)
+        addStep(title: String(localized: "Checking TLS certificate"), status: .inProgress)
         if url.scheme == "https" {
-            updateLastStep(status: .passed, detail: "HTTPS enabled")
+            updateLastStep(status: .passed, detail: String(localized: "HTTPS enabled"))
         } else {
-            updateLastStep(status: .warning, detail: "Not using HTTPS")
+            updateLastStep(status: .warning, detail: String(localized: "Not using HTTPS"))
         }
 
         connectionStatus = .connected

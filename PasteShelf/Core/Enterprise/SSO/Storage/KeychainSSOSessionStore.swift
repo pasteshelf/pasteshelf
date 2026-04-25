@@ -114,11 +114,11 @@ enum KeychainError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .saveFailed(let status):
-            return "Failed to save to Keychain (status: \(status))"
+            return String(localized: "Failed to save to Keychain (status: \(status))")
         case .loadFailed(let status):
-            return "Failed to load from Keychain (status: \(status))"
+            return String(localized: "Failed to load from Keychain (status: \(status))")
         case .deleteFailed(let status):
-            return "Failed to delete from Keychain (status: \(status))"
+            return String(localized: "Failed to delete from Keychain (status: \(status))")
         }
     }
 }

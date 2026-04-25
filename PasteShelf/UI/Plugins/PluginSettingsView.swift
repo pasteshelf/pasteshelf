@@ -140,11 +140,11 @@ struct PluginSettingsView: View {
                         .cornerRadius(12)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(plugin.bundle.manifest.name)
+                        Text(plugin.bundle.manifest.localizedName)
                             .font(.title2)
                             .fontWeight(.semibold)
 
-                        if let description = plugin.bundle.manifest.pluginDescription {
+                        if let description = plugin.bundle.manifest.localizedDescription {
                             Text(description)
                                 .font(.body)
                                 .foregroundStyle(.secondary)
@@ -372,7 +372,7 @@ private struct PluginListRow: View {
                 .cornerRadius(6)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(plugin.bundle.manifest.name)
+                Text(plugin.bundle.manifest.localizedName)
                     .font(.body)
 
                 Text(stateText)
@@ -392,11 +392,11 @@ private struct PluginListRow: View {
 
     private var stateText: String {
         switch plugin.state {
-        case .active: return "Active"
-        case .disabled: return "Disabled"
-        case .failed: return "Failed"
-        case .loading: return "Loading..."
-        default: return "Inactive"
+        case .active: return String(localized: "Active")
+        case .disabled: return String(localized: "Disabled")
+        case .failed: return String(localized: "Failed")
+        case .loading: return String(localized: "Loading...")
+        default: return String(localized: "Inactive")
         }
     }
 
@@ -412,7 +412,7 @@ private struct PluginListRow: View {
 // MARK: - Info Row
 
 private struct InfoRow: View {
-    let label: String
+    let label: LocalizedStringKey
     let value: String
 
     var body: some View {

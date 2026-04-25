@@ -84,8 +84,20 @@ enum RuleField: String, Codable, CaseIterable, Sendable {
     /// Whether the item contains sensitive data
     case isSensitive
 
-    /// Human-readable display name
+    /// Human-readable display name (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .contentType: return "Content Type"
+        case .sourceApp: return "Source App"
+        case .textContent: return "Text Content"
+        case .dateCreated: return "Date Created"
+        case .isFavorite: return "Is Favorite"
+        case .isSensitive: return "Is Sensitive"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .contentType: return "Content Type"
         case .sourceApp: return "Source App"
@@ -164,8 +176,22 @@ enum RuleOperator: String, Codable, CaseIterable, Sendable {
     /// Date is within last N days/hours
     case withinLast
 
-    /// Human-readable display name
+    /// Human-readable display name (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .equals: return "is"
+        case .notEquals: return "is not"
+        case .contains: return "contains"
+        case .notContains: return "does not contain"
+        case .matches: return "matches pattern"
+        case .before: return "is before"
+        case .after: return "is after"
+        case .withinLast: return "is within last"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .equals: return "is"
         case .notEquals: return "is not"
@@ -218,7 +244,21 @@ enum ContentTypeValue: String, CaseIterable, Sendable {
     case html
     case pdf
 
+    /// Display name (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .text: return "Text"
+        case .images: return "Images"
+        case .files: return "Files"
+        case .links: return "Links"
+        case .richText: return "Rich Text"
+        case .html: return "HTML"
+        case .pdf: return "PDF"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .text: return "Text"
         case .images: return "Images"
@@ -266,7 +306,19 @@ enum DateRangeValue: String, CaseIterable, Sendable {
     case last30Days = "30d"
     case last90Days = "90d"
 
+    /// Display name (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .lastHour: return "Last Hour"
+        case .last24Hours: return "Last 24 Hours"
+        case .last7Days: return "Last 7 Days"
+        case .last30Days: return "Last 30 Days"
+        case .last90Days: return "Last 90 Days"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .lastHour: return "Last Hour"
         case .last24Hours: return "Last 24 Hours"

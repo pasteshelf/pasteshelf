@@ -96,8 +96,18 @@ enum HistoryLimit: Int, Codable, CaseIterable, Identifiable {
 
     var id: Int { rawValue }
 
-    /// Display name for the limit
+    /// Display name for the limit (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .small: return "100 items"
+        case .medium: return "500 items"
+        case .large: return "1,000 items"
+        case .unlimited: return "Unlimited"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .small: return "100 items"
         case .medium: return "500 items"

@@ -54,11 +54,17 @@ final class MDMSettingsViewModel: ObservableObject {
         organizationID = mdm.organizationID
 
         forcedSettings = mdm.configuration.forcedPreferences
-            .sorted { $0.key.displayName < $1.key.displayName }
+            .sorted {
+                String(localized: $0.key.displayNameKey)
+                    .localizedStandardCompare(String(localized: $1.key.displayNameKey)) == .orderedAscending
+            }
             .map { (key: $0.key, value: $0.value) }
 
         defaultSettings = mdm.configuration.defaultPreferences
-            .sorted { $0.key.displayName < $1.key.displayName }
+            .sorted {
+                String(localized: $0.key.displayNameKey)
+                    .localizedStandardCompare(String(localized: $1.key.displayNameKey)) == .orderedAscending
+            }
             .map { (key: $0.key, value: $0.value) }
     }
 

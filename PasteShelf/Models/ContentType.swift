@@ -96,8 +96,23 @@ public enum ContentType: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Human-readable display name
+    /// Human-readable display name (English; used for logs, Shortcuts/Intents, and tests)
     var displayName: String {
+        switch self {
+        case .plainText: return "Plain Text"
+        case .richText: return "Rich Text"
+        case .html: return "HTML"
+        case .png: return "PNG Image"
+        case .jpeg: return "JPEG Image"
+        case .tiff: return "TIFF Image"
+        case .pdf: return "PDF Document"
+        case .fileURL: return "File"
+        case .url: return "URL"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .plainText: return "Plain Text"
         case .richText: return "Rich Text"

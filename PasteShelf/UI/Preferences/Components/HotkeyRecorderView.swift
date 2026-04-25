@@ -134,7 +134,7 @@ class HotkeyRecorderNSView: NSView {
 
         // Set up accessibility
         setAccessibilityRole(.button)
-        setAccessibilityLabel("Hotkey recorder")
+        setAccessibilityLabel(String(localized: "Hotkey recorder"))
         updateAccessibility()
     }
 
@@ -142,16 +142,16 @@ class HotkeyRecorderNSView: NSView {
 
     func updateDisplay(hotkey: StoredHotkey) {
         displayString = hotkey.displayString
-        textField.stringValue = isRecording ? "Press shortcut..." : displayString
+        textField.stringValue = isRecording ? String(localized: "Press shortcut...") : displayString
     }
 
     private func updateAccessibility() {
         if isRecording {
-            setAccessibilityValue("Recording")
-            setAccessibilityHelp("Press a key combination to set the hotkey, or Escape to cancel")
+            setAccessibilityValue(String(localized: "Recording"))
+            setAccessibilityHelp(String(localized: "Press a key combination to set the hotkey, or Escape to cancel"))
         } else {
             setAccessibilityValue(displayString)
-            setAccessibilityHelp("Click to record a new hotkey")
+            setAccessibilityHelp(String(localized: "Click to record a new hotkey"))
         }
     }
 
@@ -161,7 +161,7 @@ class HotkeyRecorderNSView: NSView {
 
     override func becomeFirstResponder() -> Bool {
         isRecording = true
-        textField.stringValue = "Press shortcut..."
+        textField.stringValue = String(localized: "Press shortcut...")
         delegate?.hotkeyRecorderDidStartRecording()
         return super.becomeFirstResponder()
     }
@@ -263,10 +263,10 @@ class HotkeyRecorderNSView: NSView {
 
     private func showConflictAlert() {
         let alert = NSAlert()
-        alert.messageText = "Shortcut Conflict"
-        alert.informativeText = "This shortcut is reserved by the system. Please choose a different combination."
+        alert.messageText = String(localized: "Shortcut Conflict")
+        alert.informativeText = String(localized: "This shortcut is reserved by the system. Please choose a different combination.")
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: String(localized: "OK"))
         alert.runModal()
     }
 }

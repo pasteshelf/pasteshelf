@@ -60,6 +60,25 @@ struct PluginManifest: Equatable, Sendable, Identifiable {
 
     var id: String { identifier }
 
+    // MARK: - Localized Display
+
+    /// Name to display in the UI.
+    ///
+    /// Built-in plugins (`com.pasteshelf.plugins.*`) resolve `name` through the
+    /// app's String Catalog so users see it in their preferred language.
+    /// Third-party plugins own their localization and are returned verbatim.
+    var localizedName: String {
+        guard identifier.hasPrefix("com.pasteshelf.plugins.") else { return name }
+        return String(localized: String.LocalizationValue(name))
+    }
+
+    /// Description to display in the UI. Same resolution rule as `localizedName`.
+    var localizedDescription: String? {
+        guard let pluginDescription else { return nil }
+        guard identifier.hasPrefix("com.pasteshelf.plugins.") else { return pluginDescription }
+        return String(localized: String.LocalizationValue(pluginDescription))
+    }
+
     // MARK: - Initialization
 
     init(

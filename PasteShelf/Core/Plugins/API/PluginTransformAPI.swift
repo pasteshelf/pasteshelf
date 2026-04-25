@@ -232,13 +232,13 @@ enum PluginTransformError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .transformerNotFound(let id):
-            return "Transformer with ID \(id) not found"
+            return String(localized: "Transformer with ID \(id) not found")
         case .noTransformFunction:
-            return "Transformer has no transform function"
+            return String(localized: "Transformer has no transform function")
         case .unsupportedContentType(let type):
-            return "Content type '\(type.displayName)' is not supported by this transformer"
+            return String(localized: "Content type '\(type.displayName)' is not supported by this transformer")
         case .transformFailed(let reason):
-            return "Transform failed: \(reason)"
+            return String(localized: "Transform failed: \(reason)")
         }
     }
 }

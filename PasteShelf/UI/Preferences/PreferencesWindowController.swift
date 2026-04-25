@@ -72,17 +72,18 @@ final class PreferencesWindowController: NSObject {
         // Build the tab view controller with native toolbar tabs
         let tabViewController = NSTabViewController()
         tabViewController.tabStyle = .toolbar
-        tabViewController.title = "Preferences"
+        tabViewController.title = String(localized: "Preferences")
 
         for tab in PreferencesTab.allCases {
             let tabViewItem = NSTabViewItem(viewController: makeHostingController(for: tab, viewModel: viewModel))
-            tabViewItem.label = tab.displayName
-            tabViewItem.image = NSImage(systemSymbolName: tab.iconName, accessibilityDescription: tab.displayName)
+            let localizedLabel = String(localized: tab.displayNameKey)
+            tabViewItem.label = localizedLabel
+            tabViewItem.image = NSImage(systemSymbolName: tab.iconName, accessibilityDescription: localizedLabel)
             tabViewController.addTabViewItem(tabViewItem)
         }
 
         let window = NSWindow(contentViewController: tabViewController)
-        window.title = "Preferences"
+        window.title = String(localized: "Preferences")
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
         window.collectionBehavior.insert(.fullScreenPrimary)
         window.isReleasedWhenClosed = false

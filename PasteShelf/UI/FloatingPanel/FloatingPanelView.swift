@@ -218,7 +218,7 @@ struct FloatingPanelView: View {
     private var searchFieldView: some View {
         SearchFieldView(
             text: $viewModel.searchQuery,
-            placeholder: "Search clipboard...",
+            placeholder: String(localized: "Search clipboard..."),
             onSubmit: {
                 // Optional: do something on enter
             },

@@ -144,7 +144,7 @@ struct ClipboardItemRow: View {
 
             Menu {
                 ForEach(pluginMenuItems, id: \.pluginId) { pluginId, items in
-                    let pluginName = PluginManager.shared.plugins[pluginId]?.bundle.manifest.name ?? pluginId
+                    let pluginName = PluginManager.shared.plugins[pluginId]?.bundle.manifest.localizedName ?? pluginId
 
                     Section(pluginName) {
                         ForEach(items, id: \.actionId) { menuItem in
@@ -236,14 +236,15 @@ struct ClipboardItemRow: View {
         var label = item.displayText
 
         if item.isSensitive {
-            label += ", sensitive content"
+            label += ", " + String(localized: "sensitive content")
         }
 
         if item.isFavorite {
-            label += ", favorite"
+            label += ", " + String(localized: "favorite")
         }
 
-        label += ", from \(item.sourceAppName ?? "unknown app")"
+        let app = item.sourceAppName ?? String(localized: "unknown app")
+        label += ", " + String(localized: "from \(app)")
         label += ", \(item.relativeTimestamp)"
 
         return label

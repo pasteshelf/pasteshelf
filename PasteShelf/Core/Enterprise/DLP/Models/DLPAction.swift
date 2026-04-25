@@ -42,3 +42,16 @@ enum DLPAction: String, Codable, Sendable, CaseIterable {
     /// Use `logOnly` for monitoring and reporting without disrupting user workflow.
     case logOnly
 }
+
+// MARK: - Display
+
+extension DLPAction {
+    var displayNameKey: LocalizedStringResource {
+        switch self {
+        case .block:   return "Block"
+        case .alert:   return "Alert"
+        case .redact:  return "Redact"
+        case .logOnly: return "Log Only"
+        }
+    }
+}

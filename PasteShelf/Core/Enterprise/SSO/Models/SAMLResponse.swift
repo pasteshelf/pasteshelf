@@ -205,53 +205,53 @@ enum SAMLStatusCode: String, Codable, Sendable {
     var displayName: String {
         switch self {
         case .success:
-            return "Success"
+            return String(localized: "Success")
         case .requester:
-            return "Request error"
+            return String(localized: "Request error")
         case .responder:
-            return "Identity provider error"
+            return String(localized: "Identity provider error")
         case .versionMismatch:
-            return "SAML version mismatch"
+            return String(localized: "SAML version mismatch")
         case .authnFailed:
-            return "Authentication failed"
+            return String(localized: "Authentication failed")
         case .invalidAttrNameOrValue:
-            return "Invalid attribute"
+            return String(localized: "Invalid attribute")
         case .invalidNameIDPolicy:
-            return "Invalid NameID policy"
+            return String(localized: "Invalid NameID policy")
         case .noAuthnContext:
-            return "No authentication context"
+            return String(localized: "No authentication context")
         case .noAvailableIDP:
-            return "No available identity provider"
+            return String(localized: "No available identity provider")
         case .noPassive:
-            return "Cannot authenticate passively"
+            return String(localized: "Cannot authenticate passively")
         case .noSupportedIDP:
-            return "No supported identity provider"
+            return String(localized: "No supported identity provider")
         case .partialLogout:
-            return "Partial logout"
+            return String(localized: "Partial logout")
         case .proxyCountExceeded:
-            return "Proxy count exceeded"
+            return String(localized: "Proxy count exceeded")
         case .requestDenied:
-            return "Request denied"
+            return String(localized: "Request denied")
         case .requestUnsupported:
-            return "Request not supported"
+            return String(localized: "Request not supported")
         case .requestVersionDeprecated:
-            return "Request version deprecated"
+            return String(localized: "Request version deprecated")
         case .requestVersionTooHigh:
-            return "Request version too high"
+            return String(localized: "Request version too high")
         case .requestVersionTooLow:
-            return "Request version too low"
+            return String(localized: "Request version too low")
         case .resourceNotRecognized:
-            return "Resource not recognized"
+            return String(localized: "Resource not recognized")
         case .tooManyResponses:
-            return "Too many responses"
+            return String(localized: "Too many responses")
         case .unknownAttrProfile:
-            return "Unknown attribute profile"
+            return String(localized: "Unknown attribute profile")
         case .unknownPrincipal:
-            return "Unknown principal"
+            return String(localized: "Unknown principal")
         case .unsupportedBinding:
-            return "Unsupported binding"
+            return String(localized: "Unsupported binding")
         case .unknown:
-            return "Unknown error"
+            return String(localized: "Unknown error")
         }
     }
 }
@@ -293,54 +293,54 @@ enum SAMLValidationError: Error, LocalizedError, Equatable, Sendable {
     var errorDescription: String? {
         switch self {
         case .authenticationFailed(let reason):
-            return "Authentication failed: \(reason)"
+            return String(localized: "Authentication failed: \(reason)")
         case .invalidDestination(let expected, let actual):
-            return "Invalid destination: expected \(expected), got \(actual)"
+            return String(localized: "Invalid destination: expected \(expected), got \(actual)")
         case .invalidInResponseTo(let expected, let actual):
-            return "Invalid InResponseTo: expected \(expected), got \(actual ?? "nil")"
+            return String(localized: "Invalid InResponseTo: expected \(expected), got \(actual ?? "nil")")
         case .missingAssertion:
-            return "SAML response contains no assertion"
+            return String(localized: "SAML response contains no assertion")
         case .assertionExpired:
-            return "SAML assertion has expired"
+            return String(localized: "SAML assertion has expired")
         case .invalidAudience(let expected):
-            return "SAML assertion not intended for audience: \(expected)"
+            return String(localized: "SAML assertion not intended for audience: \(expected)")
         case .signatureInvalid:
-            return "SAML signature is invalid"
+            return String(localized: "SAML signature is invalid")
         case .signatureMissing:
-            return "SAML signature is missing"
+            return String(localized: "SAML signature is missing")
         case .certificateInvalid:
-            return "IdP certificate is invalid"
+            return String(localized: "IdP certificate is invalid")
         case .certificateMismatch:
-            return "IdP certificate does not match configured certificate"
+            return String(localized: "IdP certificate does not match configured certificate")
         case .xmlParsingFailed(let reason):
-            return "Failed to parse SAML XML: \(reason)"
+            return String(localized: "Failed to parse SAML XML: \(reason)")
         case .invalidStructure(let reason):
-            return "Invalid SAML structure: \(reason)"
+            return String(localized: "Invalid SAML structure: \(reason)")
         case .issuerMismatch(let expected, let actual):
-            return "Issuer mismatch: expected \(expected), got \(actual)"
+            return String(localized: "Issuer mismatch: expected \(expected), got \(actual)")
         }
     }
 
     var recoverySuggestion: String? {
         switch self {
         case .authenticationFailed:
-            return "Try logging in again or contact your administrator."
+            return String(localized: "Try logging in again or contact your administrator.")
         case .invalidDestination, .invalidInResponseTo:
-            return "This may indicate a replay attack or misconfiguration. Contact your administrator."
+            return String(localized: "This may indicate a replay attack or misconfiguration. Contact your administrator.")
         case .missingAssertion:
-            return "The identity provider did not include user information. Contact your administrator."
+            return String(localized: "The identity provider did not include user information. Contact your administrator.")
         case .assertionExpired:
-            return "Your session has expired. Please log in again."
+            return String(localized: "Your session has expired. Please log in again.")
         case .invalidAudience:
-            return "The identity provider is not configured correctly. Contact your administrator."
+            return String(localized: "The identity provider is not configured correctly. Contact your administrator.")
         case .signatureInvalid, .signatureMissing:
-            return "The SAML response could not be verified. This may indicate tampering."
+            return String(localized: "The SAML response could not be verified. This may indicate tampering.")
         case .certificateInvalid, .certificateMismatch:
-            return "The identity provider certificate has changed. Contact your administrator to update SSO configuration."
+            return String(localized: "The identity provider certificate has changed. Contact your administrator to update SSO configuration.")
         case .xmlParsingFailed, .invalidStructure:
-            return "The identity provider sent an invalid response. Contact your administrator."
+            return String(localized: "The identity provider sent an invalid response. Contact your administrator.")
         case .issuerMismatch:
-            return "The response came from an unexpected identity provider. Verify SSO configuration."
+            return String(localized: "The response came from an unexpected identity provider. Verify SSO configuration.")
         }
     }
 }

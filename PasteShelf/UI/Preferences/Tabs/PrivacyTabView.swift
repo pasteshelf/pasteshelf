@@ -15,11 +15,40 @@ struct PrivacyTabView: View {
     @ObservedObject var viewModel: PreferencesViewModel
     @State private var showClearHistoryAlert = false
     @State private var showAppPicker = false
+    @State private var hasAccessibilityPermission: Bool = AXIsProcessTrusted()
 
     // MARK: - Body
 
     var body: some View {
         Form {
+            #if !APP_STORE
+                Section {
+                    HStack {
+                        if hasAccessibilityPermission {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                            Text("Granted")
+                        } else {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                            Text("Not Granted")
+                        }
+                        Spacer()
+                        if !hasAccessibilityPermission {
+                            Button("Open System Settings") {
+                                if let url = URL(
+                                    string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+                                ) {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Accessibility Permission")
+                }
+            #endif
+
             Section {
                 Toggle("Pause clipboard monitoring", isOn: $viewModel.isMonitoringPaused)
                     .accessibilityLabel("Pause clipboard monitoring")
@@ -45,7 +74,11 @@ struct PrivacyTabView: View {
                                 get: { viewModel.enabledSensitiveCategories.contains(category) },
                                 set: { _ in viewModel.toggleSensitiveCategory(category) }
                             )) {
-                                Label(category.displayName, systemImage: category.iconName)
+                                Label {
+                                    Text(category.displayNameKey)
+                                } icon: {
+                                    Image(systemName: category.iconName)
+                                }
                             }
                         }
                     }
@@ -134,6 +167,17 @@ struct PrivacyTabView: View {
         }
         .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #if !APP_STORE
+            .task {
+                while !Task.isCancelled {
+                    let trusted = AXIsProcessTrusted()
+                    if trusted != hasAccessibilityPermission {
+                        hasAccessibilityPermission = trusted
+                    }
+                    try? await Task.sleep(for: .seconds(1))
+                }
+            }
+        #endif
         .alert("Clear History?", isPresented: $showClearHistoryAlert) {
             Button("Cancel", role: .cancel) {}
             Button("Clear", role: .destructive) {

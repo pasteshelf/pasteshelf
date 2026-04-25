@@ -103,7 +103,6 @@ struct OnboardingView: View {
                         }
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(!canProceed)
                     .accessibilityHint("Proceeds to the next setup step")
                 } else {
                     Button("Get Started") {
@@ -121,21 +120,6 @@ struct OnboardingView: View {
 
     private static func currentStepNumber(for step: OnboardingStep) -> Int {
         (OnboardingStep.activeSteps.firstIndex(of: step) ?? 0) + 1
-    }
-
-    private var canProceed: Bool {
-        switch viewModel.currentStep {
-        case .permissions:
-            #if APP_STORE
-            return true
-            #else
-            return viewModel.hasAccessibilityPermission
-            #endif
-        case .notifications:
-            return true
-        default:
-            return true
-        }
     }
 }
 

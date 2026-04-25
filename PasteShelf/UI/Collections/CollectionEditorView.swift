@@ -90,7 +90,7 @@ struct CollectionEditorView: View {
 
     private var headerView: some View {
         HStack {
-            Text(collection == nil ? "New Collection" : "Edit Collection")
+            Text(collection == nil ? String(localized: "New Collection") : String(localized: "Edit Collection"))
                 .font(.headline)
             Spacer()
         }
@@ -236,7 +236,7 @@ struct CollectionEditorView: View {
             }
             .keyboardShortcut(.cancelAction)
 
-            Button(collection == nil ? "Create" : "Save") {
+            Button(collection == nil ? String(localized: "Create") : String(localized: "Save")) {
                 saveCollection()
             }
             .keyboardShortcut(.defaultAction)

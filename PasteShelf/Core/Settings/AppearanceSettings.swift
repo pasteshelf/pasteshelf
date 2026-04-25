@@ -65,8 +65,17 @@ enum AppTheme: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    /// Display name for the theme
+    /// Display name for the theme (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .system: return "System"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .system: return "System"
         case .light: return "Light"
@@ -85,8 +94,17 @@ enum PanelWidth: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    /// Display name for the width
+    /// Display name for the width (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .narrow: return "Narrow"
+        case .normal: return "Normal"
+        case .wide: return "Wide"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .narrow: return "Narrow"
         case .normal: return "Normal"

@@ -260,39 +260,39 @@ enum PluginValidationError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .pluginBlocked(let identifier):
-            return "Plugin '\(identifier)' has been blocked for security reasons"
+            return String(localized: "Plugin '\(identifier)' has been blocked for security reasons")
         case .incompatibleVersion(_, let required, let current):
-            return "Plugin requires PasteShelf \(required) or later (current: \(current))"
+            return String(localized: "Plugin requires PasteShelf \(required) or later (current: \(current))")
         case .notSigned:
-            return "Plugin is not code signed"
+            return String(localized: "Plugin is not code signed")
         case .signatureInvalid:
-            return "Plugin code signature is invalid"
+            return String(localized: "Plugin code signature is invalid")
         case .signatureNotVerifiable:
-            return "Plugin code signature cannot be verified"
+            return String(localized: "Plugin code signature cannot be verified")
         case .codeModified:
-            return "Plugin code was modified after signing"
+            return String(localized: "Plugin code was modified after signing")
         case .signatureValidationFailed(let reason):
-            return "Code signature validation failed: \(reason)"
+            return String(localized: "Code signature validation failed: \(reason)")
         case .undeclaredPermissions(let permissions):
             let names = permissions.map(\.displayName).joined(separator: ", ")
-            return "Plugin uses undeclared permissions: \(names)"
+            return String(localized: "Plugin uses undeclared permissions: \(names)")
         }
     }
 
     var recoverySuggestion: String? {
         switch self {
         case .pluginBlocked:
-            return "This plugin may contain malware or has known security issues. Do not use it."
+            return String(localized: "This plugin may contain malware or has known security issues. Do not use it.")
         case .incompatibleVersion:
-            return "Update PasteShelf to the latest version or contact the plugin developer."
+            return String(localized: "Update PasteShelf to the latest version or contact the plugin developer.")
         case .notSigned:
-            return "Only use plugins from trusted developers with valid code signatures."
+            return String(localized: "Only use plugins from trusted developers with valid code signatures.")
         case .signatureInvalid, .signatureNotVerifiable, .codeModified:
-            return "The plugin may have been tampered with. Re-download from the original source."
+            return String(localized: "The plugin may have been tampered with. Re-download from the original source.")
         case .signatureValidationFailed:
-            return "Contact the plugin developer or try re-downloading the plugin."
+            return String(localized: "Contact the plugin developer or try re-downloading the plugin.")
         case .undeclaredPermissions:
-            return "Contact the plugin developer to update the plugin's Info.plist."
+            return String(localized: "Contact the plugin developer to update the plugin's Info.plist.")
         }
     }
 }

@@ -220,7 +220,7 @@ struct SearchTabView: View {
                 .frame(width: 32)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(ocrGenerator.isProcessing ? "Processing Images..." : "Ready")
+                Text(ocrGenerator.isProcessing ? String(localized: "Processing Images...") : String(localized: "Ready"))
                     .font(.headline)
 
                 Text("\(ocrProcessedCount) images processed")
@@ -285,7 +285,7 @@ struct SearchTabView: View {
                 .frame(width: 32)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(embeddingGenerator.isIndexing ? "Indexing..." : "Ready")
+                Text(embeddingGenerator.isIndexing ? String(localized: "Indexing...") : String(localized: "Ready"))
                     .font(.headline)
 
                 Text("\(indexedCount) items indexed")

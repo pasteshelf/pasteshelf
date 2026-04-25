@@ -63,7 +63,7 @@ struct TutorialStepView: View {
 
     // MARK: - Shortcut Row
 
-    private func shortcutRow(keys: String, description: String) -> some View {
+    private func shortcutRow(keys: String, description: LocalizedStringKey) -> some View {
         HStack {
             Text(keys)
                 .font(.system(size: 12, weight: .medium, design: .monospaced))

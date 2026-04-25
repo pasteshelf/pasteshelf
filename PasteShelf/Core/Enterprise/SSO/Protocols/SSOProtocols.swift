@@ -138,21 +138,21 @@ enum SSOError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "No identity provider has been configured. Please set up an SSO provider in the enterprise settings."
+            return String(localized: "No identity provider has been configured. Please set up an SSO provider in the enterprise settings.")
         case .providerNotFound(let id):
-            return "Identity provider with ID \(id.uuidString) could not be found."
+            return String(localized: "Identity provider with ID \(id.uuidString) could not be found.")
         case .authenticationFailed(let reason):
-            return "Authentication failed: \(reason)"
+            return String(localized: "Authentication failed: \(reason)")
         case .sessionExpired:
-            return "Your SSO session has expired. Please sign in again."
+            return String(localized: "Your SSO session has expired. Please sign in again.")
         case .sessionInvalid:
-            return "Your SSO session is no longer valid. Please sign in again."
+            return String(localized: "Your SSO session is no longer valid. Please sign in again.")
         case .logoutFailed(let reason):
-            return "Logout could not be completed: \(reason)"
+            return String(localized: "Logout could not be completed: \(reason)")
         case .networkError(let reason):
-            return "A network error occurred while contacting the identity provider: \(reason)"
+            return String(localized: "A network error occurred while contacting the identity provider: \(reason)")
         case .configurationInvalid(let reason):
-            return "The identity provider configuration is invalid: \(reason)"
+            return String(localized: "The identity provider configuration is invalid: \(reason)")
         }
     }
 
@@ -171,19 +171,19 @@ enum SSOError: Error, LocalizedError, Sendable {
     var recoverySuggestion: String? {
         switch self {
         case .notConfigured:
-            return "Contact your IT administrator to configure an identity provider."
+            return String(localized: "Contact your IT administrator to configure an identity provider.")
         case .providerNotFound:
-            return "Verify the provider configuration in enterprise settings."
+            return String(localized: "Verify the provider configuration in enterprise settings.")
         case .authenticationFailed:
-            return "Check your credentials and try again, or contact your IT administrator."
+            return String(localized: "Check your credentials and try again, or contact your IT administrator.")
         case .sessionExpired, .sessionInvalid:
-            return "Sign in again to start a new session."
+            return String(localized: "Sign in again to start a new session.")
         case .logoutFailed:
-            return "Try signing out again or clear your session data manually."
+            return String(localized: "Try signing out again or clear your session data manually.")
         case .networkError:
-            return "Check your network connection and try again."
+            return String(localized: "Check your network connection and try again.")
         case .configurationInvalid:
-            return "Review the identity provider configuration and correct any errors."
+            return String(localized: "Review the identity provider configuration and correct any errors.")
         }
     }
 }

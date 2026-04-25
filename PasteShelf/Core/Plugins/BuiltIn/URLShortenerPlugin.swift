@@ -62,8 +62,8 @@ public final class URLShortenerPlugin: NSObject, PasteShelfPlugin, PasteShelfPlu
     private func registerTransformers() {
         PluginTransformAPI.shared.registerTransformer(
             pluginId: Self.identifier,
-            name: "Shorten URL",
-            description: "Shorten a URL using \(selectedService.displayName)",
+            name: String(localized: "Shorten URL"),
+            description: String(localized: "Shorten a URL using \(selectedService.displayName)"),
             supportedTypes: [.plainText, .url],
             iconName: "link.badge.plus"
         ) { [weak self] content in
@@ -76,7 +76,7 @@ public final class URLShortenerPlugin: NSObject, PasteShelfPlugin, PasteShelfPlu
     public func menuItems() -> [PluginMenuItem] {
         [
             PluginMenuItem(
-                title: "Shorten URL",
+                title: String(localized: "Shorten URL"),
                 iconName: "link.badge.plus",
                 shortcutKey: "L+command+shift"
             ) { [weak self] content in
@@ -222,15 +222,15 @@ enum URLShortenerError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noURLFound:
-            return "No URL found in clipboard content"
+            return String(localized: "No URL found in clipboard content")
         case .invalidURL:
-            return "Invalid URL format"
+            return String(localized: "Invalid URL format")
         case .networkPermissionRequired:
-            return "Network permission is required for URL shortening"
+            return String(localized: "Network permission is required for URL shortening")
         case .serviceError(let message):
-            return "Shortener service error: \(message)"
+            return String(localized: "Shortener service error: \(message)")
         case .parseError:
-            return "Failed to parse shortened URL from response"
+            return String(localized: "Failed to parse shortened URL from response")
         }
     }
 }

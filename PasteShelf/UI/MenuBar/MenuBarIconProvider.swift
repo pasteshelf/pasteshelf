@@ -72,13 +72,13 @@ enum MenuBarState {
         }
     }
 
-    /// The accessibility description for this state
+    /// The accessibility description for this state (localized at call site)
     var accessibilityDescription: String {
         switch self {
-        case .idle: return "PasteShelf - Monitoring"
-        case .active: return "PasteShelf - Capturing"
-        case .paused: return "PasteShelf - Paused"
-        case .error: return "PasteShelf - Error"
+        case .idle: return String(localized: "PasteShelf - Monitoring")
+        case .active: return String(localized: "PasteShelf - Capturing")
+        case .paused: return String(localized: "PasteShelf - Paused")
+        case .error: return String(localized: "PasteShelf - Error")
         }
     }
 

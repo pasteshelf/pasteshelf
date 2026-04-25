@@ -390,10 +390,11 @@ import Foundation
     private func showInvalidURLAlert(_ url: URL) {
         DispatchQueue.main.async {
             let alert = NSAlert()
-            alert.messageText = "Invalid URL"
-            alert.informativeText = "The URL '\(url.absoluteString)' is not a valid PasteShelf URL."
+            alert.messageText = String(localized: "Invalid URL")
+            let urlString = url.absoluteString
+            alert.informativeText = String(localized: "The URL '\(urlString)' is not a valid PasteShelf URL.")
             alert.alertStyle = .warning
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: String(localized: "OK"))
             alert.runModal()
         }
     }

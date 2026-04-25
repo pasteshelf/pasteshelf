@@ -156,7 +156,7 @@ struct SyncTabView: View {
         return formatter.localizedString(for: date, relativeTo: Date())
     }
 
-    private var statusTitle: String {
+    private var statusTitle: LocalizedStringResource {
         switch syncManager.status {
         case .disabled:
             return "Sync Disabled"

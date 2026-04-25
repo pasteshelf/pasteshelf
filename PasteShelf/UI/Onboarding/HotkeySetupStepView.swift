@@ -54,7 +54,7 @@ struct HotkeySetupStepView: View {
                     saveHotkey(newValue)
                 }
 
-                Text(isRecording ? "Press your desired key combination..." : "Click to record a new shortcut")
+                Text(isRecording ? String(localized: "Press your desired key combination...") : String(localized: "Click to record a new shortcut"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

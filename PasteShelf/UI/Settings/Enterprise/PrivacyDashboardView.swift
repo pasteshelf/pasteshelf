@@ -77,7 +77,7 @@ struct PrivacyDashboardView: View {
                                         .frame(width: 20)
                                     Text(service.name)
                                     Spacer()
-                                    Text(service.isActive ? "Active" : "Inactive")
+                                    Text(service.isActive ? String(localized: "Active") : String(localized: "Inactive"))
                                         .font(.caption)
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 2)
@@ -100,7 +100,7 @@ struct PrivacyDashboardView: View {
                                         .frame(width: 20)
                                     Text(category.displayName)
                                     Spacer()
-                                    Text(consentManager.isConsentGranted(for: category) ? "Granted" : "Not Granted")
+                                    Text(consentManager.isConsentGranted(for: category) ? String(localized: "Granted") : String(localized: "Not Granted"))
                                         .font(.caption)
                                         .foregroundStyle(consentManager.isConsentGranted(for: category) ? .green : .secondary)
                                 }

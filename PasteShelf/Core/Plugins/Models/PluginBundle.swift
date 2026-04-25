@@ -137,7 +137,7 @@ final class PluginBundle: Sendable {
         // Return default plugin icon
         let defaultIcon = NSImage(
             systemSymbolName: "puzzlepiece.extension.fill",
-            accessibilityDescription: "Plugin"
+            accessibilityDescription: String(localized: "Plugin")
         ) ?? NSImage()
         _icon = defaultIcon
         return defaultIcon
@@ -231,50 +231,50 @@ enum PluginLoadError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .invalidBundleExtension(let ext):
-            return "Invalid bundle extension: '\(ext)'. Expected '\(PluginBundle.bundleExtension)'"
+            return String(localized: "Invalid bundle extension: '\(ext)'. Expected '\(PluginBundle.bundleExtension)'")
         case .bundleNotFound(let path):
-            return "Plugin bundle not found at: \(path)"
+            return String(localized: "Plugin bundle not found at: \(path)")
         case .invalidInfoPlist(let path):
-            return "Invalid or missing Info.plist at: \(path)"
+            return String(localized: "Invalid or missing Info.plist at: \(path)")
         case .bundleLoadFailed(let path):
-            return "Failed to load plugin bundle at: \(path)"
+            return String(localized: "Failed to load plugin bundle at: \(path)")
         case .missingMacOSDirectory(let path):
-            return "Missing Contents/MacOS directory in: \(path)"
+            return String(localized: "Missing Contents/MacOS directory in: \(path)")
         case .principalClassNotFound(let className):
-            return "Principal class '\(className)' not found in plugin bundle"
+            return String(localized: "Principal class '\(className)' not found in plugin bundle")
         case .invalidPrincipalClass(let className):
-            return "Principal class '\(className)' does not inherit from NSObject"
+            return String(localized: "Principal class '\(className)' does not inherit from NSObject")
         case .signatureValidationFailed(let reason):
-            return "Code signature validation failed: \(reason)"
+            return String(localized: "Code signature validation failed: \(reason)")
         case .incompatibleVersion(let pluginVersion, let requiredVersion):
-            return "Plugin version \(pluginVersion) requires PasteShelf \(requiredVersion) or later"
+            return String(localized: "Plugin version \(pluginVersion) requires PasteShelf \(requiredVersion) or later")
         case .permissionDenied(let permission):
-            return "Permission '\(permission.displayName)' was denied"
+            return String(localized: "Permission '\(permission.displayName)' was denied")
         }
     }
 
     var recoverySuggestion: String? {
         switch self {
         case .invalidBundleExtension:
-            return "Ensure the plugin has the .pasteshelfplugin extension"
+            return String(localized: "Ensure the plugin has the .pasteshelfplugin extension")
         case .bundleNotFound:
-            return "Verify the plugin file exists and is accessible"
+            return String(localized: "Verify the plugin file exists and is accessible")
         case .invalidInfoPlist:
-            return "The plugin's Info.plist may be corrupted or missing required fields"
+            return String(localized: "The plugin's Info.plist may be corrupted or missing required fields")
         case .bundleLoadFailed:
-            return "The plugin binary may be corrupted or built for an incompatible architecture"
+            return String(localized: "The plugin binary may be corrupted or built for an incompatible architecture")
         case .missingMacOSDirectory:
-            return "The plugin bundle structure is invalid"
+            return String(localized: "The plugin bundle structure is invalid")
         case .principalClassNotFound:
-            return "The plugin may be built incorrectly or the class name is misspelled"
+            return String(localized: "The plugin may be built incorrectly or the class name is misspelled")
         case .invalidPrincipalClass:
-            return "Contact the plugin developer - the principal class must be an NSObject subclass"
+            return String(localized: "Contact the plugin developer - the principal class must be an NSObject subclass")
         case .signatureValidationFailed:
-            return "The plugin may have been modified or is not properly signed"
+            return String(localized: "The plugin may have been modified or is not properly signed")
         case .incompatibleVersion:
-            return "Update PasteShelf to the latest version"
+            return String(localized: "Update PasteShelf to the latest version")
         case .permissionDenied:
-            return "Grant the required permission in plugin settings"
+            return String(localized: "Grant the required permission in plugin settings")
         }
     }
 }

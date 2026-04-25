@@ -20,7 +20,7 @@ struct AppearanceTabView: View {
             Section {
                 Picker("Theme", selection: $viewModel.theme) {
                     ForEach(AppTheme.allCases) { theme in
-                        Text(theme.displayName).tag(theme)
+                        Text(theme.displayNameKey).tag(theme)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -38,7 +38,7 @@ struct AppearanceTabView: View {
             Section {
                 Picker("Panel width", selection: $viewModel.panelWidth) {
                     ForEach(PanelWidth.allCases) { width in
-                        Text(width.displayName).tag(width)
+                        Text(width.displayNameKey).tag(width)
                     }
                 }
                 .accessibilityLabel("Panel width")

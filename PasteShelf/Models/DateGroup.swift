@@ -21,8 +21,20 @@ enum DateGroup: String, CaseIterable, Identifiable, Comparable, Sendable {
 
     // MARK: - Display Properties
 
-    /// Human-readable display name
+    /// Human-readable display name (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .today: return "Today"
+        case .yesterday: return "Yesterday"
+        case .thisWeek: return "This Week"
+        case .lastWeek: return "Last Week"
+        case .thisMonth: return "This Month"
+        case .older: return "Older"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .today: return "Today"
         case .yesterday: return "Yesterday"

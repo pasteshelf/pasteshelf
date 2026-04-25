@@ -73,9 +73,14 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
         contentType.icon
     }
 
-    /// Human-readable content type name
+    /// Human-readable content type name (English; used for logs and tests)
     var contentTypeName: String {
         contentType.displayName
+    }
+
+    /// Localized content type name key (use in SwiftUI views)
+    var contentTypeNameKey: LocalizedStringResource {
+        contentType.displayNameKey
     }
 
     /// Whether this item has a thumbnail preview
@@ -114,12 +119,12 @@ struct ClipboardItemDisplayModel: Identifiable, Hashable {
         return formatter.string(from: timestamp)
     }
 
-    /// Display text for the item (truncated preview or type description)
+    /// Display text for the item (truncated preview or localized type description)
     var displayText: String {
         if let preview = plainTextPreview, !preview.isEmpty {
             return preview
         }
-        return "[\(contentTypeName)]"
+        return "[\(String(localized: contentTypeNameKey))]"
     }
 
     /// Short display text (single line, truncated)

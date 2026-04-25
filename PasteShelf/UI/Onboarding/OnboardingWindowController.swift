@@ -102,7 +102,7 @@ final class OnboardingWindowController: NSObject {
             defer: false
         )
 
-        window.title = "Welcome to PasteShelf"
+        window.title = String(localized: "Welcome to PasteShelf")
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isReleasedWhenClosed = false

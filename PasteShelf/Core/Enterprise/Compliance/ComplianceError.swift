@@ -23,21 +23,21 @@ enum ComplianceError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "Compliance tools are not configured"
+            return String(localized: "Compliance tools are not configured")
         case .featureUnavailable:
-            return "Compliance features are not enabled"
+            return String(localized: "Compliance features are not enabled")
         case .exportFailed(let error):
-            return "Data export failed: \(error.localizedDescription)"
+            return String(localized: "Data export failed: \(error.localizedDescription)")
         case .deletionFailed(let error):
-            return "Data deletion failed: \(error.localizedDescription)"
+            return String(localized: "Data deletion failed: \(error.localizedDescription)")
         case .encryptionVerificationFailed(let error):
-            return "Encryption verification failed: \(error.localizedDescription)"
+            return String(localized: "Encryption verification failed: \(error.localizedDescription)")
         case .consentNotGranted(let cat):
-            return "Consent not granted for: \(cat)"
+            return String(localized: "Consent not granted for: \(cat)")
         case .reportGenerationFailed(let msg):
-            return "Report generation failed: \(msg)"
+            return String(localized: "Report generation failed: \(msg)")
         case .invalidConfiguration(let msg):
-            return "Invalid configuration: \(msg)"
+            return String(localized: "Invalid configuration: \(msg)")
         }
     }
 }

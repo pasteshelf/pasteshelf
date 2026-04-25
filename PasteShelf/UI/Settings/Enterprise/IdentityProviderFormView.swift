@@ -78,7 +78,7 @@ struct IdentityProviderFormView: View {
         VStack(spacing: 0) {
             // Title bar
             HStack {
-                Text(provider == nil ? "Add Identity Provider" : "Edit Identity Provider")
+                Text(provider == nil ? String(localized: "Add Identity Provider") : String(localized: "Edit Identity Provider"))
                     .font(.title2)
                     .fontWeight(.semibold)
                 Spacer()
@@ -128,7 +128,7 @@ struct IdentityProviderFormView: View {
             LabeledContent("Protocol") {
                 Picker("Protocol", selection: $providerType) {
                     ForEach(IdentityProviderType.allCases, id: \.self) { type in
-                        Text(type.displayName).tag(type)
+                        Text(type.displayNameKey).tag(type)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -265,7 +265,7 @@ struct IdentityProviderFormView: View {
                 LabeledContent("HTTP Binding") {
                     Picker("HTTP Binding", selection: $samlBinding) {
                         ForEach(SAMLBinding.allCases, id: \.self) { binding in
-                            Text(binding.displayName).tag(binding)
+                            Text(binding.displayNameKey).tag(binding)
                         }
                     }
                     .labelsHidden()
@@ -577,7 +577,7 @@ struct IdentityProviderFormView: View {
         validationErrors = []
 
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
-            validationErrors = ["Provider name is required."]
+            validationErrors = [String(localized: "Provider name is required.")]
             return
         }
 
@@ -593,7 +593,7 @@ struct IdentityProviderFormView: View {
         switch providerType {
         case .saml:
             guard let ssoURL = URL(string: samlSSOURL), !samlSSOURL.isEmpty else {
-                validationErrors = ["SSO URL is not a valid URL."]
+                validationErrors = [String(localized: "SSO URL is not a valid URL.")]
                 return nil
             }
 
@@ -628,7 +628,7 @@ struct IdentityProviderFormView: View {
                   let tokenEndpoint = URL(string: oidcTokenEndpoint), !oidcTokenEndpoint.isEmpty,
                   let jwksURL = URL(string: oidcJWKSURL), !oidcJWKSURL.isEmpty
             else {
-                validationErrors = ["One or more OIDC endpoint URLs are invalid."]
+                validationErrors = [String(localized: "One or more OIDC endpoint URLs are invalid.")]
                 return nil
             }
 
@@ -710,7 +710,7 @@ struct IdentityProviderFormView: View {
 
     private func discoverOIDCConfig() {
         guard let url = URL(string: oidcIssuerURL) else {
-            discoveryError = "Invalid issuer URL."
+            discoveryError = String(localized: "Invalid issuer URL.")
             return
         }
 
@@ -757,7 +757,7 @@ struct IdentityProviderFormView: View {
     /// available in standard IdP metadata documents using basic string scanning.
     private func fetchSAMLMetadata() {
         guard let url = URL(string: samlMetadataURL) else {
-            metadataFetchError = "Invalid metadata URL."
+            metadataFetchError = String(localized: "Invalid metadata URL.")
             return
         }
 
@@ -771,12 +771,12 @@ struct IdentityProviderFormView: View {
                 let (data, response) = try await URLSession.shared.data(from: url)
 
                 guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-                    metadataFetchError = "Server returned an unexpected response."
+                    metadataFetchError = String(localized: "Server returned an unexpected response.")
                     return
                 }
 
                 guard let xml = String(data: data, encoding: .utf8) else {
-                    metadataFetchError = "Could not decode metadata document."
+                    metadataFetchError = String(localized: "Could not decode metadata document.")
                     return
                 }
 
@@ -813,7 +813,7 @@ struct IdentityProviderFormView: View {
 
                 metadataFetchError = nil
             } catch {
-                metadataFetchError = "Failed to fetch metadata: \(error.localizedDescription)"
+                metadataFetchError = String(localized: "Failed to fetch metadata: \(error.localizedDescription)")
             }
         }
     }

@@ -92,7 +92,7 @@ final class AutomationViewModel: ObservableObject {
             rules = try await storage.fetchAllRules()
             logger.info("Loaded \(self.rules.count) automation rules")
         } catch {
-            errorMessage = "Failed to load rules: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load rules: \(error.localizedDescription)")
             logger.error("Failed to load rules: \(error.localizedDescription)")
         }
     }
@@ -105,7 +105,7 @@ final class AutomationViewModel: ObservableObject {
             await loadRules()
             logger.info("Created rule: \(rule.name)")
         } catch {
-            errorMessage = "Failed to create rule: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to create rule: \(error.localizedDescription)")
             logger.error("Failed to create rule: \(error.localizedDescription)")
         }
     }
@@ -118,7 +118,7 @@ final class AutomationViewModel: ObservableObject {
             await loadRules()
             logger.info("Updated rule: \(rule.name)")
         } catch {
-            errorMessage = "Failed to update rule: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to update rule: \(error.localizedDescription)")
             logger.error("Failed to update rule: \(error.localizedDescription)")
         }
     }
@@ -131,7 +131,7 @@ final class AutomationViewModel: ObservableObject {
             await loadRules()
             logger.info("Deleted rule: \(rule.name)")
         } catch {
-            errorMessage = "Failed to delete rule: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to delete rule: \(error.localizedDescription)")
             logger.error("Failed to delete rule: \(error.localizedDescription)")
         }
     }
@@ -151,7 +151,7 @@ final class AutomationViewModel: ObservableObject {
             await loadRules()
             logger.info("Toggled rule: \(rule.name) -> \(!rule.isEnabled)")
         } catch {
-            errorMessage = "Failed to toggle rule: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to toggle rule: \(error.localizedDescription)")
             logger.error("Failed to toggle rule: \(error.localizedDescription)")
         }
     }
@@ -235,7 +235,7 @@ extension AutomationRule {
     static func empty() -> AutomationRule {
         AutomationRule(
             id: UUID(),
-            name: "New Rule",
+            name: String(localized: "New Rule"),
             isEnabled: true,
             trigger: .onCapture,
             conditions: CollectionRules(),

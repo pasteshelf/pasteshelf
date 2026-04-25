@@ -17,7 +17,7 @@ struct SearchClipboardIntent: AppIntent {
     static var title: LocalizedStringResource = "Search Clipboard History"
 
     static var description = IntentDescription(
-        "Search your clipboard history for items matching a query."
+        LocalizedStringResource("Search your clipboard history for items matching a query.")
     )
 
     static var parameterSummary: some ParameterSummary {

@@ -66,27 +66,29 @@ struct ActiveFilters: Equatable, Sendable {
             dateRange == nil
     }
 
-    /// Human-readable description of active filters
+    /// Human-readable description of active filters (localized)
     var description: String {
         var parts: [String] = []
 
         if !searchQuery.isEmpty {
-            parts.append("Search: \"\(searchQuery)\"")
+            parts.append(String(localized: "Search: \"\(searchQuery)\""))
         }
         if let filter = contentTypeFilter {
-            parts.append("Type: \(filter.displayName)")
+            let filterName = String(localized: filter.displayNameKey)
+            parts.append(String(localized: "Type: \(filterName)"))
         }
         if favoritesOnly {
-            parts.append("Favorites")
+            parts.append(String(localized: "Favorites"))
         }
         if !selectedTagIds.isEmpty {
-            parts.append("\(selectedTagIds.count) tag(s)")
+            let count = selectedTagIds.count
+            parts.append(String(localized: "\(count) tag(s)"))
         }
         if dateRange != nil {
-            parts.append("Date Range")
+            parts.append(String(localized: "Date Range"))
         }
 
-        return parts.isEmpty ? "No filters" : parts.joined(separator: ", ")
+        return parts.isEmpty ? String(localized: "No filters") : parts.joined(separator: ", ")
     }
 
     // MARK: - Mutations
@@ -168,8 +170,18 @@ enum ContentTypeFilter: String, CaseIterable, Identifiable, Sendable {
 
     var id: String { rawValue }
 
-    /// Display name for the filter
+    /// Display name for the filter (English; used for logs and tests)
     var displayName: String {
+        switch self {
+        case .text: return "Text"
+        case .images: return "Images"
+        case .files: return "Files"
+        case .links: return "Links"
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .text: return "Text"
         case .images: return "Images"

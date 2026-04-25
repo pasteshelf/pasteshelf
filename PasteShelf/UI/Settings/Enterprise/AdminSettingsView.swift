@@ -37,7 +37,7 @@ struct AdminSettingsView: View {
 
             Section("Connection Status") {
                 LabeledContent("Status") {
-                    Text(viewModel.isConnected ? "Connected" : "Disconnected")
+                    Text(viewModel.isConnected ? String(localized: "Connected") : String(localized: "Disconnected"))
                         .foregroundStyle(viewModel.isConnected ? .green : .secondary)
                 }
 
@@ -64,7 +64,7 @@ struct AdminSettingsView: View {
 
             Section("Device Enrollment") {
                 LabeledContent("Enrollment") {
-                    Text(viewModel.enrollmentStatus.displayName)
+                    Text(viewModel.enrollmentStatus.displayNameKey)
                         .foregroundStyle(viewModel.isEnrolled ? .primary : .secondary)
                 }
 

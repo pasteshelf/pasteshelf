@@ -12,7 +12,19 @@ import Foundation
 // MARK: - DeviceEnrollmentStatus Display Extension
 
 extension DeviceEnrollmentStatus {
+    /// Display name — localized; also used for logs and tests
     var displayName: String {
+        switch self {
+        case .notEnrolled: return String(localized: "Not Enrolled")
+        case .enrolling: return String(localized: "Enrolling...")
+        case .enrolled: return String(localized: "Enrolled")
+        case .suspended: return String(localized: "Suspended")
+        case .revoked: return String(localized: "Revoked")
+        }
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
         switch self {
         case .notEnrolled: return "Not Enrolled"
         case .enrolling: return "Enrolling..."

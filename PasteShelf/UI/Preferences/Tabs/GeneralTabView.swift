@@ -39,7 +39,7 @@ struct GeneralTabView: View {
             Section {
                 Picker("History limit", selection: $viewModel.historyLimit) {
                     ForEach(HistoryLimit.allCases) { limit in
-                        Text(limit.displayName).tag(limit)
+                        Text(limit.displayNameKey).tag(limit)
                     }
                 }
                 .accessibilityLabel("History limit")

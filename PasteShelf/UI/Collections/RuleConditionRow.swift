@@ -28,8 +28,12 @@ struct RuleConditionRow: View {
             // Field picker
             Picker("Field", selection: $condition.field) {
                 ForEach(RuleField.allCases, id: \.self) { field in
-                    Label(field.displayName, systemImage: field.icon)
-                        .tag(field)
+                    Label {
+                        Text(field.displayNameKey)
+                    } icon: {
+                        Image(systemName: field.icon)
+                    }
+                    .tag(field)
                 }
             }
             .labelsHidden()
@@ -46,7 +50,7 @@ struct RuleConditionRow: View {
             // Operator picker
             Picker("Operator", selection: $condition.comparisonOperator) {
                 ForEach(condition.field.availableOperators, id: \.self) { op in
-                    Text(op.displayName)
+                    Text(op.displayNameKey)
                         .tag(op)
                 }
             }
@@ -101,7 +105,7 @@ struct RuleConditionRow: View {
     private var contentTypePicker: some View {
         Picker("Value", selection: $condition.value) {
             ForEach(ContentTypeValue.allCases, id: \.rawValue) { contentType in
-                Text(contentType.displayName)
+                Text(contentType.displayNameKey)
                     .tag(contentType.rawValue)
             }
         }
@@ -115,7 +119,7 @@ struct RuleConditionRow: View {
             if condition.comparisonOperator == .withinLast {
                 Picker("Value", selection: $condition.value) {
                     ForEach(DateRangeValue.allCases, id: \.rawValue) { range in
-                        Text(range.displayName)
+                        Text(range.displayNameKey)
                             .tag(range.rawValue)
                     }
                 }

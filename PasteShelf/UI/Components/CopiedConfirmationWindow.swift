@@ -71,7 +71,7 @@ private struct CopiedConfirmationView: View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(.green)
-            Text("Copied to clipboard")
+            Text(String(localized: "Copied to clipboard"))
                 .font(.callout)
                 .fontWeight(.medium)
         }

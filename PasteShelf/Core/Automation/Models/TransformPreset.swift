@@ -99,9 +99,38 @@ enum TransformPreset: String, Codable, CaseIterable, Sendable {
 
     // MARK: - Properties
 
-    /// Human-readable display name
+    /// Human-readable display name (English; used for logs and tests)
     var displayName: String {
         rawValue
+    }
+
+    /// Localized display name key (use in SwiftUI views)
+    var displayNameKey: LocalizedStringResource {
+        switch self {
+        case .uppercase: return "UPPERCASE"
+        case .lowercase: return "lowercase"
+        case .titleCase: return "Title Case"
+        case .sentenceCase: return "Sentence case"
+        case .trimWhitespace: return "Trim Whitespace"
+        case .removeNewlines: return "Remove Newlines"
+        case .collapseSpaces: return "Collapse Spaces"
+        case .removeAllWhitespace: return "Remove All Whitespace"
+        case .sortLines: return "Sort Lines"
+        case .uniqueLines: return "Unique Lines"
+        case .reverseLines: return "Reverse Lines"
+        case .shuffleLines: return "Shuffle Lines"
+        case .base64Encode: return "Base64 Encode"
+        case .base64Decode: return "Base64 Decode"
+        case .urlEncode: return "URL Encode"
+        case .urlDecode: return "URL Decode"
+        case .formatJSON: return "Format JSON"
+        case .minifyJSON: return "Minify JSON"
+        case .escapeHTML: return "Escape HTML"
+        case .unescapeHTML: return "Unescape HTML"
+        case .stripHTMLTags: return "Strip HTML Tags"
+        case .md5Hash: return "MD5 Hash"
+        case .sha256Hash: return "SHA-256 Hash"
+        }
     }
 
     /// Description of the transformation

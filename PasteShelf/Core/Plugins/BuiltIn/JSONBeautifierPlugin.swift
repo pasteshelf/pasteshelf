@@ -67,8 +67,8 @@ public final class JSONBeautifierPlugin: NSObject, PasteShelfPlugin, PasteShelfP
         // Format JSON transformer
         PluginTransformAPI.shared.registerTransformer(
             pluginId: Self.identifier,
-            name: "Format JSON",
-            description: "Pretty-print JSON with indentation",
+            name: String(localized: "Format JSON"),
+            description: String(localized: "Pretty-print JSON with indentation"),
             supportedTypes: [.plainText],
             iconName: "curlybraces"
         ) { [weak self] content in
@@ -78,8 +78,8 @@ public final class JSONBeautifierPlugin: NSObject, PasteShelfPlugin, PasteShelfP
         // Minify JSON transformer
         PluginTransformAPI.shared.registerTransformer(
             pluginId: Self.identifier,
-            name: "Minify JSON",
-            description: "Remove whitespace from JSON",
+            name: String(localized: "Minify JSON"),
+            description: String(localized: "Remove whitespace from JSON"),
             supportedTypes: [.plainText],
             iconName: "arrow.down.right.and.arrow.up.left"
         ) { [weak self] content in
@@ -89,8 +89,8 @@ public final class JSONBeautifierPlugin: NSObject, PasteShelfPlugin, PasteShelfP
         // Validate JSON transformer
         PluginTransformAPI.shared.registerTransformer(
             pluginId: Self.identifier,
-            name: "Validate JSON",
-            description: "Check if content is valid JSON",
+            name: String(localized: "Validate JSON"),
+            description: String(localized: "Check if content is valid JSON"),
             supportedTypes: [.plainText],
             iconName: "checkmark.circle"
         ) { [weak self] content in
@@ -103,20 +103,20 @@ public final class JSONBeautifierPlugin: NSObject, PasteShelfPlugin, PasteShelfP
     public func menuItems() -> [PluginMenuItem] {
         [
             PluginMenuItem(
-                title: "Format JSON",
+                title: String(localized: "Format JSON"),
                 iconName: "curlybraces",
                 shortcutKey: "J+command+shift"
             ) { [weak self] content in
                 try await self?.formatJSON(content)
             },
             PluginMenuItem(
-                title: "Minify JSON",
+                title: String(localized: "Minify JSON"),
                 iconName: "arrow.down.right.and.arrow.up.left"
             ) { [weak self] content in
                 try await self?.minifyJSON(content)
             },
             PluginMenuItem(
-                title: "Validate JSON",
+                title: String(localized: "Validate JSON"),
                 iconName: "checkmark.circle"
             ) { [weak self] content in
                 try await self?.validateJSON(content)
@@ -240,7 +240,7 @@ enum JSONPluginError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidJSON(let reason):
-            return "Invalid JSON: \(reason)"
+            return String(localized: "Invalid JSON: \(reason)")
         }
     }
 }
