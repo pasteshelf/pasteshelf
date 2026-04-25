@@ -9,7 +9,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  XCODE_VERSION: "16.2"
+  # Match the dev toolchain. Newer Swift adds appendInterpolation
+  # overloads (e.g. UUID) that Xcode 16.x rejects, so dev and CI must align.
+  XCODE_VERSION: "26.2"
   APP_NAME: "PasteShelf"
   SCHEME: "PasteShelf"
   TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
