@@ -48,8 +48,7 @@ struct DateGroupHeaderView: View {
         .padding(.vertical, 6)
         .background(
             isSticky ?
-                VisualEffectView(material: .popover, blendingMode: .withinWindow)
-                .opacity(0.95) :
+                VisualEffectView(material: .popover, blendingMode: .behindWindow) :
                 nil
         )
     }
