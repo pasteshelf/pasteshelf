@@ -103,7 +103,7 @@ final class FloatingPanelController: NSObject {
         }
 
         // Configure panel properties
-        panel.level = .floating
+        panel.level = .popUpMenu
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
         panel.isMovableByWindowBackground = true
