@@ -211,6 +211,8 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
             metrics.duplicateCount += 1
             delegate?.clipboardMonitor(self, didExcludeContentWithReason: .duplicate)
             Logger.clipboard.debug("Duplicate content detected")
+            // Re-copying existing content should move that record to the top.
+            moveExistingItemToTop(hash: hash)
             return nil
         }
 
@@ -260,6 +262,26 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
                 Logger.clipboard.error("Failed to save clipboard content to storage")
                 delegate?.clipboardMonitor(self, didEncounterError: ClipboardMonitorError.storageFailed)
             }
+        }
+    }
+
+    /// Bumps the stored item with the given hash to the top of history when its
+    /// content is re-copied, by refreshing its timestamp. Also updates the
+    /// source app to the app the content was just copied from, since the row now
+    /// presents as the most recent copy. The panel re-fetches sorted items when
+    /// it is next shown, so the item appears at the top.
+    private func moveExistingItemToTop(hash: String) {
+        // Keep the hash fresh in the dedup window so it isn't trimmed out.
+        if let index = recentHashes.firstIndex(of: hash) {
+            recentHashes.remove(at: index)
+        }
+        recentHashes.insert(hash, at: 0)
+
+        // Capture the current frontmost app as the new source.
+        let sourceApp = SourceApp.frontmost()
+
+        Task {
+            _ = await StorageManager.shared.touchItem(byHash: hash, sourceApp: sourceApp)
         }
     }
 

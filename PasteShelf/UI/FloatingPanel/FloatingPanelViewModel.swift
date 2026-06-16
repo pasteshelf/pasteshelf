@@ -287,16 +287,22 @@ final class FloatingPanelViewModel: ObservableObject {
         // Store search results for highlighting
         searchResults = Dictionary(uniqueKeysWithValues: results.map { ($0.itemId, $0) })
 
-        // Filter items to only those with search results
-        let matchingIds = Set(results.map { $0.itemId })
-        items = allItems.filter { matchingIds.contains($0.id) }
+        // Build display items directly from the search results (already sorted
+        // by relevance). The engine searches the full history, so matches may
+        // live outside the recently-loaded `allItems` window — fetch those.
+        let orderedIds = results.map(\.itemId)
+        let existingById = Dictionary(allItems.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let missingIds = orderedIds.filter { existingById[$0] == nil }
 
-        // Sort by relevance score
-        items.sort { item1, item2 in
-            let score1 = searchResults[item1.id]?.relevanceScore ?? 0
-            let score2 = searchResults[item2.id]?.relevanceScore ?? 0
-            return score1 > score2
+        var fetchedById: [UUID: ClipboardItemDisplayModel] = [:]
+        if !missingIds.isEmpty {
+            let fetchedItems = await storageManager.fetchItems(byIds: missingIds)
+            for model in ClipboardItemDisplayModel.from(fetchedItems) {
+                fetchedById[model.id] = model
+            }
         }
+
+        items = orderedIds.compactMap { existingById[$0] ?? fetchedById[$0] }
 
         searchState = .completed(resultCount: items.count)
         resetSelectionIfNeeded()
@@ -509,6 +515,10 @@ final class FloatingPanelViewModel: ObservableObject {
             errorMessage = String(localized: "Failed to copy item to clipboard")
             return
         }
+
+        // Step 2.5: Bump the item to the top (most-recently-used) and record access.
+        // Monitoring is paused during paste, so this re-copy won't be re-captured.
+        _ = await storageManager.touchItem(byId: item.id)
 
         // Step 3: Hide the panel
         isVisible = false

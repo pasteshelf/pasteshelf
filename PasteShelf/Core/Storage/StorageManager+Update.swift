@@ -407,6 +407,53 @@ extension StorageManager {
         }
     }
 
+    // MARK: - Recency (Move to Top)
+
+    /// Refreshes an item's timestamp so it sorts to the top of history.
+    /// - Parameter id: The item's identifier
+    /// - Returns: True if the item was found and updated
+    func touchItem(byId id: UUID) async -> Bool {
+        await touchItem(matching: NSPredicate(format: "id == %@", id as CVarArg))
+    }
+
+    /// Refreshes the timestamp of the item with the given content hash so it
+    /// sorts to the top of history. Used when duplicate content is re-copied.
+    ///
+    /// When `sourceApp` is provided, the item's source app is also updated to
+    /// reflect the app the content was most recently copied from (the row now
+    /// presents as "just copied", so its source should match the latest copy).
+    /// - Parameters:
+    ///   - hash: The content hash to match
+    ///   - sourceApp: The app the content was just copied from, or `nil` to leave it unchanged
+    /// - Returns: True if an item was found and updated
+    func touchItem(byHash hash: String, sourceApp: SourceApp? = nil) async -> Bool {
+        await touchItem(matching: NSPredicate(format: "contentHash == %@", hash), sourceApp: sourceApp)
+    }
+
+    /// Shared implementation: refreshes `timestamp` (and `modifiedAt`) for the
+    /// first item matching the predicate, optionally updating its source app.
+    private func touchItem(matching predicate: NSPredicate, sourceApp: SourceApp? = nil) async -> Bool {
+        do {
+            return try await performBackgroundTask { context in
+                let request = ClipboardItem.fetchRequest()
+                request.predicate = predicate
+                request.fetchLimit = 1
+
+                guard let item = try context.fetch(request).first else { return false }
+                let now = Date()
+                item.timestamp = now
+                item.modifiedAt = now
+                if let sourceApp = sourceApp {
+                    item.sourceAppBundleId = sourceApp.bundleId
+                    item.sourceAppName = sourceApp.name
+                }
+                return true
+            }
+        } catch {
+            return false
+        }
+    }
+
     // MARK: - Application Exclusion Update
 
     /// Updates the exclusion status of an application
