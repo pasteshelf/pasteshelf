@@ -231,9 +231,9 @@ struct DeviceRegistrationServiceTests {
 
         let payload = api.registerDeviceCalls.first
         #expect(payload != nil)
-        #expect(payload?.deviceName?.isEmpty == false)
-        #expect(payload?.osVersion?.isEmpty == false)
-        #expect(payload?.appVersion?.isEmpty == false)
+        #expect(payload?.deviceName.isEmpty == false)
+        #expect(payload?.osVersion.isEmpty == false)
+        #expect(payload?.appVersion.isEmpty == false)
     }
 
     // MARK: - Unenrollment

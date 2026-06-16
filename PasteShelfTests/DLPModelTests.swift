@@ -186,7 +186,8 @@ struct DLPModelTests {
             violations: [],
             shouldBlock: false,
             shouldRedact: false,
-            redactedContent: nil
+            redactedContent: nil,
+            redactedFields: nil
         )
         #expect(noViolationsResult.hasViolations == false)
 
@@ -203,7 +204,8 @@ struct DLPModelTests {
             violations: [violation],
             shouldBlock: false,
             shouldRedact: false,
-            redactedContent: nil
+            redactedContent: nil,
+            redactedFields: nil
         )
         #expect(withViolationsResult.hasViolations == true)
     }

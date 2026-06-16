@@ -49,6 +49,7 @@ final class MockAuditLogStorage: AuditLogStoring, @unchecked Sendable {
 
 // MARK: - AuditLoggerTests
 
+@MainActor
 struct AuditLoggerTests {
 
     // MARK: - Event Persistence

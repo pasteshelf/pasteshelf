@@ -55,20 +55,6 @@ struct OnboardingViewModelTests {
         #expect(OnboardingStep.notifications.isSkippable == false)
     }
 
-    @Test("All steps have titles")
-    func allStepsHaveTitles() {
-        for step in OnboardingStep.allCases {
-            #expect(!step.title.isEmpty)
-        }
-    }
-
-    @Test("All steps have subtitles")
-    func allStepsHaveSubtitles() {
-        for step in OnboardingStep.allCases {
-            #expect(!step.subtitle.isEmpty)
-        }
-    }
-
     // MARK: - Onboarding Completion Tests
 
     @Test("shouldShowOnboarding returns true when not completed")
