@@ -71,6 +71,83 @@ struct HotkeyManagerTests {
         }
     }
 
+    @Test("Display string renders previously-unmapped letters (regression)")
+    func displayStringRendersPreviouslyUnmappedLetters() {
+        // These letters used to fall through to "?" in the old hardcoded switch.
+        let previouslyBroken: [(Int32, String)] = [
+            (Int32(kVK_ANSI_I), "I"),
+            (Int32(kVK_ANSI_J), "J"),
+            (Int32(kVK_ANSI_K), "K"),
+            (Int32(kVK_ANSI_L), "L"),
+            (Int32(kVK_ANSI_M), "M"),
+            (Int32(kVK_ANSI_N), "N"),
+            (Int32(kVK_ANSI_O), "O"),
+            (Int32(kVK_ANSI_P), "P"),
+            (Int32(kVK_ANSI_U), "U"),
+        ]
+
+        for (keyCode, expected) in previouslyBroken {
+            let display = HotkeyConfiguration.keyDisplayString(forKeyCode: UInt32(keyCode))
+            #expect(display == expected, "keyCode \(keyCode) should display \(expected), got \(display)")
+            #expect(display != "?", "keyCode \(keyCode) should not display '?'")
+        }
+    }
+
+    @Test("Cmd+Shift+P displays as ⌘⇧P (regression)")
+    func cmdShiftPDisplaysCorrectly() {
+        let config = HotkeyConfiguration(
+            keyCode: UInt32(kVK_ANSI_P),
+            modifiers: UInt32(cmdKey | shiftKey)
+        )
+        let display = config.displayString
+
+        #expect(display.contains("P"))
+        #expect(!display.contains("?"))
+        #expect(display == "⇧⌘P")
+    }
+
+    @Test("All ANSI letters resolve to a non-placeholder glyph")
+    func allLettersResolve() {
+        let letterKeyCodes: [Int32] = [
+            kVK_ANSI_A, kVK_ANSI_B, kVK_ANSI_C, kVK_ANSI_D, kVK_ANSI_E,
+            kVK_ANSI_F, kVK_ANSI_G, kVK_ANSI_H, kVK_ANSI_I, kVK_ANSI_J,
+            kVK_ANSI_K, kVK_ANSI_L, kVK_ANSI_M, kVK_ANSI_N, kVK_ANSI_O,
+            kVK_ANSI_P, kVK_ANSI_Q, kVK_ANSI_R, kVK_ANSI_S, kVK_ANSI_T,
+            kVK_ANSI_U, kVK_ANSI_V, kVK_ANSI_W, kVK_ANSI_X, kVK_ANSI_Y,
+            kVK_ANSI_Z,
+        ].map(Int32.init)
+
+        for keyCode in letterKeyCodes {
+            let display = HotkeyConfiguration.keyDisplayString(forKeyCode: UInt32(keyCode))
+            #expect(display != "?", "keyCode \(keyCode) returned placeholder '?'")
+            #expect(display.count == 1, "letter keyCode \(keyCode) should be a single character, got \(display)")
+        }
+    }
+
+    @Test("Special keys map to fixed glyphs")
+    func specialKeysMapToGlyphs() {
+        let cases: [(Int32, String)] = [
+            (Int32(kVK_Space), "␣"),
+            (Int32(kVK_Return), "↩"),
+            (Int32(kVK_ANSI_KeypadEnter), "↩"),
+            (Int32(kVK_Tab), "⇥"),
+            (Int32(kVK_Escape), "⎋"),
+            (Int32(kVK_Delete), "⌫"),
+            (Int32(kVK_ForwardDelete), "⌦"),
+            (Int32(kVK_LeftArrow), "←"),
+            (Int32(kVK_RightArrow), "→"),
+            (Int32(kVK_UpArrow), "↑"),
+            (Int32(kVK_DownArrow), "↓"),
+            (Int32(kVK_F1), "F1"),
+            (Int32(kVK_F12), "F12"),
+        ]
+
+        for (keyCode, expected) in cases {
+            let display = HotkeyConfiguration.keyDisplayString(forKeyCode: UInt32(keyCode))
+            #expect(display == expected, "keyCode \(keyCode) should display \(expected), got \(display)")
+        }
+    }
+
     // MARK: - Modifier Detection Tests
 
     @Test("hasCommand detects Command modifier")
