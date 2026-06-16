@@ -102,8 +102,13 @@ final class FloatingPanelController: NSObject {
             return
         }
 
-        // Configure panel properties
-        panel.level = .popUpMenu
+        // Configure panel properties.
+        // Use the highest practical non-secure window level — just below the
+        // macOS secure-input shield — so the panel appears above aggressive
+        // "always on top" windows such as VPN/FortiClient credential prompts.
+        // (A SecurityAgent/authorization dialog runs at the shield level itself
+        // and cannot be covered by any app — that's a macOS guarantee.)
+        panel.level = NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()) - 1)
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
         panel.isMovableByWindowBackground = true
@@ -224,8 +229,11 @@ final class FloatingPanelController: NSObject {
         // Position panel in center of main screen
         positionPanelCentered()
 
-        // Show and order front
+        // Show and order front. orderFrontRegardless() forces the panel above
+        // windows of other (possibly active) apps, regardless of activation —
+        // needed to clear high-level prompts like FortiClient's credential box.
         panel.makeKeyAndOrderFront(nil)
+        panel.orderFrontRegardless()
 
         // Activate without stealing focus from other apps
         NSApp.activate(ignoringOtherApps: true)
