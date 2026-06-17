@@ -103,12 +103,13 @@ final class FloatingPanelController: NSObject {
         }
 
         // Configure panel properties.
-        // Use the highest practical non-secure window level — just below the
-        // macOS secure-input shield — so the panel appears above aggressive
-        // "always on top" windows such as VPN/FortiClient credential prompts.
-        // (A SecurityAgent/authorization dialog runs at the shield level itself
-        // and cannot be covered by any app — that's a macOS guarantee.)
-        panel.level = NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()) - 1)
+        // Use the maximum window level so the panel appears above aggressive
+        // "always on top" windows such as VPN/FortiClient credential prompts,
+        // which sit above the secure-input shield. Window level always wins
+        // over ordering, so this is what actually keeps the panel on top.
+        // (A SecurityAgent/authorization dialog is a macOS-privileged window
+        // and may still cover the panel — that's a platform guarantee.)
+        panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.maximumWindow)))
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
         panel.isMovableByWindowBackground = true
