@@ -440,6 +440,11 @@ extension StorageManager {
                 request.fetchLimit = 1
 
                 guard let item = try context.fetch(request).first else { return false }
+                // Favorites keep their place in history — re-using one should
+                // not bump it to the top, since favorites are retrieved via the
+                // Favorites filter, not by recency. Skip the timestamp (and
+                // source-app) refresh entirely.
+                if item.isFavorite { return false }
                 let now = Date()
                 item.timestamp = now
                 item.modifiedAt = now

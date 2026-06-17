@@ -149,4 +149,49 @@ final class StorageManagerTouchTests: XCTestCase {
 
         XCTAssertEqual(countBefore, countAfter, "Touching an item must not add a record")
     }
+
+    // MARK: - Favorites are not bumped
+
+    func testTouchByIdDoesNotBumpFavorite() async {
+        let favId = await saveItem(hash: "fav", secondsAgo: 10_000, text: "favorite")
+        await saveItem(hash: "mid", secondsAgo: 5_000, text: "middle")
+        await saveItem(hash: "new", secondsAgo: 1_000, text: "newest")
+        _ = await storageManager.toggleFavorite(itemId: favId)
+
+        let before = await storageManager.fetchItem(byId: favId)?.timestamp
+
+        let updated = await storageManager.touchItem(byId: favId)
+        XCTAssertFalse(updated, "Touching a favorite should report no update")
+
+        // Timestamp is unchanged, so the favorite keeps its place (still last).
+        let after = await storageManager.fetchItem(byId: favId)?.timestamp
+        XCTAssertEqual(after, before)
+        let ordered = await fetchOrderedIds()
+        XCTAssertEqual(ordered.last, favId, "Favorite must not bump to the top")
+    }
+
+    func testTouchByHashDoesNotBumpFavoriteOrChangeSource() async {
+        let terminal = SourceApp(bundleId: "com.apple.Terminal", name: "Terminal")
+        let id = UUID()
+        let content = ClipboardContent(
+            id: id,
+            timestamp: Date(timeIntervalSinceNow: -10_000),
+            primaryType: .plainText,
+            availableTypes: [.plainText],
+            plainText: "text",
+            contentHash: "favhash"
+        )
+        _ = await storageManager.save(content: content, from: terminal)
+        _ = await storageManager.toggleFavorite(itemId: id)
+
+        let before = await storageManager.fetchItem(byId: id)?.timestamp
+
+        let browser = SourceApp(bundleId: "com.apple.Safari", name: "Safari")
+        let updated = await storageManager.touchItem(byHash: "favhash", sourceApp: browser)
+        XCTAssertFalse(updated, "Touching a favorite should report no update")
+
+        let after = await storageManager.fetchItem(byId: id)
+        XCTAssertEqual(after?.timestamp, before, "Favorite timestamp must be unchanged")
+        XCTAssertEqual(after?.sourceAppBundleId, "com.apple.Terminal", "Favorite source must be unchanged")
+    }
 }
