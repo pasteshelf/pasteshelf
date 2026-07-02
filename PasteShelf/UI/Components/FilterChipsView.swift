@@ -124,6 +124,8 @@ struct FilterChip: View {
     /// Action when tapped
     let action: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+
     // MARK: - Body
 
     var body: some View {
@@ -149,16 +151,34 @@ struct FilterChip: View {
 
     // MARK: - Computed Properties
 
+    private var effectiveSelectedColor: Color {
+        selectedColor.chipLegible(in: colorScheme)
+    }
+
     private var background: Color {
-        isSelected ? selectedColor.opacity(0.15) : Color.clear
+        isSelected ? effectiveSelectedColor.opacity(0.15) : Color.clear
     }
 
     private var foregroundColor: Color {
-        isSelected ? selectedColor : .secondary
+        isSelected ? effectiveSelectedColor : .secondary
     }
 
     private var borderColor: Color {
-        isSelected ? selectedColor.opacity(0.3) : Color.secondary.opacity(0.3)
+        isSelected
+            ? effectiveSelectedColor.opacity(colorScheme == .light ? 0.45 : 0.3)
+            : Color.secondary.opacity(0.3)
+    }
+}
+
+// MARK: - Chip Color Legibility
+
+extension Color {
+    /// Bright accents like orange lack contrast on the pale selected-chip
+    /// background in light mode; darken them there, pass through in dark mode.
+    func chipLegible(in colorScheme: ColorScheme) -> Color {
+        guard colorScheme == .light else { return self }
+        let base = NSColor(self)
+        return Color(nsColor: base.blended(withFraction: 0.35, of: .black) ?? base)
     }
 }
 
@@ -211,18 +231,26 @@ struct CompactFilterChip: View {
     var selectedColor: Color = .accentColor
     let action: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var effectiveSelectedColor: Color {
+        selectedColor.chipLegible(in: colorScheme)
+    }
+
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: 11, weight: .medium))
                 .frame(width: 24, height: 24)
-                .background(isSelected ? selectedColor.opacity(0.15) : Color.clear)
-                .foregroundStyle(isSelected ? selectedColor : .secondary)
+                .background(isSelected ? effectiveSelectedColor.opacity(0.15) : Color.clear)
+                .foregroundStyle(isSelected ? effectiveSelectedColor : .secondary)
                 .clipShape(Circle())
                 .overlay(
                     Circle()
                         .stroke(
-                            isSelected ? selectedColor.opacity(0.3) : Color.secondary.opacity(0.2),
+                            isSelected
+                                ? effectiveSelectedColor.opacity(colorScheme == .light ? 0.45 : 0.3)
+                                : Color.secondary.opacity(0.2),
                             lineWidth: 1
                         )
                 )
