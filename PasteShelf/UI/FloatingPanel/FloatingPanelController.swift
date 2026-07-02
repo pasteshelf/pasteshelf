@@ -54,6 +54,10 @@ final class FloatingPanelController: NSObject {
     /// The app that was active before the panel was shown
     private var previousApp: NSRunningApplication?
 
+    /// Timer that keeps the panel on top of aggressive always-on-top windows
+    /// (e.g. FortiClient's credential prompt) while the panel is visible.
+    private var topmostEnforcementTimer: Timer?
+
     /// Storage manager reference
     private let storageManager: StorageManager
 
@@ -103,12 +107,12 @@ final class FloatingPanelController: NSObject {
         }
 
         // Configure panel properties.
-        // Use the maximum window level so the panel appears above aggressive
-        // "always on top" windows such as VPN/FortiClient credential prompts,
-        // which sit above the secure-input shield. Window level always wins
-        // over ordering, so this is what actually keeps the panel on top.
-        // (A SecurityAgent/authorization dialog is a macOS-privileged window
-        // and may still cover the panel — that's a platform guarantee.)
+        // Start at the maximum documented window level. This alone is NOT
+        // sufficient against aggressive prompts (e.g. FortiClient's credential
+        // dialog): the WindowServer honors raw levels up to INT32_MAX, and at
+        // equal levels z-order decides — which such dialogs re-assert on a
+        // timer. While visible, enforceTopmost() adapts the level to whatever
+        // is covering the panel and re-fronts it.
         panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.maximumWindow)))
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
@@ -239,13 +243,87 @@ final class FloatingPanelController: NSObject {
         // Activate without stealing focus from other apps
         NSApp.activate(ignoringOtherApps: true)
 
+        startTopmostEnforcement()
+
         logger.debug("Panel shown")
     }
 
     private func hidePanel() {
+        stopTopmostEnforcement()
         guard panel?.isVisible == true else { return }
         panel?.orderOut(nil)
         logger.debug("Panel hidden")
+    }
+
+    // MARK: - Topmost Enforcement
+
+    /// Keeps the panel above aggressive always-on-top windows while visible.
+    ///
+    /// A static window level cannot guarantee this: the WindowServer honors
+    /// raw levels up to INT32_MAX from any app, and when two windows share a
+    /// level, z-order decides — which prompts like FortiClient's credential
+    /// dialog re-assert on their own timer. So while the panel is visible we
+    /// periodically look for another app's window that is both above the
+    /// panel in z-order and overlapping it, match its level, and re-front.
+    private func startTopmostEnforcement() {
+        stopTopmostEnforcement()
+        enforceTopmost()
+        let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.enforceTopmost()
+            }
+        }
+        // .common so the timer keeps firing during event tracking (scrolling).
+        RunLoop.main.add(timer, forMode: .common)
+        topmostEnforcementTimer = timer
+    }
+
+    private func stopTopmostEnforcement() {
+        topmostEnforcementTimer?.invalidate()
+        topmostEnforcementTimer = nil
+    }
+
+    private func enforceTopmost() {
+        guard let panel = panel, panel.isVisible else { return }
+        guard let windows = CGWindowListCopyWindowInfo(
+            [.optionOnScreenOnly, .excludeDesktopElements],
+            kCGNullWindowID
+        ) as? [[String: Any]] else { return }
+
+        // CG window bounds use a top-left-origin global space anchored to the
+        // primary screen; flip the panel frame to compare.
+        let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
+        var panelBounds = panel.frame
+        panelBounds.origin.y = primaryHeight - panelBounds.maxY
+
+        let myPID = ProcessInfo.processInfo.processIdentifier
+
+        // The list is ordered front-to-back, so every window before ours is
+        // above us. Find the first one from another app that overlaps the
+        // panel — that's what is covering us.
+        for window in windows {
+            if window[kCGWindowNumber as String] as? Int == panel.windowNumber {
+                return // Reached ourselves: nothing relevant is above us.
+            }
+            guard (window[kCGWindowOwnerPID as String] as? Int32) != myPID,
+                  (window[kCGWindowOwnerName as String] as? String) != "Window Server",
+                  let layer = window[kCGWindowLayer as String] as? Int,
+                  let boundsDict = window[kCGWindowBounds as String] as? [String: Any],
+                  let bounds = CGRect(dictionaryRepresentation: boundsDict as CFDictionary),
+                  bounds.intersects(panelBounds)
+            else { continue }
+
+            // Go one level above the covering window so z-order no longer
+            // matters (a tie flickers if the other window also re-fronts).
+            // Never exceed INT32_MAX, the WindowServer's true ceiling.
+            let target = min(max(layer + 1, panel.level.rawValue), Int(Int32.max))
+            if panel.level.rawValue < target {
+                panel.level = NSWindow.Level(rawValue: target)
+                logger.info("Raised panel level to \(target) to clear covering window")
+            }
+            panel.orderFrontRegardless()
+            return
+        }
     }
 
     /// Restores focus to the app that was active before the panel was shown
@@ -362,7 +440,6 @@ final class FloatingPanelController: NSObject {
         default: return nil
         }
     }
-
 }
 
 // MARK: - NSWindowDelegate
