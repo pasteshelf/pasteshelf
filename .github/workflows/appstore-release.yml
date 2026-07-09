@@ -106,20 +106,33 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
           BUILD_NUMBER: ${{ github.run_number }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
         run: |
           set -o pipefail
           # App Store builds use 1000+ offset to distinguish from direct distribution
           APPSTORE_BUILD_NUMBER=$((BUILD_NUMBER + 1000))
           echo "App Store build number: $APPSTORE_BUILD_NUMBER (base: $BUILD_NUMBER)"
 
+          # The iCloud entitlement requires a provisioning profile at archive
+          # time. Use automatic (cloud) signing authenticated with the ASC API
+          # key so Xcode fetches/creates the Mac App Store profile itself;
+          # the export step re-signs with the distribution identity.
+          API_KEY_PATH="$RUNNER_TEMP/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+          echo "$APP_STORE_CONNECT_API_KEY_P8" > "$API_KEY_PATH"
+
           xcodebuild archive \
             -scheme "$SCHEME" \
             -configuration "$CONFIGURATION" \
             -destination 'platform=macOS,arch=arm64' \
             -archivePath build/${APP_NAME}-AppStore.xcarchive \
+            -authenticationKeyPath "$API_KEY_PATH" \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID" \
+            -allowProvisioningUpdates \
             ONLY_ACTIVE_ARCH=YES \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="3rd Party Mac Developer Application" \
+            CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM="${TEAM_ID}" \
             MARKETING_VERSION="${RELEASE_VERSION}" \
             CURRENT_PROJECT_VERSION="${APPSTORE_BUILD_NUMBER}" \
