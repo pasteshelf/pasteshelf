@@ -5,3 +5,8 @@
 // which is gitignored. Copy Local.xcconfig.example to get started.
 
 #include? "Local.xcconfig"
+
+// Keep raw Info plists out of Copy Bundle Resources (the processed Info.plist
+// is produced from INFOPLIST_FILE; stray copies leak Sparkle metadata into
+// the App Store bundle).
+EXCLUDED_SOURCE_FILE_NAMES = $(inherited) Info.plist Info-AppStore.plist
