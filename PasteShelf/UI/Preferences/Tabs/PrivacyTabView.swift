@@ -15,7 +15,9 @@ struct PrivacyTabView: View {
     @ObservedObject var viewModel: PreferencesViewModel
     @State private var showClearHistoryAlert = false
     @State private var showAppPicker = false
-    @State private var hasAccessibilityPermission: Bool = AXIsProcessTrusted()
+    #if !APP_STORE
+        @State private var hasAccessibilityPermission: Bool = AXIsProcessTrusted()
+    #endif
 
     // MARK: - Body
 

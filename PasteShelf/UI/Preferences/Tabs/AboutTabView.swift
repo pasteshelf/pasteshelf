@@ -60,6 +60,9 @@ struct AboutTabView: View {
 
             // Links
             VStack(spacing: 12) {
+                #if !APP_STORE
+                // Hidden on the App Store: pasteshelf.app's primary CTA is the
+                // direct-download build (Guideline 2.3.10 steering risk).
                 Link(destination: URL(string: "https://pasteshelf.app")!) {
                     HStack {
                         Image(systemName: "globe")
@@ -67,6 +70,7 @@ struct AboutTabView: View {
                     }
                 }
                 .accessibilityLabel("Visit PasteShelf website")
+                #endif
 
                 Link(destination: URL(string: "https://github.com/pasteshelf/pasteshelf")!) {
                     HStack {
