@@ -14,7 +14,10 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  XCODE_VERSION: "16.2"
+  # Must match release.yml and the dev toolchain — newer Swift adds
+  # appendInterpolation overloads that Xcode 16.x rejects, and the Sparkle
+  # strip phase ordering fix targets Xcode 26 build-system behavior.
+  XCODE_VERSION: "26.2"
   APP_NAME: "PasteShelf"
   SCHEME: "PasteShelf AppStore"
   CONFIGURATION: "Release-AppStore"
@@ -172,6 +175,38 @@ jobs:
             fi
           done
           echo "OK: No prohibited entitlements"
+
+          echo ""
+          echo "=== 4. Checking for restricted symbols ==="
+          # Guideline 2.4.5 / 2.5.2: the App Store binary must contain no
+          # synthetic input, post-event, accessibility, or script-execution
+          # symbols at all (Apple scans the binary; gating the UI is not enough).
+          RESTRICTED=$(nm -u "$APP_PATH/Contents/MacOS/${APP_NAME}" 2>/dev/null | \
+            grep -iE "IOPSCopy|AXUIElement|IOServiceMatching|IORegistryEntry|CGEventPost|CGEventCreateKeyboardEvent|CGEventKeyboardSetUnicodeString|CGRequestPostEventAccess|CGPreflightPostEventAccess|AXIsProcessTrusted|CGEventSourceCreate|IOHIDRequestAccess|IOHIDCheckAccess|NSAppleScript" || true)
+          if [ -n "$RESTRICTED" ]; then
+            echo "$RESTRICTED"
+            echo "::error::Restricted symbols found in App Store binary!"
+            exit 1
+          fi
+          echo "OK: No restricted symbols"
+
+          echo ""
+          echo "=== 5. Verify Info.plist is clean ==="
+          for key in NSAccessibilityUsageDescription SUFeedURL SUPublicEDKey; do
+            if /usr/libexec/PlistBuddy -c "Print :$key" "$APP_PATH/Contents/Info.plist" 2>/dev/null; then
+              echo "::error::$key present in App Store Info.plist!"
+              exit 1
+            fi
+          done
+          echo "OK: no accessibility usage description, no Sparkle keys"
+
+          echo ""
+          echo "=== 6. Verify no stray raw plists in Resources ==="
+          if ls "$APP_PATH/Contents/Resources/" | grep -qE "^Info(-AppStore)?\.plist$"; then
+            echo "::error::Raw Info plist copied into Resources (leaks Sparkle metadata)!"
+            exit 1
+          fi
+          echo "OK: no stray plists"
 
       # ------------------------------------------------------------------
       # 4. Export & Upload to App Store Connect
