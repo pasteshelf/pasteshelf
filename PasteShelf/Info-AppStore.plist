@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- App Store category (required for App Store submission) -->
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.utilities</string>
+
 	<!-- URL Scheme Support -->
 	<key>CFBundleURLTypes</key>
 	<array>
