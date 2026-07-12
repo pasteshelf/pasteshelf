@@ -6,6 +6,16 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 
+	<!-- Menu bar app: no Dock icon by default ("Show in Dock" flips the
+	     activation policy at runtime) -->
+	<key>LSUIElement</key>
+	<true/>
+
+	<!-- Only Apple-provided (exempt) encryption is used; skips the export
+	     compliance questionnaire on every upload -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
 	<!-- URL Scheme Support -->
 	<key>CFBundleURLTypes</key>
 	<array>
