@@ -27,6 +27,7 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Whether notification permission is granted
     @Published var hasNotificationPermission = false
+    @Published var isNotificationPermissionDenied = false
 
     /// Whether the onboarding is complete
     @Published var isComplete = false
@@ -94,6 +95,19 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Move to the next step
     func nextStep() {
+        // Leaving the notifications step doubles as the permission request
+        // (first decision only) — the step has no separate request button.
+        if currentStep == .notifications {
+            Task { @MainActor in
+                await requestNotificationPermissionIfNeeded()
+                advanceStep()
+            }
+            return
+        }
+        advanceStep()
+    }
+
+    private func advanceStep() {
         if let next = currentStep.next {
             currentStep = next
             logger.debug("Moved to step: \(String(describing: next))")
@@ -184,34 +198,32 @@ final class OnboardingViewModel: ObservableObject {
     /// Check notification permission status
     func checkNotificationPermission() async {
         let settings = await UNUserNotificationCenter.current().notificationSettings()
-        hasNotificationPermission = settings.authorizationStatus == .authorized
+        let status = settings.authorizationStatus
+        hasNotificationPermission = status == .authorized || status == .provisional
+        isNotificationPermissionDenied = status == .denied
         logger.debug("Notification permission: \(self.hasNotificationPermission)")
     }
 
-    /// Request notification permission
-    func requestNotificationPermission() {
-        Task {
-            let settings = await UNUserNotificationCenter.current().notificationSettings()
+    /// Shows the system notification prompt if the user has not decided yet.
+    /// Previously-decided states are left alone (recovery goes through the
+    /// step's explicit "Open System Settings" button).
+    func requestNotificationPermissionIfNeeded() async {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        guard settings.authorizationStatus == .notDetermined else { return }
 
-            if settings.authorizationStatus == .notDetermined {
-                // First time — show system prompt
-                do {
-                    let granted = try await UNUserNotificationCenter.current()
-                        .requestAuthorization(options: [.alert, .sound, .badge])
-                    hasNotificationPermission = granted
-                    logger.info("Requested notification permission, granted: \(granted)")
-                } catch {
-                    logger.error("Failed to request notification permission: \(error.localizedDescription)")
-                }
-            } else {
-                // Previously denied — open System Settings
-                openNotificationSettings()
-            }
+        do {
+            let granted = try await UNUserNotificationCenter.current()
+                .requestAuthorization(options: [.alert, .sound, .badge])
+            hasNotificationPermission = granted
+            isNotificationPermissionDenied = !granted
+            logger.info("Requested notification permission, granted: \(granted)")
+        } catch {
+            logger.error("Failed to request notification permission: \(error.localizedDescription)")
         }
     }
 
     /// Opens System Settings to the Notifications pane for PasteShelf
-    private func openNotificationSettings() {
+    func openNotificationSettings() {
         if let bundleId = Bundle.main.bundleIdentifier,
            let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(bundleId)")
         {

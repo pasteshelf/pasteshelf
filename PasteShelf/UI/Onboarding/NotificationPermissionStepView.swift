@@ -44,26 +44,32 @@ struct NotificationPermissionStepView: View {
             .multilineTextAlignment(.center)
             .frame(maxWidth: 380)
 
-            // Permission status and action
+            // Permission status. The system prompt itself is triggered by the
+            // navigation "Continue" button when leaving this step, so the
+            // step body only reflects the current state.
             if viewModel.hasNotificationPermission {
                 Label("Notifications enabled", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(Color.green)
                     .font(.callout)
-            } else {
-                // Neutral label before a system permission prompt
-                // (Guideline 5.1.1(iv) — "Grant/Allow/Enable" buttons are rejected)
-                Button("Continue") {
-                    viewModel.requestNotificationPermission()
-                }
-                .buttonStyle(.bordered)
+            } else if viewModel.isNotificationPermissionDenied {
+                VStack(spacing: 10) {
+                    Text("Notifications are currently turned off for PasteShelf.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 340)
 
-                Text(
-                    "If System Settings opens, enable \"Allow Notifications\" for PasteShelf."
-                )
-                .font(.caption)
-                .foregroundStyle(.orange)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 340)
+                    Button("Open System Settings") {
+                        viewModel.openNotificationSettings()
+                    }
+                    .buttonStyle(.bordered)
+                }
+            } else {
+                Text("You'll be asked for permission when you continue.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 340)
             }
 
             Spacer()
