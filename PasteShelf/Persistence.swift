@@ -48,6 +48,12 @@ struct PersistenceController {
             forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey
         )
 
+        // The store must stay local-only: NSPersistentCloudKitContainer would
+        // otherwise mirror ALL entities to the user's private iCloud database
+        // automatically (ignoring the app's sync toggle and bypassing the
+        // E2E-encrypted sync engine in Core/Sync, which owns iCloud sync).
+        container.persistentStoreDescriptions.first?.cloudKitContainerOptions = nil
+
         container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {
                 Self.logger.error("CoreData store failed to load: \(error.localizedDescription)")
