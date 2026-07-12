@@ -45,7 +45,11 @@ struct TutorialStepView: View {
                 VStack(spacing: 8) {
                     shortcutRow(keys: "⌘ ⇧ V", description: "Open clipboard panel")
                     shortcutRow(keys: "↑ ↓", description: "Navigate items")
+                    #if APP_STORE
+                    shortcutRow(keys: "⏎", description: "Copy selected item")
+                    #else
                     shortcutRow(keys: "⏎", description: "Paste selected item")
+                    #endif
                     shortcutRow(keys: "⌘ F", description: "Search clipboard")
                     shortcutRow(keys: "⌘ S", description: "Toggle favorite")
                 }

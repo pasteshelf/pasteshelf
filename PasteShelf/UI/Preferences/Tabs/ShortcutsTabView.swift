@@ -40,27 +40,53 @@ struct ShortcutsTabView: View {
             }
 
             Section {
+                // App Store build copies to the clipboard (user pastes with ⌘V),
+                // so its UI must not claim it pastes (Guideline 2.4.5 wording).
+                #if APP_STORE
+                Toggle("Enable quick copy (\u{2318}1-9)", isOn: $viewModel.quickPasteEnabled)
+                    .accessibilityLabel("Enable quick copy")
+                    .accessibilityHint("When enabled, press Command plus a number to copy that item")
+                #else
                 Toggle("Enable quick paste (\u{2318}1-9)", isOn: $viewModel.quickPasteEnabled)
                     .accessibilityLabel("Enable quick paste")
                     .accessibilityHint("When enabled, press Command plus a number to paste that item")
+                #endif
             } header: {
+                #if APP_STORE
+                Text("Quick Copy")
+                #else
                 Text("Quick Paste")
+                #endif
             } footer: {
+                #if APP_STORE
+                Text("When the panel is open, press \u{2318}1 through \u{2318}9 to quickly copy items.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                #else
                 Text("When the panel is open, press \u{2318}1 through \u{2318}9 to quickly paste items.")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                #endif
             }
 
             Section {
                 VStack(alignment: .leading, spacing: 12) {
                     ShortcutRow(shortcut: "\u{2191} / \u{2193}", description: "Navigate items")
+                    #if APP_STORE
+                    ShortcutRow(shortcut: "\u{21A9}", description: "Copy selected item")
+                    #else
                     ShortcutRow(shortcut: "\u{21A9}", description: "Paste selected item")
+                    #endif
                     ShortcutRow(shortcut: "\u{238B}", description: "Close panel")
                     ShortcutRow(shortcut: "\u{232B}", description: "Delete selected item")
                     ShortcutRow(shortcut: "\u{2318}S", description: "Toggle favorite")
                     ShortcutRow(shortcut: "\u{2318}F", description: "Focus search")
                     ShortcutRow(shortcut: "1-9", description: "Select item by number")
+                    #if APP_STORE
+                    ShortcutRow(shortcut: "\u{2318}1-9", description: "Quick copy item by number")
+                    #else
                     ShortcutRow(shortcut: "\u{2318}1-9", description: "Quick paste item by number")
+                    #endif
                 }
             } header: {
                 Text("Keyboard Navigation")

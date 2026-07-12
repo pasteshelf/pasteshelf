@@ -50,7 +50,9 @@ struct NotificationPermissionStepView: View {
                     .foregroundStyle(Color.green)
                     .font(.callout)
             } else {
-                Button("Enable Notifications") {
+                // Neutral label before a system permission prompt
+                // (Guideline 5.1.1(iv) — "Grant/Allow/Enable" buttons are rejected)
+                Button("Continue") {
                     viewModel.requestNotificationPermission()
                 }
                 .buttonStyle(.bordered)
