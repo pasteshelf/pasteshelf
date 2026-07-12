@@ -21,7 +21,9 @@ final class CopiedConfirmationWindow {
 
         let toastView = CopiedConfirmationView()
         let hostingView = NSHostingView(rootView: toastView)
-        hostingView.frame = NSRect(x: 0, y: 0, width: 220, height: 44)
+        // Size to the localized text — a fixed width truncates longer
+        // translations (e.g. Turkish "Panoya kopyalandı").
+        hostingView.frame = NSRect(origin: .zero, size: hostingView.fittingSize)
 
         let window = NSWindow(
             contentRect: hostingView.frame,
