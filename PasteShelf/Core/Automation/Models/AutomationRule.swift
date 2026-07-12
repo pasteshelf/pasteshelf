@@ -200,9 +200,11 @@ extension AutomationRule {
     }
 
     /// Example: Notify on sensitive content
+    /// Name and notification text are localized at creation time — the rule
+    /// is stored as data, so it keeps the language it was seeded in.
     static var notifySensitive: AutomationRule {
         AutomationRule(
-            name: "Alert on Sensitive Content",
+            name: String(localized: "Alert on Sensitive Content"),
             isEnabled: false,
             trigger: .onCapture,
             conditions: CollectionRules(
@@ -216,8 +218,8 @@ extension AutomationRule {
             ),
             actions: [
                 .notify(
-                    title: "Sensitive Content Copied",
-                    message: "A sensitive item was added to your clipboard history"
+                    title: String(localized: "Sensitive Content Copied"),
+                    message: String(localized: "A sensitive item was added to your clipboard history")
                 )
             ]
         )
