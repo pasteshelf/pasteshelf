@@ -64,6 +64,14 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     /// Pasteboard instance
     private let pasteboard: NSPasteboard
 
+    /// De-facto pasteboard privacy protocol (nspasteboard.org): password
+    /// managers mark copies as concealed, and transient marks ephemeral
+    /// programmatic content. Neither may enter the history.
+    private static let privacyMarkerTypes: [NSPasteboard.PasteboardType] = [
+        NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"),
+        NSPasteboard.PasteboardType("org.nspasteboard.TransientType"),
+    ]
+
     // MARK: - Initialization
 
     /// Creates a ClipboardMonitor with default dependencies
@@ -168,6 +176,15 @@ final class ClipboardMonitor: ObservableObject, ClipboardMonitoring {
     /// Captures and processes current clipboard content
     private func captureCurrentContent() {
         let startTime = CFAbsoluteTimeGetCurrent()
+
+        // Honor concealed/transient markers before anything else
+        if let types = pasteboard.types,
+           types.contains(where: Self.privacyMarkerTypes.contains) {
+            metrics.excludedCount += 1
+            delegate?.clipboardMonitor(self, didExcludeContentWithReason: .concealedContent)
+            Logger.clipboard.debug("Capture excluded: concealed or transient content")
+            return
+        }
 
         // Check exclusions first
         if handleExclusions() { return }
