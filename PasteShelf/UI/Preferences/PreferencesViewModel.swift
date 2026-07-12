@@ -49,6 +49,10 @@ final class PreferencesViewModel: ObservableObject {
         didSet { updateGeneral() }
     }
 
+    @Published var showCopyConfirmation: Bool {
+        didSet { updateGeneral() }
+    }
+
     // MARK: - Privacy Settings
 
     @Published var autoDeleteEnabled: Bool {
@@ -140,6 +144,7 @@ final class PreferencesViewModel: ObservableObject {
         captureImageContent = settings.general.captureImageContent
         captureFileContent = settings.general.captureFileContent
         captureLinkContent = settings.general.captureLinkContent
+        showCopyConfirmation = settings.general.showCopyConfirmation
 
         // Privacy
         autoDeleteEnabled = settings.privacy.autoDeleteEnabled
@@ -201,7 +206,8 @@ final class PreferencesViewModel: ObservableObject {
             captureTextContent: captureTextContent,
             captureImageContent: captureImageContent,
             captureFileContent: captureFileContent,
-            captureLinkContent: captureLinkContent
+            captureLinkContent: captureLinkContent,
+            showCopyConfirmation: showCopyConfirmation
         )
     }
 
@@ -280,6 +286,7 @@ final class PreferencesViewModel: ObservableObject {
         captureImageContent = settings.general.captureImageContent
         captureFileContent = settings.general.captureFileContent
         captureLinkContent = settings.general.captureLinkContent
+        showCopyConfirmation = settings.general.showCopyConfirmation
 
         // Privacy
         autoDeleteEnabled = settings.privacy.autoDeleteEnabled

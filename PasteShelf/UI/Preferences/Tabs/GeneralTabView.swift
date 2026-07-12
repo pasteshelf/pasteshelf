@@ -36,6 +36,20 @@ struct GeneralTabView: View {
                 Text("Startup")
             }
 
+            #if APP_STORE
+            Section {
+                Toggle("Show \"Copied\" confirmation", isOn: $viewModel.showCopyConfirmation)
+                    .accessibilityLabel("Show copied confirmation")
+                    .accessibilityHint("When enabled, a brief toast appears after copying an item")
+            } header: {
+                Text("Feedback")
+            } footer: {
+                Text("Shows a brief \"Copied to clipboard\" message after selecting an item.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            #endif
+
             Section {
                 Picker("History limit", selection: $viewModel.historyLimit) {
                     ForEach(HistoryLimit.allCases) { limit in

@@ -529,7 +529,9 @@ final class FloatingPanelViewModel: ObservableObject {
         #if APP_STORE
         // App Store: show "Copied" toast — user presses Cmd+V themselves.
         // Pause monitoring for 2s to avoid re-capturing the user's manual Cmd+V paste.
-        CopiedConfirmationWindow.show()
+        if settingsManager.general.showCopyConfirmation {
+            CopiedConfirmationWindow.show()
+        }
         try? await Task.sleep(for: .milliseconds(2000))
         clipboardMonitor?.resume()
         #else

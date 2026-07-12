@@ -19,6 +19,7 @@ struct SettingsManagerTests {
         #expect(settings.launchAtLogin == false)
         #expect(settings.showInDock == false)
         #expect(settings.historyLimit == .medium)
+        #expect(settings.showCopyConfirmation == true)
     }
 
     @Test("HistoryLimit has correct values")

@@ -33,6 +33,9 @@ struct GeneralSettings: Codable, Equatable {
     /// Whether to capture link content (URLs)
     var captureLinkContent: Bool
 
+    /// Whether to show the "Copied to clipboard" confirmation toast (App Store builds)
+    var showCopyConfirmation: Bool
+
     // MARK: - Initialization
 
     init(
@@ -42,7 +45,8 @@ struct GeneralSettings: Codable, Equatable {
         captureTextContent: Bool = true,
         captureImageContent: Bool = true,
         captureFileContent: Bool = true,
-        captureLinkContent: Bool = true
+        captureLinkContent: Bool = true,
+        showCopyConfirmation: Bool = true
     ) {
         self.launchAtLogin = launchAtLogin
         self.showInDock = showInDock
@@ -51,6 +55,7 @@ struct GeneralSettings: Codable, Equatable {
         self.captureImageContent = captureImageContent
         self.captureFileContent = captureFileContent
         self.captureLinkContent = captureLinkContent
+        self.showCopyConfirmation = showCopyConfirmation
     }
 
     // MARK: - Codable (backwards compatibility)
@@ -64,6 +69,7 @@ struct GeneralSettings: Codable, Equatable {
         captureImageContent = try container.decodeIfPresent(Bool.self, forKey: .captureImageContent) ?? true
         captureFileContent = try container.decodeIfPresent(Bool.self, forKey: .captureFileContent) ?? true
         captureLinkContent = try container.decodeIfPresent(Bool.self, forKey: .captureLinkContent) ?? true
+        showCopyConfirmation = try container.decodeIfPresent(Bool.self, forKey: .showCopyConfirmation) ?? true
     }
 
     // MARK: - Capture Filtering

@@ -45,8 +45,8 @@ final class CopiedConfirmationWindow {
             window.animator().alphaValue = 1
         }
 
-        // Auto-dismiss after 1.5 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        // Auto-dismiss after 1 second
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             dismiss()
         }
     }
