@@ -71,21 +71,22 @@ struct ShortcutsTabView: View {
 
             Section {
                 VStack(alignment: .leading, spacing: 12) {
-                    ShortcutRow(shortcut: "\u{2191} / \u{2193}", description: "Navigate items")
+                    // ShortcutRow renders plain Strings, so localize here
+                    ShortcutRow(shortcut: "\u{2191} / \u{2193}", description: String(localized: "Navigate items"))
                     #if APP_STORE
-                    ShortcutRow(shortcut: "\u{21A9}", description: "Copy selected item")
+                    ShortcutRow(shortcut: "\u{21A9}", description: String(localized: "Copy selected item"))
                     #else
-                    ShortcutRow(shortcut: "\u{21A9}", description: "Paste selected item")
+                    ShortcutRow(shortcut: "\u{21A9}", description: String(localized: "Paste selected item"))
                     #endif
-                    ShortcutRow(shortcut: "\u{238B}", description: "Close panel")
-                    ShortcutRow(shortcut: "\u{232B}", description: "Delete selected item")
-                    ShortcutRow(shortcut: "\u{2318}S", description: "Toggle favorite")
-                    ShortcutRow(shortcut: "\u{2318}F", description: "Focus search")
-                    ShortcutRow(shortcut: "1-9", description: "Select item by number")
+                    ShortcutRow(shortcut: "\u{238B}", description: String(localized: "Close panel"))
+                    ShortcutRow(shortcut: "\u{232B}", description: String(localized: "Delete selected item"))
+                    ShortcutRow(shortcut: "\u{2318}S", description: String(localized: "Toggle favorite"))
+                    ShortcutRow(shortcut: "\u{2318}F", description: String(localized: "Focus search"))
+                    ShortcutRow(shortcut: "1-9", description: String(localized: "Select item by number"))
                     #if APP_STORE
-                    ShortcutRow(shortcut: "\u{2318}1-9", description: "Quick copy item by number")
+                    ShortcutRow(shortcut: "\u{2318}1-9", description: String(localized: "Quick copy item by number"))
                     #else
-                    ShortcutRow(shortcut: "\u{2318}1-9", description: "Quick paste item by number")
+                    ShortcutRow(shortcut: "\u{2318}1-9", description: String(localized: "Quick paste item by number"))
                     #endif
                 }
             } header: {
