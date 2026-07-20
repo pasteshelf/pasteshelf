@@ -12,6 +12,7 @@
 
 <p align="center">
   <a href="https://github.com/pasteshelf/pasteshelf/actions/workflows/ci.yml"><img src="https://github.com/pasteshelf/pasteshelf/actions/workflows/ci.yml/badge.svg" alt="Build"></a>
+  <a href="https://apps.apple.com/app/pasteshelf/id6789291462"><img src="https://img.shields.io/badge/Mac_App_Store-available-0D96F6?logo=appstore&logoColor=white" alt="Mac App Store"></a>
   <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" alt="License: AGPL-3.0"></a>
   <a href="https://www.apple.com/macos/"><img src="https://img.shields.io/badge/macOS-14.0%2B-brightgreen" alt="macOS"></a>
   <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift"></a>
@@ -79,7 +80,7 @@ All features are free and open-source.
 ## Screenshots
 
 <p align="center">
-  <img src="assets/screenshots/01_general.png" width="270" alt="Your Clipboard, Supercharged">
+  <img src="assets/screenshots/01_panel.png" width="270" alt="Instant Clipboard History">
   &nbsp;&nbsp;
   <img src="assets/screenshots/02_privacy.png" width="270" alt="Privacy First">
   &nbsp;&nbsp;
@@ -89,7 +90,7 @@ All features are free and open-source.
 <p align="center">
   <img src="assets/screenshots/04_shortcuts.png" width="270" alt="Keyboard-First Workflow">
   &nbsp;&nbsp;
-  <img src="assets/screenshots/08_menubar.png" width="270" alt="Always Within Reach">
+  <img src="assets/screenshots/05_general.png" width="270" alt="Your Clipboard, Supercharged">
 </p>
 
 ---
@@ -106,9 +107,11 @@ Download the latest release from [GitHub Releases](https://github.com/pasteshelf
 brew install --cask pasteshelf/pasteshelf/pasteshelf
 ```
 
-### Mac App Store (Coming Soon)
+### Mac App Store
 
-[![Download on the Mac App Store](https://developer.apple.com/assets/elements/badges/download-on-the-mac-app-store.svg)](https://apps.apple.com/app/pasteshelf)
+[<img src="assets/mac-app-store-badge.svg" height="48" alt="Download on the Mac App Store">](https://apps.apple.com/app/pasteshelf/id6789291462)
+
+> The App Store version is sandboxed: selecting an item copies it to the clipboard for you to paste with ⌘V, and the plugin system and self-hosted sync are not included. The direct download pastes at your cursor and includes every feature.
 
 ### Requirements
 
@@ -125,16 +128,14 @@ brew install --cask pasteshelf/pasteshelf/pasteshelf
 4. **Search or navigate** to find your item
 5. **Press Enter** to paste
 
-```
-┌─────────────────────────────────────────────┐
-│  ⌘⇧V     Open PasteShelf                   │
-│  ⌘F      Focus search                       │
-│  ↑↓      Navigate items                     │
-│  ⏎       Paste selected item               │
-│  ⌘1-9    Quick paste items 1-9             │
-│  ⌘,      Open preferences                   │
-└─────────────────────────────────────────────┘
-```
+| Shortcut | Action |
+|----------|--------|
+| `⌘⇧V` | Open PasteShelf |
+| `⌘F` | Focus search |
+| `↑` `↓` | Navigate items |
+| `⏎` | Paste selected item |
+| `⌘1`–`⌘9` | Quick paste items 1–9 |
+| `⌘,` | Open preferences |
 
 [Full Quick Start Guide](docs/getting-started/QUICK_START.md)
 
